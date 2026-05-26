@@ -54,7 +54,7 @@ export default function CreerEvenementScreen({ navigation }) {
           contentContainerStyle={styles.conteneur}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.retour} onPress={() => navigation.goBack()}>
+          <Text style={styles.retour} onPress={() => navigation.navigate('Dashboard')}>
             ← Retour
           </Text>
 

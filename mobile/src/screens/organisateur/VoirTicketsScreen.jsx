@@ -43,6 +43,10 @@ export default function VoirTicketsScreen({ route, navigation }) {
 
   return (
     <ScrollView style={s.container}>
+      <TouchableOpacity style={s.backBtn} onPress={() => navigation.navigate('Dashboard')}>
+        <Text style={s.backBtnText}>← Retour</Text>
+      </TouchableOpacity>
+
       {!event && (
         <View style={s.searchSection}>
           <Text style={s.searchTitle}>Code événement</Text>
@@ -56,9 +60,6 @@ export default function VoirTicketsScreen({ route, navigation }) {
 
       {event && (
         <>
-          <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
-            <Text style={s.backBtnText}>← Retour</Text>
-          </TouchableOpacity>
           <View style={s.eventInfo}>
             <Text style={s.eventName}>{event.nom}</Text>
             <Text style={s.eventDate}>{event.date}</Text>
