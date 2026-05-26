@@ -1,14 +1,16 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Feather } from '@expo/vector-icons'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
 import { useTickets } from '../hooks/useTickets'
 import EventCard from '../components/EventCard'
 import BottomNav from '../components/BottomNav'
+import { getDefaultImage } from '../config/images'
 
-const EVENTS = [
+const MOCKS = [
   {
     id: 'dmf-2026', title: 'Dakar Music Festival',
     month: 'MAI', day: '24', emoji: '🎶', bg: '#6d28d9',
@@ -34,12 +36,44 @@ const EVENTS = [
   },
 ]
 
+function formaterEvenement(e) {
+  if (e.tickets) return e
+  const def = getDefaultImage(e.categorie)
+  const parts = (e.date || '').split(' ')
+  const month = parts[1]?.slice(0, 3).toUpperCase() || ''
+  const day = parts[0] || ''
+  const prices = (e.categories || []).map(c => c.prix).filter(p => p != null)
+  const min = Math.min(...prices)
+  const max = Math.max(...prices)
+  const priceLabel = prices.length > 1 ? `${min.toLocaleString()}F – ${max.toLocaleString()}F`
+    : prices.length === 1 ? `${min.toLocaleString()}F`
+    : '—'
+  return {
+    id: e.id, title: e.nom || '', month, day,
+    emoji: def.emoji, bg: def.bg, priceLabel,
+    location: e.lieu || '', category: e.categorie || '',
+    date: e.date || '', time: '', desc: e.description || '',
+    tickets: (e.categories || []).map(c => ({ id: c.id, name: c.nom, price: c.prix, desc: '' })),
+  }
+}
+
 export default function HomeScreen({ navigation }) {
+  const [evenements, setEvenements] = useState(MOCKS)
   const { tickets, refresh } = useTickets()
   const { deconnecter } = useAuth()
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', refresh)
+    const unsubscribe = navigation.addListener('focus', async () => {
+      refresh()
+      try {
+        const raw = await AsyncStorage.getItem('@senguichet_evenements')
+        const stored = raw ? JSON.parse(raw) : []
+        const formats = stored.map(formaterEvenement)
+        setEvenements([...formats, ...MOCKS])
+      } catch (e) {
+        console.warn('Failed to load events', e)
+      }
+    })
     return unsubscribe
   }, [navigation, refresh])
 
@@ -82,8 +116,11 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.sectionTitle}>Événements</Text>
           </View>
 
+          {evenements.length === 0 && (
+            <Text style={styles.emptyEvents}>Aucun événement disponible</Text>
+          )}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.eventsRow}>
-            {EVENTS.map((event) => (
+            {evenements.map((event) => (
               <EventCard
                 key={event.id}
                 event={event}
@@ -234,6 +271,10 @@ const styles = StyleSheet.create({
     fontFamily: fonts.jakarta.semiBold,
   },
 
+  emptyEvents: {
+    textAlign: 'center', fontSize: 14, fontFamily: fonts.jakarta.regular,
+    color: colors.mid, marginTop: spacing.lg, marginBottom: spacing.lg,
+  },
   eventsRow: {
     paddingLeft: spacing.lg,
     paddingRight: spacing.lg,

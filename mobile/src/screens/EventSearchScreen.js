@@ -1,13 +1,14 @@
 // Écran de recherche d'événements avec barre de recherche et filtrage
 // Les événements sont mockés en dur pour le moment
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Feather } from '@expo/vector-icons'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
+import { getDefaultImage } from '../config/images'
 
-// Données mockées des événements disponibles
-const EVENTS = [
+const MOCKS = [
   {
     id: 'dmf-2026', title: 'Dakar Music Festival',
     emoji: '🎶', bg: '#6d28d9',
@@ -33,19 +34,51 @@ const EVENTS = [
   },
 ]
 
+function formaterEvenement(e) {
+  if (e.tickets) return e
+  const def = getDefaultImage(e.categorie)
+  const parts = (e.date || '').split(' ')
+  const prices = (e.categories || []).map(c => c.prix).filter(p => p != null)
+  const min = Math.min(...prices)
+  const max = Math.max(...prices)
+  const priceLabel = prices.length > 1 ? `${min.toLocaleString()}F – ${max.toLocaleString()}F`
+    : prices.length === 1 ? `${min.toLocaleString()}F`
+    : '—'
+  return {
+    id: e.id, title: e.nom || '', month: parts[1]?.slice(0, 3).toUpperCase() || '', day: parts[0] || '',
+    emoji: def.emoji, bg: def.bg, priceLabel, location: e.lieu || '',
+    category: e.categorie || '', date: e.date || '', time: '', desc: e.description || '',
+    tickets: (e.categories || []).map(c => ({ id: c.id, name: c.nom, price: c.prix, desc: '' })),
+  }
+}
+
 export default function EventSearchScreen({ navigation }) {
+  const [allEvents, setAllEvents] = useState(MOCKS)
   const [query, setQuery] = useState('')
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', async () => {
+      try {
+        const raw = await AsyncStorage.getItem('@senguichet_evenements')
+        const stored = raw ? JSON.parse(raw) : []
+        setAllEvents([...stored.map(formaterEvenement), ...MOCKS])
+      } catch (e) {
+        console.warn('Failed to load events', e)
+      }
+    })
+    return unsubscribe
+  }, [navigation])
 
   // Filtre les événements par titre, lieu ou catégorie (insensible à la casse)
   const results = useMemo(() => {
-    if (!query.trim()) return EVENTS
+    if (!query.trim()) return allEvents
     const q = query.toLowerCase()
-    return EVENTS.filter(e =>
+    return allEvents.filter(e =>
       e.title.toLowerCase().includes(q) ||
       e.location.toLowerCase().includes(q) ||
       e.category.toLowerCase().includes(q)
     )
-  }, [query])
+  }, [query, allEvents])
 
   return (
     <SafeAreaView style={styles.safe}>
