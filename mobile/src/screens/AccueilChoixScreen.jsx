@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { colors } from '../../constants/theme'
+import { colors } from '../constants/theme'
 
 // Écran d'accueil : permet de choisir son rôle parmi 3 profils
 // Rôles : Acheteur (OTP), Contrôleur (code 4 chiffres), Organisateur (email+mdp)
