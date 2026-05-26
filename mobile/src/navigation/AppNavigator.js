@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
@@ -31,10 +31,20 @@ const Tab = createBottomTabNavigator()
 
 // Onglets du contrôleur : Scanner + Historique
 function ControleurTabs() {
+  const { deconnecter } = useAuth()
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        headerStyle: { backgroundColor: '#FFFFFF' },
+        headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#0f172a' },
+        headerRight: () => (
+          <TouchableOpacity onPress={deconnecter} style={{ marginRight: 16 }}>
+            <Text style={{ fontSize: 14, color: '#ef4444', fontFamily: 'Outfit_600SemiBold' }}>
+              Quitter
+            </Text>
+          </TouchableOpacity>
+        ),
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
           borderTopColor: '#edf0f5',
@@ -55,6 +65,7 @@ function ControleurTabs() {
         options={{
           tabBarLabel: 'Scanner',
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>📷</Text>,
+          title: 'Scanner',
         }}
       />
       <Tab.Screen
@@ -63,6 +74,7 @@ function ControleurTabs() {
         options={{
           tabBarLabel: 'Historique',
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>📋</Text>,
+          title: 'Historique',
         }}
       />
     </Tab.Navigator>
@@ -71,10 +83,20 @@ function ControleurTabs() {
 
 // Onglets de l'organisateur : Dashboard + Créer + Tickets
 function OrganisateurTabs() {
+  const { deconnecter } = useAuth()
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        headerStyle: { backgroundColor: '#FFFFFF' },
+        headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#0f172a' },
+        headerRight: () => (
+          <TouchableOpacity onPress={deconnecter} style={{ marginRight: 16 }}>
+            <Text style={{ fontSize: 14, color: '#ef4444', fontFamily: 'Outfit_600SemiBold' }}>
+              Quitter
+            </Text>
+          </TouchableOpacity>
+        ),
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
           borderTopColor: '#edf0f5',
@@ -95,6 +117,7 @@ function OrganisateurTabs() {
         options={{
           tabBarLabel: 'Tableau de bord',
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>📊</Text>,
+          title: 'Tableau de bord',
         }}
       />
       <Tab.Screen
@@ -103,6 +126,7 @@ function OrganisateurTabs() {
         options={{
           tabBarLabel: 'Créer',
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>➕</Text>,
+          title: 'Nouvel événement',
         }}
       />
       <Tab.Screen
@@ -111,6 +135,7 @@ function OrganisateurTabs() {
         options={{
           tabBarLabel: 'Tickets',
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>🎫</Text>,
+          title: 'Tickets',
         }}
       />
     </Tab.Navigator>
