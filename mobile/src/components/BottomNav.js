@@ -1,22 +1,26 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
 import { fonts, colors, spacing } from '../constants/theme'
 
-const items = [
-  { icon: 'home', label: 'Guichet', key: 'guichet' },
-  { icon: 'tag', label: 'Mes Tickets', key: 'tickets' },
-  { icon: 'message-circle', label: 'Support', key: 'support' },
-]
-
 export default function BottomNav() {
+  const navigation = useNavigation()
+  const route = useRoute()
+
   return (
     <View style={styles.container}>
-      {items.map((item, i) => (
-        <TouchableOpacity key={item.key} style={styles.item}>
-          <Feather name={item.icon} size={19} color={i === 0 ? colors.accent : colors.muted} />
-          <Text style={[styles.label, i === 0 && styles.activeLabel]}>{item.label}</Text>
-        </TouchableOpacity>
-      ))}
+      <TouchableOpacity key="guichet" style={styles.item} onPress={() => navigation.navigate('Home')}>
+        <Feather name="home" size={19} color={route.name === 'Home' ? colors.accent : colors.muted} />
+        <Text style={[styles.label, route.name === 'Home' && styles.activeLabel]}>Accueil</Text>
+      </TouchableOpacity>
+      <TouchableOpacity key="tickets" style={styles.item} onPress={() => navigation.navigate('MesTickets')}>
+        <Feather name="tag" size={19} color={route.name === 'Home' ? colors.accent : colors.muted} />
+        <Text style={[styles.label, route.name === 'MesTickets' && styles.activeLabel]}>Mes Tickets</Text>
+      </TouchableOpacity>
+      <TouchableOpacity key="support" style={styles.item} onPress={() => navigation.navigate('Support')}>
+        <Feather name="message-circle" size={19} color={route.name === 'Support' ? colors.accent : colors.muted} />
+        <Text style={[styles.label, route.name === 'Support' && styles.activeLabel]}>Support</Text>
+      </TouchableOpacity>
     </View>
   )
 }

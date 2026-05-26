@@ -2,8 +2,11 @@
 // Recherche par code événement à 4 chiffres, affiche la liste avec statuts
 import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { colors, glass, shadows, spacing, borderRadius, fonts } from '../../constants/theme'
 import { getAllEvenements, getTicketsByEvent } from '../../services/eventService'
+
+const LAST_EVENT_KEY = '@senguichet_org_last_event_id'
 
 // Badge coloré selon le statut du ticket
 const STATUS_BADGE = {
@@ -20,8 +23,22 @@ export default function VoirTicketsScreen({ route, navigation }) {
 
   // Si un eventId est passé en paramètre, charge directement l'événement
   useEffect(() => {
-    if (eventId) loadEvent(eventId)
+    if (eventId) {
+      loadEvent(eventId)
+      sauvegarderDernierChoix(eventId)
+    } else {
+      restaurerDernierChoix()
+    }
   }, [eventId])
+
+  async function sauvegarderDernierChoix(id) {
+    await AsyncStorage.setItem(LAST_EVENT_KEY, id)
+  }
+
+  async function restaurerDernierChoix() {
+    const saved = await AsyncStorage.getItem(LAST_EVENT_KEY)
+    if (saved) loadEvent(saved)
+  }
 
   async function loadEvent(id) {
     const events = await getAllEvenements()
@@ -43,6 +60,7 @@ export default function VoirTicketsScreen({ route, navigation }) {
     setEvent(evt)
     const t = await getTicketsByEvent(evt.id)
     setTickets(t)
+    await sauvegarderDernierChoix(evt.id)
   }
 
   return (

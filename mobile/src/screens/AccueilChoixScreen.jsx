@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Alert } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { LinearGradient } from 'expo-linear-gradient'
+import { viderTickets } from '../database/database'
 import { colors, gradients, shadows, spacing, borderRadius, fonts } from '../constants/theme'
 
 const ROLES = [
@@ -88,6 +89,7 @@ export default function AccueilChoixScreen({ navigation }) {
               const keys = await AsyncStorage.getAllKeys()
               const appKeys = keys.filter(k => k.startsWith('@senguichet_'))
               await AsyncStorage.multiRemove(appKeys)
+              await viderTickets()
               Alert.alert('✅ Fait', 'Données effacées. Redémarre l\'app.')
             }},
           ])

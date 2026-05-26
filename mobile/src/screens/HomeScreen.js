@@ -1,6 +1,3 @@
-// Écran d'accueil de l'acheteur connecté
-// Affiche : CTA "Acheter un ticket", liste des événements, tickets achetés
-// Les tickets sont rechargés automatiquement au focus de l'écran
 import { useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -11,8 +8,6 @@ import { useTickets } from '../hooks/useTickets'
 import EventCard from '../components/EventCard'
 import BottomNav from '../components/BottomNav'
 
-// Données mockées des événements disponibles à l'achat
-// Sera remplacé par des données API quand le backend sera prêt
 const EVENTS = [
   {
     id: 'dmf-2026', title: 'Dakar Music Festival',
@@ -43,8 +38,6 @@ export default function HomeScreen({ navigation }) {
   const { tickets, refresh } = useTickets()
   const { deconnecter } = useAuth()
 
-  // Recharge les tickets à chaque fois que l'écran reçoit le focus
-  // (utile après un achat : les tickets sont mis à jour sans redémarrer l'app)
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', refresh)
     return unsubscribe
@@ -109,19 +102,19 @@ export default function HomeScreen({ navigation }) {
                 </View>
               </View>
 
-              {tickets.map((t) => (
+              {tickets.slice(0, 3).map((t) => (
                 <TouchableOpacity
                   key={t.id}
                   style={styles.ticketCard}
                   onPress={() => navigation.navigate('Ticket', { ticket: t })}
                   activeOpacity={0.7}
                 >
-                  <View style={[styles.ticketEmojiBox, { backgroundColor: t.bg || colors.greenLight }]}>
-                    <Text style={styles.ticketEmoji}>{t.emoji || '🎫'}</Text>
+                  <View style={[styles.ticketEmojiBox, { backgroundColor: colors.greenLight }]}>
+                    <Text style={styles.ticketEmoji}>🎫</Text>
                   </View>
                   <View style={styles.ticketInfo}>
-                    <Text style={styles.ticketTitle}>{t.eventTitle || t.eventNom}</Text>
-                    <Text style={styles.ticketMeta}>{t.category || t.categorie} · {t.date || t.eventDate}</Text>
+                    <Text style={styles.ticketTitle}>{t.eventNom}</Text>
+                    <Text style={styles.ticketMeta}>{t.categorie} · {t.eventDate}</Text>
                   </View>
                   <View style={styles.ticketStatus}>
                     <View style={styles.dot} />
@@ -129,6 +122,13 @@ export default function HomeScreen({ navigation }) {
                   </View>
                 </TouchableOpacity>
               ))}
+
+              {tickets.length > 3 && (
+                <TouchableOpacity style={styles.viewAll} onPress={() => navigation.navigate('MesTickets')}>
+                  <Text style={styles.viewAllText}>Voir tout ({tickets.length})</Text>
+                  <Feather name="chevron-right" size={12} color={colors.accent} />
+                </TouchableOpacity>
+              )}
             </>
           )}
 
@@ -239,57 +239,45 @@ const styles = StyleSheet.create({
     paddingRight: spacing.lg,
   },
 
-  ticketCard: {
-    marginHorizontal: spacing.lg,
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.md,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
+  ticketsLink: {
+    flexDirection: 'row', alignItems: 'center', gap: 7,
+    marginHorizontal: spacing.lg, marginTop: 26,
+    paddingVertical: spacing.sm, paddingHorizontal: spacing.md,
+    backgroundColor: colors.white, borderRadius: borderRadius.md,
     ...shadows.sm,
   },
+  ticketsLinkText: {
+    flex: 1, fontSize: 13, fontFamily: fonts.outfit.semiBold,
+    color: colors.accent, letterSpacing: -0.1,
+  },
+
+  ticketCard: {
+    marginHorizontal: spacing.lg, backgroundColor: colors.white,
+    borderRadius: borderRadius.md, padding: 14, flexDirection: 'row',
+    alignItems: 'center', marginBottom: spacing.sm, ...shadows.sm,
+  },
   ticketEmojiBox: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
+    width: 40, height: 40, borderRadius: borderRadius.sm,
+    alignItems: 'center', justifyContent: 'center', marginRight: 14,
   },
   ticketEmoji: { fontSize: 20 },
   ticketInfo: { flex: 1 },
-  ticketTitle: {
-    fontFamily: fonts.outfit.semiBold,
-    fontSize: 13,
-    color: colors.slate,
-    letterSpacing: -0.1,
-  },
-  ticketMeta: {
-    fontSize: 11,
-    color: colors.mid,
-    fontFamily: fonts.jakarta.regular,
-    marginTop: 2,
-  },
+  ticketTitle: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.slate, letterSpacing: -0.1 },
+  ticketMeta: { fontSize: 11, color: colors.mid, fontFamily: fonts.jakarta.regular, marginTop: 2 },
   ticketStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: colors.greenLight,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: borderRadius.sm,
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: colors.greenLight, paddingHorizontal: 10, paddingVertical: 5, borderRadius: borderRadius.sm,
   },
-  dot: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.green,
+  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.green },
+  ticketLabel: { fontSize: 10, fontFamily: fonts.jakarta.semiBold, color: '#16a34a' },
+  viewAll: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4,
+    marginHorizontal: spacing.lg, marginBottom: spacing.sm,
+    paddingVertical: spacing.sm, backgroundColor: colors.white,
+    borderRadius: borderRadius.md, ...shadows.sm,
   },
-  ticketLabel: {
-    fontSize: 10,
-    fontFamily: fonts.jakarta.semiBold,
-    color: '#16a34a',
+  viewAllText: {
+    fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.accent,
   },
 
   footer: {

@@ -1,6 +1,7 @@
 // Couche de persistance AsyncStorage pour les événements et tickets
 // Toutes les fonctions sont async car AsyncStorage est asynchrone
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { insererTicketAchete } from '../database/database'
 
 // Clés de stockage dans AsyncStorage
 const EVENTS_KEY = '@senguichet_evenements'  // liste des événements créés
@@ -79,6 +80,7 @@ export async function acheterTicket(eventId, categorieId, telephone) {
   await AsyncStorage.setItem(TICKETS_KEY, JSON.stringify(tickets))
   events[idx] = evt
   await AsyncStorage.setItem(EVENTS_KEY, JSON.stringify(events))
+  await insererTicketAchete(ticket)
   return ticket
 }
 

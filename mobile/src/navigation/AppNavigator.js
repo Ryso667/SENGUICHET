@@ -19,6 +19,8 @@ import HomeScreen from '../screens/HomeScreen'
 import EventSearchScreen from '../screens/EventSearchScreen'
 import EventDetailScreen from '../screens/EventDetailScreen'
 import TicketScreen from '../screens/TicketScreen'
+import MesTicketsScreen from '../screens/MesTicketsScreen'
+import SupportScreen from '../screens/SupportScreen'
 
 // Écrans contrôleur
 import ScannerScreen from '../screens/controleur/ScannerScreen'
@@ -184,6 +186,8 @@ export default function AppNavigator() {
             <Stack.Screen name="EventSearch" component={EventSearchScreen} />
             <Stack.Screen name="EventDetail" component={EventDetailScreen} />
             <Stack.Screen name="Ticket" component={TicketScreen} />
+            <Stack.Screen name="MesTickets" component={MesTicketsScreen} />
+            <Stack.Screen name="Support" component={SupportScreen} />
           </>
         )}
 
