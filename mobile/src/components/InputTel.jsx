@@ -45,7 +45,7 @@ export default function InputTel({ onValide }) {
         keyboardType="phone-pad"
         placeholder="XX XXX XX XX"
         placeholderTextColor="#94a3b8"
-        maxLength={11}
+        maxLength={12}
       />
     </View>
   )
