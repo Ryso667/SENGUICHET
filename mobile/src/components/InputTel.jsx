@@ -21,7 +21,7 @@ export default function InputTel({ onValide }) {
     return formate
   }
 
-  // Met à jour l'affichage et notifie le parent si le numéro est complet
+  // Met à jour l'affichage et notifie le parent si le numéro est complet (9 chiffres)
   const handleChangement = (texte) => {
     const formate = formater(texte)
     setChiffres(formate)
@@ -35,7 +35,9 @@ export default function InputTel({ onValide }) {
 
   return (
     <View style={styles.conteneur}>
+      {/* Indicatif pays (Sénégal) */}
       <Text style={styles.indicatif}>{INDICATIF}</Text>
+      {/* Champ masque : l'utilisateur voit +221 XX XXX XX XX */}
       <TextInput
         style={styles.input}
         value={chiffres}
@@ -43,7 +45,7 @@ export default function InputTel({ onValide }) {
         keyboardType="phone-pad"
         placeholder="XX XXX XX XX"
         placeholderTextColor="#94a3b8"
-        maxLength={12}
+        maxLength={11}
       />
     </View>
   )

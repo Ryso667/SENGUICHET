@@ -9,6 +9,7 @@ import BoutonPrincipal from '../../components/BoutonPrincipal'
 
 // Écran de saisie du numéro de téléphone pour recevoir le code OTP
 // KeyboardAvoidingView empêche le bouton d'être masqué par le clavier
+// Format : +221 XX XXX XX XX (indicatif Sénégal + 9 chiffres)
 export default function EntrerNumeroScreen({ navigation }) {
   const [numero, setNumero] = useState(null)
   const [chargement, setChargement] = useState(false)
@@ -37,6 +38,11 @@ export default function EntrerNumeroScreen({ navigation }) {
           contentContainerStyle={styles.conteneur}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Retour vers l'écran d'accueil */}
+          <Text style={styles.retour} onPress={() => navigation.navigate('AccueilChoix')}>
+            ← Retour
+          </Text>
+
           <Text style={styles.logo}>SENGUICHET</Text>
           <Text style={styles.titre}>Entrez votre numéro</Text>
           <Text style={styles.sousTitre}>
@@ -71,6 +77,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
+  },
+  retour: {
+    fontFamily: 'Outfit_500Medium',
+    fontSize: 15,
+    color: '#6366F1',
+    marginBottom: 16,
   },
   logo: {
     fontFamily: 'Outfit_900Black',

@@ -1,7 +1,10 @@
 import * as SQLite from 'expo-sqlite'
 
+// Base de données SQLite locale pour le mode offline-first
+// Tables : tickets (billets téléchargés) et scans (historique des vérifications)
 let db = null
 
+// Initialisation : ouvre la base et crée les tables si elles n'existent pas
 export async function getDb() {
   if (!db) {
     db = await SQLite.openDatabaseAsync('senguichet.db')
@@ -35,6 +38,7 @@ async function initTables() {
   `)
 }
 
+// Insère ou remplace une liste de tickets dans la base locale
 export async function insererTickets(tickets) {
   const bd = await getDb()
   const ins = bd.prepareAsync(
@@ -53,11 +57,13 @@ export async function insererTickets(tickets) {
   await ins.finalizeAsync()
 }
 
+// Recherche un ticket par son UUID
 export async function chercherTicket(uuid) {
   const bd = await getDb()
   return await bd.getFirstAsync('SELECT * FROM tickets WHERE uuid = $uuid', { $uuid: uuid })
 }
 
+// Marque un ticket comme utilisé localement (anti re-scan)
 export async function marquerUtilise(uuid) {
   const bd = await getDb()
   await bd.runAsync('UPDATE tickets SET statut = $statut WHERE uuid = $uuid', {
@@ -66,6 +72,7 @@ export async function marquerUtilise(uuid) {
   })
 }
 
+// Enregistre un scan dans l'historique local (synced = 0 = en attente de synchro)
 export async function enregistrerScan(uuid, hmac, resultat) {
   const bd = await getDb()
   await bd.runAsync(
@@ -79,27 +86,32 @@ export async function enregistrerScan(uuid, hmac, resultat) {
   )
 }
 
+// Récupère les scans non encore synchronisés
 export async function scansEnAttente() {
   const bd = await getDb()
   return await bd.getAllAsync('SELECT * FROM scans WHERE synced = 0 ORDER BY timestamp_scan ASC')
 }
 
+// Marque tous les scans en attente comme synchronisés
 export async function marquerScansSync() {
   const bd = await getDb()
   await bd.runAsync('UPDATE scans SET synced = 1 WHERE synced = 0')
 }
 
+// Récupère l'historique complet des scans (du plus récent au plus ancien)
 export async function historiqueScans() {
   const bd = await getDb()
   return await bd.getAllAsync('SELECT * FROM scans ORDER BY timestamp_scan DESC')
 }
 
+// Compte le nombre de tickets stockés localement
 export async function compterTickets() {
   const bd = await getDb()
   const row = await bd.getFirstAsync('SELECT COUNT(*) as total FROM tickets')
   return row?.total || 0
 }
 
+// Vide la base locale (tickets + scans)
 export async function viderTickets() {
   const bd = await getDb()
   await bd.runAsync('DELETE FROM tickets')

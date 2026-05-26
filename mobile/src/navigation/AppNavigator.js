@@ -3,19 +3,33 @@ import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { useAuth } from '../context/AuthContext'
+
+// Écrans auth (aucun rôle)
+import AccueilChoixScreen from '../screens/AccueilChoixScreen'
 import EntrerNumeroScreen from '../screens/auth/EntrerNumeroScreen'
 import EntrerOTPScreen from '../screens/auth/EntrerOTPScreen'
 import ConnexionControleurScreen from '../screens/auth/ConnexionControleurScreen'
+import ConnexionOrganisateurScreen from '../screens/auth/ConnexionOrganisateurScreen'
+
+// Écrans acheteur
 import HomeScreen from '../screens/HomeScreen'
 import EventSearchScreen from '../screens/EventSearchScreen'
 import EventDetailScreen from '../screens/EventDetailScreen'
 import TicketScreen from '../screens/TicketScreen'
+
+// Écrans contrôleur
 import ScannerScreen from '../screens/controleur/ScannerScreen'
 import ScanHistoryScreen from '../screens/controleur/ScanHistoryScreen'
+
+// Écrans organisateur
+import OrganisateurDashboardScreen from '../screens/organisateur/OrganisateurDashboardScreen'
+import CreerEvenementScreen from '../screens/organisateur/CreerEvenementScreen'
+import VoirTicketsScreen from '../screens/organisateur/VoirTicketsScreen'
 
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
 
+// Onglets du contrôleur : Scanner + Historique
 function ControleurTabs() {
   return (
     <Tab.Navigator
@@ -55,6 +69,56 @@ function ControleurTabs() {
   )
 }
 
+// Onglets de l'organisateur : Dashboard + Créer + Tickets
+function OrganisateurTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#edf0f5',
+          height: 60,
+          paddingBottom: 8,
+        },
+        tabBarActiveTintColor: '#6366F1',
+        tabBarInactiveTintColor: '#94a3b8',
+        tabBarLabelStyle: {
+          fontFamily: 'Outfit_600SemiBold',
+          fontSize: 12,
+        },
+      }}
+    >
+      <Tab.Screen
+        name="Dashboard"
+        component={OrganisateurDashboardScreen}
+        options={{
+          tabBarLabel: 'Tableau de bord',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>📊</Text>,
+        }}
+      />
+      <Tab.Screen
+        name="CreerEvenement"
+        component={CreerEvenementScreen}
+        options={{
+          tabBarLabel: 'Créer',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>➕</Text>,
+        }}
+      />
+      <Tab.Screen
+        name="VoirTickets"
+        component={VoirTicketsScreen}
+        options={{
+          tabBarLabel: 'Tickets',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>🎫</Text>,
+        }}
+      />
+    </Tab.Navigator>
+  )
+}
+
+// Point d'entrée de la navigation
+// Affiche les piles en fonction du rôle stocké dans AuthContext
 export default function AppNavigator() {
   const { role, chargement } = useAuth()
 
@@ -69,14 +133,19 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+
+        {/* Pas de session active → écran d'accueil + formulaires auth */}
         {!role && (
           <>
+            <Stack.Screen name="AccueilChoix" component={AccueilChoixScreen} />
             <Stack.Screen name="EntrerNumero" component={EntrerNumeroScreen} />
             <Stack.Screen name="EntrerOTP" component={EntrerOTPScreen} />
             <Stack.Screen name="ConnexionControleur" component={ConnexionControleurScreen} />
+            <Stack.Screen name="ConnexionOrganisateur" component={ConnexionOrganisateurScreen} />
           </>
         )}
 
+        {/* Acheteur connecté */}
         {role === 'acheteur' && (
           <>
             <Stack.Screen name="Home" component={HomeScreen} />
@@ -86,9 +155,16 @@ export default function AppNavigator() {
           </>
         )}
 
+        {/* Contrôleur connecté : onglets Scanner + Historique */}
         {role === 'controleur' && (
           <Stack.Screen name="ControleurTabs" component={ControleurTabs} />
         )}
+
+        {/* Organisateur connecté : onglets Dashboard + Créer + Tickets */}
+        {role === 'organisateur' && (
+          <Stack.Screen name="OrganisateurTabs" component={OrganisateurTabs} />
+        )}
+
       </Stack.Navigator>
     </NavigationContainer>
   )

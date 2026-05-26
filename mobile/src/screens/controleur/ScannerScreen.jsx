@@ -4,6 +4,8 @@ import { CameraView, useCameraPermissions } from 'expo-camera'
 import { verifierBillet, telechargerTickets, getStats } from '../../services/scanService'
 import { useAuth } from '../../context/AuthContext'
 
+// Couleurs d'affichage selon le résultat du scan
+// Conforme à la spécification Document Technique v1.0
 const COULEURS = {
   VALIDE: { fond: '#22c55e', icone: '✅', label: 'Entrée autorisée' },
   DEJA_UTILISE: { fond: '#f97316', icone: '🟠', label: 'Déjà utilisé' },
@@ -12,6 +14,8 @@ const COULEURS = {
   FRAUDE: { fond: '#dc2626', icone: '🚨', label: 'FRAUDE suspectée' },
 }
 
+// Écran de scan : caméra + vérification offline du QR code
+// Processus en 5 étapes : lecture → recherche locale → HMAC → statut → mise à jour
 export default function ScannerScreen({ navigation, route }) {
   const [permission, requestPermission] = useCameraPermissions()
   const [scanne, setScanne] = useState(null)
@@ -22,6 +26,7 @@ export default function ScannerScreen({ navigation, route }) {
   const eventId = route?.params?.eventId || 1
   const zone = route?.params?.zone || 'STANDARD'
 
+  // Au montage : télécharge les tickets si nécessaire
   useEffect(() => {
     preparerScan()
   }, [])
@@ -39,12 +44,14 @@ export default function ScannerScreen({ navigation, route }) {
     }
   }
 
+  // Callback déclenché quand un QR code est détecté par la caméra
   const handleScan = async (donnees) => {
     if (scanne || !pret) return
     try {
       const resultat = await verifierBillet(donnees)
       setScanne(resultat)
 
+      // Animation : affiche le résultat 3 secondes puis reset
       Animated.sequence([
         Animated.timing(animation, { toValue: 1, duration: 300, useNativeDriver: true }),
         Animated.delay(3000),
@@ -58,11 +65,12 @@ export default function ScannerScreen({ navigation, route }) {
     }
   }
 
+  // État : permission caméra pas encore accordée
   if (!permission || !permission.granted) {
     return (
       <View style={styles.centre}>
         <Text style={styles.textePermission}>
-          {!permission ? 'Demande d\'accès...' : 'Accès caméra refusé'}
+          {!permission ? "Demande d'accès..." : 'Accès caméra refusé'}
         </Text>
         {permission && !permission.granted && (
           <TouchableOpacity style={styles.bouton} onPress={requestPermission}>
@@ -75,18 +83,19 @@ export default function ScannerScreen({ navigation, route }) {
 
   return (
     <View style={styles.conteneur}>
+      {/* Vue caméra avec détection de QR code intégrée */}
       <CameraView
         style={styles.camera}
         facing="back"
         onBarcodeScanned={scanne ? undefined : (r) => handleScan(r.data)}
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
       >
+        {/* Overlay : masque foncé avec cadre de scan central */}
         <View style={styles.overlay}>
           <View style={styles.masqueHaut}>
             <Text style={styles.titre}>Scanner un billet</Text>
             <Text style={styles.info}>{zone} — Événement #{eventId}</Text>
           </View>
-
           <View style={styles.zoneCadre}>
             <View style={styles.cadre} />
             {!pret && <Text style={styles.chargement}>Préparation...</Text>}
@@ -94,6 +103,7 @@ export default function ScannerScreen({ navigation, route }) {
         </View>
       </CameraView>
 
+      {/* Résultat du scan : superposition colorée avec animation */}
       {scanne && (
         <View style={[styles.resultat, { backgroundColor: (COULEURS[scanne.resultat] || COULEURS.INCONNU).fond }]}>
           <Text style={styles.resultatIcone}>{(COULEURS[scanne.resultat] || COULEURS.INCONNU).icone}</Text>

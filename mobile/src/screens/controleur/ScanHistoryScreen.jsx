@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { getHistorique, synchroniser, telechargerTickets, reinitialiser } from '../../services/scanService'
 
+// Couleurs par résultat de scan (fond + texte)
 const COULEURS = {
   VALIDE: { bg: '#f0fdf4', text: '#166534', dot: '#22c55e' },
   DEJA_UTILISE: { bg: '#fff7ed', text: '#9a3412', dot: '#f97316' },
@@ -10,11 +11,14 @@ const COULEURS = {
   FRAUDE: { bg: '#fef2f2', text: '#dc2626', dot: '#dc2626' },
 }
 
+// Historique des scans effectués par le contrôleur
+// Affiche les stats, permet la synchro et le téléchargement des tickets
 export default function ScanHistoryScreen() {
   const [scans, setScans] = useState([])
   const [sync, setSync] = useState(false)
   const [telechargement, setTelechargement] = useState(false)
 
+  // Charge l'historique au montage
   useEffect(() => {
     charger()
   }, [])
@@ -24,6 +28,7 @@ export default function ScanHistoryScreen() {
     setScans(data)
   }
 
+  // Synchronisation des scans offline vers le serveur
   const handleSync = async () => {
     setSync(true)
     try {
@@ -35,6 +40,7 @@ export default function ScanHistoryScreen() {
     }
   }
 
+  // Télécharge les tickets valides de l'événement pour vérification offline
   const handleDownload = async () => {
     setTelechargement(true)
     try {
@@ -47,12 +53,14 @@ export default function ScanHistoryScreen() {
     }
   }
 
+  // Réinitialisation complète de la base locale
   const handleReset = async () => {
     await reinitialiser()
     await charger()
     alert('Base locale réinitialisée')
   }
 
+  // Calcul des statistiques
   const stats = {
     total: scans.length,
     valides: scans.filter((s) => s.resultat === 'VALIDE').length,
@@ -61,6 +69,7 @@ export default function ScanHistoryScreen() {
 
   return (
     <View style={styles.conteneur}>
+      {/* Entête avec stats */}
       <View style={styles.header}>
         <Text style={styles.titre}>Historique des scans</Text>
         <View style={styles.statsRow}>
@@ -79,6 +88,7 @@ export default function ScanHistoryScreen() {
         </View>
       </View>
 
+      {/* Boutons d'action : synchro, téléchargement, reset */}
       <View style={styles.actions}>
         <TouchableOpacity
           style={[styles.actionBtn, styles.actionSync]}
@@ -109,6 +119,7 @@ export default function ScanHistoryScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Liste des scans */}
       <FlatList
         data={scans}
         keyExtractor={(item) => String(item.id)}
@@ -130,6 +141,7 @@ export default function ScanHistoryScreen() {
               <Text style={[styles.carteStatut, { color: c.text }]}>
                 {item.resultat}
               </Text>
+              {/* Badge OFFLINE pour les scans non encore synchronisés */}
               {item.synced === 0 && <Text style={styles.badge}>OFFLINE</Text>}
             </View>
           )
