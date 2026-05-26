@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import { useTickets } from '../hooks/useTickets'
+import { useAuth } from '../context/AuthContext'
 
 function generateTicketId(eventId, category) {
   const prefix = `SGT-${eventId.toUpperCase().slice(0, 3)}`
@@ -16,10 +17,22 @@ function generateTicketId(eventId, category) {
   return `${prefix}-${cat}-${num}`
 }
 
+function formaterTelStocke(telComplet) {
+  if (!telComplet) return ''
+  const chiffres = telComplet.replace(/\D/g, '').slice(-9)
+  let resultat = ''
+  for (let i = 0; i < chiffres.length; i++) {
+    if (i === 2 || i === 5 || i === 7) resultat += ' '
+    resultat += chiffres[i]
+  }
+  return resultat
+}
+
 export default function EventDetailScreen({ route, navigation }) {
   const { event } = route.params
+  const { numeroTel } = useAuth()
   const [selectedTicket, setSelectedTicket] = useState(event.tickets[1] || event.tickets[0])
-  const [phone, setPhone] = useState('77 456 78 90')
+  const [phone, setPhone] = useState(() => formaterTelStocke(numeroTel))
   const { addTicket } = useTickets()
 
   const handleBuy = async () => {

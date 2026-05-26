@@ -1,3 +1,9 @@
+// Couleurs de l'application (charte graphique Option A : Iris & Pêche)
+// Fond : #F8F9FD (blanc soyeux teinté bleu-gris)
+// Surface : #FFFFFF (blanc pur)
+// Texte : #0F172A (ardoise foncé)
+// Primaire : #6366F1 (Indigo / Iris)
+// Accent : #EC4899 (Rose / Pêche)
 export const colors = {
   bg: '#f8f9fc',
   white: '#FFFFFF',
@@ -5,13 +11,15 @@ export const colors = {
   mid: '#64748b',
   muted: '#94a3b8',
   border: '#edf0f5',
-  accent: '#f97316',
-  accentLight: '#fff7ed',
+  accent: '#6366F1',
+  accentLight: '#EEF2FF',
+  rose: '#EC4899',
   green: '#22c55e',
   greenLight: '#f0fdf4',
   red: '#ef4444',
 }
 
+// Espacements cohérents dans toute l'app
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -21,6 +29,7 @@ export const spacing = {
   xxl: 40,
 }
 
+// Rayons de bordure (cartes = 16px, boutons = ovale avec 28px+)
 export const borderRadius = {
   sm: 6,
   md: 10,
@@ -29,6 +38,7 @@ export const borderRadius = {
   full: 9999,
 }
 
+// Ombres douces et diffuses comme spécifié dans la charte
 export const shadows = {
   sm: {
     shadowColor: '#0f172a',
@@ -53,6 +63,7 @@ export const shadows = {
   },
 }
 
+// Polices : Outfit pour les titres, Plus Jakarta Sans pour les textes
 export const fonts = {
   outfit: {
     black: 'Outfit_900Black',

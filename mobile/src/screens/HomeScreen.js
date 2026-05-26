@@ -1,7 +1,8 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
+import { useAuth } from '../context/AuthContext'
 import { useTickets } from '../hooks/useTickets'
 import EventCard from '../components/EventCard'
 import BottomNav from '../components/BottomNav'
@@ -34,6 +35,7 @@ const EVENTS = [
 
 export default function HomeScreen({ navigation }) {
   const { tickets } = useTickets()
+  const { deconnecter } = useAuth()
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -44,7 +46,18 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.logo}>SENGUICHET</Text>
               <Text style={styles.tagline}>Achetez vos billets en un clic</Text>
             </View>
-            <Feather name="zap" size={16} color={colors.accent} />
+            <TouchableOpacity
+              onPress={() => Alert.alert(
+                'Déconnexion',
+                'Revenir à l\'authentification ?',
+                [
+                  { text: 'Annuler', style: 'cancel' },
+                  { text: 'OK', onPress: deconnecter },
+                ]
+              )}
+            >
+              <Feather name="log-out" size={18} color={colors.mid} />
+            </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={styles.heroCta} activeOpacity={0.9} onPress={() => navigation.navigate('EventSearch')}>

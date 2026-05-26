@@ -3,6 +3,7 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native'
 import { useFonts, Outfit_400Regular, Outfit_600SemiBold, Outfit_700Bold, Outfit_800ExtraBold, Outfit_900Black } from '@expo-google-fonts/outfit'
 import { PlusJakartaSans_400Regular, PlusJakartaSans_500Medium, PlusJakartaSans_600SemiBold } from '@expo-google-fonts/plus-jakarta-sans'
 import * as SplashScreen from 'expo-splash-screen'
+import { AuthProvider } from './src/context/AuthContext'
 import AppNavigator from './src/navigation/AppNavigator'
 
 SplashScreen.preventAutoHideAsync()
@@ -35,7 +36,9 @@ export default function App() {
 
   return (
     <View style={styles.root} onLayout={onLayoutRootView}>
-      <AppNavigator />
+      <AuthProvider>
+        <AppNavigator />
+      </AuthProvider>
     </View>
   )
 }
