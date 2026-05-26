@@ -1,11 +1,12 @@
+// Écran de scan : caméra + vérification offline du QR code
+// Processus en 5 étapes : lecture QR → parsing → HMAC → recherche locale → statut
 import { useState, useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import { verifierBillet, telechargerTickets, getStats } from '../../services/scanService'
 import { useAuth } from '../../context/AuthContext'
 
-// Couleurs d'affichage selon le résultat du scan
-// Conforme à la spécification Document Technique v1.0
+// Couleurs d'affichage selon le résultat du scan (5 statuts possibles)
 const COULEURS = {
   VALIDE: { fond: '#22c55e', icone: '✅', label: 'Entrée autorisée' },
   DEJA_UTILISE: { fond: '#f97316', icone: '🟠', label: 'Déjà utilisé' },
@@ -14,8 +15,6 @@ const COULEURS = {
   FRAUDE: { fond: '#dc2626', icone: '🚨', label: 'FRAUDE suspectée' },
 }
 
-// Écran de scan : caméra + vérification offline du QR code
-// Processus en 5 étapes : lecture → recherche locale → HMAC → statut → mise à jour
 export default function ScannerScreen({ navigation, route }) {
   const [permission, requestPermission] = useCameraPermissions()
   const [scanne, setScanne] = useState(null)
@@ -26,7 +25,7 @@ export default function ScannerScreen({ navigation, route }) {
   const eventId = route?.params?.eventId || 1
   const zone = route?.params?.zone || 'STANDARD'
 
-  // Au montage : télécharge les tickets si nécessaire
+  // Au montage : télécharge les tickets si la base locale est vide
   useEffect(() => {
     preparerScan()
   }, [])
@@ -51,7 +50,7 @@ export default function ScannerScreen({ navigation, route }) {
       const resultat = await verifierBillet(donnees)
       setScanne(resultat)
 
-      // Animation : affiche le résultat 3 secondes puis reset
+      // Animation : affiche le résultat 3 secondes puis reset automatique
       Animated.sequence([
         Animated.timing(animation, { toValue: 1, duration: 300, useNativeDriver: true }),
         Animated.delay(3000),
@@ -65,7 +64,7 @@ export default function ScannerScreen({ navigation, route }) {
     }
   }
 
-  // État : permission caméra pas encore accordée
+  // État : permission caméra pas encore accordée → demande
   if (!permission || !permission.granted) {
     return (
       <View style={styles.centre}>
@@ -90,7 +89,7 @@ export default function ScannerScreen({ navigation, route }) {
         onBarcodeScanned={scanne ? undefined : (r) => handleScan(r.data)}
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
       >
-        {/* Overlay : masque foncé avec cadre de scan central */}
+        {/* Overlay : masque semi-transparent avec cadre de scan central */}
         <View style={styles.overlay}>
           <View style={styles.masqueHaut}>
             <Text style={styles.titre}>Scanner un billet</Text>
@@ -103,7 +102,7 @@ export default function ScannerScreen({ navigation, route }) {
         </View>
       </CameraView>
 
-      {/* Résultat du scan : superposition colorée avec animation */}
+      {/* Résultat du scan en superposition pleine écran avec animation */}
       {scanne && (
         <View style={[styles.resultat, { backgroundColor: (COULEURS[scanne.resultat] || COULEURS.INCONNU).fond }]}>
           <Text style={styles.resultatIcone}>{(COULEURS[scanne.resultat] || COULEURS.INCONNU).icone}</Text>

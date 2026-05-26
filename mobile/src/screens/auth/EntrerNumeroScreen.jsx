@@ -1,3 +1,5 @@
+// Écran de saisie du numéro de téléphone pour recevoir le code OTP (acheteur)
+// Format : +221 XX XXX XX XX (indicatif Sénégal + 9 chiffres)
 import { useState } from 'react'
 import {
   View, Text, SafeAreaView, ScrollView,
@@ -7,13 +9,11 @@ import { envoyerOTP } from '../../services/authService'
 import InputTel from '../../components/InputTel'
 import BoutonPrincipal from '../../components/BoutonPrincipal'
 
-// Écran de saisie du numéro de téléphone pour recevoir le code OTP
-// KeyboardAvoidingView empêche le bouton d'être masqué par le clavier
-// Format : +221 XX XXX XX XX (indicatif Sénégal + 9 chiffres)
 export default function EntrerNumeroScreen({ navigation }) {
   const [numero, setNumero] = useState(null)
   const [chargement, setChargement] = useState(false)
 
+  // Envoie la demande OTP puis navigue vers l'écran de validation
   const handleEnvoyer = async () => {
     if (!numero) return
     setChargement(true)

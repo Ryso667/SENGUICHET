@@ -1,26 +1,35 @@
+// Couche de persistance AsyncStorage pour les événements et tickets
+// Toutes les fonctions sont async car AsyncStorage est asynchrone
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-const EVENTS_KEY = '@senguichet_evenements'
-const TICKETS_KEY = '@senguichet_tickets'
+// Clés de stockage dans AsyncStorage
+const EVENTS_KEY = '@senguichet_evenements'  // liste des événements créés
+const TICKETS_KEY = '@senguichet_tickets'     // tous les tickets achetés
 
+// Génère un ID unique lisible : timestamp base36 + 4 caractères aléatoires
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
 }
 
+// Formate un nombre avec padding, ex: 3 → "003"
 function formatNum(n, len = 3) {
   return String(n).padStart(len, '0')
 }
 
+// Retourne tous les événements stockés, ou [] si rien
 export async function getAllEvenements() {
   const raw = await AsyncStorage.getItem(EVENTS_KEY)
   return raw ? JSON.parse(raw) : []
 }
 
+// Retourne un événement par son ID, ou null
 export async function getEvenement(id) {
   const events = await getAllEvenements()
   return events.find(e => e.id === id) || null
 }
 
+// Crée un nouvel événement avec un code 4 chiffres généré aléatoirement
+// Les catégories recoivent un ID unique au moment de la création
 export async function creerEvenement({ nom, date, description, categories }) {
   const events = await getAllEvenements()
   const evt = {
@@ -38,6 +47,8 @@ export async function creerEvenement({ nom, date, description, categories }) {
   return evt
 }
 
+// Achète un ticket : incrémente le compteur, génère un numéro unique,
+// sauvegarde le ticket et met à jour le compteur de l'événement
 export async function acheterTicket(eventId, categorieId, telephone) {
   const events = await getAllEvenements()
   const idx = events.findIndex(e => e.id === eventId)
@@ -71,16 +82,20 @@ export async function acheterTicket(eventId, categorieId, telephone) {
   return ticket
 }
 
+// Retourne tous les tickets (utilisé par acheteur et controleur)
 export async function getAllTickets() {
   const raw = await AsyncStorage.getItem(TICKETS_KEY)
   return raw ? JSON.parse(raw) : []
 }
 
+// Filtre les tickets par événement
 export async function getTicketsByEvent(eventId) {
   const tickets = await getAllTickets()
   return tickets.filter(t => t.eventId === eventId)
 }
 
+// Calcule les statistiques de vente pour le dashboard organisateur :
+// vendus par catégorie, scannés par catégorie, recettes totales
 export async function getEvenementStats(eventId) {
   const evt = await getEvenement(eventId)
   if (!evt) return null
@@ -110,6 +125,7 @@ export async function getEvenementStats(eventId) {
   }
 }
 
+// Retourne les tickets d'un acheteur par son téléphone
 export async function getTicketsAcheteur(telephone) {
   const tickets = await getAllTickets()
   return tickets.filter(t => t.telephone === telephone)

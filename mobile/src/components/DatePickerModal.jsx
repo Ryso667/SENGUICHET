@@ -1,3 +1,5 @@
+// Calendrier modal custom (sans dépendance externe)
+// Navigation mois/année avec flèches ◀ ▶
 import { useState } from 'react'
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native'
 import { colors, fonts, spacing, borderRadius } from '../constants/theme'
@@ -11,6 +13,7 @@ export default function DatePickerModal({ visible, onClose, onSelect }) {
   const [annee, setAnnee] = useState(today.getFullYear())
   const [mois, setMois] = useState(today.getMonth())
 
+  // Calcule la disposition des jours dans la grille du calendrier
   const premierJour = new Date(annee, mois, 1).getDay()
   const joursDansMois = new Date(annee, mois + 1, 0).getDate()
 

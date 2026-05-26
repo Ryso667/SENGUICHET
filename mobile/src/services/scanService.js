@@ -1,3 +1,5 @@
+// Service de scan : vérification offline des QR codes avec HMAC-SHA256
+// 5 étapes : parsing QR → HMAC → expiration → recherche locale → anti re-scan
 import * as Crypto from 'expo-crypto'
 import {
   chercherTicket, marquerUtilise, enregistrerScan,
@@ -5,11 +7,10 @@ import {
   historiqueScans, compterTickets, viderTickets,
 } from '../database/database'
 
-// Mode démo : pas de backend requis
-const MOCK_MODE = true
+const MOCK_MODE = true // Pas de backend requis en mode démo
 const CLE_SECRETE = 'senguichet-cle-secrete-hmac'
 
-// 5 statuts possibles pour un scan (conforme Document Technique)
+// 5 statuts possibles pour un scan (conforme Document Technique v1.0)
 const RESULTATS = {
   VALIDE: 'VALIDE',
   DEJA_UTILISE: 'DEJA_UTILISE',
@@ -18,7 +19,7 @@ const RESULTATS = {
   FRAUDE: 'FRAUDE',
 }
 
-// Parse le JSON du QR code
+// Parse le JSON du QR code (string ou objet déjà parsé)
 function parserQR(donnees) {
   try {
     return typeof donnees === 'string' ? JSON.parse(donnees) : donnees
@@ -27,7 +28,7 @@ function parserQR(donnees) {
   }
 }
 
-// Vérifie la signature HMAC-SHA256 du QR code (anti-fraude)
+// Vérifie la signature HMAC-SHA256 (anti-contrefaçon)
 async function verifierHMAC(qr) {
   if (MOCK_MODE) return true
   const donnees = `${qr.uuid}|${qr.transaction_ref}|${qr.timestamp}|${qr.event_id}|${qr.category}`
@@ -35,12 +36,12 @@ async function verifierHMAC(qr) {
   return calcule === qr.hmac
 }
 
-// Vérifie si le billet est expiré (timestamp dépassé)
+// Vérifie si le billet est expiré (date de validité dépassée)
 function estExpire(timestamp) {
   return new Date(timestamp) < new Date()
 }
 
-// Télécharge les tickets d'un événement/zone depuis le serveur
+// Télécharge les tickets depuis le serveur (ou mock) vers SQLite locale
 export async function telechargerTickets(eventId, zone) {
   if (MOCK_MODE) {
     const mockTickets = [
@@ -51,45 +52,36 @@ export async function telechargerTickets(eventId, zone) {
     await insererTickets(mockTickets)
     return mockTickets.length
   }
-
   // Requête API réelle quand le backend sera prêt
-  // const { data } = await axios.get(`/api/controleur/tickets?event_id=${eventId}&zone=${zone}`)
-  // await insererTickets(data.tickets)
-  // return data.tickets.length
   return 0
 }
 
-// Vérification offline d'un billet (5 étapes)
-// 1. Parse le QR code
-// 2. Vérifie la signature HMAC (anti-fraude)
-// 3. Vérifie la date d'expiration
-// 4. Recherche le billet dans la base locale
-// 5. Vérifie le statut (déjà utilisé ?)
+// Vérification complète offline d'un billet (5 étapes)
 export async function verifierBillet(donneesQR) {
   const qr = parserQR(donneesQR)
   if (!qr) return { resultat: RESULTATS.INCONNU, message: 'QR code invalide' }
 
-  // Étape 2 : vérification HMAC
+  // Étape 2 : vérification HMAC (signature cryptographique)
   const hmacOk = await verifierHMAC(qr)
   if (!hmacOk) {
     await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.FRAUDE)
     return { resultat: RESULTATS.FRAUDE, message: 'Signature cryptographique invalide — alerte fraude' }
   }
 
-  // Étape 3 : vérification expiration
+  // Étape 3 : vérification de la date d'expiration
   if (estExpire(qr.timestamp)) {
     await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.EXPIRE)
     return { resultat: RESULTATS.EXPIRE, message: 'Billet expiré' }
   }
 
-  // Étape 4 : recherche dans SQLite locale
+  // Étape 4 : recherche du billet dans la base SQLite locale
   const ticket = await chercherTicket(qr.uuid)
   if (!ticket) {
     await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.INCONNU)
     return { resultat: RESULTATS.INCONNU, message: 'Billet introuvable dans la base locale' }
   }
 
-  // Étape 5 : vérification anti re-scan
+  // Étape 5 : vérification anti re-scan (déjà utilisé ?)
   if (ticket.statut === 'UTILISE_LOCAL') {
     await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.DEJA_UTILISE)
     return { resultat: RESULTATS.DEJA_UTILISE, message: 'Billet déjà scanné sur cet appareil' }
@@ -101,20 +93,14 @@ export async function verifierBillet(donneesQR) {
   return { resultat: RESULTATS.VALIDE, message: 'Entrée autorisée' }
 }
 
-// Synchronisation batch des scans offline vers le serveur
+// Synchronisation batch des scans offline vers le serveur (quand connexion rétablie)
 export async function synchroniser() {
   if (MOCK_MODE) {
     await marquerScansSync()
     return { sync: true, message: 'Scans synchronisés (mode mock)' }
   }
-
   const enAttente = await scansEnAttente()
   if (enAttente.length === 0) return { sync: true, message: 'Rien à synchroniser' }
-
-  // Requête API réelle
-  // const { data } = await axios.post('/api/controleur/sync', { scans: enAttente })
-  // await marquerScansSync()
-  // return data
   return { sync: true, message: 'Scans synchronisés' }
 }
 
@@ -123,12 +109,12 @@ export async function getHistorique() {
   return await historiqueScans()
 }
 
-// Stats : nombre de tickets locaux disponibles
+// Statistiques : nombre de tickets locaux dans SQLite
 export async function getStats() {
   return { ticketsLocaux: await compterTickets() }
 }
 
-// Réinitialisation complète
+// Réinitialisation complète de la base SQLite
 export async function reinitialiser() {
   await viderTickets()
 }

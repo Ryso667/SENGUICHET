@@ -1,3 +1,6 @@
+// Écran de connexion contrôleur
+// Saisie d'un code d'accès à 4 chiffres (généré par l'organisateur)
+// Déverrouille le mode scan une fois le code validé
 import { useState } from 'react'
 import {
   View, Text, SafeAreaView, ScrollView,
@@ -8,14 +11,12 @@ import InputOTP from '../../components/InputOTP'
 import BoutonPrincipal from '../../components/BoutonPrincipal'
 import { useAuth } from '../../context/AuthContext'
 
-// Écran de connexion contrôleur
-// Le contrôleur saisit un code d'accès à 4 chiffres (généré par l'organisateur)
-// Permet de déverrouiller le mode scan pour un événement spécifique
 export default function ConnexionControleurScreen({ navigation }) {
   const { connecterControleur } = useAuth()
   const [codeAcces, setCodeAcces] = useState('')
   const [chargement, setChargement] = useState(false)
 
+  // Valide le code 4 chiffres et stocke la session
   const handleConnecter = async () => {
     if (codeAcces.length !== 4) return
     setChargement(true)

@@ -1,8 +1,11 @@
+// Écran de consultation des tickets par événement (organisateur)
+// Recherche par code événement à 4 chiffres, affiche la liste avec statuts
 import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native'
 import { colors, glass, shadows, spacing, borderRadius, fonts } from '../../constants/theme'
 import { getAllEvenements, getTicketsByEvent } from '../../services/eventService'
 
+// Badge coloré selon le statut du ticket
 const STATUS_BADGE = {
   valide: { label: 'Valide', bg: colors.greenLight, color: colors.green },
   utilise: { label: 'Utilisé', bg: '#F1F5F9', color: colors.mid },
@@ -15,6 +18,7 @@ export default function VoirTicketsScreen({ route, navigation }) {
   const [event, setEvent] = useState(null)
   const [tickets, setTickets] = useState([])
 
+  // Si un eventId est passé en paramètre, charge directement l'événement
   useEffect(() => {
     if (eventId) loadEvent(eventId)
   }, [eventId])

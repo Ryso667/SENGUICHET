@@ -1,3 +1,6 @@
+// Navigation principale de l'application
+// 3 piles distinctes selon le rôle : acheteur / controleur / organisateur
+// Les écrans non-connectés (auth) sont affichés quand aucun rôle n'est actif
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
@@ -38,6 +41,7 @@ function ControleurTabs() {
         headerShown: true,
         headerStyle: { backgroundColor: '#FFFFFF' },
         headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#0f172a' },
+        // Bouton Quitter (déconnexion) dans le header de chaque tab
         headerRight: () => (
           <TouchableOpacity onPress={deconnecter} style={{ marginRight: 16 }}>
             <Text style={{ fontSize: 14, color: '#ef4444', fontFamily: 'Outfit_600SemiBold' }}>
@@ -90,6 +94,7 @@ function OrganisateurTabs() {
         headerShown: true,
         headerStyle: { backgroundColor: '#FFFFFF' },
         headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#0f172a' },
+        // Bouton Quitter (déconnexion) dans le header de chaque tab
         headerRight: () => (
           <TouchableOpacity onPress={deconnecter} style={{ marginRight: 16 }}>
             <Text style={{ fontSize: 14, color: '#ef4444', fontFamily: 'Outfit_600SemiBold' }}>
@@ -148,6 +153,7 @@ function OrganisateurTabs() {
 export default function AppNavigator() {
   const { role, chargement } = useAuth()
 
+  // Écran de chargement pendant la restauration de session
   if (chargement) {
     return (
       <View style={styles.chargement}>
@@ -171,7 +177,7 @@ export default function AppNavigator() {
           </>
         )}
 
-        {/* Acheteur connecté */}
+        {/* Acheteur connecté : écrans stack (pas de tabs) */}
         {role === 'acheteur' && (
           <>
             <Stack.Screen name="Home" component={HomeScreen} />

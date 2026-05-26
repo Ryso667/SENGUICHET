@@ -75,5 +75,14 @@ expo-camera, expo-sqlite, expo-crypto
   - Backend existant dans `backend/` mais pas d'API — ne pas toucher
 - **Authentification** : 3 rôles (Acheteur OTP, Contrôleur code 4 chiffres, Organisateur email+bcrypt)
 
+## Commentaires dans le code
+- TOUS les fichiers source doivent avoir des commentaires en français expliquant :
+  - Le rôle du fichier en haut (1-2 lignes)
+  - Chaque fonction exportée : ce qu'elle fait, paramètres, retour
+  - Les blocs de logique non triviaux (pourquoi, pas comment)
+  - Les données mockées avec la mention "Sera remplacé par API"
+- Les commentaires sont obligatoires pour tout nouveau fichier ou modification
+- Privilégier des commentaires concis (1-3 lignes) plutôt que des pavés
+
 ## PR
 PR #3 ouverte : feature/mouhtada → main

@@ -1,3 +1,5 @@
+// Écran de connexion organisateur (email + mot de passe)
+// En mode démo, n'importe quel email/mdp fonctionne
 import { useState } from 'react'
 import {
   View, Text, TextInput, SafeAreaView,
@@ -8,14 +10,13 @@ import { useAuth } from '../../context/AuthContext'
 import BoutonPrincipal from '../../components/BoutonPrincipal'
 import { colors } from '../../constants/theme'
 
-// Écran de connexion pour les organisateurs (email + mot de passe)
-// En mode démo, n'importe quel email/mdp fonctionne et retourne un JWT factice
 export default function ConnexionOrganisateurScreen({ navigation }) {
   const [email, setEmail] = useState('')
   const [mdp, setMdp] = useState('')
   const [chargement, setChargement] = useState(false)
   const { connecterOrganisateur: connecter } = useAuth()
 
+  // Authentifie l'organisateur et stocke la session
   const handleConnexion = async () => {
     if (!email || !mdp) return
     setChargement(true)

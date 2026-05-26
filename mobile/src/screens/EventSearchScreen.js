@@ -1,9 +1,12 @@
+// Écran de recherche d'événements avec barre de recherche et filtrage
+// Les événements sont mockés en dur pour le moment
 import { useState, useMemo } from 'react'
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 
+// Données mockées des événements disponibles
 const EVENTS = [
   {
     id: 'dmf-2026', title: 'Dakar Music Festival',
@@ -33,6 +36,7 @@ const EVENTS = [
 export default function EventSearchScreen({ navigation }) {
   const [query, setQuery] = useState('')
 
+  // Filtre les événements par titre, lieu ou catégorie (insensible à la casse)
   const results = useMemo(() => {
     if (!query.trim()) return EVENTS
     const q = query.toLowerCase()

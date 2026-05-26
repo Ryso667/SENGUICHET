@@ -1,3 +1,5 @@
+// Historique des scans effectués par le contrôleur
+// Stats, synchro batch des scans offline, téléchargement tickets pour offline
 import { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { getHistorique, synchroniser, telechargerTickets, reinitialiser } from '../../services/scanService'
@@ -11,14 +13,12 @@ const COULEURS = {
   FRAUDE: { bg: '#fef2f2', text: '#dc2626', dot: '#dc2626' },
 }
 
-// Historique des scans effectués par le contrôleur
-// Affiche les stats, permet la synchro et le téléchargement des tickets
 export default function ScanHistoryScreen() {
   const [scans, setScans] = useState([])
   const [sync, setSync] = useState(false)
   const [telechargement, setTelechargement] = useState(false)
 
-  // Charge l'historique au montage
+  // Charge l'historique des scans au montage du composant
   useEffect(() => {
     charger()
   }, [])
@@ -28,7 +28,7 @@ export default function ScanHistoryScreen() {
     setScans(data)
   }
 
-  // Synchronisation des scans offline vers le serveur
+  // Synchronise les scans offline vers le serveur (batch)
   const handleSync = async () => {
     setSync(true)
     try {
@@ -40,7 +40,7 @@ export default function ScanHistoryScreen() {
     }
   }
 
-  // Télécharge les tickets valides de l'événement pour vérification offline
+  // Télécharge les tickets pour vérification offline
   const handleDownload = async () => {
     setTelechargement(true)
     try {
@@ -53,14 +53,14 @@ export default function ScanHistoryScreen() {
     }
   }
 
-  // Réinitialisation complète de la base locale
+  // Réinitialisation complète de la base locale SQLite
   const handleReset = async () => {
     await reinitialiser()
     await charger()
     alert('Base locale réinitialisée')
   }
 
-  // Calcul des statistiques
+  // Statistiques : total, valides, en attente de synchro
   const stats = {
     total: scans.length,
     valides: scans.filter((s) => s.resultat === 'VALIDE').length,

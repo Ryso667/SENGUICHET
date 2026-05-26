@@ -1,3 +1,5 @@
+// Écran de création d'un événement (organisateur)
+// Inclut : nom, description, date (calendrier custom), catégories avec capacité
 import { useState } from 'react'
 import {
   View, Text, TextInput, SafeAreaView, Alert,
@@ -15,20 +17,24 @@ export default function CreerEvenementScreen({ navigation }) {
   const [dateVisible, setDateVisible] = useState(false)
   const [categories, setCategories] = useState([{ nom: '', prix: '', capacite: '' }])
 
+  // Met à jour un champ d'une catégorie (nom/prix/capacite)
   const updateCat = (index, field, value) => {
     const next = [...categories]
     next[index] = { ...next[index], [field]: value }
     setCategories(next)
   }
 
+  // Ajoute une ligne de catégorie vide
   const addCat = () => {
     setCategories([...categories, { nom: '', prix: '', capacite: '' }])
   }
 
+  // Supprime une catégorie par son index
   const removeCat = (index) => {
     setCategories(categories.filter((_, i) => i !== index))
   }
 
+  // Valide et crée l'événement via eventService
   const handleCreer = async () => {
     if (!nom || !date || categories.length === 0) {
       Alert.alert('Erreur', 'Remplis tous les champs')

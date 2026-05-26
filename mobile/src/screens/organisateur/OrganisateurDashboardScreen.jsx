@@ -1,3 +1,5 @@
+// Dashboard organisateur : liste des événements, stats globales, ventes par catégorie
+// Recharge les données à chaque focus de l'écran
 import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -6,6 +8,7 @@ import { getAllEvenements, getEvenementStats } from '../../services/eventService
 import { useAuth } from '../../context/AuthContext'
 import BoutonPrincipal from '../../components/BoutonPrincipal'
 
+// Mini carte de statistique (icône + valeur + label)
 function StatCard({ icon, value, label, color }) {
   return (
     <View style={[s.statCard, { borderLeftColor: color, borderLeftWidth: 3 }]}>
@@ -19,9 +22,10 @@ function StatCard({ icon, value, label, color }) {
 export default function OrganisateurDashboardScreen({ navigation }) {
   const { email, deconnecter } = useAuth()
   const [events, setEvents] = useState([])
-  const [expandedId, setExpandedId] = useState(null)
-  const [stats, setStats] = useState({})
+  const [expandedId, setExpandedId] = useState(null) // événement déplié
+  const [stats, setStats] = useState({})              // stats par événement
 
+  // Charge les données au montage + au focus (after achat/navigation)
   useEffect(() => {
     loadData()
     const unsubscribe = navigation.addListener('focus', loadData)

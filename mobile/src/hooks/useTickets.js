@@ -1,12 +1,15 @@
+// Hook personnalisé pour charger et gérer les tickets depuis AsyncStorage
+// Utilisé principalement par l'écran d'accueil acheteur (HomeScreen)
 import { useState, useEffect, useCallback } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const TICKETS_KEY = '@senguichet_tickets'
 
 export function useTickets() {
-  const [tickets, setTickets] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [tickets, setTickets] = useState([])  // liste des tickets de l'utilisateur
+  const [loading, setLoading] = useState(true) // état de chargement initial
 
+  // Charge les tickets au montage du composant
   useEffect(() => {
     ;(async () => {
       try {
@@ -20,6 +23,7 @@ export function useTickets() {
     })()
   }, [])
 
+  // Ajoute un ticket et met à jour le state + AsyncStorage
   const addTicket = useCallback(async (ticket) => {
     const newTickets = [ticket]
     try {
@@ -33,6 +37,7 @@ export function useTickets() {
     }
   }, [])
 
+  // Recharge les tickets depuis AsyncStorage (utilisé au focus de l'écran)
   const refresh = useCallback(async () => {
     setLoading(true)
     try {

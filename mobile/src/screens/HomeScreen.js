@@ -1,3 +1,6 @@
+// Écran d'accueil de l'acheteur connecté
+// Affiche : CTA "Acheter un ticket", liste des événements, tickets achetés
+// Les tickets sont rechargés automatiquement au focus de l'écran
 import { useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -8,6 +11,8 @@ import { useTickets } from '../hooks/useTickets'
 import EventCard from '../components/EventCard'
 import BottomNav from '../components/BottomNav'
 
+// Données mockées des événements disponibles à l'achat
+// Sera remplacé par des données API quand le backend sera prêt
 const EVENTS = [
   {
     id: 'dmf-2026', title: 'Dakar Music Festival',
@@ -38,6 +43,8 @@ export default function HomeScreen({ navigation }) {
   const { tickets, refresh } = useTickets()
   const { deconnecter } = useAuth()
 
+  // Recharge les tickets à chaque fois que l'écran reçoit le focus
+  // (utile après un achat : les tickets sont mis à jour sans redémarrer l'app)
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', refresh)
     return unsubscribe

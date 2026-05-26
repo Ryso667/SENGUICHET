@@ -1,3 +1,5 @@
+// Écran détail d'un événement avec sélection de catégorie et paiement
+// Inclut : bannière, infos, sélection ticket, saisie téléphone, double confirmation paiement
 import { useState } from 'react'
 import {
   View, Text, ScrollView, TextInput,
@@ -11,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { acheterTicket, getAllEvenements } from '../services/eventService'
 import { useAuth } from '../context/AuthContext'
 
+// Formate le numéro stocké (+22177XXXXXX → 77 XXX XX XX) pour l'affichage
 function formaterTelStocke(telComplet) {
   if (!telComplet) return ''
   const chiffres = telComplet.replace(/\D/g, '').slice(-9)
@@ -27,6 +30,8 @@ export default function EventDetailScreen({ route, navigation }) {
   const { numeroTel } = useAuth()
   const [selectedTicket, setSelectedTicket] = useState(event.tickets[1] || event.tickets[0])
   const [phone, setPhone] = useState(() => formaterTelStocke(numeroTel))
+
+  // Paiement avec double confirmation pour éviter les achats involontaires
   const handleBuy = () => {
     const tel = `+221 ${phone.replace(/\s/g, '')}`
     const prix = selectedTicket.price || selectedTicket.prix
@@ -39,6 +44,7 @@ export default function EventDetailScreen({ route, navigation }) {
           text: 'Confirmer',
           onPress: async () => {
             try {
+              // Si l'événement n'existe pas encore dans events, le créer avec ses catégories
               const events = await getAllEvenements()
               if (!events.find(e => e.id === event.id)) {
                 events.push({

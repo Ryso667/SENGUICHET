@@ -1,3 +1,6 @@
+// Écran de validation du code OTP reçu par SMS (acheteur)
+// 6 champs individuels + compte à rebours de 5 minutes
+// En mode démo, le code à saisir est : 123456
 import { useState, useEffect } from 'react'
 import {
   View, Text, SafeAreaView, ScrollView,
@@ -8,9 +11,6 @@ import InputOTP from '../../components/InputOTP'
 import BoutonPrincipal from '../../components/BoutonPrincipal'
 import { useAuth } from '../../context/AuthContext'
 
-// Écran de validation du code OTP reçu par SMS
-// Affiche 6 champs individuels + compte à rebours de 5 minutes
-// En mode démo, le code à saisir est : 123456
 export default function EntrerOTPScreen({ route, navigation }) {
   const { numeroTel } = route.params
   const { connecterAcheteur } = useAuth()
@@ -18,7 +18,7 @@ export default function EntrerOTPScreen({ route, navigation }) {
   const [chargement, setChargement] = useState(false)
   const [tempsRestant, setTempsRestant] = useState(300) // 5 min en secondes
 
-  // Timer décrémentant chaque seconde
+  // Timer décrémentant chaque seconde (expiration du code OTP)
   useEffect(() => {
     const timer = setInterval(() => {
       setTempsRestant((prev) => (prev > 0 ? prev - 1 : 0))
@@ -26,14 +26,14 @@ export default function EntrerOTPScreen({ route, navigation }) {
     return () => clearInterval(timer)
   }, [])
 
-  // Format secondes → MM:SS
+  // Format secondes → MM:SS pour l'affichage
   const formaterTemps = (s) => {
     const min = Math.floor(s / 60)
     const sec = s % 60
     return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
   }
 
-  // Vérification du code OTP saisi
+  // Vérification du code OTP saisi (6 chiffres)
   const handleValider = async () => {
     if (code.length !== 6) return
     setChargement(true)

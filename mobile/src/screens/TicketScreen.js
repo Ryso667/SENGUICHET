@@ -1,3 +1,5 @@
+// Écran affichage d'un ticket acheté
+// Design premium : dégradé Indigo→Rose, QR code, ligne de perforation, statut
 import React from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -9,6 +11,7 @@ import { colors, gradients, shadows, spacing, borderRadius, fonts } from '../con
 const { width } = Dimensions.get('window')
 const TICKET_WIDTH = width - spacing.xl * 2
 
+// Configuration des statuts possibles avec leurs couleurs
 const STATUTS = {
   valide: { label: '✓ VALIDE', color: colors.green, bg: '#ECFDF5' },
   utilise: { label: '✗ UTILISÉ', color: colors.mid, bg: '#F1F5F9' },
