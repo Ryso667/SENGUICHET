@@ -1,6 +1,7 @@
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { useAuth } from '../context/AuthContext'
 import EntrerNumeroScreen from '../screens/auth/EntrerNumeroScreen'
 import EntrerOTPScreen from '../screens/auth/EntrerOTPScreen'
@@ -9,18 +10,54 @@ import HomeScreen from '../screens/HomeScreen'
 import EventSearchScreen from '../screens/EventSearchScreen'
 import EventDetailScreen from '../screens/EventDetailScreen'
 import TicketScreen from '../screens/TicketScreen'
-import ControleurDashboardScreen from '../screens/ControleurDashboardScreen'
+import ScannerScreen from '../screens/controleur/ScannerScreen'
+import ScanHistoryScreen from '../screens/controleur/ScanHistoryScreen'
 
 const Stack = createNativeStackNavigator()
+const Tab = createBottomTabNavigator()
 
-// Navigation principale : affiche différentes piles selon l'état de connexion
-// - non connecté : écrans d'authentification (numéro → OTP) + accès contrôleur
-// - connecté acheteur : liste des événements, détail d'un événement
-// - connecté contrôleur : dashboard contrôleur
+function ControleurTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#edf0f5',
+          height: 60,
+          paddingBottom: 8,
+        },
+        tabBarActiveTintColor: '#6366F1',
+        tabBarInactiveTintColor: '#94a3b8',
+        tabBarLabelStyle: {
+          fontFamily: 'Outfit_600SemiBold',
+          fontSize: 12,
+        },
+      }}
+    >
+      <Tab.Screen
+        name="Scanner"
+        component={ScannerScreen}
+        options={{
+          tabBarLabel: 'Scanner',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>📷</Text>,
+        }}
+      />
+      <Tab.Screen
+        name="Historique"
+        component={ScanHistoryScreen}
+        options={{
+          tabBarLabel: 'Historique',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>📋</Text>,
+        }}
+      />
+    </Tab.Navigator>
+  )
+}
+
 export default function AppNavigator() {
   const { role, chargement } = useAuth()
 
-  // Écran de chargement pendant la restauration de la session AsyncStorage
   if (chargement) {
     return (
       <View style={styles.chargement}>
@@ -33,7 +70,6 @@ export default function AppNavigator() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!role && (
-          // Pile non-authentifié : inscription/connexion
           <>
             <Stack.Screen name="EntrerNumero" component={EntrerNumeroScreen} />
             <Stack.Screen name="EntrerOTP" component={EntrerOTPScreen} />
@@ -42,7 +78,6 @@ export default function AppNavigator() {
         )}
 
         {role === 'acheteur' && (
-          // Pile acheteur : navigation vers les événements
           <>
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="EventSearch" component={EventSearchScreen} />
@@ -52,8 +87,7 @@ export default function AppNavigator() {
         )}
 
         {role === 'controleur' && (
-          // Pile contrôleur : dashboard de scan
-          <Stack.Screen name="ControleurDashboard" component={ControleurDashboardScreen} />
+          <Stack.Screen name="ControleurTabs" component={ControleurTabs} />
         )}
       </Stack.Navigator>
     </NavigationContainer>
