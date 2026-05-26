@@ -61,6 +61,9 @@ export default function EntrerOTPScreen({ route, navigation }) {
           contentContainerStyle={styles.conteneur}
           keyboardShouldPersistTaps="handled"
         >
+          <Text style={styles.retour} onPress={() => navigation.goBack()}>
+            ← Retour
+          </Text>
           <Text style={styles.titre}>Vérification</Text>
           <Text style={styles.sousTitre}>
             Entrez le code à 6 chiffres envoyé au {numeroTel}
@@ -100,6 +103,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
+  },
+  retour: {
+    fontFamily: 'Outfit_600SemiBold',
+    fontSize: 14,
+    color: '#6366F1',
+    marginBottom: 24,
   },
   titre: {
     fontFamily: 'Outfit_700Bold',

@@ -14,9 +14,30 @@ export const colors = {
   accent: '#6366F1',
   accentLight: '#EEF2FF',
   rose: '#EC4899',
-  green: '#22c55e',
-  greenLight: '#f0fdf4',
+  green: '#10B981',
+  greenLight: '#ECFDF5',
   red: '#ef4444',
+  cyan: '#06B6D4',
+  violet: '#8B5CF6',
+  orange: '#F97316',
+}
+
+// Verre (glassmorphism)
+export const glass = {
+  bg: 'rgba(255,255,255,0.7)',
+  darkBg: 'rgba(15,23,42,0.05)',
+  border: 'rgba(255,255,255,0.3)',
+  blur: 20,
+  radius: 20,
+}
+
+// Dégradés par rôle
+export const gradients = {
+  primary: ['#6366F1', '#EC4899'],
+  acheteur: ['#6366F1', '#06B6D4'],
+  controleur: ['#8B5CF6', '#EC4899'],
+  organisateur: ['#EC4899', '#F97316'],
+  hero: ['rgba(99,102,241,0.04)', 'rgba(236,72,153,0.04)'],
 }
 
 // Espacements cohérents dans toute l'app
@@ -38,28 +59,28 @@ export const borderRadius = {
   full: 9999,
 }
 
-// Ombres douces et diffuses comme spécifié dans la charte
+// Ombres teintées indigo (colored shadows)
 export const shadows = {
   sm: {
-    shadowColor: '#0f172a',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  md: {
-    shadowColor: '#0f172a',
+    shadowColor: '#6366F1',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 2,
   },
-  lg: {
-    shadowColor: '#0f172a',
+  md: {
+    shadowColor: '#6366F1',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.12,
     shadowRadius: 16,
     elevation: 4,
+  },
+  lg: {
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
   },
 }
 

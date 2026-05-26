@@ -1,90 +1,87 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native'
+import React from 'react'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import QRCode from 'react-native-qrcode-svg'
-import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
+import { colors, gradients, shadows, spacing, borderRadius, fonts } from '../constants/theme'
+
+const { width } = Dimensions.get('window')
+const TICKET_WIDTH = width - spacing.xl * 2
+
+const STATUTS = {
+  valide: { label: '✓ VALIDE', color: colors.green, bg: '#ECFDF5' },
+  utilise: { label: '✗ UTILISÉ', color: colors.mid, bg: '#F1F5F9' },
+  expire: { label: '✗ EXPIRÉ', color: colors.red, bg: '#FEF2F2' },
+}
 
 export default function TicketScreen({ route, navigation }) {
   const { ticket } = route.params
+  const st = STATUTS[ticket.statut] || STATUTS.valide
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.topBar}>
+    <SafeAreaView style={s.safe}>
+      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+        <View style={s.topBar}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Feather name="arrow-left" size={19} color={colors.slate} />
           </TouchableOpacity>
-          <Text style={styles.topBarTitle}>Mon ticket</Text>
+          <Text style={s.topBarTitle}>Mon ticket</Text>
           <View style={{ width: 19 }} />
         </View>
 
-        <View style={styles.card}>
-          <View style={[styles.cardTop, { backgroundColor: ticket.bg || colors.slate }]}>
-            <Text style={styles.cardEmoji}>{ticket.emoji || '🎶'}</Text>
-            <Text style={styles.cardTitle}>{ticket.eventTitle}</Text>
-            <View style={styles.metaRow}>
-              <Feather name="map-pin" size={9} color="rgba(255,255,255,0.65)" />
-              <Text style={styles.metaText}>{ticket.location}</Text>
+        <View style={s.ticket}>
+          <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.header}>
+            <Text style={s.eventName}>{ticket.eventNom}</Text>
+            <Text style={s.eventDate}>{ticket.eventDate}</Text>
+          </LinearGradient>
+
+          <View style={s.qrSection}>
+            <View style={s.qrWrap}>
+              <QRCode value={ticket.id} size={140} backgroundColor="white" color={colors.slate} />
             </View>
-            <View style={styles.metaRow}>
-              <Feather name="calendar" size={9} color="rgba(255,255,255,0.65)" />
-              <Text style={styles.metaText}>{ticket.eventDate} · {ticket.time}</Text>
-            </View>
+            <Text style={s.ticketNum}>{ticket.numero || 'TKT-000'}</Text>
           </View>
 
-          <View style={styles.cardBody}>
-            <View style={styles.infoGrid}>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Catégorie</Text>
-                <Text style={styles.infoValue}>{ticket.category}</Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Prix</Text>
-                <Text style={[styles.infoValue, { color: colors.accent }]}>{ticket.price.toLocaleString()}F</Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Téléphone</Text>
-                <Text style={styles.infoValue}>{ticket.phone}</Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Statut</Text>
-                <View style={styles.statusBadge}>
-                  <View style={styles.statusDot} />
-                  <Text style={styles.statusText}>Prêt</Text>
-                </View>
-              </View>
-            </View>
+          <View style={s.perforation} />
 
-            <View style={styles.qrWrap}>
-              <View style={styles.qrBox}>
-                <QRCode value={ticket.id} size={120} backgroundColor="white" color={colors.slate} />
+          <View style={s.infoGrid}>
+            {[
+              { label: 'Catégorie', value: ticket.categorie },
+              { label: 'Prix', value: ticket.prix ? `${ticket.prix.toLocaleString()} CFA` : '—' },
+              { label: 'Téléphone', value: ticket.telephone },
+              { label: 'Statut', value: st.label, color: st.color },
+            ].map((item, i) => (
+              <View key={i} style={s.infoItem}>
+                <Text style={s.infoLabel}>{item.label}</Text>
+                <Text style={[s.infoValue, item.color && { color: item.color }]}>{item.value}</Text>
               </View>
-              <Text style={styles.ticketId}>{ticket.id}</Text>
-            </View>
-
-            <View style={styles.actions}>
-              <TouchableOpacity style={styles.btnPrimary} onPress={() => Alert.alert('Simulation', 'Ticket exporté en PDF')}>
-                <Feather name="download" size={13} color="#fff" />
-                <Text style={styles.btnPrimaryText}>Exporter</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.btnSecondary} onPress={() => Alert.alert('Simulation', 'Lien de partage généré')}>
-                <Feather name="share-2" size={13} color={colors.slate} />
-                <Text style={styles.btnSecondaryText}>Partager</Text>
-              </TouchableOpacity>
-            </View>
+            ))}
           </View>
-        </View>
 
-        <View style={styles.footer}>
-          <Feather name="lock" size={11} color={colors.muted} />
-          <Text style={styles.footerText}>Ticket sauvegardé localement · Sans compte</Text>
+          <View style={s.actions}>
+            <TouchableOpacity style={s.btnPrimary} onPress={() => Alert.alert('Simulation', 'Ticket exporté en PDF')}>
+              <Feather name="download" size={13} color="#fff" />
+              <Text style={s.btnPrimaryText}>Exporter</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.btnSecondary} onPress={() => Alert.alert('Simulation', 'Lien de partage généré')}>
+              <Feather name="share-2" size={13} color={colors.slate} />
+              <Text style={s.btnSecondaryText}>Partager</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={s.footer}>
+            <Text style={s.footerText}>
+              Acheté le {new Date(ticket.dateAchat).toLocaleDateString('fr-FR')}
+            </Text>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
   )
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: {
     alignItems: 'center',
@@ -92,7 +89,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
     paddingHorizontal: spacing.lg,
   },
-
   topBar: {
     width: '100%',
     flexDirection: 'row',
@@ -106,108 +102,78 @@ const styles = StyleSheet.create({
     color: colors.slate,
     letterSpacing: -0.2,
   },
-
-  card: {
-    width: '100%',
-    maxWidth: 300,
+  ticket: {
+    width: TICKET_WIDTH,
     backgroundColor: colors.white,
     borderRadius: borderRadius.xl,
     overflow: 'hidden',
-    ...shadows.md,
+    ...shadows.lg,
   },
-  cardTop: {
+  header: {
     padding: spacing.lg,
     alignItems: 'center',
-    gap: 5,
   },
-  cardEmoji: { fontSize: 30, marginBottom: 4 },
-  cardTitle: {
-    fontFamily: fonts.outfit.extraBold,
-    fontSize: 15,
-    color: '#fff',
-    letterSpacing: -0.2,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  metaText: {
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.75)',
-    fontFamily: fonts.jakarta.regular,
-  },
-  cardBody: {
-    padding: spacing.lg,
-  },
-
-  infoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 14,
-    marginBottom: 24,
-  },
-  infoItem: {
-    width: '44%',
-  },
-  infoLabel: {
-    fontSize: 9,
-    fontFamily: fonts.jakarta.semiBold,
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
-    color: colors.mid,
-    marginBottom: 4,
-  },
-  infoValue: {
+  eventName: {
+    fontSize: 22,
     fontFamily: fonts.outfit.bold,
-    fontSize: 12,
-    color: colors.slate,
-    letterSpacing: -0.1,
+    color: colors.white,
   },
-  statusBadge: {
-    flexDirection: 'row',
+  eventDate: {
+    fontSize: 14,
+    fontFamily: fonts.jakarta.regular,
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: 4,
+  },
+  qrSection: {
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: colors.greenLight,
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: borderRadius.sm,
-    alignSelf: 'flex-start',
+    padding: spacing.lg,
   },
-  statusDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.green,
-  },
-  statusText: {
-    fontSize: 10,
-    fontFamily: fonts.jakarta.semiBold,
-    color: '#16a34a',
-  },
-
   qrWrap: {
-    alignItems: 'center',
-    marginBottom: 24,
-    gap: 12,
-  },
-  qrBox: {
-    padding: 8,
+    padding: spacing.md,
     backgroundColor: colors.white,
     borderRadius: borderRadius.md,
     ...shadows.sm,
   },
-  ticketId: {
-    fontSize: 8,
-    fontFamily: fonts.jakarta.semiBold,
-    letterSpacing: 2.5,
-    color: colors.muted,
-    textTransform: 'uppercase',
+  ticketNum: {
+    fontSize: 16,
+    fontFamily: fonts.outfit.bold,
+    color: colors.slate,
+    marginTop: spacing.md,
+    letterSpacing: 2,
   },
-
+  perforation: {
+    borderTopWidth: 2,
+    borderTopColor: colors.border,
+    borderStyle: 'dashed',
+    marginHorizontal: spacing.lg,
+  },
+  infoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: spacing.lg,
+  },
+  infoItem: {
+    width: '50%',
+    paddingVertical: spacing.sm,
+  },
+  infoLabel: {
+    fontSize: 11,
+    fontFamily: fonts.jakarta.regular,
+    color: colors.mid,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  infoValue: {
+    fontSize: 15,
+    fontFamily: fonts.outfit.semiBold,
+    color: colors.slate,
+    marginTop: 2,
+  },
   actions: {
     flexDirection: 'row',
     gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
   },
   btnPrimary: {
     flex: 1,
@@ -233,17 +199,14 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   btnSecondaryText: { fontFamily: fonts.outfit.bold, fontSize: 11, color: colors.slate },
-
   footer: {
-    marginTop: spacing.lg,
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    paddingBottom: spacing.lg,
+    paddingHorizontal: spacing.lg,
   },
   footerText: {
-    fontSize: 10,
-    color: colors.muted,
+    fontSize: 12,
     fontFamily: fonts.jakarta.regular,
-    textAlign: 'center',
+    color: colors.muted,
   },
 })

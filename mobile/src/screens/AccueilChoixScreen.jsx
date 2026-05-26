@@ -1,116 +1,118 @@
-import { View, Text, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native'
+import React, { useEffect, useRef } from 'react'
+import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Alert } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { LinearGradient } from 'expo-linear-gradient'
-import { colors } from '../constants/theme'
+import { colors, gradients, shadows, spacing, borderRadius, fonts } from '../constants/theme'
 
-// Écran d'accueil : permet de choisir son rôle parmi 3 profils
-// Rôles : Acheteur (OTP), Contrôleur (code 4 chiffres), Organisateur (email+mdp)
+const ROLES = [
+  {
+    key: 'acheteur',
+    title: 'Acheteur',
+    subtitle: "Achète tes billets\nen un clic",
+    icon: '🎟️',
+    gradient: gradients.acheteur,
+    screen: 'EntrerNumero',
+  },
+  {
+    key: 'controleur',
+    title: 'Contrôleur',
+    subtitle: "Scanne les billets\nà l'entrée",
+    icon: '📸',
+    gradient: gradients.controleur,
+    screen: 'ConnexionControleur',
+  },
+  {
+    key: 'organisateur',
+    title: 'Organisateur',
+    subtitle: 'Crée et gère\ntes événements',
+    icon: '🎪',
+    gradient: gradients.organisateur,
+    screen: 'ConnexionOrganisateur',
+  },
+]
+
 export default function AccueilChoixScreen({ navigation }) {
+  const animations = useRef(ROLES.map(() => new Animated.Value(0))).current
+
+  useEffect(() => {
+    Animated.stagger(120, animations.map(a =>
+      Animated.timing(a, { toValue: 1, duration: 500, useNativeDriver: true })
+    )).start()
+  }, [])
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.conteneur}>
-        {/* Logo / titre */}
-        <Text style={styles.logo}>SENGUICHET</Text>
-        <Text style={styles.sousTitre}>Choisissez votre mode</Text>
-
-        {/* Carte : Acheteur */}
-        <TouchableOpacity
-          style={styles.carte}
-          activeOpacity={0.85}
-          onPress={() => navigation.navigate('EntrerNumero')}
-        >
-          <Text style={styles.icone}>🎫</Text>
-          <Text style={styles.carteTitre}>Acheter un billet</Text>
-          <Text style={styles.carteFleche}>→</Text>
-        </TouchableOpacity>
-
-        {/* Carte : Contrôleur */}
-        <TouchableOpacity
-          style={styles.carte}
-          activeOpacity={0.85}
-          onPress={() => navigation.navigate('ConnexionControleur')}
-        >
-          <Text style={styles.icone}>📷</Text>
-          <Text style={styles.carteTitre}>Scanner</Text>
-          <Text style={styles.carteFleche}>→</Text>
-        </TouchableOpacity>
-
-        {/* Carte : Organisateur */}
-        <TouchableOpacity
-          style={styles.carte}
-          activeOpacity={0.85}
-          onPress={() => navigation.navigate('ConnexionOrganisateur')}
-        >
-          <Text style={styles.icone}>💼</Text>
-          <Text style={styles.carteTitre}>Organisateur</Text>
-          <Text style={styles.carteFleche}>→</Text>
-        </TouchableOpacity>
-
-        {/* Footer : moyens de paiement */}
-        <Text style={styles.footer}>
-          Paiement Wave & Orange Money
-        </Text>
+    <LinearGradient colors={gradients.hero} style={s.container}>
+      <StatusBar barStyle="dark-content" />
+      <View style={s.header}>
+        <Text style={s.logo}>🎫</Text>
+        <Text style={s.title}>Senguichet</Text>
+        <Text style={s.tagline}>Billets & Événements</Text>
       </View>
-    </SafeAreaView>
+      <View style={s.cards}>
+        {ROLES.map((role, i) => {
+          const scale = animations[i].interpolate({
+            inputRange: [0, 1], outputRange: [0.9, 1],
+          })
+          const opacity = animations[i].interpolate({
+            inputRange: [0, 1], outputRange: [0, 1],
+          })
+          return (
+            <Animated.View key={role.key} style={[s.cardWrap, { opacity, transform: [{ scale }] }]}>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => navigation.navigate(role.screen)}
+              >
+                <LinearGradient
+                  colors={role.gradient}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                  style={s.card}
+                >
+                  <Text style={s.cardIcon}>{role.icon}</Text>
+                  <Text style={s.cardTitle}>{role.title}</Text>
+                  <Text style={s.cardSubtitle}>{role.subtitle}</Text>
+                  <View style={s.arrow}>
+                    <Text style={s.arrowText}>→</Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            </Animated.View>
+          )
+        })}
+      </View>
+      <TouchableOpacity
+        style={s.reset}
+        onPress={() => {
+          Alert.alert('Réinitialiser', 'Effacer toutes les données ?', [
+            { text: 'Annuler', style: 'cancel' },
+            { text: 'OK', onPress: async () => {
+              const keys = await AsyncStorage.getAllKeys()
+              const appKeys = keys.filter(k => k.startsWith('@senguichet_'))
+              await AsyncStorage.multiRemove(appKeys)
+              Alert.alert('✅ Fait', 'Données effacées. Redémarre l\'app.')
+            }},
+          ])
+        }}
+      >
+        <Text style={s.resetText}>Réinitialiser</Text>
+      </TouchableOpacity>
+    </LinearGradient>
   )
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  conteneur: {
-    flex: 1,
-    paddingHorizontal: 24,
-    justifyContent: 'center',
-  },
-  logo: {
-    fontFamily: 'Outfit_900Black',
-    fontSize: 28,
-    color: colors.accent,
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  sousTitre: {
-    fontFamily: 'Outfit_400Regular',
-    fontSize: 15,
-    color: colors.mid,
-    textAlign: 'center',
-    marginBottom: 40,
-  },
-  carte: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    marginBottom: 14,
-    shadowColor: '#0f172a',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 16,
-    elevation: 2,
-  },
-  icone: {
-    fontSize: 28,
-    marginRight: 16,
-  },
-  carteTitre: {
-    flex: 1,
-    fontFamily: 'Outfit_600SemiBold',
-    fontSize: 17,
-    color: colors.slate,
-  },
-  carteFleche: {
-    fontSize: 20,
-    color: colors.muted,
-  },
-  footer: {
-    fontFamily: 'Outfit_400Regular',
-    fontSize: 12,
-    color: colors.muted,
-    textAlign: 'center',
-    marginTop: 40,
-  },
+const s = StyleSheet.create({
+  container: { flex: 1 },
+  header: { alignItems: 'center', paddingTop: 80, paddingBottom: spacing.xl },
+  logo: { fontSize: 48, marginBottom: spacing.sm },
+  title: { fontSize: 32, fontFamily: fonts.outfit.bold, color: colors.slate },
+  tagline: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: 4 },
+  cards: { flex: 1, justifyContent: 'center', gap: spacing.md, paddingHorizontal: spacing.xl },
+  cardWrap: { borderRadius: borderRadius.xl, ...shadows.lg },
+  card: { borderRadius: borderRadius.xl, padding: spacing.lg, minHeight: 140, justifyContent: 'center' },
+  cardIcon: { fontSize: 36, marginBottom: spacing.xs },
+  cardTitle: { fontSize: 22, fontFamily: fonts.outfit.bold, color: colors.white },
+  cardSubtitle: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
+  arrow: { position: 'absolute', right: spacing.lg, top: '50%', marginTop: -12 },
+  arrowText: { fontSize: 24, color: 'rgba(255,255,255,0.6)' },
+  reset: { alignItems: 'center', paddingBottom: 40 },
+  resetText: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.muted, textDecorationLine: 'underline' },
 })

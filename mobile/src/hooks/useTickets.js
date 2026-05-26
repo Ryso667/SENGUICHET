@@ -33,5 +33,17 @@ export function useTickets() {
     }
   }, [])
 
-  return { tickets, loading, addTicket }
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    try {
+      const raw = await AsyncStorage.getItem(TICKETS_KEY)
+      setTickets(raw ? JSON.parse(raw) : [])
+    } catch (e) {
+      console.warn('Failed to refresh tickets', e)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  return { tickets, loading, addTicket, refresh }
 }

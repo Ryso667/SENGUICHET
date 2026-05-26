@@ -7,15 +7,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
-import { useTickets } from '../hooks/useTickets'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { acheterTicket, getAllEvenements } from '../services/eventService'
 import { useAuth } from '../context/AuthContext'
-
-function generateTicketId(eventId, category) {
-  const prefix = `SGT-${eventId.toUpperCase().slice(0, 3)}`
-  const cat = category.replace(/\s/g, '').toUpperCase().slice(0, 4)
-  const num = Math.floor(Math.random() * 900) + 100
-  return `${prefix}-${cat}-${num}`
-}
 
 function formaterTelStocke(telComplet) {
   if (!telComplet) return ''
@@ -33,33 +27,50 @@ export default function EventDetailScreen({ route, navigation }) {
   const { numeroTel } = useAuth()
   const [selectedTicket, setSelectedTicket] = useState(event.tickets[1] || event.tickets[0])
   const [phone, setPhone] = useState(() => formaterTelStocke(numeroTel))
-  const { addTicket } = useTickets()
-
-  const handleBuy = async () => {
-    const newTicket = {
-      id: generateTicketId(event.id, selectedTicket.name),
-      eventId: event.id,
-      eventTitle: event.title,
-      eventDate: event.date,
-      category: selectedTicket.name,
-      price: selectedTicket.price,
-      phone: `+221 ${phone}`,
-      time: event.time,
-      location: event.location,
-      emoji: event.emoji,
-      bg: event.bg,
-      purchasedAt: Date.now(),
-    }
-    await addTicket(newTicket)
+  const handleBuy = () => {
+    const tel = `+221 ${phone.replace(/\s/g, '')}`
+    const prix = selectedTicket.price || selectedTicket.prix
     Alert.alert(
-      '🎫 Paiement validé !',
-      'Votre Smart Ticket a été généré et enregistré localement.',
+      'Confirmer le paiement',
+      `${selectedTicket.name} — ${prix?.toLocaleString() || '?'} FCFA\nTéléphone: ${tel}`,
       [
+        { text: 'Annuler', style: 'cancel' },
         {
-          text: 'Voir mon ticket',
-          onPress: () => navigation.replace('Ticket', { ticket: newTicket }),
+          text: 'Confirmer',
+          onPress: async () => {
+            try {
+              const events = await getAllEvenements()
+              if (!events.find(e => e.id === event.id)) {
+                events.push({
+                  id: event.id,
+                  nom: event.title,
+                  date: event.date,
+                  categories: event.tickets.map(t => ({
+                    id: t.id,
+                    nom: t.name,
+                    prix: t.price,
+                    capacite: 999,
+                  })),
+                  ticketCount: 0,
+                  createdAt: new Date().toISOString(),
+                })
+                await AsyncStorage.setItem('@senguichet_evenements', JSON.stringify(events))
+              }
+
+              const ticket = await acheterTicket(event.id, selectedTicket.id, tel)
+
+              Alert.alert('🎫 Paiement validé !', 'Votre Smart Ticket a été généré et enregistré localement.', [
+                {
+                  text: 'Voir mon ticket',
+                  onPress: () => navigation.replace('Ticket', { ticket }),
+                },
+              ])
+            } catch (err) {
+              Alert.alert('Erreur', err.message)
+            }
+          },
         },
-      ],
+      ]
     )
   }
 
@@ -158,7 +169,7 @@ export default function EventDetailScreen({ route, navigation }) {
         <View style={styles.bottomBar}>
           <TouchableOpacity style={styles.buyBtn} onPress={handleBuy} activeOpacity={0.9}>
             <Feather name="shopping-cart" size={15} color="#fff" />
-            <Text style={styles.buyBtnText}>Payer {selectedTicket.price.toLocaleString()} FCFA</Text>
+            <Text style={styles.buyBtnText}>Payer {selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

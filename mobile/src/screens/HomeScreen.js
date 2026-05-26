@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
@@ -16,8 +17,8 @@ const EVENTS = [
     category: 'Concert', date: '24 Mai 2026', time: '19h00',
     desc: 'Le plus grand festival de musique à Dakar.',
     tickets: [
-      { name: 'Entrée Standard', price: 5000, desc: 'Générale' },
-      { name: 'VIP Carré Or', price: 15000, desc: 'Vue scène + Boisson' },
+      { id: 'standard', name: 'Entrée Standard', price: 5000, desc: 'Générale' },
+      { id: 'vip', name: 'VIP Carré Or', price: 15000, desc: 'Vue scène + Boisson' },
     ],
   },
   {
@@ -28,14 +29,19 @@ const EVENTS = [
     category: 'Soirée', date: '02 Juin 2026', time: '21h00',
     desc: 'Une soirée magique sous les étoiles.',
     tickets: [
-      { name: 'Entrée Standard', price: 10000, desc: 'Accès soirée' },
+      { id: 'standard', name: 'Entrée Standard', price: 10000, desc: 'Accès soirée' },
     ],
   },
 ]
 
 export default function HomeScreen({ navigation }) {
-  const { tickets } = useTickets()
+  const { tickets, refresh } = useTickets()
   const { deconnecter } = useAuth()
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', refresh)
+    return unsubscribe
+  }, [navigation, refresh])
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -107,8 +113,8 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.ticketEmoji}>{t.emoji || '🎫'}</Text>
                   </View>
                   <View style={styles.ticketInfo}>
-                    <Text style={styles.ticketTitle}>{t.eventTitle}</Text>
-                    <Text style={styles.ticketMeta}>{t.category} · {t.date}</Text>
+                    <Text style={styles.ticketTitle}>{t.eventTitle || t.eventNom}</Text>
+                    <Text style={styles.ticketMeta}>{t.category || t.categorie} · {t.date || t.eventDate}</Text>
                   </View>
                   <View style={styles.ticketStatus}>
                     <View style={styles.dot} />

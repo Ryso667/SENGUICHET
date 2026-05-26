@@ -1,122 +1,155 @@
-import { View, Text, SafeAreaView, ScrollView, StyleSheet } from 'react-native'
+import React, { useState, useEffect } from 'react'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { colors, glass, gradients, shadows, spacing, borderRadius, fonts } from '../../constants/theme'
+import { getAllEvenements, getEvenementStats } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import BoutonPrincipal from '../../components/BoutonPrincipal'
-import { colors } from '../../constants/theme'
 
-// Tableau de bord de l'organisateur
-// Affiche les stats des événements et permet de naviguer
-export default function OrganisateurDashboardScreen({ navigation }) {
-  const { email, deconnecter } = useAuth()
-
-  const handleDeconnexion = async () => {
-    await deconnecter()
-  }
-
+function StatCard({ icon, value, label, color }) {
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.conteneur}>
-        {/* Entête avec email */}
-        <Text style={styles.titre}>Bonjour 👋</Text>
-        <Text style={styles.email}>{email}</Text>
-
-        {/* Cartes de stats (placeholders en mode démo) */}
-        <View style={styles.grille}>
-          <View style={styles.statCarte}>
-            <Text style={styles.statValeur}>0</Text>
-            <Text style={styles.statLabel}>Événements</Text>
-          </View>
-          <View style={styles.statCarte}>
-            <Text style={styles.statValeur}>0</Text>
-            <Text style={styles.statLabel}>Billets vendus</Text>
-          </View>
-          <View style={styles.statCarte}>
-            <Text style={styles.statValeur}>0 CFA</Text>
-            <Text style={styles.statLabel}>Recettes</Text>
-          </View>
-        </View>
-
-        {/* Actions */}
-        <View style={styles.actions}>
-          <BoutonPrincipal
-            titre="Créer un événement"
-            onPress={() => navigation.navigate('CreerEvenement')}
-          />
-          <View style={{ height: 12 }} />
-          <BoutonPrincipal
-            titre="Voir les tickets"
-            onPress={() => navigation.navigate('VoirTickets')}
-          />
-        </View>
-
-        {/* Déconnexion */}
-        <Text style={styles.deconnexion} onPress={handleDeconnexion}>
-          Se déconnecter
-        </Text>
-      </ScrollView>
-    </SafeAreaView>
+    <View style={[s.statCard, { borderLeftColor: color, borderLeftWidth: 3 }]}>
+      <Text style={s.statIcon}>{icon}</Text>
+      <Text style={[s.statValue, { color }]}>{value}</Text>
+      <Text style={s.statLabel}>{label}</Text>
+    </View>
   )
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
+export default function OrganisateurDashboardScreen({ navigation }) {
+  const { email, deconnecter } = useAuth()
+  const [events, setEvents] = useState([])
+  const [expandedId, setExpandedId] = useState(null)
+  const [stats, setStats] = useState({})
+
+  useEffect(() => {
+    loadData()
+    const unsubscribe = navigation.addListener('focus', loadData)
+    return unsubscribe
+  }, [navigation])
+
+  async function loadData() {
+    const evts = await getAllEvenements()
+    setEvents(evts)
+    const s = {}
+    for (const e of evts) {
+      s[e.id] = await getEvenementStats(e.id)
+    }
+    setStats(s)
+  }
+
+  const totalVendus = events.reduce((sum, e) => sum + (stats[e.id]?.totalVendus || 0), 0)
+  const totalRecettes = events.reduce((sum, e) => sum + (stats[e.id]?.recettes || 0), 0)
+
+  return (
+    <ScrollView style={s.container}>
+      <LinearGradient colors={gradients.hero} style={s.hero}>
+        <Text style={s.greeting}>Bonjour 👋</Text>
+        <Text style={s.email}>{email || 'Organisateur'}</Text>
+      </LinearGradient>
+
+      <View style={s.statsRow}>
+        <StatCard icon="🎟️" value={events.length} label="Événements" color={colors.accent} />
+        <StatCard icon="🎫" value={totalVendus} label="Billets vendus" color={colors.green} />
+        <StatCard icon="💰" value={`${(totalRecettes / 1000).toFixed(0)}k`} label="Recettes CFA" color={colors.rose} />
+      </View>
+
+      {events.length === 0 ? (
+        <View style={s.empty}>
+          <Text style={s.emptyIcon}>📭</Text>
+          <Text style={s.emptyText}>Aucun événement pour le moment</Text>
+        </View>
+      ) : (
+        events.map(evt => {
+          const st = stats[evt.id]
+          const isOpen = expandedId === evt.id
+          return (
+            <TouchableOpacity key={evt.id} style={s.eventCard} onPress={() => setExpandedId(isOpen ? null : evt.id)} activeOpacity={0.8}>
+              <View style={s.eventHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.eventName}>{evt.nom}</Text>
+                  <Text style={s.eventDate}>{evt.date} · Code: {evt.code}</Text>
+                </View>
+                <Text style={s.chevron}>{isOpen ? '▼' : '▶'}</Text>
+              </View>
+
+              {isOpen && st && (
+                <View style={s.eventDetails}>
+                  <Text style={s.sectionTitle}>🎟️ Ventes par type</Text>
+                  {st.vendusParCategorie.map((c, i) => (
+                    <View key={i} style={s.barRow}>
+                      <Text style={s.barLabel}>{c.nom}</Text>
+                      <View style={s.barBg}>
+                        <View style={[s.barFill, { width: `${(c.vendus / Math.max(c.capacite, 1)) * 100}%`, backgroundColor: colors.accent }]} />
+                      </View>
+                      <Text style={s.barCount}>{c.vendus}/{c.capacite}</Text>
+                    </View>
+                  ))}
+
+                  <Text style={s.sectionTitle}>📸 Scans par type</Text>
+                  {st.scannesParCategorie.map((c, i) => (
+                    <View key={i} style={s.barRow}>
+                      <Text style={s.barLabel}>{c.nom}</Text>
+                      <View style={s.barBg}>
+                        <View style={[s.barFill, { width: `${(c.scannes / Math.max(c.vendus, 1)) * 100}%`, backgroundColor: colors.green }]} />
+                      </View>
+                      <Text style={s.barCount}>{c.scannes}/{c.vendus}</Text>
+                    </View>
+                  ))}
+
+                  <TouchableOpacity style={s.voirTicketsBtn}
+                    onPress={() => navigation.navigate('VoirTickets', { eventId: evt.id })}>
+                    <Text style={s.voirTicketsText}>Voir les tickets →</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </TouchableOpacity>
+          )
+        })
+      )}
+
+      <View style={{ padding: spacing.lg, gap: spacing.md }}>
+        <BoutonPrincipal titre="Créer un événement" onPress={() => navigation.navigate('CreerEvenement')} />
+        <TouchableOpacity onPress={deconnecter}>
+          <Text style={s.logout}>Se déconnecter</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  )
+}
+
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
+  hero: { padding: spacing.xl, paddingTop: 60 },
+  greeting: { fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.slate },
+  email: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: 4 },
+  statsRow: { flexDirection: 'row', paddingHorizontal: spacing.lg, gap: spacing.sm, marginTop: -spacing.lg },
+  statCard: {
+    ...glass, borderRadius: borderRadius.lg, padding: spacing.md, flex: 1,
+    ...shadows.sm,
   },
-  conteneur: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 20,
+  statIcon: { fontSize: 20 },
+  statValue: { fontSize: 22, fontFamily: fonts.outfit.bold, marginTop: spacing.xs },
+  statLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: 2 },
+  empty: { alignItems: 'center', padding: spacing.xxl },
+  emptyIcon: { fontSize: 48 },
+  emptyText: { fontSize: 16, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: spacing.sm },
+  eventCard: {
+    ...glass, borderRadius: borderRadius.lg, marginHorizontal: spacing.lg,
+    marginTop: spacing.md, padding: spacing.md, ...shadows.sm,
   },
-  titre: {
-    fontFamily: 'Outfit_700Bold',
-    fontSize: 26,
-    color: colors.slate,
-    marginBottom: 4,
-  },
-  email: {
-    fontFamily: 'Outfit_400Regular',
-    fontSize: 14,
-    color: colors.mid,
-    marginBottom: 32,
-  },
-  grille: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 32,
-  },
-  statCarte: {
-    flex: 1,
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    shadowColor: '#0f172a',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 16,
-    elevation: 2,
-  },
-  statValeur: {
-    fontFamily: 'Outfit_700Bold',
-    fontSize: 18,
-    color: colors.accent,
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontFamily: 'Outfit_400Regular',
-    fontSize: 12,
-    color: colors.mid,
-    textAlign: 'center',
-  },
-  actions: {
-    marginBottom: 24,
-  },
-  deconnexion: {
-    fontFamily: 'Outfit_500Medium',
-    fontSize: 15,
-    color: colors.red,
-    textAlign: 'center',
-    marginTop: 20,
-    marginBottom: 40,
-  },
+  eventHeader: { flexDirection: 'row', alignItems: 'center' },
+  eventName: { fontSize: 17, fontFamily: fonts.outfit.semiBold, color: colors.slate },
+  eventDate: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: 2 },
+  chevron: { fontSize: 14, color: colors.mid },
+  eventDetails: { marginTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.md },
+  sectionTitle: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.slate, marginBottom: spacing.sm, marginTop: spacing.sm },
+  barRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
+  barLabel: { width: 70, fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.mid },
+  barBg: { flex: 1, height: 8, backgroundColor: colors.border, borderRadius: 4, overflow: 'hidden', marginHorizontal: spacing.sm },
+  barFill: { height: 8, borderRadius: 4 },
+  barCount: { width: 50, textAlign: 'right', fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.slate },
+  voirTicketsBtn: { marginTop: spacing.md, alignSelf: 'flex-end' },
+  voirTicketsText: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  logout: { textAlign: 'center', fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.red, marginBottom: spacing.xxl },
 })

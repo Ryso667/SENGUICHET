@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
+import { fonts, colors, spacing, borderRadius, shadows, glass } from '../constants/theme'
 
 export default function EventCard({ event, onPress }) {
   return (
@@ -34,11 +34,11 @@ export default function EventCard({ event, onPress }) {
 const styles = StyleSheet.create({
   card: {
     width: 200,
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.md,
+    ...glass,
+    borderRadius: borderRadius.xl,
     overflow: 'hidden',
     marginRight: 12,
-    ...shadows.sm,
+    ...shadows.md,
   },
   banner: {
     height: 100,

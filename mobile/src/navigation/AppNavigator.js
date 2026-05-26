@@ -132,6 +132,7 @@ function OrganisateurTabs() {
       <Tab.Screen
         name="VoirTickets"
         component={VoirTicketsScreen}
+        initialParams={{ eventId: null }}
         options={{
           tabBarLabel: 'Tickets',
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>🎫</Text>,

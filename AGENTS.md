@@ -41,5 +41,39 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before 
 ## Dépendances installées
 expo-camera, expo-sqlite, expo-crypto
 
+## Sécurité — OWASP
+- Skill chargé automatiquement pour toute tâche d'auth/sécurité : `owasp-security`
+- Sources : Password Storage, Authentication, Session Management, MASVS Cheat Sheets
+- Avant chaque implémentation auth : fetch les cheatsheets, extraire les recommandations
+
+### Recommandations OWASP clés
+
+**Stockage mots de passe (bcrypt)**
+- Work factor >= 10
+- Limite 72 bytes — max length 72 caractères ou pré-hacher
+- Ne JAMAIS stocker en clair
+- bcrypt gère le sel automatiquement
+
+**Authentification**
+- Min 8 caractères (si MFA), 15 sinon
+- Max au moins 64 caractères
+- Messages d'erreur génériques ("Identifiant ou mot de passe incorrect")
+- Ne PAS limiter les caractères autorisés
+- Rate limiting / account lockout
+- Transmettre uniquement sur TLS
+
+**Mobile (MASVS)**
+- Stocker tokens JWT dans SecureStore (expo-secure-store) plutôt qu'AsyncStorage
+- Effacer données sensibles à la déconnexion
+- Ne pas logger mots de passe ou tokens
+
+## Contexte mémorisé (Mai 2026)
+- **Branche de travail** : `feature/mouhtada` — NE JAMAIS modifier `main`
+- **bcrypt pour organisateur** : doit être intégré côté mobile avec `bcryptjs` (pur JS)
+  - Inscription organisateur avec hash bcrypt stocké dans AsyncStorage
+  - Connexion avec vérification via bcrypt.compare()
+  - Backend existant dans `backend/` mais pas d'API — ne pas toucher
+- **Authentification** : 3 rôles (Acheteur OTP, Contrôleur code 4 chiffres, Organisateur email+bcrypt)
+
 ## PR
 PR #3 ouverte : feature/mouhtada → main
