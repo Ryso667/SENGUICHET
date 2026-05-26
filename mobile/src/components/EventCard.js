@@ -14,14 +14,18 @@ export default function EventCard({ event, onPress }) {
       </View>
       <View style={styles.body}>
         <Text style={styles.title} numberOfLines={1}>{event.title}</Text>
-        <View style={styles.metaRow}>
-          <Feather name="map-pin" size={9} color={colors.mid} />
-          <Text style={styles.metaText} numberOfLines={1}>{event.location}</Text>
-        </View>
-        <View style={styles.metaRow}>
-          <Feather name="clock" size={9} color={colors.mid} />
-          <Text style={styles.metaText}>{event.time}</Text>
-        </View>
+        {!!event.location && (
+          <View style={styles.metaRow}>
+            <Feather name="map-pin" size={9} color={colors.mid} />
+            <Text style={styles.metaText} numberOfLines={1}>{event.location}</Text>
+          </View>
+        )}
+        {!!event.time && (
+          <View style={styles.metaRow}>
+            <Feather name="clock" size={9} color={colors.mid} />
+            <Text style={styles.metaText}>{event.time}</Text>
+          </View>
+        )}
         <View style={styles.metaRow}>
           <Feather name="tag" size={9} color={colors.accent} />
           <Text style={styles.price}>{event.priceLabel}</Text>

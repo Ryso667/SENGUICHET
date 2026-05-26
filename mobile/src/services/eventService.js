@@ -1,7 +1,9 @@
 // Couche de persistance AsyncStorage pour les événements et tickets
 // Toutes les fonctions sont async car AsyncStorage est asynchrone
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import * as Crypto from 'expo-crypto'
 import { insererTicketAchete } from '../database/database'
+import { getDefaultImage } from '../config/images'
 
 // Clés de stockage dans AsyncStorage
 const EVENTS_KEY = '@senguichet_evenements'  // liste des événements créés
@@ -29,22 +31,44 @@ export async function getEvenement(id) {
   return events.find(e => e.id === id) || null
 }
 
-// Crée un nouvel événement avec un code 4 chiffres généré aléatoirement
+// Génère un code contrôleur sécurisé : 4 chiffres via expo-crypto
+// Vérifie l'unicité contre les codes existants
+async function genererCodeSecurise(existingCodes) {
+  let code
+  const bytes = new Uint8Array(2)
+  do {
+    Crypto.getRandomValues(bytes)
+    code = String(1000 + bytes[0] % 9000)
+  } while (existingCodes.includes(code))
+  return code
+}
+
+// Crée un nouvel événement avec un code contrôleur 4 chiffres (crypto-sécurisé)
 // Les catégories recoivent un ID unique au moment de la création
-export async function creerEvenement({ nom, date, description, categories }) {
+export async function creerEvenement({ nom, date, description, categorie, categories, poster, lieu, heure, email }) {
   const events = await getAllEvenements()
+  const existingCodes = events.map(e => e.code)
+  const defaultImg = getDefaultImage(categorie)
   const evt = {
     id: generateId(),
     nom,
     date,
+    lieu: lieu || '',
+    heure: heure || '',
+    categorie: categorie || '',
     description: description || '',
-    code: Math.floor(1000 + Math.random() * 9000).toString(),
+    code: await genererCodeSecurise(existingCodes),
     categories: categories.map(c => ({ id: generateId(), nom: c.nom, prix: Number(c.prix), capacite: Number(c.capacite) })),
+    poster: poster?.uri || defaultImg.poster,
+    bg: defaultImg.bg,
+    emoji: defaultImg.emoji,
     ticketCount: 0,
     createdAt: new Date().toISOString(),
+    email: email || '',
   }
   events.push(evt)
   await AsyncStorage.setItem(EVENTS_KEY, JSON.stringify(events))
+  await ajouterAudit('creation', { eventId: evt.id, eventNom: evt.nom, par: email || 'organisateur' })
   return evt
 }
 
@@ -131,4 +155,73 @@ export async function getEvenementStats(eventId) {
 export async function getTicketsAcheteur(telephone) {
   const tickets = await getAllTickets()
   return tickets.filter(t => t.telephone === telephone)
+}
+
+// Clé de stockage pour les logs d'audit dans AsyncStorage
+const AUDIT_KEY = '@senguichet_audit'
+
+// Ajoute une entrée dans le journal d'audit pour tracer les actions organisateur
+// action : 'creation' | 'modification' | 'suppression'
+// params : { eventId, eventNom, par, changements }
+export async function ajouterAudit(action, { eventId, eventNom, par, changements }) {
+  const raw = await AsyncStorage.getItem(AUDIT_KEY)
+  const logs = raw ? JSON.parse(raw) : []
+  logs.push({
+    id: generateId(),
+    action,
+    eventId,
+    eventNom,
+    par: par || 'inconnu',
+    changements: changements || null,
+    timestamp: new Date().toISOString(),
+  })
+  await AsyncStorage.setItem(AUDIT_KEY, JSON.stringify(logs))
+}
+
+// Récupère tous les logs d'audit, du plus récent au plus ancien
+export async function getAuditLogs() {
+  const raw = await AsyncStorage.getItem(AUDIT_KEY)
+  return raw ? JSON.parse(raw).reverse() : []
+}
+
+// Modifie un événement existant en préservant son ID et son code contrôleur
+// updates : { nom, date, lieu, heure, categorie, description, categories, poster, bg, emoji }
+// Lance une erreur si l'ID n'existe pas
+export async function modifierEvenement(id, updates) {
+  const events = await getAllEvenements()
+  const idx = events.findIndex(e => e.id === id)
+  if (idx === -1) throw new Error('Événement introuvable')
+  const old = events[idx]
+  const updated = {
+    ...old,
+    nom: updates.nom ?? old.nom,
+    date: updates.date ?? old.date,
+    lieu: updates.lieu ?? old.lieu,
+    heure: updates.heure ?? old.heure,
+    categorie: updates.categorie ?? old.categorie,
+    description: updates.description ?? old.description,
+    categories: updates.categories.map(c => ({
+      id: c.id || generateId(),
+      nom: c.nom,
+      prix: Number(c.prix),
+      capacite: Number(c.capacite),
+    })),
+    poster: updates.poster?.uri ?? old.poster,
+    bg: updates.bg ?? old.bg,
+    emoji: updates.emoji ?? old.emoji,
+  }
+  events[idx] = updated
+  await AsyncStorage.setItem(EVENTS_KEY, JSON.stringify(events))
+  return updated
+}
+
+// Supprime un événement (soft delete) : marque supprime=true et enregistre la date
+// Ne supprime pas physiquement les données dans AsyncStorage
+export async function supprimerEvenement(id) {
+  const events = await getAllEvenements()
+  const idx = events.findIndex(e => e.id === id)
+  if (idx === -1) throw new Error('Événement introuvable')
+  events[idx].supprime = true
+  events[idx].deletedAt = new Date().toISOString()
+  await AsyncStorage.setItem(EVENTS_KEY, JSON.stringify(events))
 }

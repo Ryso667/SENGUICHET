@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { colors, glass, gradients, shadows, spacing, borderRadius, fonts } from '../../constants/theme'
-import { getAllEvenements, getEvenementStats } from '../../services/eventService'
+import { getAllEvenements, getEvenementStats, supprimerEvenement, ajouterAudit } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import BoutonPrincipal from '../../components/BoutonPrincipal'
 
@@ -34,9 +34,10 @@ export default function OrganisateurDashboardScreen({ navigation }) {
 
   async function loadData() {
     const evts = await getAllEvenements()
-    setEvents(evts)
+    const actifs = evts.filter(e => !e.supprime)
+    setEvents(actifs)
     const s = {}
-    for (const e of evts) {
+    for (const e of actifs) {
       s[e.id] = await getEvenementStats(e.id)
     }
     setStats(s)
@@ -105,6 +106,34 @@ export default function OrganisateurDashboardScreen({ navigation }) {
                     onPress={() => navigation.navigate('VoirTickets', { eventId: evt.id })}>
                     <Text style={s.voirTicketsText}>Voir les tickets →</Text>
                   </TouchableOpacity>
+
+                  <View style={s.actionRow}>
+                    <TouchableOpacity
+                      style={s.editBtn}
+                      onPress={() => navigation.navigate('CreerEvenement', { event: evt })}
+                    >
+                      <Text style={s.editBtnText}>✏️ Modifier</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={s.deleteBtn}
+                      onPress={() => {
+                        Alert.alert(
+                          'Supprimer',
+                          `Supprimer "${evt.nom}" ? Cette action est irréversible.`,
+                          [
+                            { text: 'Annuler', style: 'cancel' },
+                            { text: 'Supprimer', style: 'destructive', onPress: async () => {
+                              await supprimerEvenement(evt.id)
+                              await ajouterAudit('suppression', { eventId: evt.id, eventNom: evt.nom, par: email })
+                              loadData()
+                            }},
+                          ]
+                        )
+                      }}
+                    >
+                      <Text style={s.deleteBtnText}>🗑️ Supprimer</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )}
             </TouchableOpacity>
@@ -156,4 +185,9 @@ const s = StyleSheet.create({
   voirTicketsBtn: { marginTop: spacing.md, alignSelf: 'flex-end' },
   voirTicketsText: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent },
   logout: { textAlign: 'center', fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.red, marginBottom: spacing.xxl },
+  actionRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+  editBtn: { flex: 1, paddingVertical: 10, borderRadius: borderRadius.md, alignItems: 'center', backgroundColor: '#eef2ff' },
+  editBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#6366f1' },
+  deleteBtn: { flex: 1, paddingVertical: 10, borderRadius: borderRadius.md, alignItems: 'center', backgroundColor: '#fef2f2' },
+  deleteBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#ef4444' },
 })

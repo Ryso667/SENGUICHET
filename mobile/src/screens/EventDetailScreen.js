@@ -99,14 +99,18 @@ export default function EventDetailScreen({ route, navigation }) {
                   <Feather name="calendar" size={9} color="#f43f5e" />
                   <Text style={styles.tagText}>{event.date}</Text>
                 </View>
-                <View style={styles.tag}>
-                  <Feather name="map-pin" size={9} color="#6366f1" />
-                  <Text style={styles.tagText}>{event.location}</Text>
-                </View>
-                <View style={styles.tag}>
-                  <Feather name="clock" size={9} color={colors.green} />
-                  <Text style={styles.tagText}>{event.time}</Text>
-                </View>
+                {!!event.location && (
+                  <View style={styles.tag}>
+                    <Feather name="map-pin" size={9} color="#6366f1" />
+                    <Text style={styles.tagText}>{event.location}</Text>
+                  </View>
+                )}
+                {!!event.time && (
+                  <View style={styles.tag}>
+                    <Feather name="clock" size={9} color={colors.green} />
+                    <Text style={styles.tagText}>{event.time}</Text>
+                  </View>
+                )}
               </View>
             </View>
 

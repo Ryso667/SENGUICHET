@@ -34,10 +34,24 @@ const MOCKS = [
   },
 ]
 
+const MOIS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin',
+  'Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+
+function formaterDateAffichee(dateStr) {
+  if (!dateStr) return { day: '', month: '' }
+  if (dateStr.includes('/')) {
+    const [dd, mm] = dateStr.split('/')
+    const idx = parseInt(mm, 10) - 1
+    return { day: dd.replace(/^0/, ''), month: MOIS_FR[idx]?.slice(0, 3).toUpperCase() || '' }
+  }
+  const parts = dateStr.split(' ')
+  return { day: parts[0] || '', month: parts[1]?.slice(0, 3).toUpperCase() || '' }
+}
+
 function formaterEvenement(e) {
   if (e.tickets) return e
   const def = getDefaultImage(e.categorie)
-  const parts = (e.date || '').split(' ')
+  const { day, month } = formaterDateAffichee(e.date)
   const prices = (e.categories || []).map(c => c.prix).filter(p => p != null)
   const min = Math.min(...prices)
   const max = Math.max(...prices)
@@ -45,9 +59,9 @@ function formaterEvenement(e) {
     : prices.length === 1 ? `${min.toLocaleString()}F`
     : '—'
   return {
-    id: e.id, title: e.nom || '', month: parts[1]?.slice(0, 3).toUpperCase() || '', day: parts[0] || '',
+    id: e.id, title: e.nom || '', month, day,
     emoji: def.emoji, bg: def.bg, priceLabel, location: e.lieu || '',
-    category: e.categorie || '', date: e.date || '', time: '', desc: e.description || '',
+    category: e.categorie || '', date: e.date || '', time: e.heure || '', desc: e.description || '',
     tickets: (e.categories || []).map(c => ({ id: c.id, name: c.nom, price: c.prix, desc: '' })),
   }
 }
@@ -61,7 +75,9 @@ export default function EventSearchScreen({ navigation }) {
       try {
         const raw = await AsyncStorage.getItem('@senguichet_evenements')
         const stored = raw ? JSON.parse(raw) : []
-        setAllEvents([...stored.map(formaterEvenement), ...MOCKS])
+        const storedIds = new Set(stored.map(s => s.id))
+        const mocksUniques = MOCKS.filter(m => !storedIds.has(m.id))
+        setAllEvents([...stored.map(formaterEvenement), ...mocksUniques])
       } catch (e) {
         console.warn('Failed to load events', e)
       }
