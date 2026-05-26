@@ -1,0 +1,10 @@
+{
+  "name": "@senguichet/api",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "private": true,
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  }
+}
