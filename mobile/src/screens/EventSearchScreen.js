@@ -1,10 +1,17 @@
-import { useState, useMemo } from 'react'
+// Écran de recherche d'événements avec barre de recherche et filtrage
+// Les événements sont mockés en dur pour le moment
+import { useState, useMemo, useEffect } from 'react'
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Feather } from '@expo/vector-icons'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
+import { getDefaultImage } from '../config/images'
+import { formaterBadgeDate, formaterDateLisible } from '../utils/dateUtils'
+import BuyerLayout from '../components/BuyerLayout'
 
-const EVENTS = [
+// Sera remplacé par API : événements mockés en attente du backend
+const MOCKS = [
   {
     id: 'dmf-2026', title: 'Dakar Music Festival',
     emoji: '🎶', bg: '#6d28d9',
@@ -13,8 +20,8 @@ const EVENTS = [
     category: 'Concert', date: '24 Mai 2026', time: '19h00',
     desc: 'Le plus grand festival de musique à Dakar.',
     tickets: [
-      { name: 'Entrée Standard', price: 5000, desc: 'Générale' },
-      { name: 'VIP Carré Or', price: 15000, desc: 'Vue scène + Boisson' },
+      { id: 'standard', name: 'Entrée Standard', price: 5000, desc: 'Générale' },
+      { id: 'vip', name: 'VIP Carré Or', price: 15000, desc: 'Vue scène + Boisson' },
     ],
   },
   {
@@ -25,95 +32,152 @@ const EVENTS = [
     category: 'Soirée', date: '02 Juin 2026', time: '21h00',
     desc: 'Une soirée magique sous les étoiles.',
     tickets: [
-      { name: 'Entrée Standard', price: 10000, desc: 'Accès soirée' },
+      { id: 'standard', name: 'Entrée Standard', price: 10000, desc: 'Accès soirée' },
     ],
   },
 ]
 
+// Transforme un événement AsyncStorage au format d'affichage EventSearchScreen
+// Sera remplacé par API : mapping backend → UI
+function formaterEvenement(e) {
+  if (e.tickets) return e
+  const def = getDefaultImage(e.categorie)
+  const { day, month } = formaterBadgeDate(e.date)
+  const prices = (e.categories || []).map(c => c.prix).filter(p => p != null)
+  const min = prices.length ? Math.min(...prices) : 0
+  const max = prices.length ? Math.max(...prices) : 0
+  const priceLabel = prices.length > 1 ? `${min.toLocaleString()}F – ${max.toLocaleString()}F`
+    : prices.length === 1 ? `${min.toLocaleString()}F`
+    : '—'
+  return {
+    id: e.id, title: e.nom || '', month, day,
+    emoji: def.emoji, bg: def.bg, priceLabel, location: e.lieu || '',
+    category: e.categorie || '', date: e.date || '', time: e.heure || '', desc: e.description || '',
+    tickets: (e.categories || []).map(c => ({ id: c.id, name: c.nom, price: c.prix, desc: '' })),
+  }
+}
+
 export default function EventSearchScreen({ navigation }) {
+  const [allEvents, setAllEvents] = useState(MOCKS)
   const [query, setQuery] = useState('')
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', async () => {
+      try {
+        const raw = await AsyncStorage.getItem('@senguichet_evenements')
+        const stored = raw ? JSON.parse(raw) : []
+        const uniques = []
+        const seenIds = new Set()
+        for (const s of stored) {
+          if (!seenIds.has(s.id)) { seenIds.add(s.id); uniques.push(s) }
+        }
+        const mocksUniques = MOCKS.filter(m => !seenIds.has(m.id))
+        setAllEvents([...uniques.map(e => {
+          const f = formaterEvenement(e)
+          // Migration : comble les champs manquants depuis les MOCKS
+          if (!f.time || !f.location || !f.desc) {
+            const mock = MOCKS.find(m => m.id === f.id)
+            if (mock) {
+              if (!f.time) f.time = mock.time
+              if (!f.location) f.location = mock.location
+              if (!f.desc) f.desc = mock.desc
+              if (!f.emoji || f.emoji === '📅') f.emoji = mock.emoji
+              if (f.bg === '#6366F1') f.bg = mock.bg
+            }
+          }
+          return f
+        }), ...mocksUniques])
+      } catch (e) {
+        console.warn('Failed to load events', e)
+      }
+    })
+    return unsubscribe
+  }, [navigation])
+
+  // Filtre les événements par titre, lieu ou catégorie (insensible à la casse)
   const results = useMemo(() => {
-    if (!query.trim()) return EVENTS
+    if (!query.trim()) return allEvents
     const q = query.toLowerCase()
-    return EVENTS.filter(e =>
+    return allEvents.filter(e =>
       e.title.toLowerCase().includes(q) ||
       e.location.toLowerCase().includes(q) ||
       e.category.toLowerCase().includes(q)
     )
-  }, [query])
+  }, [query, allEvents])
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Feather name="arrow-left" size={18} color={colors.slate} />
-        </TouchableOpacity>
-        <View style={styles.searchWrap}>
-          <Feather name="search" size={15} color={colors.muted} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Rechercher un événement..."
-            placeholderTextColor={colors.muted}
-            value={query}
-            onChangeText={setQuery}
-            autoFocus
-          />
-          {query.length > 0 && (
-            <TouchableOpacity onPress={() => setQuery('')}>
-              <Feather name="x" size={15} color={colors.muted} />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-
-      <ScrollView style={styles.flex} contentContainerStyle={styles.list}>
-        {results.length === 0 ? (
-          <View style={styles.empty}>
-            <Feather name="search" size={28} color={colors.border} />
-            <Text style={styles.emptyText}>Aucun événement trouvé</Text>
+    <BuyerLayout>
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.topBar}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Feather name="arrow-left" size={18} color={colors.slate} />
+          </TouchableOpacity>
+          <View style={styles.searchWrap}>
+            <Feather name="search" size={15} color={colors.muted} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Rechercher un événement..."
+              placeholderTextColor={colors.muted}
+              value={query}
+              onChangeText={setQuery}
+              autoFocus
+            />
+            {query.length > 0 && (
+              <TouchableOpacity onPress={() => setQuery('')}>
+                <Feather name="x" size={15} color={colors.muted} />
+              </TouchableOpacity>
+            )}
           </View>
-        ) : (
-          results.map((event) => (
-            <TouchableOpacity
-              key={event.id}
-              style={styles.card}
-              onPress={() => navigation.navigate('EventDetail', { event })}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.cardBanner, { backgroundColor: event.bg }]}>
-                <Text style={styles.cardEmoji}>{event.emoji}</Text>
-              </View>
-              <View style={styles.cardBody}>
-                <Text style={styles.cardTitle}>{event.title}</Text>
-                <View style={styles.metaRow}>
-                  <Feather name="calendar" size={9} color={colors.mid} />
-                  <Text style={styles.metaText}>{event.date}</Text>
+        </View>
+
+        <ScrollView style={styles.flex} contentContainerStyle={styles.list}>
+          {results.length === 0 ? (
+            <View style={styles.empty}>
+              <Feather name="search" size={28} color={colors.border} />
+              <Text style={styles.emptyText}>Aucun événement trouvé</Text>
+            </View>
+          ) : (
+            results.map((event) => (
+              <TouchableOpacity
+                key={event.id}
+                style={styles.card}
+                onPress={() => navigation.navigate('EventDetail', { event })}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.cardBanner, { backgroundColor: event.bg }]}>
+                  <Text style={styles.cardEmoji}>{event.emoji}</Text>
                 </View>
-                <View style={styles.metaRow}>
-                  <Feather name="map-pin" size={9} color={colors.mid} />
-                  <Text style={styles.metaText}>{event.location}</Text>
+                <View style={styles.cardBody}>
+                  <Text style={styles.cardTitle}>{event.title}</Text>
+                  <View style={styles.metaRow}>
+                    <Feather name="calendar" size={9} color={colors.mid} />
+                    <Text style={styles.metaText}>{formaterDateLisible(event.date)}</Text>
+                  </View>
+                  <View style={styles.metaRow}>
+                    <Feather name="map-pin" size={9} color={colors.mid} />
+                    <Text style={styles.metaText}>{event.location}</Text>
+                  </View>
+                  <View style={styles.metaRow}>
+                    <Feather name="clock" size={9} color={colors.mid} />
+                    <Text style={styles.metaText}>{event.time}</Text>
+                  </View>
+                  <View style={styles.metaRow}>
+                    <Feather name="tag" size={9} color={colors.accent} />
+                    <Text style={styles.price}>{event.priceLabel}</Text>
+                  </View>
                 </View>
-                <View style={styles.metaRow}>
-                  <Feather name="clock" size={9} color={colors.mid} />
-                  <Text style={styles.metaText}>{event.time}</Text>
-                </View>
-                <View style={styles.metaRow}>
-                  <Feather name="tag" size={9} color={colors.accent} />
-                  <Text style={styles.price}>{event.priceLabel}</Text>
-                </View>
-              </View>
-              <Feather name="chevron-right" size={15} color={colors.muted} style={styles.chevron} />
-            </TouchableOpacity>
-          ))
-        )}
-      </ScrollView>
-    </SafeAreaView>
+                <Feather name="chevron-right" size={15} color={colors.muted} style={styles.chevron} />
+              </TouchableOpacity>
+            ))
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </BuyerLayout>
   )
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+  safe: { flex: 1 },
   flex: { flex: 1 },
 
   topBar: {

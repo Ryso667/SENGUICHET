@@ -1,7 +1,11 @@
+// Carte d'affichage d'un événement dans les listes
+// Affiche le nom, la date, la catégorie et le statut — utilisée dans HomeScreen et EventSearchScreen
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
+import { fonts, colors, spacing, borderRadius, shadows, glass } from '../constants/theme'
 
+// Carte d'événement avec bannière colorée, badge date, infos et prix
+// Props : event (objet avec title, month, day, bg, emoji, location, time, priceLabel), onPress (function)
 export default function EventCard({ event, onPress }) {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
@@ -14,14 +18,18 @@ export default function EventCard({ event, onPress }) {
       </View>
       <View style={styles.body}>
         <Text style={styles.title} numberOfLines={1}>{event.title}</Text>
-        <View style={styles.metaRow}>
-          <Feather name="map-pin" size={9} color={colors.mid} />
-          <Text style={styles.metaText} numberOfLines={1}>{event.location}</Text>
-        </View>
-        <View style={styles.metaRow}>
-          <Feather name="clock" size={9} color={colors.mid} />
-          <Text style={styles.metaText}>{event.time}</Text>
-        </View>
+        {!!event.location && (
+          <View style={styles.metaRow}>
+            <Feather name="map-pin" size={9} color={colors.mid} />
+            <Text style={styles.metaText} numberOfLines={1}>{event.location}</Text>
+          </View>
+        )}
+        {!!event.time && (
+          <View style={styles.metaRow}>
+            <Feather name="clock" size={9} color={colors.mid} />
+            <Text style={styles.metaText}>{event.time}</Text>
+          </View>
+        )}
         <View style={styles.metaRow}>
           <Feather name="tag" size={9} color={colors.accent} />
           <Text style={styles.price}>{event.priceLabel}</Text>
@@ -34,11 +42,11 @@ export default function EventCard({ event, onPress }) {
 const styles = StyleSheet.create({
   card: {
     width: 200,
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.md,
+    ...glass,
+    borderRadius: borderRadius.xl,
     overflow: 'hidden',
     marginRight: 12,
-    ...shadows.sm,
+    ...shadows.md,
   },
   banner: {
     height: 100,

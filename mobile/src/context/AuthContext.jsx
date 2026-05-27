@@ -1,81 +1,112 @@
+// Contexte global d'authentification
+// Gère 3 rôles : acheteur (OTP), controleur (code 4 chiffres), organisateur (email+mdp)
 import { createContext, useContext, useState, useEffect } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-
-// Contexte global d'authentification
-// Permet de connaître le rôle connecté (acheteur/controleur) dans toute l'app
 const AuthContext = createContext(null)
 
-// Clés de stockage local
-const STORAGE_KEY_NUMERO = '@senguichet_telephone'
-const STORAGE_KEY_JWT = '@senguichet_jwt'
+// Clés de stockage permanent (AsyncStorage)
+const STORAGE_KEY_ROLE   = '@senguichet_role'       // rôle actif
+const STORAGE_KEY_JWT    = '@senguichet_jwt'         // token controleur
+const STORAGE_KEY_NUMERO = '@senguichet_telephone'   // téléphone acheteur
+const STORAGE_KEY_EMAIL  = '@senguichet_orga_email'  // email organisateur
 
 export function AuthProvider({ children }) {
+  const [role, setRole] = useState(null)
   const [numeroTel, setNumeroTel] = useState(null)
   const [jwt, setJwt] = useState(null)
-  const [role, setRole] = useState(null)
+  const [email, setEmail] = useState(null)
   const [chargement, setChargement] = useState(true)
 
-  // Au démarrage, vérifie si une session existe dans AsyncStorage
+  // Au démarrage : restaure la session depuis AsyncStorage
   useEffect(() => {
-    verifierSession()
+    restaurerSession()
   }, [])
 
-  const verifierSession = async () => {
+  const restaurerSession = async () => {
     try {
-      const [telStocke, jwtStocke] = await Promise.all([
-        AsyncStorage.getItem(STORAGE_KEY_NUMERO),
-        AsyncStorage.getItem(STORAGE_KEY_JWT),
-      ])
-      if (telStocke) {
-        setNumeroTel(telStocke)
-        setRole('acheteur')
-      }
-      if (jwtStocke) {
-        setJwt(jwtStocke)
-        setRole('controleur')
+      const roleStocke = await AsyncStorage.getItem(STORAGE_KEY_ROLE)
+
+      if (roleStocke === 'acheteur') {
+        const tel = await AsyncStorage.getItem(STORAGE_KEY_NUMERO)
+        if (tel) {
+          setNumeroTel(tel)
+          setRole('acheteur')
+        }
+      } else if (roleStocke === 'controleur') {
+        const token = await AsyncStorage.getItem(STORAGE_KEY_JWT)
+        if (token) {
+          setJwt(token)
+          setRole('controleur')
+        }
+      } else if (roleStocke === 'organisateur') {
+        const mail = await AsyncStorage.getItem(STORAGE_KEY_EMAIL)
+        const token = await AsyncStorage.getItem(STORAGE_KEY_JWT)
+        if (mail && token) {
+          setEmail(mail)
+          setJwt(token)
+          setRole('organisateur')
+        }
       }
     } catch {
+      // Pas de session valide → reste déconnecté
     } finally {
       setChargement(false)
     }
   }
 
-  // Connecte un acheteur après validation OTP
+  // Connexion acheteur (après validation OTP)
   const connecterAcheteur = async (tel) => {
+    await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'acheteur')
     await AsyncStorage.setItem(STORAGE_KEY_NUMERO, tel)
     setNumeroTel(tel)
     setRole('acheteur')
   }
 
-  // Connecte un contrôleur après vérification du code d'accès
+  // Connexion contrôleur (après validation code 4 chiffres)
   const connecterControleur = async (token) => {
+    await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'controleur')
     await AsyncStorage.setItem(STORAGE_KEY_JWT, token)
     setJwt(token)
     setRole('controleur')
   }
 
-  // Déconnexion : efface toutes les données stockées
+  // Connexion organisateur (email + mot de passe)
+  const connecterOrganisateur = async (token, mail) => {
+    await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'organisateur')
+    await AsyncStorage.setItem(STORAGE_KEY_JWT, token)
+    await AsyncStorage.setItem(STORAGE_KEY_EMAIL, mail)
+    setJwt(token)
+    setEmail(mail)
+    setRole('organisateur')
+  }
+
+  // Déconnexion : efface tout et retourne à l'accueil
   const deconnecter = async () => {
-    await Promise.all([
-      AsyncStorage.removeItem(STORAGE_KEY_NUMERO),
-      AsyncStorage.removeItem(STORAGE_KEY_JWT),
+    await AsyncStorage.multiRemove([
+      STORAGE_KEY_ROLE,
+      STORAGE_KEY_NUMERO,
+      STORAGE_KEY_JWT,
+      STORAGE_KEY_EMAIL,
     ])
+    setRole(null)
     setNumeroTel(null)
     setJwt(null)
-    setRole(null)
+    setEmail(null)
   }
 
   return (
     <AuthContext.Provider
       value={{
+        role,
         numeroTel,
         jwt,
-        role,
+        email,
         chargement,
         connecterAcheteur,
         connecterControleur,
+        connecterOrganisateur,
         deconnecter,
-        estConnecte: !!numeroTel || !!jwt,
+        estConnecte: role !== null,
       }}
     >
       {children}
@@ -83,5 +114,5 @@ export function AuthProvider({ children }) {
   )
 }
 
-// Hook personnalisé pour accéder au contexte auth depuis les écrans
+// Hook utilisable depuis n'importe quel écran
 export const useAuth = () => useContext(AuthContext)

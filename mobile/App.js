@@ -1,3 +1,5 @@
+// Point d'entrée principal de l'application SENGUICHET
+// Charge les polices, initialise SplashScreen et rend le AuthProvider + AppNavigator
 import { useCallback } from 'react'
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native'
 import { useFonts, Outfit_400Regular, Outfit_600SemiBold, Outfit_700Bold, Outfit_800ExtraBold, Outfit_900Black } from '@expo-google-fonts/outfit'
@@ -8,6 +10,7 @@ import AppNavigator from './src/navigation/AppNavigator'
 
 SplashScreen.preventAutoHideAsync()
 
+// Composant racine : charge les polices Google Fonts puis rend l'arbre AuthProvider → AppNavigator
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({
     Outfit_400Regular,

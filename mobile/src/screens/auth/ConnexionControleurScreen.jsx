@@ -1,19 +1,24 @@
+// Écran de connexion contrôleur
+// Saisie d'un code d'accès à 4 chiffres (généré par l'organisateur)
+// Déverrouille le mode scan une fois le code validé
 import { useState } from 'react'
 import {
-  View, Text, SafeAreaView, ScrollView,
+  View, Text, ScrollView,
   KeyboardAvoidingView, Platform, StyleSheet,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { connecterControleur as apiConnecterControleur } from '../../services/authService'
 import InputOTP from '../../components/InputOTP'
 import BoutonPrincipal from '../../components/BoutonPrincipal'
 import { useAuth } from '../../context/AuthContext'
 
-// Écran de connexion contrôleur via code d'accès à 4 chiffres
 export default function ConnexionControleurScreen({ navigation }) {
   const { connecterControleur } = useAuth()
   const [codeAcces, setCodeAcces] = useState('')
   const [chargement, setChargement] = useState(false)
 
+  // Valide le code 4 chiffres et stocke la session contrôleur
+  // En mode démo, le service accepte n'importe quel code (cf. authService.connecterControleur)
   const handleConnecter = async () => {
     if (codeAcces.length !== 4) return
     setChargement(true)
@@ -37,11 +42,17 @@ export default function ConnexionControleurScreen({ navigation }) {
           contentContainerStyle={styles.conteneur}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Retour vers l'écran d'accueil */}
+          <Text style={styles.retour} onPress={() => navigation.navigate('AccueilChoix')}>
+            ← Retour
+          </Text>
+
           <Text style={styles.titre}>Accès Contrôleur</Text>
           <Text style={styles.sousTitre}>
             Saisissez votre code d'accès à 4 chiffres
           </Text>
 
+          {/* Champ 4 chiffres (réutilise InputOTP avec longueur réduite) */}
           <InputOTP longueur={4} onComplet={setCodeAcces} />
 
           <View style={styles.espace} />
@@ -70,6 +81,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
+  },
+  retour: {
+    fontFamily: 'Outfit_500Medium',
+    fontSize: 15,
+    color: '#6366F1',
+    marginBottom: 16,
   },
   titre: {
     fontFamily: 'Outfit_700Bold',

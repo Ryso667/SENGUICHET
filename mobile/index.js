@@ -1,3 +1,5 @@
+// Point d'enregistrement du composant racine Expo
+// registerRootComponent enregistre App.js comme point de départ
 import { registerRootComponent } from 'expo';
 
 import App from './App';

@@ -1,9 +1,10 @@
-import { TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
-
 // Bouton principal de l'application
 // Utilise un dégradé Indigo → Rose comme spécifié dans la charte graphique
 // Si desactive = true, passe en gris (muted)
+import { TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+// Bouton principal avec dégradé Indigo→Rose et état de chargement intégré
+// Props : titre (string), chargement (bool), desactive (bool), onPress (function)
 export default function BoutonPrincipal({ titre, chargement, desactive, onPress }) {
   return (
     <TouchableOpacity

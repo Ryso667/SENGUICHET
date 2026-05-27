@@ -1,11 +1,12 @@
+// Champ de saisie de numéro de téléphone avec formatage automatique
+// Format : +221 XX XXX XX XX (9 chiffres après l'indicatif)
 import { useState } from 'react'
 import { View, TextInput, Text, StyleSheet } from 'react-native'
 
 // Indicateur du Sénégal
 const INDICATIF = '+221'
-
-// Champ de saisie de numéro de téléphone avec formatage automatique
-// Format : +221 XX XXX XX XX (9 chiffres après l'indicatif)
+// Champ de téléphone sénégalais (+221) avec masque XX XXX XX XX et validation
+// Props : onValide (callback appelé avec le numéro à 9 chiffres, ou null si incomplet)
 export default function InputTel({ onValide }) {
   const [chiffres, setChiffres] = useState('')
 
@@ -21,7 +22,7 @@ export default function InputTel({ onValide }) {
     return formate
   }
 
-  // Met à jour l'affichage et notifie le parent si le numéro est complet
+  // Met à jour l'affichage et notifie le parent si le numéro est complet (9 chiffres)
   const handleChangement = (texte) => {
     const formate = formater(texte)
     setChiffres(formate)
@@ -35,7 +36,9 @@ export default function InputTel({ onValide }) {
 
   return (
     <View style={styles.conteneur}>
+      {/* Indicatif pays (Sénégal) */}
       <Text style={styles.indicatif}>{INDICATIF}</Text>
+      {/* Champ masque : l'utilisateur voit +221 XX XXX XX XX */}
       <TextInput
         style={styles.input}
         value={chiffres}
