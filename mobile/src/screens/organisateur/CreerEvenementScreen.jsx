@@ -11,6 +11,7 @@ import { Feather } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import BoutonPrincipal from '../../components/BoutonPrincipal'
 import DatePickerModal from '../../components/DatePickerModal'
+import TimePickerModal from '../../components/TimePickerModal'
 import { colors, fonts, spacing, borderRadius } from '../../constants/theme'
 import { modifierEvenement, ajouterAudit, creerEvenement } from '../../services/eventService'
 
@@ -35,6 +36,7 @@ export default function CreerEvenementScreen({ navigation, route }) {
   const [description, setDescription] = useState(eventExistant?.description || '')
   const [poster, setPoster] = useState(eventExistant?.poster ? { uri: eventExistant.poster } : null)
   const [dateVisible, setDateVisible] = useState(false)
+  const [heureVisible, setHeureVisible] = useState(false)
   const [catVisible, setCatVisible] = useState(false)
   const [recapVisible, setRecapVisible] = useState(false)
   const [billetCatIndex, setBilletCatIndex] = useState(null)
@@ -159,10 +161,12 @@ export default function CreerEvenementScreen({ navigation, route }) {
           />
 
           <Text style={styles.label}>Horaire</Text>
-          <TextInput
-            style={styles.input} value={heure} onChangeText={setHeure}
-            placeholder="19h00, 21h00..." placeholderTextColor={colors.muted}
-          />
+          <TouchableOpacity style={styles.input} onPress={() => setHeureVisible(true)}>
+            <Text style={[styles.inputText, !heure && { color: colors.muted }]}>
+              {heure || 'Choisir un horaire'}
+            </Text>
+          </TouchableOpacity>
+          <TimePickerModal visible={heureVisible} onClose={() => setHeureVisible(false)} onSelect={(h) => setHeure(h)} />
 
           <Text style={styles.label}>Affiche (optionnelle)</Text>
           <TouchableOpacity style={styles.posterBtn} onPress={pickImage}>

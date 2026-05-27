@@ -9,6 +9,7 @@ import { useTickets } from '../hooks/useTickets'
 import EventCard from '../components/EventCard'
 import BottomNav from '../components/BottomNav'
 import { getDefaultImage } from '../config/images'
+import { formaterBadgeDate, formaterDateLisible } from '../utils/dateUtils'
 
 const MOCKS = [
   {
@@ -36,27 +37,13 @@ const MOCKS = [
   },
 ]
 
-const MOIS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin',
-  'Juillet','Août','Septembre','Octobre','Novembre','Décembre']
-
-function formaterDateAffichee(dateStr) {
-  if (!dateStr) return { day: '', month: '' }
-  if (dateStr.includes('/')) {
-    const [dd, mm] = dateStr.split('/')
-    const idx = parseInt(mm, 10) - 1
-    return { day: dd.replace(/^0/, ''), month: MOIS_FR[idx]?.slice(0, 3).toUpperCase() || '' }
-  }
-  const parts = dateStr.split(' ')
-  return { day: parts[0] || '', month: parts[1]?.slice(0, 3).toUpperCase() || '' }
-}
-
 function formaterEvenement(e) {
   if (e.tickets) return e
   const def = getDefaultImage(e.categorie)
-  const { day, month } = formaterDateAffichee(e.date)
+  const { day, month } = formaterBadgeDate(e.date)
   const prices = (e.categories || []).map(c => c.prix).filter(p => p != null)
-  const min = Math.min(...prices)
-  const max = Math.max(...prices)
+  const min = prices.length ? Math.min(...prices) : 0
+  const max = prices.length ? Math.max(...prices) : 0
   const priceLabel = prices.length > 1 ? `${min.toLocaleString()}F – ${max.toLocaleString()}F`
     : prices.length === 1 ? `${min.toLocaleString()}F`
     : '—'
@@ -80,9 +67,13 @@ export default function HomeScreen({ navigation }) {
       try {
         const raw = await AsyncStorage.getItem('@senguichet_evenements')
         const stored = raw ? JSON.parse(raw) : []
-        const formats = stored.map(formaterEvenement)
-        const storedIds = new Set(stored.map(s => s.id))
-        const mocksUniques = MOCKS.filter(m => !storedIds.has(m.id))
+        const uniques = []
+        const seenIds = new Set()
+        for (const s of stored) {
+          if (!seenIds.has(s.id)) { seenIds.add(s.id); uniques.push(s) }
+        }
+        const formats = uniques.map(formaterEvenement)
+        const mocksUniques = MOCKS.filter(m => !seenIds.has(m.id))
         setEvenements([...formats, ...mocksUniques])
       } catch (e) {
         console.warn('Failed to load events', e)
@@ -165,7 +156,7 @@ export default function HomeScreen({ navigation }) {
                   </View>
                   <View style={styles.ticketInfo}>
                     <Text style={styles.ticketTitle}>{t.eventNom}</Text>
-                    <Text style={styles.ticketMeta}>{t.categorie} · {t.eventDate}</Text>
+                    <Text style={styles.ticketMeta}>{t.categorie} · {formaterDateLisible(t.eventDate)}</Text>
                   </View>
                   <View style={styles.ticketStatus}>
                     <View style={styles.dot} />

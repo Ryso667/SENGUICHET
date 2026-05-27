@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import QRCode from 'react-native-qrcode-svg'
 import { colors, gradients, shadows, spacing, borderRadius, fonts } from '../constants/theme'
+import { formaterDateLisible } from '../utils/dateUtils'
 
 const { width } = Dimensions.get('window')
 const TICKET_WIDTH = width - spacing.xl * 2
@@ -36,7 +37,7 @@ export default function TicketScreen({ route, navigation }) {
         <View style={s.ticket}>
           <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.header}>
             <Text style={s.eventName}>{ticket.eventNom}</Text>
-            <Text style={s.eventDate}>{ticket.eventDate}</Text>
+            <Text style={s.eventDate}>{formaterDateLisible(ticket.eventDate)}</Text>
           </LinearGradient>
 
           <View style={s.qrSection}>
@@ -75,7 +76,7 @@ export default function TicketScreen({ route, navigation }) {
 
           <View style={s.footer}>
             <Text style={s.footerText}>
-              Acheté le {new Date(ticket.dateAchat).toLocaleDateString('fr-FR')}
+              Acheté le {formaterDateLisible(new Date(ticket.dateAchat).toLocaleDateString('fr-FR'))}
             </Text>
           </View>
         </View>

@@ -5,6 +5,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert 
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { colors, glass, shadows, spacing, borderRadius, fonts } from '../../constants/theme'
 import { getAllEvenements, getTicketsByEvent } from '../../services/eventService'
+import { formaterDateLisible } from '../../utils/dateUtils'
 
 const LAST_EVENT_KEY = '@senguichet_org_last_event_id'
 
@@ -84,7 +85,7 @@ export default function VoirTicketsScreen({ route, navigation }) {
         <>
           <View style={s.eventInfo}>
             <Text style={s.eventName}>{event.nom}</Text>
-            <Text style={s.eventDate}>{event.date}</Text>
+            <Text style={s.eventDate}>{formaterDateLisible(event.date)}</Text>
             <Text style={s.ticketCount}>{tickets.length} ticket(s)</Text>
           </View>
 

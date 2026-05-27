@@ -7,6 +7,7 @@ import { Feather } from '@expo/vector-icons'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
 import { useTickets } from '../hooks/useTickets'
+import { formaterDateLisible } from '../utils/dateUtils'
 
 export default function MesTicketsScreen({ navigation }) {
   const { tickets, ticketsSupprimes, refresh, softDelete, restore } = useTickets()
@@ -76,7 +77,7 @@ export default function MesTicketsScreen({ navigation }) {
             </View>
             <View style={s.info}>
               <Text style={s.eventNom}>{t.eventNom}</Text>
-              <Text style={s.meta}>{t.categorie} · {t.eventDate}</Text>
+              <Text style={s.meta}>{t.categorie} · {formaterDateLisible(t.eventDate)}</Text>
               <Text style={s.num}>{t.numero}</Text>
             </View>
             <View style={s.badge}>
@@ -104,7 +105,7 @@ export default function MesTicketsScreen({ navigation }) {
                 </View>
                 <View style={s.info}>
                   <Text style={[s.eventNom, { color: colors.muted }]}>{t.eventNom}</Text>
-                  <Text style={[s.meta, { color: colors.muted }]}>{t.categorie} · {t.eventDate}</Text>
+                  <Text style={[s.meta, { color: colors.muted }]}>{t.categorie} · {formaterDateLisible(t.eventDate)}</Text>
                   <Text style={[s.num, { color: colors.muted }]}>{t.numero}</Text>
                 </View>
                 <Text style={s.restoreHint}>Appui long → restaurer</Text>

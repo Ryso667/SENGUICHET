@@ -30,6 +30,7 @@ import ScanHistoryScreen from '../screens/controleur/ScanHistoryScreen'
 import OrganisateurDashboardScreen from '../screens/organisateur/OrganisateurDashboardScreen'
 import CreerEvenementScreen from '../screens/organisateur/CreerEvenementScreen'
 import VoirTicketsScreen from '../screens/organisateur/VoirTicketsScreen'
+import GestionEvenementsScreen from '../screens/organisateur/GestionEvenementsScreen'
 
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
@@ -144,6 +145,15 @@ function OrganisateurTabs() {
           tabBarLabel: 'Tickets',
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>🎫</Text>,
           title: 'Tickets',
+        }}
+      />
+      <Tab.Screen
+        name="GestionEvenements"
+        component={GestionEvenementsScreen}
+        options={{
+          tabBarLabel: 'Gérer',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>⚙️</Text>,
+          title: 'Gestion',
         }}
       />
     </Tab.Navigator>

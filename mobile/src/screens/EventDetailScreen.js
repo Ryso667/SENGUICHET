@@ -12,6 +12,7 @@ import { fonts, colors, spacing, borderRadius, shadows } from '../constants/them
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { acheterTicket, getAllEvenements } from '../services/eventService'
 import { useAuth } from '../context/AuthContext'
+import { formaterDateLisible } from '../utils/dateUtils'
 
 // Formate le numéro stocké (+22177XXXXXX → 77 XXX XX XX) pour l'affichage
 function formaterTelStocke(telComplet) {
@@ -97,7 +98,7 @@ export default function EventDetailScreen({ route, navigation }) {
               <View style={styles.tags}>
                 <View style={styles.tag}>
                   <Feather name="calendar" size={9} color="#f43f5e" />
-                  <Text style={styles.tagText}>{event.date}</Text>
+                  <Text style={styles.tagText}>{formaterDateLisible(event.date)}</Text>
                 </View>
                 {!!event.location && (
                   <View style={styles.tag}>
