@@ -87,11 +87,12 @@ export async function acheterTicket(eventId, categorieId, telephone) {
   evt.ticketCount++
   const numero = `TKT-${evt.nom.slice(0, 4).toUpperCase()}-${formatNum(evt.ticketCount)}`
   const ticketId = generateId()
-  const transactionRef = `TXN-${Date.now().toString(36).toUpperCase()}`
   const timestamp = new Date().toISOString()
 
   // Génération d'une signature cryptographique pour le QR (anti-contrefaçon offline)
-  const signaturePayload = `${ticketId}|${transactionRef}|${timestamp}|${eventId}|${cat.nom}`
+  // Les champs uuid|transaction_ref|timestamp|event_id|category sont dans le même ordre
+  // que le vérificateur scanService.js pour une compatibilité HMAC
+  const signaturePayload = `${ticketId}|${numero}|${timestamp}|${eventId}|${cat.nom}`
   const signature = await Crypto.digestStringAsync(
     Crypto.CryptoDigestAlgorithm.SHA256,
     signaturePayload + CLE_SECRETE_QR
@@ -103,7 +104,7 @@ export async function acheterTicket(eventId, categorieId, telephone) {
     event_id: eventId,
     category: cat.nom,
     timestamp,
-    transaction_ref: transactionRef,
+    transaction_ref: numero,
   })
 
   const ticket = {

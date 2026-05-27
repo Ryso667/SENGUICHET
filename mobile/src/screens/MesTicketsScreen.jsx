@@ -9,6 +9,12 @@ import { useAuth } from '../context/AuthContext'
 import { useTickets } from '../hooks/useTickets'
 import { formaterDateLisible } from '../utils/dateUtils'
 
+const STATUTS = {
+  valide: { label: 'VALIDE', color: '#059669', dot: '#059669' },
+  utilise: { label: 'UTILISÉ', color: '#64748b', dot: '#64748b' },
+  expire: { label: 'EXPIRÉ', color: '#dc2626', dot: '#dc2626' },
+}
+
 export default function MesTicketsScreen({ navigation }) {
   const { tickets, ticketsSupprimes, refresh, softDelete, restore } = useTickets()
   const { deconnecter } = useAuth()
@@ -81,8 +87,10 @@ export default function MesTicketsScreen({ navigation }) {
               <Text style={s.num}>{t.numero}</Text>
             </View>
             <View style={s.badge}>
-              <View style={s.dot} />
-              <Text style={s.badgeText}>Prêt</Text>
+              <View style={[s.dot, { backgroundColor: (STATUTS[t.statut]?.dot || '#059669') }]} />
+              <Text style={[s.badgeText, { color: (STATUTS[t.statut]?.color || '#059669') }]}>
+                {STATUTS[t.statut]?.label || 'VALIDE'}
+              </Text>
             </View>
           </TouchableOpacity>
         ))}

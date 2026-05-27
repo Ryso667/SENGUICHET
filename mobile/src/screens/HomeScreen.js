@@ -11,6 +11,12 @@ import BottomNav from '../components/BottomNav'
 import { getDefaultImage } from '../config/images'
 import { formaterBadgeDate, formaterDateLisible } from '../utils/dateUtils'
 
+const STATUTS = {
+  valide: { label: 'VALIDE', color: '#059669', dot: '#059669' },
+  utilise: { label: 'UTILISÉ', color: '#64748b', dot: '#64748b' },
+  expire: { label: 'EXPIRÉ', color: '#dc2626', dot: '#dc2626' },
+}
+
 const MOCKS = [
   {
     id: 'dmf-2026', title: 'Dakar Music Festival',
@@ -159,8 +165,10 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.ticketMeta}>{t.categorie} · {formaterDateLisible(t.eventDate)}</Text>
                   </View>
                   <View style={styles.ticketStatus}>
-                    <View style={styles.dot} />
-                    <Text style={styles.ticketLabel}>Prêt</Text>
+                    <View style={[styles.dot, { backgroundColor: (STATUTS[t.statut]?.dot || '#059669') }]} />
+                    <Text style={[styles.ticketLabel, { color: (STATUTS[t.statut]?.color || '#059669') }]}>
+                      {STATUTS[t.statut]?.label || 'VALIDE'}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               ))}
