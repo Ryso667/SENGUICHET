@@ -33,6 +33,7 @@ export default function EventDetailScreen({ route, navigation }) {
   const [phone, setPhone] = useState(() => formaterTelStocke(numeroTel))
 
   // Paiement avec double confirmation pour éviter les achats involontaires
+  // Sera remplacé par API : intégration Wave/Orange Money réelle
   const handleBuy = () => {
     const tel = `+221 ${phone.replace(/\s/g, '')}`
     const prix = selectedTicket.price || selectedTicket.prix
@@ -45,7 +46,8 @@ export default function EventDetailScreen({ route, navigation }) {
           text: 'Confirmer',
           onPress: async () => {
             try {
-              // Si l'événement n'existe pas encore dans events, le créer avec ses catégories
+              // Si l'événement n'existe pas encore dans AsyncStorage, le créer avec ses catégories
+              // Sera remplacé par API : création côté serveur
               const events = await getAllEvenements()
               if (!events.find(e => e.id === event.id)) {
                 events.push({

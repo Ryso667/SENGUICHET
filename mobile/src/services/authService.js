@@ -2,7 +2,7 @@
 // Mode démo : toutes les fonctions retournent des valeurs mockées
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-const MOCK_MODE = true // Passer à false quand le backend Node.js sera prêt
+const MOCK_MODE = true // Sera remplacé par API lorsque le backend Node.js sera prêt
 
 // Demande l'envoi d'un code OTP au numéro donné (mock : stocke '123456')
 export const envoyerOTP = async (numeroTel) => {
@@ -37,8 +37,9 @@ export const inscrireOrganisateur = async (payload) => {
 }
 
 // Connexion organisateur (email + mot de passe, mock : toujours accepté)
+// Retourne un token JWT et le rôle associé
 export const connecterOrganisateur = async (email, motsDePasse) => {
-  if (MOCK_MODE) return { token: 'mock-jwt-organisateur', role: 'organisateur' }
+  if (MOCK_MODE) return { token: 'mock-jwt-organisateur', role: 'organisateur' } // Sera remplacé par API
   const axios = (await import('axios')).default
   const { data } = await axios.post('http://localhost:3000/api/auth/organisateur/connexion', { email, motsDePasse })
   return data
@@ -54,7 +55,7 @@ export const connecterAdmin = async (email, motsDePasse) => {
 
 // Connexion contrôleur via code d'accès à 4 chiffres (mock : accepte tout)
 export const connecterControleur = async (codeAcces) => {
-  if (MOCK_MODE) return { token: 'mock-jwt-controleur', role: 'controleur' }
+  if (MOCK_MODE) return { token: 'mock-jwt-controleur', role: 'controleur' } // Sera remplacé par API
   const axios = (await import('axios')).default
   const { data } = await axios.post('http://localhost:3000/api/auth/controleur/connexion', { codeAcces })
   return data

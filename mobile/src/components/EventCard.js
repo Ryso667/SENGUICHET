@@ -1,7 +1,11 @@
+// Carte d'affichage d'un événement dans les listes
+// Affiche le nom, la date, la catégorie et le statut — utilisée dans HomeScreen et EventSearchScreen
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { fonts, colors, spacing, borderRadius, shadows, glass } from '../constants/theme'
 
+// Carte d'événement avec bannière colorée, badge date, infos et prix
+// Props : event (objet avec title, month, day, bg, emoji, location, time, priceLabel), onPress (function)
 export default function EventCard({ event, onPress }) {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>

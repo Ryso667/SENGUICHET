@@ -5,7 +5,7 @@ import * as Crypto from 'expo-crypto'
 import { insererTicketAchete } from '../database/database'
 import { getDefaultImage } from '../config/images'
 
-const CLE_SECRETE_QR = 'senguichet-cle-secrete-hmac'
+const CLE_SECRETE_QR = 'senguichet-cle-secrete-hmac' // Sera remplacé par variable d'environnement côté backend
 
 // Clés de stockage dans AsyncStorage
 const EVENTS_KEY = '@senguichet_evenements'  // liste des événements créés
@@ -90,14 +90,15 @@ export async function acheterTicket(eventId, categorieId, telephone) {
   const timestamp = new Date().toISOString()
 
   // Génération d'une signature cryptographique pour le QR (anti-contrefaçon offline)
-  // Les champs uuid|transaction_ref|timestamp|event_id|category sont dans le même ordre
-  // que le vérificateur scanService.js pour une compatibilité HMAC
+  // Les champs uuid|transaction_ref|timestamp|event_id|category sont concaténés dans le même ordre
+  // que le vérificateur scanService.js pour une compatibilité HMAC — les deux bouts doivent matcher
   const signaturePayload = `${ticketId}|${numero}|${timestamp}|${eventId}|${cat.nom}`
   const signature = await Crypto.digestStringAsync(
     Crypto.CryptoDigestAlgorithm.SHA256,
     signaturePayload + CLE_SECRETE_QR
   )
 
+  // Contenu complet du QR code (sera parsé par scanService.verifierBillet)
   const qrPayload = JSON.stringify({
     uuid: ticketId,
     hmac: signature,

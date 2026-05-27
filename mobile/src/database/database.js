@@ -1,7 +1,6 @@
-import * as SQLite from 'expo-sqlite'
-
 // Base de données SQLite locale pour le mode offline-first
 // Tables : tickets (billets téléchargés) et scans (historique des vérifications)
+import * as SQLite from 'expo-sqlite'
 let db = null
 
 // Initialisation : ouvre la base et crée les tables si elles n'existent pas
@@ -61,13 +60,15 @@ async function initTables() {
     CREATE INDEX IF NOT EXISTS idx_buyer_tickets_tel ON buyer_tickets(telephone);
     CREATE INDEX IF NOT EXISTS idx_buyer_tickets_deleted ON buyer_tickets(deleted_at);
   `)
-  // Migration silencieuse : ajout des colonnes si absentes (base antérieure)
+    // Migration silencieuse : ajout des colonnes si absentes (base antérieure)
+  // Le try/catch ignore les erreurs "Duplicate column" si les colonnes existent déjà
   try { await db.runAsync('ALTER TABLE buyer_tickets ADD COLUMN event_heure TEXT') } catch (e) {}
   try { await db.runAsync('ALTER TABLE buyer_tickets ADD COLUMN event_lieu TEXT') } catch (e) {}
   try { await db.runAsync('ALTER TABLE buyer_tickets ADD COLUMN date_scan TEXT') } catch (e) {}
 }
 
-// Insère ou remplace une liste de tickets dans la base locale
+// Insère ou remplace une liste de tickets dans la base locale (tickets téléchargés pour offline)
+// @param tickets - Array<{uuid, hmac, event_id, category, timestamp_gen}>
 export async function insererTickets(tickets) {
   const bd = await getDb()
   const ins = bd.prepareAsync(
@@ -86,13 +87,16 @@ export async function insererTickets(tickets) {
   await ins.finalizeAsync()
 }
 
-// Recherche un ticket par son UUID
+// Recherche un ticket (table tickets) par son UUID
+// @param uuid - string
+// @returns {Promise<object|null>}
 export async function chercherTicket(uuid) {
   const bd = await getDb()
   return await bd.getFirstAsync('SELECT * FROM tickets WHERE uuid = $uuid', { $uuid: uuid })
 }
 
 // Marque un ticket comme utilisé localement (anti re-scan)
+// Passe le statut à 'UTILISE_LOCAL' pour empêcher un second scan offline
 export async function marquerUtilise(uuid) {
   const bd = await getDb()
   await bd.runAsync('UPDATE tickets SET statut = $statut WHERE uuid = $uuid', {
@@ -115,7 +119,8 @@ export async function enregistrerScan(uuid, hmac, resultat) {
   )
 }
 
-// Récupère les scans non encore synchronisés
+// Récupère les scans non encore synchronisés (synced=0)
+// Utilisé par scanService.synchroniser() pour le batch upload
 export async function scansEnAttente() {
   const bd = await getDb()
   return await bd.getAllAsync('SELECT * FROM scans WHERE synced = 0 ORDER BY timestamp_scan ASC')
@@ -176,8 +181,9 @@ async function garantirTableBuyer() {
   try { await bd.runAsync('ALTER TABLE buyer_tickets ADD COLUMN date_scan TEXT') } catch (e) {}
 }
 
-// Ajoute un ticket acheté dans la base SQLite
-// Retourne le ticket avec ses champs enrichis
+// Ajoute un ticket acheté dans la base SQLite (table buyer_tickets, cache offline)
+// @param ticket - {id, eventId, eventNom, eventDate, categorie, prix, telephone, ...}
+// @returns {Promise<object>} le ticket enrichi avec les dates de création
 export async function insererTicketAchete(ticket) {
   await garantirTableBuyer()
   const bd = await getDb()
@@ -216,6 +222,7 @@ export async function getTicketAchete(id) {
   return await bd.getFirstAsync('SELECT * FROM buyer_tickets WHERE id = $id', { $id: id })
 }
 
+// Transforme une ligne SQLite (clés snake_case) en objet camelCase pour l'app
 function formatTicket(t) {
   if (!t) return null
   return {

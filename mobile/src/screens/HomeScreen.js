@@ -1,3 +1,5 @@
+// Écran d'accueil générique après connexion
+// Affiche les événements disponibles et permet la navigation vers les différentes sections
 import { useEffect, useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -17,6 +19,7 @@ const STATUTS = {
   expire: { label: 'EXPIRÉ', color: '#dc2626', dot: '#dc2626' },
 }
 
+// Sera remplacé par API : événements mockés en attente du backend
 const MOCKS = [
   {
     id: 'dmf-2026', title: 'Dakar Music Festival',
@@ -43,6 +46,8 @@ const MOCKS = [
   },
 ]
 
+// Transforme un événement stocké (AsyncStorage) au format d'affichage HomeScreen
+// Sera remplacé par API : mapping backend → UI
 function formaterEvenement(e) {
   if (e.tickets) return e
   const def = getDefaultImage(e.categorie)

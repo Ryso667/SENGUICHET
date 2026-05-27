@@ -7,10 +7,11 @@ import {
   historiqueScans, compterTickets, viderTickets,
 } from '../database/database'
 
-const MOCK_MODE = true // Pas de backend requis en mode démo
-const CLE_SECRETE = 'senguichet-cle-secrete-hmac'
+const MOCK_MODE = true // Sera remplacé par API lorsque le backend sera prêt
+const CLE_SECRETE = 'senguichet-cle-secrete-hmac' // Sera remplacé par variable d'environnement
 
 // 5 statuts possibles pour un scan (conforme Document Technique v1.0)
+// Sera remplacé par un enum partagé côté backend plus tard
 const RESULTATS = {
   VALIDE: 'VALIDE',
   DEJA_UTILISE: 'DEJA_UTILISE',
@@ -29,6 +30,7 @@ function parserQR(donnees) {
 }
 
 // Vérifie la signature HMAC-SHA256 (anti-contrefaçon)
+// Concatène les champs dans l'ordre défini puis compare avec le HMAC du QR
 async function verifierHMAC(qr) {
   if (MOCK_MODE) return true
   const donnees = `${qr.uuid}|${qr.transaction_ref}|${qr.timestamp}|${qr.event_id}|${qr.category}`
@@ -57,10 +59,12 @@ export async function telechargerTickets(eventId, zone) {
 }
 
 // Vérification complète offline d'un billet (5 étapes)
+// Étape 1 : parsing QR → 2 : HMAC → 3 : expiration → 4 : recherche locale → 5 : anti re-scan
 export async function verifierBillet(donneesQR) {
   const qr = parserQR(donneesQR)
   if (!qr) return { resultat: RESULTATS.INCONNU, message: 'QR code invalide' }
 
+  // Étape 1 : parsing du QR (déjà fait ci-dessus)
   // Étape 2 : vérification HMAC (signature cryptographique)
   const hmacOk = await verifierHMAC(qr)
   if (!hmacOk) {

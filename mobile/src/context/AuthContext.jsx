@@ -1,8 +1,7 @@
-import { createContext, useContext, useState, useEffect } from 'react'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-
 // Contexte global d'authentification
 // Gère 3 rôles : acheteur (OTP), controleur (code 4 chiffres), organisateur (email+mdp)
+import { createContext, useContext, useState, useEffect } from 'react'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 const AuthContext = createContext(null)
 
 // Clés de stockage permanent (AsyncStorage)

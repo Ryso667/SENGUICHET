@@ -9,6 +9,7 @@ import { fonts, colors, spacing, borderRadius, shadows } from '../constants/them
 import { getDefaultImage } from '../config/images'
 import { formaterBadgeDate, formaterDateLisible } from '../utils/dateUtils'
 
+// Sera remplacé par API : événements mockés en attente du backend
 const MOCKS = [
   {
     id: 'dmf-2026', title: 'Dakar Music Festival',
@@ -35,6 +36,8 @@ const MOCKS = [
   },
 ]
 
+// Transforme un événement AsyncStorage au format d'affichage EventSearchScreen
+// Sera remplacé par API : mapping backend → UI
 function formaterEvenement(e) {
   if (e.tickets) return e
   const def = getDefaultImage(e.categorie)

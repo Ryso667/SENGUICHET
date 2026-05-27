@@ -1,3 +1,5 @@
+// Configuration des images et emojis par défaut pour chaque catégorie d'événement
+// Sera remplacé par une API de gestion d'images
 import { colors } from '../constants/theme'
 
 const DEFAULTS = {
@@ -14,6 +16,8 @@ const DEFAULTS = {
 
 const FALLBACK = { bg: colors.accent, emoji: '📅', poster: '' }
 
+// Retourne la configuration (bg, emoji, poster) par défaut pour une catégorie donnée
+// Si la catégorie n'existe pas, retourne FALLBACK (accent violet + 📅)
 export function getDefaultImage(categorie) {
   return DEFAULTS[categorie] || FALLBACK
 }

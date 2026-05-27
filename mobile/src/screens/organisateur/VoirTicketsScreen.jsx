@@ -51,6 +51,7 @@ export default function VoirTicketsScreen({ route, navigation }) {
     }
   }
 
+  // Recherche un événement par son code 4 chiffres (généré par eventService.creerEvenement)
   async function handleSearch() {
     const events = await getAllEvenements()
     const evt = events.find(e => e.code === code)

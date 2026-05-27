@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react'
-import { View, TextInput, StyleSheet } from 'react-native'
-
 // Champ de saisie à 6 chiffres individuels avec focus automatique
 // Utile pour les codes de validation (OTP)
+import { useRef, useState } from 'react'
+import { View, TextInput, StyleSheet } from 'react-native'
+// Composant de saisie OTP à chiffres individuels avec auto-focus
+// Props : longueur (number, défaut 6), onComplet (callback appelé quand tous les chiffres sont saisis)
 export default function InputOTP({ longueur = 6, onComplet }) {
   const [codes, setCodes] = useState(Array(longueur).fill(''))
   const refs = useRef([])

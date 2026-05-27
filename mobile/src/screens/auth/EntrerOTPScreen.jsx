@@ -18,7 +18,7 @@ export default function EntrerOTPScreen({ route, navigation }) {
   const [chargement, setChargement] = useState(false)
   const [tempsRestant, setTempsRestant] = useState(300) // 5 min en secondes
 
-  // Timer décrémentant chaque seconde (expiration du code OTP)
+  // Timer décrémentant chaque seconde (expiration du code OTP après 5 minutes)
   useEffect(() => {
     const timer = setInterval(() => {
       setTempsRestant((prev) => (prev > 0 ? prev - 1 : 0))
@@ -34,6 +34,7 @@ export default function EntrerOTPScreen({ route, navigation }) {
   }
 
   // Vérification du code OTP saisi (6 chiffres)
+  // En mode démo, le code accepté est '123456' (cf. authService.verifierOTP)
   const handleValider = async () => {
     if (code.length !== 6) return
     setChargement(true)

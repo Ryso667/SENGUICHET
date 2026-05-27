@@ -1,8 +1,12 @@
+// Composant logo SENGUICHET avec dégradé Indigo → Rose
+// Utilisé dans les écrans d'authentification et le header de l'application
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { gradients, fonts } from '../constants/theme'
 
+// Logo SENGUICHET : icône dégradée + texte (optionnel)
+// Props : size (number, défaut 40), showText (bool, défaut true)
 export default function Logo({ size = 40, showText = true }) {
   return (
     <View style={s.container}>

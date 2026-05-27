@@ -21,6 +21,8 @@ const STATUTS = {
   expire: { label: '✗ EXPIRÉ', color: '#dc2626' },
 }
 
+// Génère un payload QR frais avec HMAC-SHA256 (anti-rejeu et anti-contrefaçon)
+// Le QR change toutes les 30s pour empêcher le screenshot frauduleux
 async function genererQRPayload(ticket) {
   const now = new Date().toISOString()
   const payload = `${ticket.id}|${ticket.numero}|${now}|${ticket.eventId}|${ticket.categorie}`

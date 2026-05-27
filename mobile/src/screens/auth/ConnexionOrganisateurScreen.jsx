@@ -17,6 +17,7 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
   const { connecterOrganisateur: connecter } = useAuth()
 
   // Authentifie l'organisateur et stocke la session
+  // En mode démo, n'importe quel email/mdp fonctionne (cf. authService.connecterOrganisateur)
   const handleConnexion = async () => {
     if (!email || !mdp) return
     setChargement(true)

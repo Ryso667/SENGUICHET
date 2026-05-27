@@ -1,3 +1,5 @@
+// Écran de support et contact utilisateur
+// Affiche les options d'aide et permet d'ouvrir les liens externes (email, site)
 import React from 'react'
 import { View, Text, TouchableOpacity, Linking, StyleSheet, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'

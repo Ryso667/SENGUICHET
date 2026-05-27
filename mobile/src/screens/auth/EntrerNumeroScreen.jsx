@@ -14,6 +14,7 @@ export default function EntrerNumeroScreen({ navigation }) {
   const [chargement, setChargement] = useState(false)
 
   // Envoie la demande OTP puis navigue vers l'écran de validation
+  // En mode démo, le code stocké est toujours '123456' (cf. authService.envoyerOTP)
   const handleEnvoyer = async () => {
     if (!numero) return
     setChargement(true)

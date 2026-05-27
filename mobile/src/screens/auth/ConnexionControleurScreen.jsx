@@ -16,7 +16,8 @@ export default function ConnexionControleurScreen({ navigation }) {
   const [codeAcces, setCodeAcces] = useState('')
   const [chargement, setChargement] = useState(false)
 
-  // Valide le code 4 chiffres et stocke la session
+  // Valide le code 4 chiffres et stocke la session contrôleur
+  // En mode démo, le service accepte n'importe quel code (cf. authService.connecterControleur)
   const handleConnecter = async () => {
     if (codeAcces.length !== 4) return
     setChargement(true)

@@ -30,6 +30,7 @@ export default function GestionEvenementsScreen({ navigation }) {
     setStats(s)
   }
 
+  // Soft delete : marque supprime=true et enregistre dans le journal d'audit
   function handleDelete(evt) {
     Alert.alert(
       'Confirmer la suppression',

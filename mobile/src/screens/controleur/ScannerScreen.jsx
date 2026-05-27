@@ -25,7 +25,8 @@ export default function ScannerScreen({ navigation, route }) {
   const eventId = route?.params?.eventId || 1
   const zone = route?.params?.zone || 'STANDARD'
 
-  // Au montage : télécharge les tickets si la base locale est vide
+  // Au montage : télécharge les tickets dans SQLite locale si la base est vide
+  // Sera remplacé par API : téléchargement automatique via le backend
   useEffect(() => {
     preparerScan()
   }, [])
@@ -44,6 +45,7 @@ export default function ScannerScreen({ navigation, route }) {
   }
 
   // Callback déclenché quand un QR code est détecté par la caméra
+  // Lance la vérification offline (5 étapes) puis affiche le résultat 3 secondes
   const handleScan = async (donnees) => {
     if (scanne || !pret) return
     try {
@@ -65,6 +67,7 @@ export default function ScannerScreen({ navigation, route }) {
   }
 
   // État : permission caméra pas encore accordée → demande
+  // Sera remplacé par une UI plus riche avec explication du besoin
   if (!permission || !permission.granted) {
     return (
       <View style={styles.centre}>
@@ -102,7 +105,8 @@ export default function ScannerScreen({ navigation, route }) {
         </View>
       </CameraView>
 
-      {/* Résultat du scan en superposition pleine écran avec animation */}
+      {/* Résultat du scan : superposition pleine écran colorée avec animation
+          Chaque statut a sa propre couleur (vert = VALIDE, rouge = erreur, orange = déjà utilisé) */}
       {scanne && (
         <View style={[styles.resultat, { backgroundColor: (COULEURS[scanne.resultat] || COULEURS.INCONNU).fond }]}>
           <Text style={styles.resultatIcone}>{(COULEURS[scanne.resultat] || COULEURS.INCONNU).icone}</Text>

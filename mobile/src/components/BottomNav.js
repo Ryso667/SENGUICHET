@@ -1,8 +1,12 @@
+// Barre de navigation inférieure adaptée à chaque rôle
+// Affiche les onglets spécifiques selon le rôle connecté (acheteur/controleur/organisateur)
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
 import { fonts, colors, spacing } from '../constants/theme'
 
+// Barre de navigation inférieure avec 3 onglets : Accueil, Mes Tickets, Support
+// Met en surbrillance l'onglet actif selon la route courante
 export default function BottomNav() {
   const navigation = useNavigation()
   const route = useRoute()

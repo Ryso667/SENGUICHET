@@ -1,3 +1,5 @@
+// Écran de sélection du rôle (Acheteur / Contrôleur / Organisateur)
+// Affiche 3 cartes animées — point d'entrée avant redirection vers la pile de navigation adaptée
 import React, { useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Alert } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -5,6 +7,8 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { viderTickets } from '../database/database'
 import { colors, gradients, shadows, spacing, borderRadius, fonts } from '../constants/theme'
 
+// Définition des 3 rôles avec leur titre, icône, dégradé et écran de destination
+// Sera remplacé par une configuration dynamique venant d'une API
 const ROLES = [
   {
     key: 'acheteur',
@@ -32,9 +36,11 @@ const ROLES = [
   },
 ]
 
+// Écran d'accueil avec sélection du rôle utilisateur et animation d'entrée des cartes
 export default function AccueilChoixScreen({ navigation }) {
   const animations = useRef(ROLES.map(() => new Animated.Value(0))).current
 
+  // Animation d'entrée : les 3 cartes apparaissent en décalé (stagger 120ms)
   useEffect(() => {
     Animated.stagger(120, animations.map(a =>
       Animated.timing(a, { toValue: 1, duration: 500, useNativeDriver: true })
@@ -44,11 +50,13 @@ export default function AccueilChoixScreen({ navigation }) {
   return (
     <LinearGradient colors={gradients.hero} style={s.container}>
       <StatusBar barStyle="dark-content" />
+      {/* Titre et logo de l'application */}
       <View style={s.header}>
         <Text style={s.logo}>🎫</Text>
         <Text style={s.title}>Senguichet</Text>
         <Text style={s.tagline}>Billets & Événements</Text>
       </View>
+      {/* 3 cartes de sélection de rôle avec animation d'entrée */}
       <View style={s.cards}>
         {ROLES.map((role, i) => {
           const scale = animations[i].interpolate({
@@ -80,6 +88,7 @@ export default function AccueilChoixScreen({ navigation }) {
           )
         })}
       </View>
+      {/* Bouton de réinitialisation : efface AsyncStorage + SQLite (mode debug) */}
       <TouchableOpacity
         style={s.reset}
         onPress={() => {

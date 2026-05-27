@@ -5,6 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { getTicketsActifs, getTicketsSupprimes, supprimerTicket, restaurerTicket, insererTicketAchete } from '../database/database'
 import { useAuth } from '../context/AuthContext'
 
+// Hook de gestion des tickets acheteur : chargement, soft delete, restauration
+// Retourne : { tickets, ticketsSupprimes, loading, refresh, softDelete, restore }
 export function useTickets() {
   const { numeroTel } = useAuth()
   const [tickets, setTickets] = useState([])
@@ -47,11 +49,13 @@ export function useTickets() {
 
   const refresh = useCallback(() => load(), [load])
 
+  // Suppression logic (soft delete) : marque le ticket comme supprimé dans SQLite
   const softDelete = useCallback(async (id) => {
     await supprimerTicket(id)
     await refresh()
   }, [refresh])
 
+  // Restauration d'un ticket supprimé (soft delete inverse)
   const restore = useCallback(async (id) => {
     await restaurerTicket(id)
     await refresh()
