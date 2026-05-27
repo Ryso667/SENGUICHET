@@ -160,7 +160,7 @@ export default function HomeScreen({ navigation }) {
           {/* Section événements */}
           <View style={styles.sectionHeader}>
             <Feather name="calendar" size={15} color={colors.slate} />
-            <Text style={styles.sectionTitle}>À venir</Text>
+            <Text style={styles.sectionTitle}>Événements</Text>
           </View>
 
           {evenements.length === 0 && (

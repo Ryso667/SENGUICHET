@@ -1,14 +1,13 @@
-// Écran ticket inspiré d'un billet physique (format PDF)
-// Sections séparées par des pointillés, REF + QR + statut + infos
+// Écran ticket — affichage mobile + export PDF imprimable
+// Layout ticket classique : en-tête organisateur, QR, infos, prix
 import React, { useState, useEffect, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Alert } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Alert, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import QRCode from 'react-native-qrcode-svg'
 import * as Crypto from 'expo-crypto'
-import { colors, gradients, shadows, spacing, borderRadius, fonts } from '../constants/theme'
-import { formaterDateLisible } from '../utils/dateUtils'
+import { colors, shadows, spacing, borderRadius, fonts } from '../constants/theme'
+import { genererTicketPDF } from '../services/ticketPdfService'
 import BuyerLayout from '../components/BuyerLayout'
 
 const { width } = Dimensions.get('window')
@@ -16,14 +15,39 @@ const TICKET_WIDTH = width - spacing.xl * 2
 const QR_REFRESH_INTERVAL = 30
 const CLE_SECRETE_QR = 'senguichet-cle-secrete-hmac'
 
-const STATUTS = {
-  valide: { label: '✓ VALIDE', color: '#059669' },
-  utilise: { label: '✗ CONTRÔLÉ', color: '#64748b' },
-  expire: { label: '✗ EXPIRÉ', color: '#dc2626' },
+const DASHES = '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
+
+function formatDateTicket(dateStr) {
+  if (!dateStr) return ''
+  if (dateStr.includes('/')) {
+    const [j, m, a] = dateStr.split('/')
+    return `${j.padStart(2, '0')}-${m.padStart(2, '0')}-${a}`
+  }
+  if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+    const d = new Date(dateStr)
+    if (!isNaN(d.getTime())) {
+      return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`
+    }
+  }
+  return dateStr
 }
 
-// Génère un payload QR frais avec HMAC-SHA256 (anti-rejeu et anti-contrefaçon)
-// Le QR change toutes les 30s pour empêcher le screenshot frauduleux
+function formatDatetimeLong(dateStr) {
+  if (!dateStr) return ''
+  if (dateStr.includes('T')) {
+    const d = new Date(dateStr)
+    if (!isNaN(d.getTime())) {
+      const jj = String(d.getDate()).padStart(2, '0')
+      const mm = String(d.getMonth() + 1).padStart(2, '0')
+      const hh = String(d.getHours()).padStart(2, '0')
+      const min = String(d.getMinutes()).padStart(2, '0')
+      const sec = String(d.getSeconds()).padStart(2, '0')
+      return `${jj}-${mm}-${d.getFullYear()} ${hh}:${min}:${sec}`
+    }
+  }
+  return dateStr
+}
+
 async function genererQRPayload(ticket) {
   const now = new Date().toISOString()
   const payload = `${ticket.id}|${ticket.numero}|${now}|${ticket.eventId}|${ticket.categorie}`
@@ -43,9 +67,10 @@ async function genererQRPayload(ticket) {
 
 export default function TicketScreen({ route, navigation }) {
   const { ticket } = route.params
-  const st = STATUTS[ticket.statut] || STATUTS.valide
   const [qrValue, setQrValue] = useState(ticket.qrData || ticket.id)
+  const [exporting, setExporting] = useState(false)
   const intervalRef = useRef(null)
+  const qrRef = useRef(null)
 
   useEffect(() => {
     intervalRef.current = setInterval(async () => {
@@ -54,6 +79,35 @@ export default function TicketScreen({ route, navigation }) {
     }, QR_REFRESH_INTERVAL * 1000)
     return () => clearInterval(intervalRef.current)
   }, [ticket])
+
+  async function getQRDataURL() {
+    return new Promise((resolve) => {
+      if (qrRef.current?.toDataURL) {
+        qrRef.current.toDataURL((b64) => resolve(`data:image/png;base64,${b64}`))
+      } else {
+        resolve(null)
+      }
+    })
+  }
+
+  async function handleExport() {
+    if (exporting) return
+    setExporting(true)
+    try {
+      const qrDataUrl = await getQRDataURL()
+      await genererTicketPDF(ticket, qrDataUrl)
+    } catch (err) {
+      Alert.alert('Erreur', 'Impossible de générer le PDF. Réessayez.')
+      console.error('Export PDF failed:', err)
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const isScanned = ticket.statut === 'utilise'
+  const organisateurNom = 'SENGUICHET'
+  const dateStr = formatDateTicket(ticket.eventDate)
+  const scannedStr = ticket.dateScan ? formatDatetimeLong(ticket.dateScan) : null
 
   return (
     <BuyerLayout>
@@ -68,92 +122,92 @@ export default function TicketScreen({ route, navigation }) {
           </View>
 
           <View style={s.ticket}>
-            <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.brandBar}>
-              <Text style={s.brandText}>SENGUICHET</Text>
-            </LinearGradient>
-
-            <View style={s.dottedSep} />
-
-            <View style={s.section}>
-              <Text style={s.eventName}>{ticket.eventNom.toUpperCase()}</Text>
-            </View>
-
-            <View style={s.dottedSep} />
-
-            <View style={s.section}>
-              <View style={s.infoLine}>
-                <Text style={s.infoLabel}>DATE</Text>
-                <Text style={s.infoValue}>{formaterDateLisible(ticket.eventDate)}</Text>
+            {/* 1. En-tête organisateur centré */}
+            <View style={s.headerCentered}>
+              <View style={s.logoCircle}>
+                <Text style={s.logoEmoji}>🎫</Text>
               </View>
-              {ticket.eventHeure ? (
-                <View style={s.infoLine}>
-                  <Text style={s.infoLabel}>HEURE</Text>
-                  <Text style={s.infoValue}>{ticket.eventHeure}</Text>
-                </View>
-              ) : null}
-              {ticket.eventLieu ? (
-                <View style={s.infoLine}>
-                  <Text style={s.infoLabel}>LIEU</Text>
-                  <Text style={s.infoValue}>{ticket.eventLieu}</Text>
-                </View>
-              ) : null}
+              <Text style={s.organisateurText}>{organisateurNom.toUpperCase()}</Text>
             </View>
+            <Text style={s.dash}>{DASHES}</Text>
 
-            <View style={s.dottedSep} />
+            {/* 2. Nom de l'événement */}
+            <Text style={s.eventName}>{ticket.eventNom?.toUpperCase() || 'ÉVÉNEMENT'}</Text>
+            <Text style={s.dash}>{DASHES}</Text>
 
-            <View style={s.section}>
-              <Text style={s.refLabel}>REF : {ticket.numero || '—'}</Text>
-            </View>
+            {/* 3. Date, heure et lieu */}
+            <Text style={s.infoText}>
+              {dateStr}{ticket.eventHeure ? ` à ${ticket.eventHeure}` : ''}
+            </Text>
+            <Text style={s.venueText}>{ticket.eventLieu?.toUpperCase() || ''}</Text>
+            <Text style={s.dash}>{DASHES}</Text>
 
+            {/* 4. Référence */}
+            <Text style={s.refText}>REF : {ticket.numero || '—'}</Text>
+
+            {/* 5. QR Code avec overlay si scanné */}
             <View style={s.qrSection}>
-              <View style={s.qrWrap}>
+              <View style={s.qrWrapper}>
                 <QRCode
                   value={qrValue}
-                  size={160}
+                  size={200}
                   backgroundColor="white"
-                  color="#1e293b"
+                  color="#0f172a"
                   ecl="H"
-                  quietZone={6}
+                  quietZone={8}
+                  getRef={(c) => { qrRef.current = c }}
                 />
+                {isScanned && (
+                  <View style={s.scannedOverlay}>
+                    <View style={s.redCircle}>
+                      <Text style={s.redX}>✕</Text>
+                    </View>
+                  </View>
+                )}
               </View>
             </View>
-
-            <View style={s.section}>
-              <Text style={s.statutText}>
-                {ticket.statut === 'utilise'
-                  ? `✗ CONTRÔLÉ LE ${formaterDateLisible(ticket.dateScan || ticket.dateAchat)}`
-                  : `${st.label}`}
+            {isScanned && (
+              <Text style={s.scannedText}>
+                Contrôlé le{scannedStr ? ` ${scannedStr}` : ''}
               </Text>
-            </View>
+            )}
 
-            <View style={s.dottedSep} />
+            {/* 6. Catégorie et prix */}
+            <Text style={s.dash}>{DASHES}</Text>
+            <Text style={s.categorieText}>{ticket.categorie?.toUpperCase() || 'STANDARD'}</Text>
+            <Text style={s.prixText}>
+              PRIX: {ticket.prix ? `${ticket.prix.toLocaleString()} FCFA` : '—'}
+            </Text>
+            <Text style={s.dash}>{DASHES}</Text>
 
-            <View style={s.section}>
-              <View style={s.infoLine}>
-                <Text style={s.infoLabel}>CATÉGORIE</Text>
-                <Text style={s.infoValue}>{ticket.categorie}</Text>
-              </View>
-              <View style={s.infoLine}>
-                <Text style={s.infoLabel}>PRIX</Text>
-                <Text style={s.infoValue}>{ticket.prix ? `${ticket.prix.toLocaleString()} FCFA` : '—'}</Text>
-              </View>
-            </View>
-
-            <View style={s.dottedSep} />
-
-            <View style={s.legalSection}>
-              <Text style={s.legalText}>Entrée unique et non transférable</Text>
-            </View>
+            {/* 7. Footer */}
+            <Text style={s.footerText}>Entrée unique et non transférable</Text>
           </View>
 
           <View style={s.actions}>
-            <TouchableOpacity style={s.btnPrimary} onPress={() => Alert.alert('Simulation', 'Billet exporté en PDF')}>
-              <Feather name="download" size={13} color="#fff" />
-              <Text style={s.btnPrimaryText}>Exporter</Text>
+            <TouchableOpacity
+              style={[s.btnPrimary, exporting && s.btnDisabled]}
+              onPress={handleExport}
+              disabled={exporting}
+            >
+              {exporting ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Feather name="download" size={13} color="#fff" />
+              )}
+              <Text style={s.btnPrimaryText}>{exporting ? 'Génération...' : 'Exporter'}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={s.btnSecondary} onPress={() => Alert.alert('Simulation', 'Lien de partage généré')}>
-              <Feather name="share-2" size={13} color={colors.slate} />
-              <Text style={s.btnSecondaryText}>Partager</Text>
+            <TouchableOpacity
+              style={[s.btnSecondary, exporting && s.btnDisabled]}
+              onPress={handleExport}
+              disabled={exporting}
+            >
+              {exporting ? (
+                <ActivityIndicator size="small" color={colors.slate} />
+              ) : (
+                <Feather name="share-2" size={13} color={colors.slate} />
+              )}
+              <Text style={s.btnSecondaryText}>{exporting ? 'Génération...' : 'Partager'}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -188,84 +242,146 @@ const s = StyleSheet.create({
     backgroundColor: colors.white,
     borderRadius: borderRadius.lg,
     overflow: 'hidden',
+    paddingVertical: spacing.lg,
     ...shadows.lg,
   },
-  brandBar: {
-    paddingVertical: spacing.sm,
+  /* En-tête centré */
+  headerCentered: {
     alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
   },
-  brandText: {
+  logoCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.accentLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  logoEmoji: { fontSize: 15 },
+  organisateurText: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 14,
-    color: '#fff',
-    letterSpacing: 5,
+    fontSize: 11,
+    color: colors.mid,
+    letterSpacing: 2,
   },
-  dottedSep: {
-    borderTopWidth: 1.5,
-    borderTopColor: colors.border,
-    borderStyle: 'dashed',
+  /* Ligne de tirets */
+  dash: {
+    fontFamily: fonts.jakarta.regular,
+    fontSize: 7,
+    color: colors.border,
+    letterSpacing: 0,
+    textAlign: 'center',
+    marginVertical: spacing.sm,
   },
-  section: {
-    paddingVertical: spacing.md,
+  /* Nom événement */
+  eventName: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 18,
+    color: colors.slate,
+    textAlign: 'center',
+    letterSpacing: 0.5,
+    lineHeight: 24,
     paddingHorizontal: spacing.lg,
   },
-  eventName: {
-    fontSize: 18,
-    fontFamily: fonts.outfit.bold,
-    color: colors.slate,
-    letterSpacing: 0.5,
-  },
-  infoLine: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.xs,
-  },
-  infoLabel: {
-    fontSize: 11,
+  /* Infos */
+  infoText: {
     fontFamily: fonts.outfit.semiBold,
+    fontSize: 13,
+    color: colors.slate,
+    textAlign: 'center',
+    paddingHorizontal: spacing.lg,
+    marginBottom: 2,
+  },
+  venueText: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 13,
     color: colors.mid,
-    width: 80,
+    textAlign: 'center',
     letterSpacing: 1,
+    paddingHorizontal: spacing.lg,
   },
-  infoValue: {
-    fontSize: 14,
-    fontFamily: fonts.outfit.semiBold,
-    color: colors.slate,
-    flex: 1,
-  },
-  refLabel: {
-    fontSize: 14,
+  /* Référence */
+  refText: {
     fontFamily: fonts.outfit.bold,
-    color: colors.slate,
+    fontSize: 12,
+    color: colors.mid,
+    textAlign: 'center',
     letterSpacing: 0.5,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
   },
+  /* QR */
   qrSection: {
     alignItems: 'center',
     paddingVertical: spacing.md,
   },
-  qrWrap: {
+  qrWrapper: {
+    position: 'relative',
     padding: spacing.sm,
     backgroundColor: colors.white,
     borderRadius: borderRadius.sm,
   },
-  statutText: {
-    fontSize: 14,
-    fontFamily: fonts.outfit.semiBold,
-    color: '#059669',
+  scannedOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  redCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(220, 38, 38, 0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  redX: {
+    fontSize: 36,
+    color: '#ffffff',
+    fontFamily: fonts.outfit.bold,
+    lineHeight: 40,
+  },
+  scannedText: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 13,
+    color: colors.slate,
     textAlign: 'center',
     letterSpacing: 0.5,
+    marginBottom: spacing.md,
   },
-  legalSection: {
-    alignItems: 'center',
-    paddingVertical: spacing.md,
+  /* Catégorie et prix */
+  categorieText: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 15,
+    color: colors.slate,
+    textAlign: 'center',
+    letterSpacing: 1.5,
     paddingHorizontal: spacing.lg,
+    marginBottom: 2,
   },
-  legalText: {
-    fontSize: 11,
+  prixText: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 14,
+    color: colors.slate,
+    textAlign: 'center',
+    letterSpacing: 0.5,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  /* Footer */
+  footerText: {
     fontFamily: fonts.jakarta.regular,
+    fontSize: 10,
     color: colors.muted,
+    textAlign: 'center',
     fontStyle: 'italic',
+    paddingHorizontal: spacing.lg,
+    lineHeight: 14,
   },
+  /* Boutons */
   actions: {
     flexDirection: 'row',
     gap: spacing.sm,
@@ -296,4 +412,5 @@ const s = StyleSheet.create({
     borderColor: colors.border,
   },
   btnSecondaryText: { fontFamily: fonts.outfit.bold, fontSize: 11, color: colors.slate },
+  btnDisabled: { opacity: 0.6 },
 })
