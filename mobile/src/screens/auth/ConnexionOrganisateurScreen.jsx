@@ -2,9 +2,10 @@
 // En mode démo, n'importe quel email/mdp fonctionne
 import { useState } from 'react'
 import {
-  View, Text, TextInput, SafeAreaView,
+  View, Text, TextInput,
   KeyboardAvoidingView, Platform, ScrollView, StyleSheet,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { connecterOrganisateur } from '../../services/authService'
 import { useAuth } from '../../context/AuthContext'
 import BoutonPrincipal from '../../components/BoutonPrincipal'

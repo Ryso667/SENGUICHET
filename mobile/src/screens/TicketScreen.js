@@ -9,6 +9,7 @@ import QRCode from 'react-native-qrcode-svg'
 import * as Crypto from 'expo-crypto'
 import { colors, gradients, shadows, spacing, borderRadius, fonts } from '../constants/theme'
 import { formaterDateLisible } from '../utils/dateUtils'
+import BuyerLayout from '../components/BuyerLayout'
 
 const { width } = Dimensions.get('window')
 const TICKET_WIDTH = width - spacing.xl * 2
@@ -55,107 +56,109 @@ export default function TicketScreen({ route, navigation }) {
   }, [ticket])
 
   return (
-    <SafeAreaView style={s.safe}>
-      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-        <View style={s.topBar}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Feather name="arrow-left" size={19} color={colors.slate} />
-          </TouchableOpacity>
-          <Text style={s.topBarTitle}>Mon billet</Text>
-          <View style={{ width: 19 }} />
-        </View>
-
-        <View style={s.ticket}>
-          <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.brandBar}>
-            <Text style={s.brandText}>SENGUICHET</Text>
-          </LinearGradient>
-
-          <View style={s.dottedSep} />
-
-          <View style={s.section}>
-            <Text style={s.eventName}>{ticket.eventNom.toUpperCase()}</Text>
+    <BuyerLayout>
+      <SafeAreaView style={s.safe}>
+        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+          <View style={s.topBar}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Feather name="arrow-left" size={19} color={colors.slate} />
+            </TouchableOpacity>
+            <Text style={s.topBarTitle}>Mon billet</Text>
+            <View style={{ width: 19 }} />
           </View>
 
-          <View style={s.dottedSep} />
+          <View style={s.ticket}>
+            <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.brandBar}>
+              <Text style={s.brandText}>SENGUICHET</Text>
+            </LinearGradient>
 
-          <View style={s.section}>
-            <View style={s.infoLine}>
-              <Text style={s.infoLabel}>DATE</Text>
-              <Text style={s.infoValue}>{formaterDateLisible(ticket.eventDate)}</Text>
+            <View style={s.dottedSep} />
+
+            <View style={s.section}>
+              <Text style={s.eventName}>{ticket.eventNom.toUpperCase()}</Text>
             </View>
-            {ticket.eventHeure ? (
+
+            <View style={s.dottedSep} />
+
+            <View style={s.section}>
               <View style={s.infoLine}>
-                <Text style={s.infoLabel}>HEURE</Text>
-                <Text style={s.infoValue}>{ticket.eventHeure}</Text>
+                <Text style={s.infoLabel}>DATE</Text>
+                <Text style={s.infoValue}>{formaterDateLisible(ticket.eventDate)}</Text>
               </View>
-            ) : null}
-            {ticket.eventLieu ? (
+              {ticket.eventHeure ? (
+                <View style={s.infoLine}>
+                  <Text style={s.infoLabel}>HEURE</Text>
+                  <Text style={s.infoValue}>{ticket.eventHeure}</Text>
+                </View>
+              ) : null}
+              {ticket.eventLieu ? (
+                <View style={s.infoLine}>
+                  <Text style={s.infoLabel}>LIEU</Text>
+                  <Text style={s.infoValue}>{ticket.eventLieu}</Text>
+                </View>
+              ) : null}
+            </View>
+
+            <View style={s.dottedSep} />
+
+            <View style={s.section}>
+              <Text style={s.refLabel}>REF : {ticket.numero || '—'}</Text>
+            </View>
+
+            <View style={s.qrSection}>
+              <View style={s.qrWrap}>
+                <QRCode
+                  value={qrValue}
+                  size={160}
+                  backgroundColor="white"
+                  color="#1e293b"
+                  ecl="H"
+                  quietZone={6}
+                />
+              </View>
+            </View>
+
+            <View style={s.section}>
+              <Text style={s.statutText}>
+                {ticket.statut === 'utilise'
+                  ? `✗ CONTRÔLÉ LE ${formaterDateLisible(ticket.dateScan || ticket.dateAchat)}`
+                  : `${st.label}`}
+              </Text>
+            </View>
+
+            <View style={s.dottedSep} />
+
+            <View style={s.section}>
               <View style={s.infoLine}>
-                <Text style={s.infoLabel}>LIEU</Text>
-                <Text style={s.infoValue}>{ticket.eventLieu}</Text>
+                <Text style={s.infoLabel}>CATÉGORIE</Text>
+                <Text style={s.infoValue}>{ticket.categorie}</Text>
               </View>
-            ) : null}
-          </View>
+              <View style={s.infoLine}>
+                <Text style={s.infoLabel}>PRIX</Text>
+                <Text style={s.infoValue}>{ticket.prix ? `${ticket.prix.toLocaleString()} FCFA` : '—'}</Text>
+              </View>
+            </View>
 
-          <View style={s.dottedSep} />
+            <View style={s.dottedSep} />
 
-          <View style={s.section}>
-            <Text style={s.refLabel}>REF : {ticket.numero || '—'}</Text>
-          </View>
-
-          <View style={s.qrSection}>
-            <View style={s.qrWrap}>
-              <QRCode
-                value={qrValue}
-                size={160}
-                backgroundColor="white"
-                color="#1e293b"
-                ecl="H"
-                quietZone={6}
-              />
+            <View style={s.legalSection}>
+              <Text style={s.legalText}>Entrée unique et non transférable</Text>
             </View>
           </View>
 
-          <View style={s.section}>
-            <Text style={s.statutText}>
-              {ticket.statut === 'utilise'
-                ? `✗ CONTRÔLÉ LE ${formaterDateLisible(ticket.dateScan || ticket.dateAchat)}`
-                : `${st.label}`}
-            </Text>
+          <View style={s.actions}>
+            <TouchableOpacity style={s.btnPrimary} onPress={() => Alert.alert('Simulation', 'Billet exporté en PDF')}>
+              <Feather name="download" size={13} color="#fff" />
+              <Text style={s.btnPrimaryText}>Exporter</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.btnSecondary} onPress={() => Alert.alert('Simulation', 'Lien de partage généré')}>
+              <Feather name="share-2" size={13} color={colors.slate} />
+              <Text style={s.btnSecondaryText}>Partager</Text>
+            </TouchableOpacity>
           </View>
-
-          <View style={s.dottedSep} />
-
-          <View style={s.section}>
-            <View style={s.infoLine}>
-              <Text style={s.infoLabel}>CATÉGORIE</Text>
-              <Text style={s.infoValue}>{ticket.categorie}</Text>
-            </View>
-            <View style={s.infoLine}>
-              <Text style={s.infoLabel}>PRIX</Text>
-              <Text style={s.infoValue}>{ticket.prix ? `${ticket.prix.toLocaleString()} FCFA` : '—'}</Text>
-            </View>
-          </View>
-
-          <View style={s.dottedSep} />
-
-          <View style={s.legalSection}>
-            <Text style={s.legalText}>Entrée unique et non transférable</Text>
-          </View>
-        </View>
-
-        <View style={s.actions}>
-          <TouchableOpacity style={s.btnPrimary} onPress={() => Alert.alert('Simulation', 'Billet exporté en PDF')}>
-            <Feather name="download" size={13} color="#fff" />
-            <Text style={s.btnPrimaryText}>Exporter</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.btnSecondary} onPress={() => Alert.alert('Simulation', 'Lien de partage généré')}>
-            <Feather name="share-2" size={13} color={colors.slate} />
-            <Text style={s.btnSecondaryText}>Partager</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </BuyerLayout>
   )
 }
 

@@ -4,9 +4,10 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import {
-  View, Text, TextInput, Image, SafeAreaView, Alert, Modal, FlatList,
+  View, Text, TextInput, Image, Alert, Modal, FlatList,
   KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TouchableOpacity,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import BoutonPrincipal from '../../components/BoutonPrincipal'

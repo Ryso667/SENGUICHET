@@ -1,6 +1,7 @@
 // Dashboard contrôleur : page d'accueil après connexion du contrôleur
 // Affiche les infos de session et permet la déconnexion
-import { View, Text, SafeAreaView, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { useAuth } from '../context/AuthContext'
 export default function ControleurDashboardScreen() {

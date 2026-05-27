@@ -4,7 +4,8 @@ import * as Crypto from 'expo-crypto'
 import {
   chercherTicket, marquerUtilise, enregistrerScan,
   insererTickets, scansEnAttente, marquerScansSync,
-  historiqueScans, compterTickets, viderTickets,
+  historiqueScans, historiqueScansAvecDetails,
+  compterTickets, compterScansParResultat, viderTickets,
 } from '../database/database'
 
 const MOCK_MODE = true // Sera remplacé par API lorsque le backend sera prêt
@@ -108,14 +109,20 @@ export async function synchroniser() {
   return { sync: true, message: 'Scans synchronisés' }
 }
 
-// Récupère l'historique des scans
+// Récupère l'historique des scans enrichi (event_id, category via JOIN)
 export async function getHistorique() {
-  return await historiqueScans()
+  return await historiqueScansAvecDetails()
 }
 
-// Statistiques : nombre de tickets locaux dans SQLite
+// Statistiques détaillées : tickets locaux + répartition des résultats de scan
 export async function getStats() {
-  return { ticketsLocaux: await compterTickets() }
+  const ticketsLocaux = await compterTickets()
+  const parResultat = await compterScansParResultat()
+  const stats = { ticketsLocaux }
+  for (const r of parResultat) {
+    stats[r.resultat] = r.nombre
+  }
+  return stats
 }
 
 // Réinitialisation complète de la base SQLite

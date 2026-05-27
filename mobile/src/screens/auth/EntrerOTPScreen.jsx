@@ -3,9 +3,10 @@
 // En mode démo, le code à saisir est : 123456
 import { useState, useEffect } from 'react'
 import {
-  View, Text, SafeAreaView, ScrollView,
+  View, Text, ScrollView,
   KeyboardAvoidingView, Platform, StyleSheet,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { verifierOTP } from '../../services/authService'
 import InputOTP from '../../components/InputOTP'
 import BoutonPrincipal from '../../components/BoutonPrincipal'

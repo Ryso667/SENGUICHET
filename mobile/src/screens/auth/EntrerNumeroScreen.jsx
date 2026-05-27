@@ -2,9 +2,10 @@
 // Format : +221 XX XXX XX XX (indicatif Sénégal + 9 chiffres)
 import { useState } from 'react'
 import {
-  View, Text, SafeAreaView, ScrollView,
+  View, Text, ScrollView,
   KeyboardAvoidingView, Platform, StyleSheet,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { envoyerOTP } from '../../services/authService'
 import InputTel from '../../components/InputTel'
 import BoutonPrincipal from '../../components/BoutonPrincipal'

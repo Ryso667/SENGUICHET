@@ -8,11 +8,13 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { acheterTicket, getAllEvenements } from '../services/eventService'
 import { useAuth } from '../context/AuthContext'
 import { formaterDateLisible } from '../utils/dateUtils'
+import BuyerLayout from '../components/BuyerLayout'
 
 // Formate le numéro stocké (+22177XXXXXX → 77 XXX XX XX) pour l'affichage
 function formaterTelStocke(telComplet) {
@@ -54,6 +56,11 @@ export default function EventDetailScreen({ route, navigation }) {
                   id: event.id,
                   nom: event.title,
                   date: event.date,
+                  lieu: event.location || '',
+                  heure: event.time || '',
+                  categorie: event.category || '',
+                  description: event.desc || '',
+                  poster: event.poster || '',
                   categories: event.tickets.map(t => ({
                     id: t.id,
                     nom: t.name,
@@ -84,109 +91,113 @@ export default function EventDetailScreen({ route, navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView style={styles.flex} bounces={false} keyboardShouldPersistTaps="handled">
-          <View style={[styles.banner, { backgroundColor: event.bg }]}>
-            <Text style={styles.bannerEmoji}>{event.emoji}</Text>
-            <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-              <Feather name="arrow-left" size={17} color={colors.slate} />
+    <BuyerLayout>
+      <SafeAreaView style={styles.safe}>
+        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <ScrollView style={styles.flex} bounces={false} keyboardShouldPersistTaps="handled">
+            <View style={[styles.banner, { backgroundColor: event.bg }]}>
+              <Text style={styles.bannerEmoji}>{event.emoji}</Text>
+              <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+                <Feather name="arrow-left" size={17} color={colors.slate} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.body}>
+              <View style={styles.head}>
+                <Text style={styles.title}>{event.title}</Text>
+                <View style={styles.tags}>
+                  <View style={styles.tag}>
+                    <Feather name="calendar" size={9} color="#f43f5e" />
+                    <Text style={styles.tagText}>{formaterDateLisible(event.date)}</Text>
+                  </View>
+                  {!!event.location && (
+                    <View style={styles.tag}>
+                      <Feather name="map-pin" size={9} color="#6366f1" />
+                      <Text style={styles.tagText}>{event.location}</Text>
+                    </View>
+                  )}
+                  {!!event.time && (
+                    <View style={styles.tag}>
+                      <Feather name="clock" size={9} color={colors.green} />
+                      <Text style={styles.tagText}>{event.time}</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.descCard}>
+                <Feather name="info" size={11} color={colors.mid} />
+                <Text style={styles.descText}>{event.desc}</Text>
+              </View>
+
+              <LinearGradient colors={['#EEF2FF', '#FDF2F8']} style={styles.noAccount}>
+                <Feather name="zap" size={14} color={colors.accent} />
+                <Text style={styles.noAccountText}>
+                  <Text style={styles.noAccountStrong}>Aucune inscription requise.</Text> Saisis ton numéro Wave ou Orange Money.
+                </Text>
+              </LinearGradient>
+
+              <Text style={styles.sectionLabel}>
+                <Feather name="package" size={12} color={colors.slate} />                 1. Choisir la catégorie
+              </Text>
+
+              {event.tickets.map((t) => (
+                <TouchableOpacity
+                  key={t.name}
+                  style={[styles.ttCard, selectedTicket.name === t.name && styles.ttCardSelected]}
+                  onPress={() => setSelectedTicket(t)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.ttLeft}>
+                    <Text style={styles.ttName}>{t.name}</Text>
+                    <Text style={styles.ttDesc}>{t.desc}</Text>
+                  </View>
+                  <View style={styles.ttRight}>
+                    <Text style={styles.ttPrice}>{t.price.toLocaleString()}F</Text>
+                    <View style={[styles.radio, selectedTicket.name === t.name && styles.radioChecked]}>
+                      {selectedTicket.name === t.name && <View style={styles.radioInner} />}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+
+              <Text style={[styles.sectionLabel, { marginTop: spacing.md }]}>
+                <Feather name="smartphone" size={12} color={colors.slate} />                 2. Votre téléphone
+              </Text>
+
+              <View style={styles.phoneRow}>
+                <View style={styles.countryCode}>
+                  <Text style={styles.flag}>🇸🇳</Text>
+                  <Text style={styles.codeText}>+221</Text>
+                </View>
+                <TextInput
+                  style={styles.phoneInput}
+                  value={phone}
+                  onChangeText={setPhone}
+                  keyboardType="phone-pad"
+                  placeholder="77 XXX XX XX"
+                  placeholderTextColor={colors.muted}
+                />
+              </View>
+
+              <View style={styles.paymentRow}>
+                <Feather name="credit-card" size={11} color={colors.accent} />
+                <Text style={styles.paymentText}>Wave <Text style={styles.paymentSep}>·</Text> Orange Money</Text>
+              </View>
+            </View>
+          </ScrollView>
+
+          <View style={styles.bottomBar}>
+            <TouchableOpacity style={styles.buyBtn} onPress={handleBuy} activeOpacity={0.9}>
+              <LinearGradient colors={['#6366F1', '#EC4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.buyGradient}>
+                <Feather name="shopping-cart" size={15} color="#fff" />
+                <Text style={styles.buyBtnText}>Payer {selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
-
-          <View style={styles.body}>
-            <View style={styles.head}>
-              <Text style={styles.title}>{event.title}</Text>
-              <View style={styles.tags}>
-                <View style={styles.tag}>
-                  <Feather name="calendar" size={9} color="#f43f5e" />
-                  <Text style={styles.tagText}>{formaterDateLisible(event.date)}</Text>
-                </View>
-                {!!event.location && (
-                  <View style={styles.tag}>
-                    <Feather name="map-pin" size={9} color="#6366f1" />
-                    <Text style={styles.tagText}>{event.location}</Text>
-                  </View>
-                )}
-                {!!event.time && (
-                  <View style={styles.tag}>
-                    <Feather name="clock" size={9} color={colors.green} />
-                    <Text style={styles.tagText}>{event.time}</Text>
-                  </View>
-                )}
-              </View>
-            </View>
-
-            <View style={styles.descCard}>
-              <Feather name="info" size={11} color={colors.mid} />
-              <Text style={styles.descText}>{event.desc}</Text>
-            </View>
-
-            <View style={styles.noAccount}>
-              <Feather name="zap" size={13} color={colors.accent} />
-              <Text style={styles.noAccountText}>
-                <Text style={styles.noAccountStrong}>Aucune inscription requise.</Text> Saisissez votre numéro Wave ou Orange Money.
-              </Text>
-            </View>
-
-            <Text style={styles.sectionLabel}>
-              <Feather name="package" size={12} color={colors.slate} /> 1. Choisir la catégorie
-            </Text>
-
-            {event.tickets.map((t) => (
-              <TouchableOpacity
-                key={t.name}
-                style={[styles.ttCard, selectedTicket.name === t.name && styles.ttCardSelected]}
-                onPress={() => setSelectedTicket(t)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.ttLeft}>
-                  <Text style={styles.ttName}>{t.name}</Text>
-                  <Text style={styles.ttDesc}>{t.desc}</Text>
-                </View>
-                <View style={styles.ttRight}>
-                  <Text style={styles.ttPrice}>{t.price.toLocaleString()}F</Text>
-                  <View style={[styles.radio, selectedTicket.name === t.name && styles.radioChecked]}>
-                    {selectedTicket.name === t.name && <View style={styles.radioInner} />}
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-
-            <Text style={[styles.sectionLabel, { marginTop: spacing.md }]}>
-              <Feather name="smartphone" size={12} color={colors.slate} /> 2. Votre téléphone
-            </Text>
-
-            <View style={styles.phoneRow}>
-              <View style={styles.countryCode}>
-                <Text style={styles.flag}>🇸🇳</Text>
-                <Text style={styles.codeText}>+221</Text>
-              </View>
-              <TextInput
-                style={styles.phoneInput}
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                placeholder="77 XXX XX XX"
-                placeholderTextColor={colors.muted}
-              />
-            </View>
-
-            <View style={styles.paymentRow}>
-              <Feather name="credit-card" size={11} color={colors.accent} />
-              <Text style={styles.paymentText}>Wave <Text style={styles.paymentSep}>·</Text> Orange Money</Text>
-            </View>
-          </View>
-        </ScrollView>
-
-        <View style={styles.bottomBar}>
-          <TouchableOpacity style={styles.buyBtn} onPress={handleBuy} activeOpacity={0.9}>
-            <Feather name="shopping-cart" size={15} color="#fff" />
-            <Text style={styles.buyBtnText}>Payer {selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </BuyerLayout>
   )
 }
 
@@ -248,13 +259,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 7,
-    backgroundColor: colors.accentLight,
     borderRadius: borderRadius.md,
     padding: 12,
     marginBottom: 22,
   },
-  noAccountText: { fontSize: 11, color: '#9a3412', fontFamily: fonts.jakarta.regular, flex: 1, lineHeight: 16 },
-  noAccountStrong: { fontFamily: fonts.jakarta.semiBold },
+  noAccountText: { fontSize: 11, color: '#475569', fontFamily: fonts.jakarta.regular, flex: 1, lineHeight: 16 },
+  noAccountStrong: { fontFamily: fonts.jakarta.semiBold, color: colors.slate },
 
   sectionLabel: {
     fontFamily: fonts.outfit.bold,
@@ -346,14 +356,16 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
   },
   buyBtn: {
-    paddingVertical: 16,
     borderRadius: borderRadius.md,
+    overflow: 'hidden',
+    ...shadows.md,
+  },
+  buyGradient: {
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 8,
-    backgroundColor: colors.accent,
-    ...shadows.md,
   },
   buyBtnText: {
     fontFamily: fonts.outfit.bold,

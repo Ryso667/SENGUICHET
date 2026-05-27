@@ -138,6 +138,26 @@ export async function historiqueScans() {
   return await bd.getAllAsync('SELECT * FROM scans ORDER BY timestamp_scan DESC')
 }
 
+// Récupère l'historique des scans enrichi avec les infos de l'événement (event_id, category)
+// Utilise un LEFT JOIN car les tickets téléchargés peuvent avoir été effacés
+export async function historiqueScansAvecDetails() {
+  const bd = await getDb()
+  return await bd.getAllAsync(`
+    SELECT s.*, t.event_id, t.category
+    FROM scans s
+    LEFT JOIN tickets t ON s.uuid_billet = t.uuid
+    ORDER BY s.timestamp_scan DESC
+  `)
+}
+
+// Compte les scans par résultat (pour les stats)
+export async function compterScansParResultat() {
+  const bd = await getDb()
+  return await bd.getAllAsync(`
+    SELECT resultat, COUNT(*) as nombre FROM scans GROUP BY resultat
+  `)
+}
+
 // Compte le nombre de tickets stockés localement
 export async function compterTickets() {
   const bd = await getDb()

@@ -3,9 +3,10 @@
 // Déverrouille le mode scan une fois le code validé
 import { useState } from 'react'
 import {
-  View, Text, SafeAreaView, ScrollView,
+  View, Text, ScrollView,
   KeyboardAvoidingView, Platform, StyleSheet,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { connecterControleur as apiConnecterControleur } from '../../services/authService'
 import InputOTP from '../../components/InputOTP'
 import BoutonPrincipal from '../../components/BoutonPrincipal'

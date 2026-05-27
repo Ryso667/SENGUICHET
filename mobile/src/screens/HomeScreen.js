@@ -1,15 +1,16 @@
-// Écran d'accueil générique après connexion
-// Affiche les événements disponibles et permet la navigation vers les différentes sections
+// Écran d'accueil acheteur avec événements et tickets récents
+// Affiche les événements à venir, les tickets actifs et un accès rapide à l'achat
 import { useEffect, useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Feather } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
 import { useTickets } from '../hooks/useTickets'
 import EventCard from '../components/EventCard'
-import BottomNav from '../components/BottomNav'
+import BuyerLayout from '../components/BuyerLayout'
 import { getDefaultImage } from '../config/images'
 import { formaterBadgeDate, formaterDateLisible } from '../utils/dateUtils'
 
@@ -83,7 +84,22 @@ export default function HomeScreen({ navigation }) {
         for (const s of stored) {
           if (!seenIds.has(s.id)) { seenIds.add(s.id); uniques.push(s) }
         }
-        const formats = uniques.map(formaterEvenement)
+        const formats = uniques.map(e => {
+          const f = formaterEvenement(e)
+          // Migration : comble les champs manquants depuis les MOCKS
+          // (événements sauvegardés avant l'ajout de lieu, heure, desc, catégorie)
+          if (!f.time || !f.location || !f.desc) {
+            const mock = MOCKS.find(m => m.id === f.id)
+            if (mock) {
+              if (!f.time) f.time = mock.time
+              if (!f.location) f.location = mock.location
+              if (!f.desc) f.desc = mock.desc
+              if (!f.emoji || f.emoji === '📅') f.emoji = mock.emoji
+              if (f.bg === '#6366F1') f.bg = mock.bg
+            }
+          }
+          return f
+        })
         const mocksUniques = MOCKS.filter(m => !seenIds.has(m.id))
         setEvenements([...formats, ...mocksUniques])
       } catch (e) {
@@ -94,13 +110,20 @@ export default function HomeScreen({ navigation }) {
   }, [navigation, refresh])
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.flex}>
+    <BuyerLayout>
+      <SafeAreaView style={styles.safe}>
         <ScrollView style={styles.flex} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          {/* En-tête avec logo et déconnexion */}
           <View style={styles.header}>
             <View>
-              <Text style={styles.logo}>SENGUICHET</Text>
-              <Text style={styles.tagline}>Achetez vos billets en un clic</Text>
+              <LinearGradient colors={['#6366F1', '#EC4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.logoGradient}>
+                <Text style={styles.logoText}>SENGUICHET</Text>
+              </LinearGradient>
+              <Text style={styles.welcome}>
+                {tickets.length > 0
+                  ? `${tickets.length} ticket${tickets.length > 1 ? 's' : ''} actif${tickets.length > 1 ? 's' : ''}`
+                  : 'Aucun ticket actif'}
+              </Text>
             </View>
             <TouchableOpacity
               onPress={() => Alert.alert(
@@ -112,28 +135,36 @@ export default function HomeScreen({ navigation }) {
                 ]
               )}
             >
-              <Feather name="log-out" size={18} color={colors.mid} />
+              <View style={styles.logoutBtn}>
+                <Feather name="log-out" size={16} color={colors.mid} />
+              </View>
             </TouchableOpacity>
           </View>
 
+          {/* CTA principal premium */}
           <TouchableOpacity style={styles.heroCta} activeOpacity={0.9} onPress={() => navigation.navigate('EventSearch')}>
-            <View style={styles.heroIcon}>
-              <Feather name="shopping-cart" size={18} color="#fff" />
-            </View>
-            <View style={styles.heroText}>
-              <Text style={styles.heroTitle}>Acheter un ticket</Text>
-              <Text style={styles.heroSub}>Choisissez votre événement et payez en un clic</Text>
-            </View>
-            <Feather name="chevron-right" size={18} color="rgba(255,255,255,0.6)" />
+            <LinearGradient colors={['#6366F1', '#EC4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroGradient}>
+              <View style={styles.heroRow}>
+                <View style={styles.heroIcon}>
+                  <Feather name="shopping-cart" size={20} color="#fff" />
+                </View>
+                <View style={styles.heroText}>
+                  <Text style={styles.heroTitle}>Acheter un ticket</Text>
+                  <Text style={styles.heroSub}>Choisis ton événement, paie en un clic</Text>
+                </View>
+                <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.7)" />
+              </View>
+            </LinearGradient>
           </TouchableOpacity>
 
+          {/* Section événements */}
           <View style={styles.sectionHeader}>
-            <Feather name="calendar" size={14} color={colors.slate} />
-            <Text style={styles.sectionTitle}>Événements</Text>
+            <Feather name="calendar" size={15} color={colors.slate} />
+            <Text style={styles.sectionTitle}>À venir</Text>
           </View>
 
           {evenements.length === 0 && (
-            <Text style={styles.emptyEvents}>Aucun événement disponible</Text>
+            <Text style={styles.emptyEvents}>Aucun événement dispo pour le moment</Text>
           )}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.eventsRow}>
             {evenements.map((event) => (
@@ -145,10 +176,11 @@ export default function HomeScreen({ navigation }) {
             ))}
           </ScrollView>
 
+          {/* Section mes tickets */}
           {tickets.length > 0 && (
             <>
               <View style={styles.sectionHeader}>
-                <Feather name="tag" size={14} color={colors.slate} />
+                <Feather name="tag" size={15} color={colors.slate} />
                 <Text style={styles.sectionTitle}>Mes tickets</Text>
                 <View style={styles.sectionCount}>
                   <Text style={styles.sectionCountText}>{tickets.length}</Text>
@@ -162,9 +194,9 @@ export default function HomeScreen({ navigation }) {
                   onPress={() => navigation.navigate('Ticket', { ticket: t })}
                   activeOpacity={0.7}
                 >
-                  <View style={[styles.ticketEmojiBox, { backgroundColor: colors.greenLight }]}>
+                  <LinearGradient colors={['#ECFDF5', '#D1FAE5']} style={styles.ticketEmojiBox}>
                     <Text style={styles.ticketEmoji}>🎫</Text>
-                  </View>
+                  </LinearGradient>
                   <View style={styles.ticketInfo}>
                     <Text style={styles.ticketTitle}>{t.eventNom}</Text>
                     <Text style={styles.ticketMeta}>{t.categorie} · {formaterDateLisible(t.eventDate)}</Text>
@@ -192,18 +224,17 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.footerText}>Paiement Wave & Orange Money · Sans compte requis</Text>
           </View>
         </ScrollView>
-
-        <BottomNav />
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </BuyerLayout>
   )
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+  safe: { flex: 1 },
   flex: { flex: 1 },
   scroll: { paddingBottom: spacing.lg },
 
+  // Header premium
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -212,45 +243,63 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
   },
-  logo: {
-    fontFamily: fonts.outfit.black,
-    fontSize: 22,
-    color: colors.slate,
-    letterSpacing: -0.8,
+  logoGradient: {
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
-  tagline: {
-    fontSize: 11,
-    color: colors.muted,
+  logoText: {
+    fontFamily: fonts.outfit.black,
+    fontSize: 18,
+    color: '#FFFFFF',
+    letterSpacing: 1,
+  },
+  welcome: {
+    fontSize: 13,
+    color: colors.mid,
     fontFamily: fonts.jakarta.regular,
-    marginTop: 2,
-    letterSpacing: 0.2,
+    marginTop: 6,
+  },
+  logoutBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.sm,
   },
 
+  // Hero CTA premium
   heroCta: {
     marginHorizontal: spacing.lg,
     marginTop: spacing.md,
     marginBottom: spacing.sm,
-    backgroundColor: colors.accent,
     borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    ...shadows.md,
+  },
+  heroGradient: {
     paddingHorizontal: spacing.lg,
     paddingVertical: 20,
+  },
+  heroRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    ...shadows.md,
   },
   heroIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.md,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   heroText: { flex: 1 },
   heroTitle: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 15,
+    fontSize: 16,
     color: '#fff',
     letterSpacing: -0.2,
   },
@@ -259,7 +308,6 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.8)',
     fontFamily: fonts.jakarta.regular,
     marginTop: 2,
-    lineHeight: 15,
   },
 
   sectionHeader: {
@@ -296,18 +344,6 @@ const styles = StyleSheet.create({
   eventsRow: {
     paddingLeft: spacing.lg,
     paddingRight: spacing.lg,
-  },
-
-  ticketsLink: {
-    flexDirection: 'row', alignItems: 'center', gap: 7,
-    marginHorizontal: spacing.lg, marginTop: 26,
-    paddingVertical: spacing.sm, paddingHorizontal: spacing.md,
-    backgroundColor: colors.white, borderRadius: borderRadius.md,
-    ...shadows.sm,
-  },
-  ticketsLinkText: {
-    flex: 1, fontSize: 13, fontFamily: fonts.outfit.semiBold,
-    color: colors.accent, letterSpacing: -0.1,
   },
 
   ticketCard: {

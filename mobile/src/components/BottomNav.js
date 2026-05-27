@@ -1,30 +1,54 @@
-// Barre de navigation inférieure adaptée à chaque rôle
-// Affiche les onglets spécifiques selon le rôle connecté (acheteur/controleur/organisateur)
+// Barre de navigation inférieure premium pour l'acheteur
+// Onglet actif : icône dans un cercle dégradé Indigo→Rose
+// Onglets inactifs : icône grise simple
+// S'adapte à la route courante pour la surbrillance
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
-import { fonts, colors, spacing } from '../constants/theme'
+import { LinearGradient } from 'expo-linear-gradient'
+import { fonts, colors } from '../constants/theme'
 
-// Barre de navigation inférieure avec 3 onglets : Accueil, Mes Tickets, Support
-// Met en surbrillance l'onglet actif selon la route courante
+const TABS = [
+  { key: 'Home', icon: 'home', label: 'Accueil' },
+  { key: 'MesTickets', icon: 'tag', label: 'Mes Tickets' },
+  { key: 'Support', icon: 'message-circle', label: 'Support' },
+]
+
 export default function BottomNav() {
   const navigation = useNavigation()
   const route = useRoute()
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity key="guichet" style={styles.item} onPress={() => navigation.navigate('Home')}>
-        <Feather name="home" size={19} color={route.name === 'Home' ? colors.accent : colors.muted} />
-        <Text style={[styles.label, route.name === 'Home' && styles.activeLabel]}>Accueil</Text>
-      </TouchableOpacity>
-      <TouchableOpacity key="tickets" style={styles.item} onPress={() => navigation.navigate('MesTickets')}>
-        <Feather name="tag" size={19} color={route.name === 'Home' ? colors.accent : colors.muted} />
-        <Text style={[styles.label, route.name === 'MesTickets' && styles.activeLabel]}>Mes Tickets</Text>
-      </TouchableOpacity>
-      <TouchableOpacity key="support" style={styles.item} onPress={() => navigation.navigate('Support')}>
-        <Feather name="message-circle" size={19} color={route.name === 'Support' ? colors.accent : colors.muted} />
-        <Text style={[styles.label, route.name === 'Support' && styles.activeLabel]}>Support</Text>
-      </TouchableOpacity>
+      {TABS.map((tab) => {
+        const active = route.name === tab.key
+        return (
+          <TouchableOpacity
+            key={tab.key}
+            style={styles.item}
+            onPress={() => navigation.navigate(tab.key)}
+            activeOpacity={0.7}
+          >
+            {active ? (
+              <LinearGradient
+                colors={['#6366F1', '#EC4899']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.activeIcon}
+              >
+                <Feather name={tab.icon} size={18} color="#FFFFFF" />
+              </LinearGradient>
+            ) : (
+              <View style={styles.inactiveIcon}>
+                <Feather name={tab.icon} size={18} color={colors.muted} />
+              </View>
+            )}
+            <Text style={[styles.label, active && styles.activeLabel]}>
+              {tab.label}
+            </Text>
+          </TouchableOpacity>
+        )
+      })}
     </View>
   )
 }
@@ -32,10 +56,10 @@ export default function BottomNav() {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: colors.white,
+    backgroundColor: 'rgba(255,255,255,0.92)',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
-    paddingTop: spacing.sm,
+    borderTopColor: '#edf0f5',
+    paddingTop: 8,
     paddingBottom: 28,
   },
   item: {
@@ -43,14 +67,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 3,
   },
+  activeIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inactiveIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   label: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: fonts.jakarta.medium,
     color: colors.muted,
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
   activeLabel: {
-    color: colors.accent,
+    color: '#6366F1',
     fontFamily: fonts.jakarta.semiBold,
   },
 })

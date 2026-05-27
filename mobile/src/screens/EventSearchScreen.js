@@ -8,6 +8,7 @@ import { Feather } from '@expo/vector-icons'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import { getDefaultImage } from '../config/images'
 import { formaterBadgeDate, formaterDateLisible } from '../utils/dateUtils'
+import BuyerLayout from '../components/BuyerLayout'
 
 // Sera remplacé par API : événements mockés en attente du backend
 const MOCKS = [
@@ -71,7 +72,21 @@ export default function EventSearchScreen({ navigation }) {
           if (!seenIds.has(s.id)) { seenIds.add(s.id); uniques.push(s) }
         }
         const mocksUniques = MOCKS.filter(m => !seenIds.has(m.id))
-        setAllEvents([...uniques.map(formaterEvenement), ...mocksUniques])
+        setAllEvents([...uniques.map(e => {
+          const f = formaterEvenement(e)
+          // Migration : comble les champs manquants depuis les MOCKS
+          if (!f.time || !f.location || !f.desc) {
+            const mock = MOCKS.find(m => m.id === f.id)
+            if (mock) {
+              if (!f.time) f.time = mock.time
+              if (!f.location) f.location = mock.location
+              if (!f.desc) f.desc = mock.desc
+              if (!f.emoji || f.emoji === '📅') f.emoji = mock.emoji
+              if (f.bg === '#6366F1') f.bg = mock.bg
+            }
+          }
+          return f
+        }), ...mocksUniques])
       } catch (e) {
         console.warn('Failed to load events', e)
       }
@@ -91,76 +106,78 @@ export default function EventSearchScreen({ navigation }) {
   }, [query, allEvents])
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Feather name="arrow-left" size={18} color={colors.slate} />
-        </TouchableOpacity>
-        <View style={styles.searchWrap}>
-          <Feather name="search" size={15} color={colors.muted} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Rechercher un événement..."
-            placeholderTextColor={colors.muted}
-            value={query}
-            onChangeText={setQuery}
-            autoFocus
-          />
-          {query.length > 0 && (
-            <TouchableOpacity onPress={() => setQuery('')}>
-              <Feather name="x" size={15} color={colors.muted} />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-
-      <ScrollView style={styles.flex} contentContainerStyle={styles.list}>
-        {results.length === 0 ? (
-          <View style={styles.empty}>
-            <Feather name="search" size={28} color={colors.border} />
-            <Text style={styles.emptyText}>Aucun événement trouvé</Text>
+    <BuyerLayout>
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.topBar}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Feather name="arrow-left" size={18} color={colors.slate} />
+          </TouchableOpacity>
+          <View style={styles.searchWrap}>
+            <Feather name="search" size={15} color={colors.muted} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Rechercher un événement..."
+              placeholderTextColor={colors.muted}
+              value={query}
+              onChangeText={setQuery}
+              autoFocus
+            />
+            {query.length > 0 && (
+              <TouchableOpacity onPress={() => setQuery('')}>
+                <Feather name="x" size={15} color={colors.muted} />
+              </TouchableOpacity>
+            )}
           </View>
-        ) : (
-          results.map((event) => (
-            <TouchableOpacity
-              key={event.id}
-              style={styles.card}
-              onPress={() => navigation.navigate('EventDetail', { event })}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.cardBanner, { backgroundColor: event.bg }]}>
-                <Text style={styles.cardEmoji}>{event.emoji}</Text>
-              </View>
-              <View style={styles.cardBody}>
-                <Text style={styles.cardTitle}>{event.title}</Text>
-                <View style={styles.metaRow}>
-                  <Feather name="calendar" size={9} color={colors.mid} />
-                  <Text style={styles.metaText}>{formaterDateLisible(event.date)}</Text>
+        </View>
+
+        <ScrollView style={styles.flex} contentContainerStyle={styles.list}>
+          {results.length === 0 ? (
+            <View style={styles.empty}>
+              <Feather name="search" size={28} color={colors.border} />
+              <Text style={styles.emptyText}>Aucun événement trouvé</Text>
+            </View>
+          ) : (
+            results.map((event) => (
+              <TouchableOpacity
+                key={event.id}
+                style={styles.card}
+                onPress={() => navigation.navigate('EventDetail', { event })}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.cardBanner, { backgroundColor: event.bg }]}>
+                  <Text style={styles.cardEmoji}>{event.emoji}</Text>
                 </View>
-                <View style={styles.metaRow}>
-                  <Feather name="map-pin" size={9} color={colors.mid} />
-                  <Text style={styles.metaText}>{event.location}</Text>
+                <View style={styles.cardBody}>
+                  <Text style={styles.cardTitle}>{event.title}</Text>
+                  <View style={styles.metaRow}>
+                    <Feather name="calendar" size={9} color={colors.mid} />
+                    <Text style={styles.metaText}>{formaterDateLisible(event.date)}</Text>
+                  </View>
+                  <View style={styles.metaRow}>
+                    <Feather name="map-pin" size={9} color={colors.mid} />
+                    <Text style={styles.metaText}>{event.location}</Text>
+                  </View>
+                  <View style={styles.metaRow}>
+                    <Feather name="clock" size={9} color={colors.mid} />
+                    <Text style={styles.metaText}>{event.time}</Text>
+                  </View>
+                  <View style={styles.metaRow}>
+                    <Feather name="tag" size={9} color={colors.accent} />
+                    <Text style={styles.price}>{event.priceLabel}</Text>
+                  </View>
                 </View>
-                <View style={styles.metaRow}>
-                  <Feather name="clock" size={9} color={colors.mid} />
-                  <Text style={styles.metaText}>{event.time}</Text>
-                </View>
-                <View style={styles.metaRow}>
-                  <Feather name="tag" size={9} color={colors.accent} />
-                  <Text style={styles.price}>{event.priceLabel}</Text>
-                </View>
-              </View>
-              <Feather name="chevron-right" size={15} color={colors.muted} style={styles.chevron} />
-            </TouchableOpacity>
-          ))
-        )}
-      </ScrollView>
-    </SafeAreaView>
+                <Feather name="chevron-right" size={15} color={colors.muted} style={styles.chevron} />
+              </TouchableOpacity>
+            ))
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </BuyerLayout>
   )
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+  safe: { flex: 1 },
   flex: { flex: 1 },
 
   topBar: {
