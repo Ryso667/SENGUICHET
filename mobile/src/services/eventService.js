@@ -5,6 +5,8 @@ import * as Crypto from 'expo-crypto'
 import { insererTicketAchete } from '../database/database'
 import { getDefaultImage } from '../config/images'
 
+const CLE_SECRETE_QR = 'senguichet-cle-secrete-hmac'
+
 // Clés de stockage dans AsyncStorage
 const EVENTS_KEY = '@senguichet_evenements'  // liste des événements créés
 const TICKETS_KEY = '@senguichet_tickets'     // tous les tickets achetés
@@ -84,19 +86,41 @@ export async function acheterTicket(eventId, categorieId, telephone) {
 
   evt.ticketCount++
   const numero = `TKT-${evt.nom.slice(0, 4).toUpperCase()}-${formatNum(evt.ticketCount)}`
+  const ticketId = generateId()
+  const transactionRef = `TXN-${Date.now().toString(36).toUpperCase()}`
+  const timestamp = new Date().toISOString()
+
+  // Génération d'une signature cryptographique pour le QR (anti-contrefaçon offline)
+  const signaturePayload = `${ticketId}|${transactionRef}|${timestamp}|${eventId}|${cat.nom}`
+  const signature = await Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    signaturePayload + CLE_SECRETE_QR
+  )
+
+  const qrPayload = JSON.stringify({
+    uuid: ticketId,
+    hmac: signature,
+    event_id: eventId,
+    category: cat.nom,
+    timestamp,
+    transaction_ref: transactionRef,
+  })
 
   const ticket = {
-    id: generateId(),
+    id: ticketId,
     eventId,
     eventNom: evt.nom,
     eventDate: evt.date,
+    eventHeure: evt.heure || null,
+    eventLieu: evt.lieu || null,
     categorie: cat.nom,
     prix: cat.prix,
     telephone,
     numero,
     statut: 'valide',
-    dateAchat: new Date().toISOString(),
+    dateAchat: timestamp,
     dateScan: null,
+    qrData: qrPayload,
   }
 
   const tickets = await getAllTickets()

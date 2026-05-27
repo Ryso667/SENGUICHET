@@ -58,7 +58,7 @@ export default function MesTicketsScreen({ navigation }) {
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {tickets.length === 0 && ticketsSupprimes.length === 0 && (
           <View style={s.empty}>
-            <Feather name="ticket" size={40} color={colors.border} />
+            <Feather name="credit-card" size={40} color={colors.border} />
             <Text style={s.emptyTitle}>Aucun ticket</Text>
             <Text style={s.emptySub}>Achète ton premier ticket depuis l'accueil</Text>
           </View>

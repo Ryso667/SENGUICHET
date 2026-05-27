@@ -2,6 +2,7 @@
 // Stats, synchro batch des scans offline, téléchargement tickets pour offline
 import { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { formaterDateHeure } from '../../utils/dateUtils'
 import { getHistorique, synchroniser, telechargerTickets, reinitialiser } from '../../services/scanService'
 
 // Couleurs par résultat de scan (fond + texte)
@@ -135,7 +136,7 @@ export default function ScanHistoryScreen() {
               <View style={styles.carteInfo}>
                 <Text style={styles.carteUuid}>{item.uuid_billet?.slice(0, 8)}...</Text>
                 <Text style={styles.carteDate}>
-                  {new Date(item.timestamp_scan).toLocaleString('fr-FR')}
+                  {formaterDateHeure(item.timestamp_scan)}
                 </Text>
               </View>
               <Text style={[styles.carteStatut, { color: c.text }]}>

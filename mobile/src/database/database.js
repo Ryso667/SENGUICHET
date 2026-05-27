@@ -39,14 +39,18 @@ async function initTables() {
     CREATE TABLE IF NOT EXISTS buyer_tickets (
       id TEXT PRIMARY KEY,
       event_id TEXT NOT NULL,
+
       event_nom TEXT NOT NULL,
       event_date TEXT NOT NULL,
+      event_heure TEXT,
+      event_lieu TEXT,
       categorie_nom TEXT NOT NULL,
       prix REAL NOT NULL DEFAULT 0,
       telephone TEXT NOT NULL,
       numero TEXT NOT NULL,
       statut TEXT NOT NULL DEFAULT 'valide',
       date_achat TEXT NOT NULL,
+      date_scan TEXT,
       qr_data TEXT,
       qr_secret TEXT,
       deleted_at TEXT,
@@ -57,6 +61,10 @@ async function initTables() {
     CREATE INDEX IF NOT EXISTS idx_buyer_tickets_tel ON buyer_tickets(telephone);
     CREATE INDEX IF NOT EXISTS idx_buyer_tickets_deleted ON buyer_tickets(deleted_at);
   `)
+  // Migration silencieuse : ajout des colonnes si absentes (base antérieure)
+  try { await db.runAsync('ALTER TABLE buyer_tickets ADD COLUMN event_heure TEXT') } catch (e) {}
+  try { await db.runAsync('ALTER TABLE buyer_tickets ADD COLUMN event_lieu TEXT') } catch (e) {}
+  try { await db.runAsync('ALTER TABLE buyer_tickets ADD COLUMN date_scan TEXT') } catch (e) {}
 }
 
 // Insère ou remplace une liste de tickets dans la base locale
@@ -141,14 +149,18 @@ async function garantirTableBuyer() {
     CREATE TABLE IF NOT EXISTS buyer_tickets (
       id TEXT PRIMARY KEY,
       event_id TEXT NOT NULL,
+
       event_nom TEXT NOT NULL,
       event_date TEXT NOT NULL,
+      event_heure TEXT,
+      event_lieu TEXT,
       categorie_nom TEXT NOT NULL,
       prix REAL NOT NULL DEFAULT 0,
       telephone TEXT NOT NULL,
       numero TEXT NOT NULL,
       statut TEXT NOT NULL DEFAULT 'valide',
       date_achat TEXT NOT NULL,
+      date_scan TEXT,
       qr_data TEXT,
       qr_secret TEXT,
       deleted_at TEXT,
@@ -158,6 +170,10 @@ async function garantirTableBuyer() {
     CREATE INDEX IF NOT EXISTS idx_buyer_tickets_tel ON buyer_tickets(telephone);
     CREATE INDEX IF NOT EXISTS idx_buyer_tickets_deleted ON buyer_tickets(deleted_at);
   `)
+  // Migration silencieuse : ajouter colonnes si manquantes
+  try { await bd.runAsync('ALTER TABLE buyer_tickets ADD COLUMN event_heure TEXT') } catch (e) {}
+  try { await bd.runAsync('ALTER TABLE buyer_tickets ADD COLUMN event_lieu TEXT') } catch (e) {}
+  try { await bd.runAsync('ALTER TABLE buyer_tickets ADD COLUMN date_scan TEXT') } catch (e) {}
 }
 
 // Ajoute un ticket acheté dans la base SQLite
@@ -168,20 +184,23 @@ export async function insererTicketAchete(ticket) {
   const now = new Date().toISOString()
   await bd.runAsync(
     `INSERT OR REPLACE INTO buyer_tickets
-      (id, event_id, event_nom, event_date, categorie_nom, prix, telephone, numero, statut, date_achat, qr_data, qr_secret, created_at, updated_at)
+      (id, event_id, event_nom, event_date, event_heure, event_lieu, categorie_nom, prix, telephone, numero, statut, date_achat, date_scan, qr_data, qr_secret, created_at, updated_at)
      VALUES
-      ($id, $event_id, $event_nom, $event_date, $categorie_nom, $prix, $telephone, $numero, $statut, $date_achat, $qr_data, $qr_secret, $created_at, $updated_at)`,
+      ($id, $event_id, $event_nom, $event_date, $event_heure, $event_lieu, $categorie_nom, $prix, $telephone, $numero, $statut, $date_achat, $date_scan, $qr_data, $qr_secret, $created_at, $updated_at)`,
     {
       $id: ticket.id,
       $event_id: ticket.eventId,
       $event_nom: ticket.eventNom,
       $event_date: ticket.eventDate,
+      $event_heure: ticket.eventHeure || null,
+      $event_lieu: ticket.eventLieu || null,
       $categorie_nom: ticket.categorie,
       $prix: ticket.prix,
       $telephone: (ticket.telephone || '').replace(/\s/g, ''),
       $numero: ticket.numero,
       $statut: ticket.statut || 'valide',
       $date_achat: ticket.dateAchat,
+      $date_scan: ticket.dateScan || null,
       $qr_data: ticket.qrData || null,
       $qr_secret: ticket.qrSecret || null,
       $created_at: now,
@@ -204,6 +223,8 @@ function formatTicket(t) {
     eventId: t.event_id,
     eventNom: t.event_nom,
     eventDate: t.event_date,
+    eventHeure: t.event_heure || null,
+    eventLieu: t.event_lieu || null,
     categorie: t.categorie_nom,
     prix: t.prix,
     telephone: t.telephone,
