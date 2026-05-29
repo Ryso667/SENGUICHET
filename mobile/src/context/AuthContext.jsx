@@ -1,7 +1,9 @@
 // Contexte global d'authentification
 // Gère 3 rôles : acheteur (OTP), controleur (code 4 chiffres), organisateur (email+mdp)
 import { createContext, useContext, useState, useEffect } from 'react'
+import { Alert } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import * as LocalAuthentication from 'expo-local-authentication'
 const AuthContext = createContext(null)
 
 // Clés de stockage permanent (AsyncStorage)
@@ -9,6 +11,7 @@ const STORAGE_KEY_ROLE   = '@senguichet_role'       // rôle actif
 const STORAGE_KEY_JWT    = '@senguichet_jwt'         // token controleur
 const STORAGE_KEY_NUMERO = '@senguichet_telephone'   // téléphone acheteur
 const STORAGE_KEY_EMAIL  = '@senguichet_orga_email'  // email organisateur
+const STORAGE_KEY_BIOMETRIC_EMAIL = '@senguichet_biometric_email' // email pour reconnexion biométrique
 
 export function AuthProvider({ children }) {
   const [role, setRole] = useState(null)
@@ -16,6 +19,8 @@ export function AuthProvider({ children }) {
   const [jwt, setJwt] = useState(null)
   const [email, setEmail] = useState(null)
   const [chargement, setChargement] = useState(true)
+  const [hasSavedSession, setHasSavedSession] = useState(false)
+  const [sessionEmail, setSessionEmail] = useState(null)
 
   // Au démarrage : restaure la session depuis AsyncStorage
   useEffect(() => {
@@ -47,6 +52,12 @@ export function AuthProvider({ children }) {
           setRole('organisateur')
         }
       }
+      // Vérifie si l'utilisateur a déjà une session organisateur sauvegardée (pour la biométrie)
+      const bioEmail = await AsyncStorage.getItem(STORAGE_KEY_BIOMETRIC_EMAIL)
+      if (bioEmail) {
+        setHasSavedSession(true)
+        setSessionEmail(bioEmail)
+      }
     } catch {
       // Pas de session valide → reste déconnecté
     } finally {
@@ -75,9 +86,31 @@ export function AuthProvider({ children }) {
     await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'organisateur')
     await AsyncStorage.setItem(STORAGE_KEY_JWT, token)
     await AsyncStorage.setItem(STORAGE_KEY_EMAIL, mail)
+    await AsyncStorage.setItem(STORAGE_KEY_BIOMETRIC_EMAIL, mail)
     setJwt(token)
     setEmail(mail)
     setRole('organisateur')
+    setHasSavedSession(true)
+    setSessionEmail(mail)
+  }
+
+  // Connexion rapide via biométrie (empreinte) pour les organisateurs
+  const tenterBiometrie = async () => {
+    try {
+      const compatible = await LocalAuthentication.hasHardwareAsync()
+      if (!compatible) return
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Connecte-toi avec ton empreinte',
+      })
+      if (result.success) {
+        const mail = await AsyncStorage.getItem(STORAGE_KEY_BIOMETRIC_EMAIL)
+        if (mail) {
+          await connecterOrganisateur('biometric-session', mail)
+        }
+      }
+    } catch {
+      // Biométrie indisponible ou échec
+    }
   }
 
   // Déconnexion : efface tout et retourne à l'accueil
@@ -106,6 +139,9 @@ export function AuthProvider({ children }) {
         connecterControleur,
         connecterOrganisateur,
         deconnecter,
+        tenterBiometrie,
+        hasSavedSession,
+        sessionEmail,
         estConnecte: role !== null,
       }}
     >

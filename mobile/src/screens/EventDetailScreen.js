@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
   View, Text, ScrollView, TextInput,
-  TouchableOpacity, StyleSheet, Alert,
+  TouchableOpacity, StyleSheet, Alert, Modal,
   KeyboardAvoidingView, Platform,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -33,6 +33,7 @@ export default function EventDetailScreen({ route, navigation }) {
   const { numeroTel } = useAuth()
   const [selectedTicket, setSelectedTicket] = useState(event.tickets[1] || event.tickets[0])
   const [phone, setPhone] = useState(() => formaterTelStocke(numeroTel))
+  const [showCategorySheet, setShowCategorySheet] = useState(false)
 
   // Paiement avec double confirmation pour éviter les achats involontaires
   // Sera remplacé par API : intégration Wave/Orange Money réelle
@@ -137,29 +138,66 @@ export default function EventDetailScreen({ route, navigation }) {
                 </Text>
               </LinearGradient>
 
-              <Text style={styles.sectionLabel}>
-                <Feather name="package" size={12} color={colors.slate} />                 1. Choisir la catégorie
-              </Text>
+              <View style={styles.sectionLabel}>
+                <Feather name="package" size={12} color={colors.slate} />
+                <Text style={styles.sectionLabelText}>  1. Choisir la catégorie</Text>
+              </View>
 
-              {event.tickets.map((t) => (
+              <TouchableOpacity
+                style={styles.categorySelector}
+                onPress={() => setShowCategorySheet(true)}
+                activeOpacity={0.7}
+              >
+                <View>
+                  <Text style={styles.categorySelectorLabel}>{selectedTicket.name}</Text>
+                  <Text style={styles.categorySelectorPrice}>{selectedTicket.price.toLocaleString()} FCFA</Text>
+                </View>
+                <Feather name="chevron-up" size={18} color={colors.mid} />
+              </TouchableOpacity>
+
+              {/* Modal de sélection de catégorie */}
+              <Modal
+                visible={showCategorySheet}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setShowCategorySheet(false)}
+              >
                 <TouchableOpacity
-                  key={t.name}
-                  style={[styles.ttCard, selectedTicket.name === t.name && styles.ttCardSelected]}
-                  onPress={() => setSelectedTicket(t)}
-                  activeOpacity={0.7}
+                  style={styles.sheetOverlay}
+                  activeOpacity={1}
+                  onPress={() => setShowCategorySheet(false)}
                 >
-                  <View style={styles.ttLeft}>
-                    <Text style={styles.ttName}>{t.name}</Text>
-                    <Text style={styles.ttDesc}>{t.desc}</Text>
-                  </View>
-                  <View style={styles.ttRight}>
-                    <Text style={styles.ttPrice}>{t.price.toLocaleString()}F</Text>
-                    <View style={[styles.radio, selectedTicket.name === t.name && styles.radioChecked]}>
-                      {selectedTicket.name === t.name && <View style={styles.radioInner} />}
-                    </View>
+                  <View style={styles.sheetContainer}>
+                    <View style={styles.sheetHandle} />
+                    <Text style={styles.sheetTitle}>Choisir une catégorie</Text>
+                    {event.tickets.map((t) => (
+                      <TouchableOpacity
+                        key={t.name}
+                        style={[styles.sheetItem, selectedTicket.name === t.name && styles.sheetItemSelected]}
+                        onPress={() => {
+                          setSelectedTicket(t)
+                          setShowCategorySheet(false)
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <View style={styles.sheetItemLeft}>
+                          <Text style={styles.sheetItemName}>{t.name}</Text>
+                          <Text style={styles.sheetItemDesc}>{t.desc || 'Accès standard'}</Text>
+                        </View>
+                        <View style={styles.sheetItemRight}>
+                          <Text style={styles.sheetItemPrice}>{t.price.toLocaleString()} FCFA</Text>
+                          <Text style={styles.sheetItemPlaces}>Places limitées</Text>
+                          {selectedTicket.name === t.name && (
+                            <View style={styles.sheetCheck}>
+                              <Feather name="check" size={12} color="#FFFFFF" />
+                            </View>
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                    ))}
                   </View>
                 </TouchableOpacity>
-              ))}
+              </Modal>
 
               <Text style={[styles.sectionLabel, { marginTop: spacing.md }]}>
                 <Feather name="smartphone" size={12} color={colors.slate} />                 2. Votre téléphone
@@ -267,11 +305,118 @@ const styles = StyleSheet.create({
   noAccountStrong: { fontFamily: fonts.jakarta.semiBold, color: colors.slate },
 
   sectionLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 10,
+  },
+  sectionLabelText: {
     fontFamily: fonts.outfit.bold,
     fontSize: 12,
     color: colors.slate,
-    marginBottom: 10,
     letterSpacing: -0.1,
+  },
+
+  categorySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.accentLight,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    padding: 14,
+    marginBottom: spacing.md,
+  },
+  categorySelectorLabel: {
+    fontFamily: fonts.outfit.semiBold,
+    fontSize: 14,
+    color: colors.slate,
+  },
+  categorySelectorPrice: {
+    fontFamily: fonts.jakarta.regular,
+    fontSize: 11,
+    color: colors.mid,
+    marginTop: 2,
+  },
+
+  sheetOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  sheetContainer: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
+    paddingTop: spacing.sm,
+  },
+  sheetHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    alignSelf: 'center',
+    marginBottom: spacing.md,
+  },
+  sheetTitle: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 16,
+    color: colors.slate,
+    marginBottom: spacing.md,
+  },
+  sheetItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    backgroundColor: colors.bg,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.sm,
+  },
+  sheetItemSelected: {
+    borderColor: colors.accent,
+    backgroundColor: colors.accentLight,
+  },
+  sheetItemLeft: {},
+  sheetItemName: {
+    fontFamily: fonts.jakarta.semiBold,
+    fontSize: 13,
+    color: colors.slate,
+  },
+  sheetItemDesc: {
+    fontSize: 10,
+    color: colors.mid,
+    fontFamily: fonts.jakarta.regular,
+    marginTop: 2,
+  },
+  sheetItemRight: {
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  sheetItemPrice: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 14,
+    color: colors.accent,
+  },
+  sheetItemPlaces: {
+    fontSize: 9,
+    color: colors.muted,
+    fontFamily: fonts.jakarta.regular,
+  },
+  sheetCheck: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
   },
 
   ttCard: {

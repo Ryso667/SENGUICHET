@@ -1,10 +1,11 @@
 // Historique des scans effectués par le contrôleur
 // Statistiques par statut, liste chronologique avec détails événement, synchro offline
-import { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native'
+import { useState, useEffect, useCallback } from 'react'
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { formaterDateHeure } from '../../utils/dateUtils'
 import { getHistorique, synchroniser, getStats, reinitialiser } from '../../services/scanService'
+import EmptyState from '../../components/EmptyState'
 
 // Couleurs par résultat de scan (fond pastel, texte, icône)
 const PROFIL = {
@@ -22,9 +23,16 @@ export default function ScanHistoryScreen() {
   const [scans, setScans] = useState([])
   const [stats, setStats] = useState({ ticketsLocaux: 0 })
   const [sync, setSync] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
     charger()
+  }, [])
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    await charger()
+    setRefreshing(false)
   }, [])
 
   // Charge l'historique enrichi + stats depuis la base SQLite
@@ -51,7 +59,9 @@ export default function ScanHistoryScreen() {
 
   return (
     <View style={styles.conteneur}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={styles.scroll}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6366F1']} />}
+      >
         {/* Bandeau des stats : tickets locaux + chaque statut de scan */}
         <View style={styles.statsBanner}>
           <View style={styles.statTicket}>
@@ -111,11 +121,7 @@ export default function ScanHistoryScreen() {
 
         {/* Liste des scans */}
         {scans.length === 0 ? (
-          <View style={styles.vide}>
-            <Feather name="camera-off" size={40} color="#cbd5e1" />
-            <Text style={styles.videTexte}>Aucun scan pour le moment</Text>
-            <Text style={styles.videSous}>Scanne un billet depuis l'onglet Scanner</Text>
-          </View>
+          <EmptyState icon="📋" title="Aucun scan" subtitle="Les scans apparaîtront ici" />
         ) : (
           scans.map((item) => {
             const p = PROFIL[item.resultat] || PROFIL.INCONNU

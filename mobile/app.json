@@ -25,7 +25,9 @@
     "plugins": [
       "expo-font",
       "expo-splash-screen",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-camera",
+      "expo-local-authentication"
     ]
   }
 }

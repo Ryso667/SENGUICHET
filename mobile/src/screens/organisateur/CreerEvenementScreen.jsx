@@ -11,8 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import BoutonPrincipal from '../../components/BoutonPrincipal'
-import DatePickerModal from '../../components/DatePickerModal'
-import TimePickerModal from '../../components/TimePickerModal'
+
 import { colors, fonts, spacing, borderRadius } from '../../constants/theme'
 import { modifierEvenement, ajouterAudit, creerEvenement } from '../../services/eventService'
 
@@ -36,8 +35,14 @@ export default function CreerEvenementScreen({ navigation, route }) {
   const [heure, setHeure] = useState(eventExistant?.heure || '')
   const [description, setDescription] = useState(eventExistant?.description || '')
   const [poster, setPoster] = useState(eventExistant?.poster ? { uri: eventExistant.poster } : null)
-  const [dateVisible, setDateVisible] = useState(false)
-  const [heureVisible, setHeureVisible] = useState(false)
+  const [dateExpanded, setDateExpanded] = useState(false)
+  const [heureExpanded, setHeureExpanded] = useState(false)
+  // État de navigation du calendrier inline
+  const [browseYear, setBrowseYear] = useState(() => date ? parseInt(date.split('-')[0]) : new Date().getFullYear())
+  const [browseMonth, setBrowseMonth] = useState(() => date ? parseInt(date.split('-')[1]) - 1 : new Date().getMonth())
+  // État du sélecteur d'heure inline
+  const [editHour, setEditHour] = useState(() => { const h = parseInt(heure?.split(':')[0]); return isNaN(h) ? 12 : h })
+  const [editMinute, setEditMinute] = useState(() => { const m = parseInt(heure?.split(':')[1]); return isNaN(m) ? 0 : Math.floor(m / 5) * 5 })
   const [catVisible, setCatVisible] = useState(false)
   const [recapVisible, setRecapVisible] = useState(false)
   const [billetCatIndex, setBilletCatIndex] = useState(null)
@@ -68,6 +73,14 @@ export default function CreerEvenementScreen({ navigation, route }) {
   const removeCat = (index) => {
     setCategories(categories.filter((_, i) => i !== index))
   }
+
+  // --- Constantes et helpers pour le calendrier inline ---
+  const DAYS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+  const MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
+  const getDaysInMonth = (y, m) => new Date(y, m + 1, 0).getDate()
+  const getFirstDay = (y, m) => new Date(y, m, 1).getDay()
+  const pad = (n) => n.toString().padStart(2, '0')
+  // --- Fin helpers calendrier ---
 
   const handleCreer = async () => {
     if (!nom || !categorie || !date || !lieu || categories.length === 0) {
@@ -147,13 +160,54 @@ export default function CreerEvenementScreen({ navigation, route }) {
           />
 
           <Text style={styles.label}>Date</Text>
-          <TouchableOpacity style={styles.input} onPress={() => setDateVisible(true)}>
-            <Text style={[styles.inputText, !date && { color: colors.muted }]}>
-              {date || 'Sélectionner une date'}
-            </Text>
+          <TouchableOpacity style={styles.input} onPress={() => setDateExpanded(!dateExpanded)}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={[styles.inputText, !date && { color: colors.muted }]}>
+                {date || 'Sélectionner une date'}
+              </Text>
+              <Feather name={dateExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={colors.mid} />
+            </View>
           </TouchableOpacity>
-
-          <DatePickerModal visible={dateVisible} onClose={() => setDateVisible(false)} onSelect={(d) => setDate(d)} />
+          {dateExpanded && (
+            <View style={styles.calendar}>
+              <View style={styles.calHeader}>
+                <TouchableOpacity onPress={() => {
+                  if (browseMonth === 0) { setBrowseMonth(11); setBrowseYear(browseYear - 1) }
+                  else setBrowseMonth(browseMonth - 1)
+                }}>
+                  <Feather name="chevron-left" size={22} color={colors.accent} />
+                </TouchableOpacity>
+                <Text style={styles.calHeaderText}>{MONTHS[browseMonth]} {browseYear}</Text>
+                <TouchableOpacity onPress={() => {
+                  if (browseMonth === 11) { setBrowseMonth(0); setBrowseYear(browseYear + 1) }
+                  else setBrowseMonth(browseMonth + 1)
+                }}>
+                  <Feather name="chevron-right" size={22} color={colors.accent} />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.calWeek}>
+                {DAYS.map(d => <Text key={d} style={styles.calWeekDay}>{d}</Text>)}
+              </View>
+              <View style={styles.calGrid}>
+                {[...Array(getFirstDay(browseYear, browseMonth))].map((_, i) => (
+                  <View key={`e${i}`} style={styles.calDay} />
+                ))}
+                {[...Array(getDaysInMonth(browseYear, browseMonth))].map((_, i) => {
+                  const day = i + 1
+                  const dateStr = `${browseYear}-${pad(browseMonth + 1)}-${pad(day)}`
+                  const selected = date === dateStr
+                  return (
+                    <TouchableOpacity
+                      key={day} style={[styles.calDay, selected && styles.calDaySelected]}
+                      onPress={() => { setDate(dateStr); setDateExpanded(false) }}
+                    >
+                      <Text style={[styles.calDayText, selected && styles.calDayTextSelected]}>{day}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            </View>
+          )}
 
           <Text style={styles.label}>Lieu</Text>
           <TextInput
@@ -162,12 +216,49 @@ export default function CreerEvenementScreen({ navigation, route }) {
           />
 
           <Text style={styles.label}>Horaire</Text>
-          <TouchableOpacity style={styles.input} onPress={() => setHeureVisible(true)}>
-            <Text style={[styles.inputText, !heure && { color: colors.muted }]}>
-              {heure || 'Choisir un horaire'}
-            </Text>
+          <TouchableOpacity style={styles.input} onPress={() => setHeureExpanded(!heureExpanded)}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={[styles.inputText, !heure && { color: colors.muted }]}>
+                {heure || 'Choisir un horaire'}
+              </Text>
+              <Feather name={heureExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={colors.mid} />
+            </View>
           </TouchableOpacity>
-          <TimePickerModal visible={heureVisible} onClose={() => setHeureVisible(false)} onSelect={(h) => setHeure(h)} />
+          {heureExpanded && (
+            <View style={styles.timePicker}>
+              <View style={styles.timeCol}>
+                <TouchableOpacity style={styles.timeBtn} onPress={() => {
+                  const h = editHour === 23 ? 0 : editHour + 1
+                  setEditHour(h); setHeure(`${pad(h)}:${pad(editMinute)}`)
+                }}>
+                  <Feather name="chevron-up" size={22} color={colors.accent} />
+                </TouchableOpacity>
+                <Text style={styles.timeValue}>{pad(editHour)}</Text>
+                <TouchableOpacity style={styles.timeBtn} onPress={() => {
+                  const h = editHour === 0 ? 23 : editHour - 1
+                  setEditHour(h); setHeure(`${pad(h)}:${pad(editMinute)}`)
+                }}>
+                  <Feather name="chevron-down" size={22} color={colors.accent} />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.timeSep}>:</Text>
+              <View style={styles.timeCol}>
+                <TouchableOpacity style={styles.timeBtn} onPress={() => {
+                  const m = editMinute >= 55 ? 0 : editMinute + 5
+                  setEditMinute(m); setHeure(`${pad(editHour)}:${pad(m)}`)
+                }}>
+                  <Feather name="chevron-up" size={22} color={colors.accent} />
+                </TouchableOpacity>
+                <Text style={styles.timeValue}>{pad(editMinute)}</Text>
+                <TouchableOpacity style={styles.timeBtn} onPress={() => {
+                  const m = editMinute <= 0 ? 55 : editMinute - 5
+                  setEditMinute(m); setHeure(`${pad(editHour)}:${pad(m)}`)
+                }}>
+                  <Feather name="chevron-down" size={22} color={colors.accent} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
 
           <Text style={styles.label}>Affiche (optionnelle)</Text>
           <TouchableOpacity style={styles.posterBtn} onPress={pickImage}>
@@ -350,4 +441,31 @@ const styles = StyleSheet.create({
   pickerItemActive: { backgroundColor: colors.bg },
   pickerItemText: { fontFamily: fonts.outfit.regular, fontSize: 16, color: colors.slate },
   pickerItemTextActive: { fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  // Calendrier inline
+  calendar: {
+    backgroundColor: colors.white, borderRadius: 14, borderWidth: 1, borderColor: colors.border,
+    padding: 12, marginBottom: 16,
+  },
+  calHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginBottom: 12,
+  },
+  calHeaderText: { fontFamily: fonts.outfit.semiBold, fontSize: 16, color: colors.slate },
+  calWeek: { flexDirection: 'row', marginBottom: 4 },
+  calWeekDay: { flex: 1, textAlign: 'center', fontFamily: fonts.outfit.semiBold, fontSize: 13, color: colors.mid, paddingVertical: 4 },
+  calGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  calDay: { width: '14.28%', aspectRatio: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 8 },
+  calDaySelected: { backgroundColor: colors.accent },
+  calDayText: { fontFamily: fonts.outfit.regular, fontSize: 14, color: colors.slate },
+  calDayTextSelected: { fontFamily: fonts.outfit.semiBold, color: colors.white },
+  // Sélecteur d'heure inline
+  timePicker: {
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
+    backgroundColor: colors.white, borderRadius: 14, borderWidth: 1, borderColor: colors.border,
+    paddingVertical: 16, marginBottom: 16,
+  },
+  timeCol: { alignItems: 'center', paddingHorizontal: 20 },
+  timeBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' },
+  timeValue: { fontFamily: fonts.outfit.bold, fontSize: 36, color: colors.slate, marginVertical: 8 },
+  timeSep: { fontFamily: fonts.outfit.bold, fontSize: 36, color: colors.mid, marginHorizontal: 4 },
 })

@@ -236,6 +236,13 @@ export async function insererTicketAchete(ticket) {
   return await getTicketAchete(ticket.id)
 }
 
+// Recherche un ticket acheté (table buyer_tickets) par son UUID
+// Utilisé en fallback par le contrôleur en mode mock quand le ticket n'est pas dans tickets
+export async function chercherTicketAchete(uuid) {
+  const bd = await getDb()
+  return await bd.getFirstAsync('SELECT * FROM buyer_tickets WHERE id = $id', { $id: uuid })
+}
+
 // Récupère un ticket acheté par son ID (soft delete compris)
 export async function getTicketAchete(id) {
   const bd = await getDb()
