@@ -27,15 +27,14 @@ export function ToastProvider({ children }) {
   const info    = useCallback((msg) => showToast(msg, 'info'), [showToast])
 
   // Appelé après la fin de l'animation de disparition
+  // Traite la file en premier pour éviter les races conditions
   const handleDismiss = useCallback(() => {
-    affichageEnCoursRef.current = false
-    setCurrentToast(null)
-
-    // Toast suivant dans la file
-    if (fileAttenteRef.current.length > 0) {
-      const suivant = fileAttenteRef.current.shift()
-      affichageEnCoursRef.current = true
+    const suivant = fileAttenteRef.current.shift()
+    if (suivant) {
       setCurrentToast(suivant)
+    } else {
+      affichageEnCoursRef.current = false
+      setCurrentToast(null)
     }
   }, [])
 
@@ -54,4 +53,8 @@ export function ToastProvider({ children }) {
 }
 
 // Hook utilisable depuis n'importe quel écran pour afficher un toast
-export const useToast = () => useContext(ToastContext)
+export const useToast = () => {
+  const ctx = useContext(ToastContext)
+  if (!ctx) throw new Error('useToast doit être utilisé dans un ToastProvider')
+  return ctx
+}
