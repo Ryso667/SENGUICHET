@@ -1,15 +1,14 @@
 // Écran détail d'un événement avec sélection de catégorie et paiement
 // Inclut : bannière, infos, sélection ticket, saisie téléphone, double confirmation paiement
-import { useState, useRef, useMemo } from 'react'
+import { useState } from 'react'
 import {
   View, Text, ScrollView, TextInput,
-  TouchableOpacity, StyleSheet, Alert,
+  TouchableOpacity, StyleSheet, Alert, Modal,
   KeyboardAvoidingView, Platform,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import BottomSheet, { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { acheterTicket, getAllEvenements } from '../services/eventService'
@@ -34,8 +33,7 @@ export default function EventDetailScreen({ route, navigation }) {
   const { numeroTel } = useAuth()
   const [selectedTicket, setSelectedTicket] = useState(event.tickets[1] || event.tickets[0])
   const [phone, setPhone] = useState(() => formaterTelStocke(numeroTel))
-  const bottomSheetRef = useRef(null)
-  const snapPoints = useMemo(() => ['25%', '50%'], [])
+  const [showCategorySheet, setShowCategorySheet] = useState(false)
 
   // Paiement avec double confirmation pour éviter les achats involontaires
   // Sera remplacé par API : intégration Wave/Orange Money réelle
@@ -94,7 +92,6 @@ export default function EventDetailScreen({ route, navigation }) {
   }
 
   return (
-    <BottomSheetModalProvider>
     <BuyerLayout>
       <SafeAreaView style={styles.safe}>
         <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -148,7 +145,7 @@ export default function EventDetailScreen({ route, navigation }) {
 
               <TouchableOpacity
                 style={styles.categorySelector}
-                onPress={() => bottomSheetRef.current?.expand()}
+                onPress={() => setShowCategorySheet(true)}
                 activeOpacity={0.7}
               >
                 <View>
@@ -158,41 +155,49 @@ export default function EventDetailScreen({ route, navigation }) {
                 <Feather name="chevron-up" size={18} color={colors.mid} />
               </TouchableOpacity>
 
-              {/* BottomSheet de sélection de catégorie */}
-              <BottomSheet
-                ref={bottomSheetRef}
-                index={-1}
-                snapPoints={snapPoints}
-                enablePanDownToClose
+              {/* Modal de sélection de catégorie */}
+              <Modal
+                visible={showCategorySheet}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setShowCategorySheet(false)}
               >
-                <View style={styles.sheetContent}>
-                  {event.tickets.map((t) => (
-                    <TouchableOpacity
-                      key={t.name}
-                      style={[styles.sheetItem, selectedTicket.name === t.name && styles.sheetItemSelected]}
-                      onPress={() => {
-                        setSelectedTicket(t)
-                        bottomSheetRef.current?.close()
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <View style={styles.sheetItemLeft}>
-                        <Text style={styles.sheetItemName}>{t.name}</Text>
-                        <Text style={styles.sheetItemDesc}>{t.desc || 'Accès standard'}</Text>
-                      </View>
-                      <View style={styles.sheetItemRight}>
-                        <Text style={styles.sheetItemPrice}>{t.price.toLocaleString()} FCFA</Text>
-                        <Text style={styles.sheetItemPlaces}>Places limitées</Text>
-                        {selectedTicket.name === t.name && (
-                          <View style={styles.sheetCheck}>
-                            <Feather name="check" size={12} color="#FFFFFF" />
-                          </View>
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </BottomSheet>
+                <TouchableOpacity
+                  style={styles.sheetOverlay}
+                  activeOpacity={1}
+                  onPress={() => setShowCategorySheet(false)}
+                >
+                  <View style={styles.sheetContainer}>
+                    <View style={styles.sheetHandle} />
+                    <Text style={styles.sheetTitle}>Choisir une catégorie</Text>
+                    {event.tickets.map((t) => (
+                      <TouchableOpacity
+                        key={t.name}
+                        style={[styles.sheetItem, selectedTicket.name === t.name && styles.sheetItemSelected]}
+                        onPress={() => {
+                          setSelectedTicket(t)
+                          setShowCategorySheet(false)
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <View style={styles.sheetItemLeft}>
+                          <Text style={styles.sheetItemName}>{t.name}</Text>
+                          <Text style={styles.sheetItemDesc}>{t.desc || 'Accès standard'}</Text>
+                        </View>
+                        <View style={styles.sheetItemRight}>
+                          <Text style={styles.sheetItemPrice}>{t.price.toLocaleString()} FCFA</Text>
+                          <Text style={styles.sheetItemPlaces}>Places limitées</Text>
+                          {selectedTicket.name === t.name && (
+                            <View style={styles.sheetCheck}>
+                              <Feather name="check" size={12} color="#FFFFFF" />
+                            </View>
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </TouchableOpacity>
+              </Modal>
 
               <Text style={[styles.sectionLabel, { marginTop: spacing.md }]}>
                 <Feather name="smartphone" size={12} color={colors.slate} />                 2. Votre téléphone
@@ -231,7 +236,6 @@ export default function EventDetailScreen({ route, navigation }) {
         </KeyboardAvoidingView>
       </SafeAreaView>
     </BuyerLayout>
-    </BottomSheetModalProvider>
   )
 }
 
@@ -336,9 +340,32 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  sheetContent: {
+  sheetOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  sheetContainer: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xl,
+    paddingTop: spacing.sm,
+  },
+  sheetHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    alignSelf: 'center',
+    marginBottom: spacing.md,
+  },
+  sheetTitle: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 16,
+    color: colors.slate,
+    marginBottom: spacing.md,
   },
   sheetItem: {
     flexDirection: 'row',

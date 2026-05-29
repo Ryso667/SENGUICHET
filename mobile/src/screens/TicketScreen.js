@@ -67,12 +67,13 @@ async function genererQRPayload(ticket) {
 
 export default function TicketScreen({ route, navigation }) {
   const { ticket } = route.params
-  const [qrValue, setQrValue] = useState(ticket.qrData || ticket.id)
+  const [qrValue, setQrValue] = useState(ticket.qrData || null)
   const [exporting, setExporting] = useState(false)
   const intervalRef = useRef(null)
   const qrRef = useRef(null)
 
   useEffect(() => {
+    genererQRPayload(ticket).then(setQrValue)
     intervalRef.current = setInterval(async () => {
       const nouveauPayload = await genererQRPayload(ticket)
       setQrValue(nouveauPayload)

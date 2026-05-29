@@ -2,7 +2,7 @@
 // 5 étapes : parsing QR → HMAC → expiration → recherche locale → anti re-scan
 import * as Crypto from 'expo-crypto'
 import {
-  chercherTicket, marquerUtilise, enregistrerScan,
+  chercherTicket, chercherTicketAchete, marquerUtilise, enregistrerScan,
   insererTickets, scansEnAttente, marquerScansSync,
   historiqueScans, historiqueScansAvecDetails,
   compterTickets, compterScansParResultat, viderTickets,
@@ -80,7 +80,21 @@ export async function verifierBillet(donneesQR) {
   }
 
   // Étape 4 : recherche du billet dans la base SQLite locale
-  const ticket = await chercherTicket(qr.uuid)
+  let ticket = await chercherTicket(qr.uuid)
+  if (!ticket && MOCK_MODE) {
+    // Fallback : en mode mock, cherche aussi dans les tickets achetés (même appareil)
+    const achete = await chercherTicketAchete(qr.uuid)
+    if (achete) {
+      ticket = {
+        uuid: achete.id,
+        hmac: qr.hmac,
+        event_id: achete.event_id,
+        category: achete.categorie_nom,
+        timestamp_gen: achete.date_achat,
+        statut: achete.statut === 'valide' ? 'DISPONIBLE' : 'UTILISE_LOCAL',
+      }
+    }
+  }
   if (!ticket) {
     await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.INCONNU)
     return { resultat: RESULTATS.INCONNU, message: 'Billet introuvable dans la base locale' }
