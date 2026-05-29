@@ -29,13 +29,15 @@ CREATE TABLE acheteur (
 -- 1.2 Organisateur
 CREATE TABLE organisateur (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  nom VARCHAR(100) NOT NULL,
   telephone VARCHAR(20) NOT NULL UNIQUE,
   email VARCHAR(150) NOT NULL UNIQUE,
   mot_de_passe VARCHAR(255) NOT NULL,
   nom_structure VARCHAR(150) DEFAULT NULL,
-  est_verifie TINYINT(1) NOT NULL DEFAULT 0,
+  statut ENUM('EN_ATTENTE', 'VALIDE', 'REFUSE') NOT NULL DEFAULT 'VALIDE',
   date_inscription DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_organisateur_email (email)
+  INDEX idx_organisateur_email (email),
+  INDEX idx_organisateur_statut (statut)
 ) ENGINE=InnoDB;
 
 -- 1.3 Controleur
@@ -92,16 +94,19 @@ CREATE TABLE evenement (
   titre VARCHAR(200) NOT NULL,
   description TEXT DEFAULT NULL,
   lieu VARCHAR(200) NOT NULL,
+  ville VARCHAR(100) DEFAULT NULL,
+  categorie VARCHAR(50) DEFAULT NULL,
   date_debut DATETIME NOT NULL,
   date_fin DATETIME DEFAULT NULL,
   capacite_totale INT NOT NULL DEFAULT 0,
   affiche_url VARCHAR(500) DEFAULT NULL,
   scan_code VARCHAR(4) NOT NULL,
-  est_actif TINYINT(1) NOT NULL DEFAULT 1,
+  statut ENUM('en_attente','actif','refuse','suspendu','annule') NOT NULL DEFAULT 'en_attente',
+  commentaire_admin TEXT DEFAULT NULL,
   date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (organisateur_id) REFERENCES organisateur(id) ON DELETE CASCADE,
   INDEX idx_evenement_organisateur (organisateur_id),
-  INDEX idx_evenement_actif (est_actif),
+  INDEX idx_evenement_statut (statut),
   INDEX idx_evenement_scan_code (scan_code)
 ) ENGINE=InnoDB;
 
@@ -327,29 +332,19 @@ ALTER TABLE billet
 -- TRIGGER : Mise à jour des places disponibles
 -- ============================================================
 
-DELIMITER //
-
 CREATE TRIGGER after_billet_insert
 AFTER INSERT ON billet
 FOR EACH ROW
-BEGIN
-  UPDATE categorie_ticket
-  SET places_disponibles = places_disponibles - 1
-  WHERE id = NEW.categorie_ticket_id AND places_disponibles > 0;
-END//
+UPDATE categorie_ticket
+SET places_disponibles = places_disponibles - 1
+WHERE id = NEW.categorie_ticket_id AND places_disponibles > 0;
 
 CREATE TRIGGER after_scan_billet_insert
 AFTER INSERT ON scan_billet
 FOR EACH ROW
-BEGIN
-  IF NEW.statut = 'VALIDE' THEN
-    UPDATE billet
-    SET est_utilise = 1
-    WHERE id = NEW.billet_id;
-  END IF;
-END//
-
-DELIMITER ;
+UPDATE billet
+SET est_utilise = 1
+WHERE id = NEW.billet_id AND NEW.statut = 'VALIDE';
 
 -- ============================================================
 -- JEU DE DONNÉES DE TEST
@@ -361,6 +356,17 @@ VALUES (
   'Admin SENGUICHET',
   'admin@senguichet.com',
   '+221781234567',
-  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+  '$2a$10$nG6ZQMTJ2RI.dFp0KR78G.QGe/6SeflxVMCLYBoccBizJ9wfkV/wq',
   'super_admin'
+);
+
+-- Organisateur de test (mot de passe: organisateur123)
+INSERT INTO organisateur (nom, telephone, email, mot_de_passe, nom_structure, statut)
+VALUES (
+  'Moussa Diop',
+  '+221771234567',
+  'moussa@email.com',
+  '$2a$10$oAsanMbK6IECP2G7qceh0uMZbzx0Zr5Lm8v6U0cCVWTztvLdVtZyC',
+  'Diop Events',
+  'VALIDE'
 );

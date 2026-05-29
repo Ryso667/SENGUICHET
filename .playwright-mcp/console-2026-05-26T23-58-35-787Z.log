@@ -1,0 +1,15 @@
+[      90ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:17493
+[  122460ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:17493
+[ 2267993ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:17596
+[ 2282737ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:17596
+[ 2295290ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:17596
+[ 2572299ms] [ERROR] WebSocket connection to 'ws://localhost:3001/ws' failed:  @ http://localhost:3001/static/js/bundle.js:20207
+[ 2573323ms] [ERROR] WebSocket connection to 'ws://localhost:3001/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/static/js/bundle.js:20207
+[ 3352889ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:19813
+[ 3449521ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:19813
+[ 3523557ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:19788
+[ 4089436ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:19983
+[ 4091636ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:19983
+[ 4210727ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:19983
+[ 4220711ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:19983
+[59133579ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:19983

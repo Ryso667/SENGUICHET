@@ -1,0 +1,7 @@
+[     184ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:17493
+[ 2229294ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:17596
+[ 2244041ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:17596
+[ 2256596ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:17596
+[ 2533604ms] [ERROR] WebSocket connection to 'ws://localhost:3001/ws' failed:  @ http://localhost:3001/static/js/bundle.js:20207
+[ 2534651ms] [ERROR] WebSocket connection to 'ws://localhost:3001/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/static/js/bundle.js:20207
+[ 2539464ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/static/js/bundle.js:18106
