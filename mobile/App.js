@@ -2,6 +2,7 @@
 // Charge les polices, initialise SplashScreen et rend le AuthProvider + AppNavigator
 import { useCallback } from 'react'
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { useFonts, Outfit_400Regular, Outfit_600SemiBold, Outfit_700Bold, Outfit_800ExtraBold, Outfit_900Black } from '@expo-google-fonts/outfit'
 import { PlusJakartaSans_400Regular, PlusJakartaSans_500Medium, PlusJakartaSans_600SemiBold } from '@expo-google-fonts/plus-jakarta-sans'
 import * as SplashScreen from 'expo-splash-screen'
@@ -39,13 +40,15 @@ export default function App() {
   }
 
   return (
-    <View style={styles.root} onLayout={onLayoutRootView}>
-      <ToastProvider>
-        <AuthProvider>
-          <AppNavigator />
-        </AuthProvider>
-      </ToastProvider>
-    </View>
+    <GestureHandlerRootView style={styles.root}>
+      <View style={styles.root} onLayout={onLayoutRootView}>
+        <ToastProvider>
+          <AuthProvider>
+            <AppNavigator />
+          </AuthProvider>
+        </ToastProvider>
+      </View>
+    </GestureHandlerRootView>
   )
 }
 

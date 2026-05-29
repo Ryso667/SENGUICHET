@@ -1,15 +1,17 @@
 // Écran liste des tickets achetés (acheteur)
 // Affiche les tickets actifs et supprimés avec statut, restauration et suppression
-import { useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native'
+import { useEffect, useCallback, useState } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
+import { Swipeable } from 'react-native-gesture-handler'
 import { useAuth } from '../context/AuthContext'
 import { useTickets } from '../hooks/useTickets'
 import { formaterDateLisible } from '../utils/dateUtils'
 import BuyerLayout from '../components/BuyerLayout'
+import EmptyState from '../components/EmptyState'
 
 const STATUTS = {
   valide: { label: 'VALIDE', color: '#059669', dot: '#059669' },
@@ -25,6 +27,14 @@ export default function MesTicketsScreen({ navigation }) {
     const unsubscribe = navigation.addListener('focus', refresh)
     return unsubscribe
   }, [navigation, refresh])
+
+  const [refreshing, setRefreshing] = useState(false)
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    await refresh()
+    setRefreshing(false)
+  }, [refresh])
 
   const handleDelete = (t) => {
     Alert.alert(
@@ -70,45 +80,44 @@ export default function MesTicketsScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6366F1']} />}
+        >
           {tickets.length === 0 && ticketsSupprimes.length === 0 && (
-            <View style={s.empty}>
-              <View style={s.emptyIcon}>
-                <Feather name="shopping-bag" size={36} color="#cbd5e1" />
-              </View>
-              <Text style={s.emptyTitle}>Aucun ticket</Text>
-              <Text style={s.emptySub}>Achetez votre premier ticket depuis l'accueil.</Text>
-              <TouchableOpacity style={s.emptyCta} onPress={() => navigation.navigate('Home')}>
-                <Feather name="shopping-cart" size={14} color="#FFFFFF" />
-                <Text style={s.emptyCtaText}>Acheter maintenant</Text>
-              </TouchableOpacity>
-            </View>
+            <EmptyState icon="🎫" title="Aucun ticket" subtitle="Achète tes premiers billets" />
           )}
 
-          {tickets.map((t) => (
-            <TouchableOpacity
-              key={t.id}
-              style={s.card}
-              onPress={() => navigation.navigate('Ticket', { ticket: t })}
-              onLongPress={() => handleDelete(t)}
-              activeOpacity={0.7}
-            >
-              <LinearGradient colors={['#ECFDF5', '#D1FAE5']} style={s.emojiBox}>
-                <Text style={s.emoji}>🎫</Text>
-              </LinearGradient>
-              <View style={s.info}>
-                <Text style={s.eventNom}>{t.eventNom}</Text>
-                <Text style={s.meta}>{t.categorie} · {formaterDateLisible(t.eventDate)}</Text>
-                <Text style={s.num}>#{t.numero}</Text>
-              </View>
-              <View style={s.badge}>
-                <View style={[s.dot, { backgroundColor: (STATUTS[t.statut]?.dot || '#059669') }]} />
-                <Text style={[s.badgeText, { color: (STATUTS[t.statut]?.color || '#059669') }]}>
-                  {STATUTS[t.statut]?.label || 'VALIDE'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+          {tickets.map((t) => {
+            const renderRightActions = () => (
+              <TouchableOpacity style={s.swipeDelete} onPress={() => handleDelete(t)}>
+                <Text style={s.swipeDeleteText}>Supprimer</Text>
+              </TouchableOpacity>
+            )
+            return (
+              <Swipeable key={t.id} renderRightActions={renderRightActions}>
+              <TouchableOpacity
+                style={s.card}
+                onPress={() => navigation.navigate('Ticket', { ticket: t })}
+                activeOpacity={0.7}
+              >
+                <LinearGradient colors={['#ECFDF5', '#D1FAE5']} style={s.emojiBox}>
+                  <Text style={s.emoji}>🎫</Text>
+                </LinearGradient>
+                <View style={s.info}>
+                  <Text style={s.eventNom}>{t.eventNom}</Text>
+                  <Text style={s.meta}>{t.categorie} · {formaterDateLisible(t.eventDate)}</Text>
+                  <Text style={s.num}>#{t.numero}</Text>
+                </View>
+                <View style={s.badge}>
+                  <View style={[s.dot, { backgroundColor: (STATUTS[t.statut]?.dot || '#059669') }]} />
+                  <Text style={[s.badgeText, { color: (STATUTS[t.statut]?.color || '#059669') }]}>
+                    {STATUTS[t.statut]?.label || 'VALIDE'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              </Swipeable>
+            )
+          })}
 
           {ticketsSupprimes.length > 0 && (
             <>
@@ -144,6 +153,19 @@ export default function MesTicketsScreen({ navigation }) {
 
 const s = StyleSheet.create({
   safe: { flex: 1 },
+  swipeDelete: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    backgroundColor: '#ef4444',
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.sm,
+  },
+  swipeDeleteText: {
+    color: '#FFFFFF',
+    fontFamily: fonts.outfit.semiBold,
+    fontSize: 12,
+  },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm,

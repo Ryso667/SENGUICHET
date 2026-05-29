@@ -1,23 +1,32 @@
 // Gestion des événements : liste complète avec détails, Modifier et Supprimer
 // L'organisateur voit tout au même endroit sans naviguer
-import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native'
+import React, { useState, useEffect, useCallback } from 'react'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, RefreshControl } from 'react-native'
+import { Swipeable } from 'react-native-gesture-handler'
 import { colors, glass, shadows, spacing, borderRadius, fonts } from '../../constants/theme'
 import { getAllEvenements, getEvenementStats, supprimerEvenement, ajouterAudit } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import { formaterDateLisible } from '../../utils/dateUtils'
+import EmptyState from '../../components/EmptyState'
 
 export default function GestionEvenementsScreen({ navigation }) {
   const { email } = useAuth()
   const [events, setEvents] = useState([])
   const [stats, setStats] = useState({})
   const [expandedId, setExpandedId] = useState(null)
+  const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
     charger()
     const unsubscribe = navigation.addListener('focus', charger)
     return unsubscribe
   }, [navigation])
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    await charger()
+    setRefreshing(false)
+  }, [])
 
   async function charger() {
     const evts = await getAllEvenements()
@@ -51,18 +60,23 @@ export default function GestionEvenementsScreen({ navigation }) {
   }
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={s.container} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6366F1']} />}
+    >
       {events.length === 0 ? (
-        <View style={s.empty}>
-          <Text style={s.emptyIcon}>📭</Text>
-          <Text style={s.emptyText}>Aucun événement à gérer</Text>
-        </View>
+        <EmptyState icon="🎪" title="Aucun événement" subtitle="Crée ton premier événement" />
       ) : (
         events.map(evt => {
           const st = stats[evt.id]
           const isOpen = expandedId === evt.id
+          const renderRightActions = () => (
+            <TouchableOpacity style={s.swipeDelete} onPress={() => handleDelete(evt)}>
+              <Text style={s.swipeDeleteText}>Supprimer</Text>
+            </TouchableOpacity>
+          )
           return (
-            <View key={evt.id} style={s.card}>
+            <Swipeable key={evt.id} renderRightActions={renderRightActions}>
+            <View style={s.card}>
               <TouchableOpacity style={s.cardTop} onPress={() => setExpandedId(isOpen ? null : evt.id)} activeOpacity={0.7}>
                 <View style={s.badge}>
                   <Text style={s.badgeText}>{evt.nom.charAt(0)}</Text>
@@ -137,6 +151,7 @@ export default function GestionEvenementsScreen({ navigation }) {
                 </TouchableOpacity>
               </View>
             </View>
+            </Swipeable>
           )
         })
       )}
@@ -146,6 +161,19 @@ export default function GestionEvenementsScreen({ navigation }) {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
+  swipeDelete: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    backgroundColor: '#ef4444',
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing.md,
+  },
+  swipeDeleteText: {
+    color: '#FFFFFF',
+    fontFamily: fonts.outfit.semiBold,
+    fontSize: 12,
+  },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 40 },
   empty: { alignItems: 'center', paddingTop: 80 },
   emptyIcon: { fontSize: 48 },

@@ -1,6 +1,6 @@
 // Écran détail d'un événement avec sélection de catégorie et paiement
 // Inclut : bannière, infos, sélection ticket, saisie téléphone, double confirmation paiement
-import { useState } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import {
   View, Text, ScrollView, TextInput,
   TouchableOpacity, StyleSheet, Alert,
@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
+import BottomSheet, { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { acheterTicket, getAllEvenements } from '../services/eventService'
@@ -33,6 +34,8 @@ export default function EventDetailScreen({ route, navigation }) {
   const { numeroTel } = useAuth()
   const [selectedTicket, setSelectedTicket] = useState(event.tickets[1] || event.tickets[0])
   const [phone, setPhone] = useState(() => formaterTelStocke(numeroTel))
+  const bottomSheetRef = useRef(null)
+  const snapPoints = useMemo(() => ['25%', '50%'], [])
 
   // Paiement avec double confirmation pour éviter les achats involontaires
   // Sera remplacé par API : intégration Wave/Orange Money réelle
@@ -91,6 +94,7 @@ export default function EventDetailScreen({ route, navigation }) {
   }
 
   return (
+    <BottomSheetModalProvider>
     <BuyerLayout>
       <SafeAreaView style={styles.safe}>
         <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -137,29 +141,58 @@ export default function EventDetailScreen({ route, navigation }) {
                 </Text>
               </LinearGradient>
 
-              <Text style={styles.sectionLabel}>
-                <Feather name="package" size={12} color={colors.slate} />                 1. Choisir la catégorie
-              </Text>
+              <View style={styles.sectionLabel}>
+                <Feather name="package" size={12} color={colors.slate} />
+                <Text style={styles.sectionLabelText}>  1. Choisir la catégorie</Text>
+              </View>
 
-              {event.tickets.map((t) => (
-                <TouchableOpacity
-                  key={t.name}
-                  style={[styles.ttCard, selectedTicket.name === t.name && styles.ttCardSelected]}
-                  onPress={() => setSelectedTicket(t)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.ttLeft}>
-                    <Text style={styles.ttName}>{t.name}</Text>
-                    <Text style={styles.ttDesc}>{t.desc}</Text>
-                  </View>
-                  <View style={styles.ttRight}>
-                    <Text style={styles.ttPrice}>{t.price.toLocaleString()}F</Text>
-                    <View style={[styles.radio, selectedTicket.name === t.name && styles.radioChecked]}>
-                      {selectedTicket.name === t.name && <View style={styles.radioInner} />}
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
+              <TouchableOpacity
+                style={styles.categorySelector}
+                onPress={() => bottomSheetRef.current?.expand()}
+                activeOpacity={0.7}
+              >
+                <View>
+                  <Text style={styles.categorySelectorLabel}>{selectedTicket.name}</Text>
+                  <Text style={styles.categorySelectorPrice}>{selectedTicket.price.toLocaleString()} FCFA</Text>
+                </View>
+                <Feather name="chevron-up" size={18} color={colors.mid} />
+              </TouchableOpacity>
+
+              {/* BottomSheet de sélection de catégorie */}
+              <BottomSheet
+                ref={bottomSheetRef}
+                index={-1}
+                snapPoints={snapPoints}
+                enablePanDownToClose
+              >
+                <View style={styles.sheetContent}>
+                  {event.tickets.map((t) => (
+                    <TouchableOpacity
+                      key={t.name}
+                      style={[styles.sheetItem, selectedTicket.name === t.name && styles.sheetItemSelected]}
+                      onPress={() => {
+                        setSelectedTicket(t)
+                        bottomSheetRef.current?.close()
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.sheetItemLeft}>
+                        <Text style={styles.sheetItemName}>{t.name}</Text>
+                        <Text style={styles.sheetItemDesc}>{t.desc || 'Accès standard'}</Text>
+                      </View>
+                      <View style={styles.sheetItemRight}>
+                        <Text style={styles.sheetItemPrice}>{t.price.toLocaleString()} FCFA</Text>
+                        <Text style={styles.sheetItemPlaces}>Places limitées</Text>
+                        {selectedTicket.name === t.name && (
+                          <View style={styles.sheetCheck}>
+                            <Feather name="check" size={12} color="#FFFFFF" />
+                          </View>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </BottomSheet>
 
               <Text style={[styles.sectionLabel, { marginTop: spacing.md }]}>
                 <Feather name="smartphone" size={12} color={colors.slate} />                 2. Votre téléphone
@@ -198,6 +231,7 @@ export default function EventDetailScreen({ route, navigation }) {
         </KeyboardAvoidingView>
       </SafeAreaView>
     </BuyerLayout>
+    </BottomSheetModalProvider>
   )
 }
 
@@ -267,11 +301,95 @@ const styles = StyleSheet.create({
   noAccountStrong: { fontFamily: fonts.jakarta.semiBold, color: colors.slate },
 
   sectionLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 10,
+  },
+  sectionLabelText: {
     fontFamily: fonts.outfit.bold,
     fontSize: 12,
     color: colors.slate,
-    marginBottom: 10,
     letterSpacing: -0.1,
+  },
+
+  categorySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.accentLight,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    padding: 14,
+    marginBottom: spacing.md,
+  },
+  categorySelectorLabel: {
+    fontFamily: fonts.outfit.semiBold,
+    fontSize: 14,
+    color: colors.slate,
+  },
+  categorySelectorPrice: {
+    fontFamily: fonts.jakarta.regular,
+    fontSize: 11,
+    color: colors.mid,
+    marginTop: 2,
+  },
+
+  sheetContent: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
+  },
+  sheetItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    backgroundColor: colors.bg,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.sm,
+  },
+  sheetItemSelected: {
+    borderColor: colors.accent,
+    backgroundColor: colors.accentLight,
+  },
+  sheetItemLeft: {},
+  sheetItemName: {
+    fontFamily: fonts.jakarta.semiBold,
+    fontSize: 13,
+    color: colors.slate,
+  },
+  sheetItemDesc: {
+    fontSize: 10,
+    color: colors.mid,
+    fontFamily: fonts.jakarta.regular,
+    marginTop: 2,
+  },
+  sheetItemRight: {
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  sheetItemPrice: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 14,
+    color: colors.accent,
+  },
+  sheetItemPlaces: {
+    fontSize: 9,
+    color: colors.muted,
+    fontFamily: fonts.jakarta.regular,
+  },
+  sheetCheck: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
   },
 
   ttCard: {

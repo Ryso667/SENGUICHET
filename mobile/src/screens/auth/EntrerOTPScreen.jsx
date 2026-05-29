@@ -1,11 +1,12 @@
 // Écran de validation du code OTP reçu par SMS (acheteur)
 // 6 champs individuels + compte à rebours de 5 minutes
 // En mode démo, le code à saisir est : 123456
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
-  View, Text, ScrollView,
+  View, Text, ScrollView, Animated,
   KeyboardAvoidingView, Platform, StyleSheet,
 } from 'react-native'
+import { Feather } from '@expo/vector-icons'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { verifierOTP } from '../../services/authService'
 import InputOTP from '../../components/InputOTP'
@@ -18,6 +19,8 @@ export default function EntrerOTPScreen({ route, navigation }) {
   const [code, setCode] = useState('')
   const [chargement, setChargement] = useState(false)
   const [tempsRestant, setTempsRestant] = useState(300) // 5 min en secondes
+  const [success, setSuccess] = useState(false)
+  const successOpacity = useRef(new Animated.Value(0)).current
 
   // Timer décrémentant chaque seconde (expiration du code OTP après 5 minutes)
   useEffect(() => {
@@ -34,14 +37,33 @@ export default function EntrerOTPScreen({ route, navigation }) {
     return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
   }
 
-  // Vérification du code OTP saisi (6 chiffres)
-  // En mode démo, le code accepté est '123456' (cf. authService.verifierOTP)
-  const handleValider = async () => {
-    if (code.length !== 6) return
+  // Soumission automatique dès que les 6 chiffres sont saisis
+  useEffect(() => {
+    if (code.length === 6 && !chargement) {
+      verifierEtConnecter(code)
+    }
+  }, [code])
+
+  // Animation d'apparition du check vert
+  useEffect(() => {
+    if (success) {
+      Animated.timing(successOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start()
+    }
+  }, [success])
+
+  // Vérification partagée (appelée automatiquement ou manuellement)
+  const verifierEtConnecter = async (codeSaisi) => {
+    if (codeSaisi.length !== 6) return
     setChargement(true)
     try {
-      const result = await verifierOTP(numeroTel, code)
+      const result = await verifierOTP(numeroTel, codeSaisi)
       if (result.valide) {
+        setSuccess(true)
+        await new Promise(resolve => setTimeout(resolve, 1500))
         await connecterAcheteur(numeroTel)
       } else {
         alert('Code invalide. Veuillez réessayer.')
@@ -52,6 +74,9 @@ export default function EntrerOTPScreen({ route, navigation }) {
       setChargement(false)
     }
   }
+
+  // Validation manuelle via le bouton "Valider" (fallback)
+  const handleValider = () => verifierEtConnecter(code)
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -88,6 +113,15 @@ export default function EntrerOTPScreen({ route, navigation }) {
             onPress={handleValider}
           />
         </ScrollView>
+
+        {success && (
+          <Animated.View style={[styles.successOverlay, { opacity: successOpacity }]}>
+            <View style={styles.successCircle}>
+              <Feather name="check" size={44} color="#FFFFFF" />
+            </View>
+            <Text style={styles.successText}>Vérifié !</Text>
+          </Animated.View>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   )
@@ -133,5 +167,32 @@ const styles = StyleSheet.create({
   },
   espace: {
     height: 24,
+  },
+  successOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  successCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  successText: {
+    fontFamily: 'Outfit_700Bold',
+    fontSize: 20,
+    color: '#10B981',
   },
 })

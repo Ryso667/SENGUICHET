@@ -176,7 +176,7 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator screenOptions={{ headerShown: false, gestureEnabled: true }}>
 
         {/* Pas de session active → écran d'accueil + formulaires auth */}
         {!role && (
