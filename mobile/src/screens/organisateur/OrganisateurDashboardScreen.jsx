@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing 
 import { LinearGradient } from 'expo-linear-gradient'
 import Svg, { Circle } from 'react-native-svg'
 import { colors, glass, gradients, shadows, spacing, borderRadius, fonts } from '../../constants/theme'
-import { getAllEvenements, getEvenementStats, fetchEvenementsAPI } from '../../services/eventService'
+import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import BoutonPrincipal from '../../components/BoutonPrincipal'
 import Skeleton from '../../components/Skeleton'
@@ -34,7 +34,7 @@ function AnimatedStatValue({ value, suffix = '' }) {
 }
 
 export default function OrganisateurDashboardScreen({ navigation }) {
-  const { email, deconnecter } = useAuth()
+  const { user, deconnecter } = useAuth()
   const [events, setEvents] = useState([])
   const [expandedId, setExpandedId] = useState(null)
   const [stats, setStats] = useState({})
@@ -46,7 +46,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
     return unsubscribe
   }, [navigation])
 
-  // Charge les événements depuis le backend (fallback AsyncStorage)
+  // Charge les événements depuis le backend (API uniquement)
   async function loadData() {
     setLoading(true)
     try {
@@ -63,16 +63,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
       }
       setStats(s)
     } catch {
-      const evts = await getAllEvenements()
-      const actifs = evts.filter(e => !e.supprime)
-      setEvents(actifs)
-      const s = {}
-      for (const e of actifs) {
-        const st = await getEvenementStats(e.id)
-        const capacite = st ? st.vendusParCategorie.reduce((sum, c) => sum + c.capacite, 0) : 0
-        s[e.id] = { ...st, capacite }
-      }
-      setStats(s)
+      // Pas de fallback — l'organisateur a besoin du backend
     }
     setLoading(false)
   }
@@ -85,7 +76,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
       {/* Bandeau héro avec dégradé Indigo → Rose */}
       <LinearGradient colors={['#6366F1', '#EC4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.hero}>
         <Text style={s.greeting}>Salut 👋</Text>
-        <Text style={s.email}>{email || 'Organisateur'}</Text>
+        <Text style={s.email}>{user?.nom || 'Organisateur'}</Text>
         <Text style={s.subtitle}>Bienvenue sur ton tableau de bord</Text>
       </LinearGradient>
 
@@ -152,11 +143,22 @@ export default function OrganisateurDashboardScreen({ navigation }) {
           const st = stats[evt.id]
           const isOpen = expandedId === evt.id
 
-          // Calcul du statut basé sur la date de l'événement
-          const dateEvent = new Date(evt.date + 'T' + (evt.heure || '00:00'))
-          const now = new Date()
-          const diffDays = Math.ceil((dateEvent - now) / (1000 * 60 * 60 * 24))
-          const statusColor = diffDays < 0 ? '#EF4444' : diffDays <= 7 ? '#F97316' : '#10B981'
+          // Statut venant du backend (en_attente, actif, refuse, suspendu, annule)
+          // ou calculé par date si absent
+          const STATUT_COLORS = {
+            actif: '#10B981', en_attente: '#F97316', refuse: '#EF4444',
+            suspendu: '#F59E0B', annule: '#6B7280',
+          }
+          const STATUT_LABELS = {
+            actif: 'Actif', en_attente: 'En attente', refuse: 'Refusé',
+            suspendu: 'Suspendu', annule: 'Annulé',
+          }
+          const statutKey = evt.statut || (() => {
+            const dateEvent = new Date(evt.date + 'T' + (evt.heure || '00:00'))
+            const diffDays = Math.ceil((dateEvent - new Date()) / (1000 * 60 * 60 * 24))
+            return diffDays < 0 ? 'annule' : 'actif'
+          })()
+          const statusColor = STATUT_COLORS[statutKey] || '#6B7280'
 
           // Calcul du pourcentage de remplissage
           const totalCapacite = st?.capacite || evt.capacite || 0
@@ -178,9 +180,9 @@ export default function OrganisateurDashboardScreen({ navigation }) {
                   <Text style={s.eventName}>{evt.nom}</Text>
                   <Text style={s.eventMeta}>{formaterDateLisible(evt.date)} · Code: {evt.code}</Text>
                 </View>
-                {/* Point de statut coloré avant le chevron */}
+                {/* Badge de statut backend (en_attente, actif, refuse, suspendu, annule) */}
                 <View style={[s.pill, { backgroundColor: statusColor + '20' }]}>
-                  <View style={[s.dot, { backgroundColor: statusColor }]} />
+                  <Text style={[s.pillText, { color: statusColor }]}>{STATUT_LABELS[statutKey] || statutKey}</Text>
                 </View>
                 <Text style={s.chevron}>{isOpen ? '▾' : '▸'}</Text>
               </View>
@@ -283,9 +285,9 @@ const s = StyleSheet.create({
   eventInfo: { flex: 1 },
   eventName: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: colors.slate },
   eventMeta: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: 2 },
-  // Petit indicateur coloré pour le statut de la date
-  pill: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: spacing.xs },
-  dot: { width: 10, height: 10, borderRadius: 5 },
+  // Badge de statut backend (en_attente, actif, etc.)
+  pill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginRight: spacing.xs },
+  pillText: { fontSize: 10, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.3 },
   chevron: { fontSize: 16, color: colors.mid, marginLeft: spacing.xs },
   eventDetails: { marginTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.md },
   detailTitle: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.slate, marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },

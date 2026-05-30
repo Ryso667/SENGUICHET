@@ -275,17 +275,18 @@ export async function fetchEvenementsAPI() {
 }
 
 // Crée un événement via le backend
-// data : { nom, date, lieu, heure, categorie, description, categories, email }
+// data : { nom, date, dateFin, lieu, ville, heure, categorie, description, categories }
 // Les catégories de billets sont envoyées comme ticketTypes
 export async function creerEvenementAPI(data) {
   const capacite = data.categories.reduce((sum, c) => sum + Number(c.capacite), 0)
   const body = {
     titre: data.nom,
     description: data.description || '',
-    lieu: data.lieu,
-    ville: data.lieu,
+    lieu: data.lieu || '',
+    ville: data.ville || data.lieu || '',
     categorie: data.categorie,
     dateDebut: data.date,
+    dateFin: data.dateFin || data.date,
     heureDebut: data.heure || '00:00',
     capacite,
     ticketTypes: data.categories.map(c => ({
@@ -309,10 +310,11 @@ export async function modifierEvenementAPI(id, data) {
   const body = {
     titre: data.nom,
     description: data.description || '',
-    lieu: data.lieu,
-    ville: data.lieu,
+    lieu: data.lieu || '',
+    ville: data.ville || data.lieu || '',
     categorie: data.categorie,
     dateDebut: data.date,
+    dateFin: data.dateFin || data.date,
     heureDebut: data.heure || '00:00',
     capacite,
     ticketTypes: data.categories.map(c => ({

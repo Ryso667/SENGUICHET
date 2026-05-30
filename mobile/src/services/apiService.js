@@ -1,10 +1,7 @@
 // Client HTTP centralisé pour les appels API backend
 // Gère l'URL de base, l'en-tête Authorization JWT et les erreurs réseau
 import AsyncStorage from '@react-native-async-storage/async-storage'
-
-const API_BASE_URL = 'http://10.0.2.2:8080/api' // Android emulator -> localhost
-// Pour iOS simulateur, utiliser 'http://localhost:8080/api'
-// Pour un vrai appareil, utiliser l'IP locale du PC
+import { API_BASE_URL } from '../config'
 
 // Effectue un appel API authentifié
 // endpoint : chemin après /api (ex: '/evenements/')

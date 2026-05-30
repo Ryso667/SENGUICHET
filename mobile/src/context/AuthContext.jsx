@@ -8,9 +8,10 @@ const AuthContext = createContext(null)
 
 // Clés de stockage permanent (AsyncStorage)
 const STORAGE_KEY_ROLE   = '@senguichet_role'       // rôle actif
-const STORAGE_KEY_JWT    = '@senguichet_jwt'         // token controleur
+const STORAGE_KEY_JWT    = '@senguichet_jwt'         // token JWT
 const STORAGE_KEY_NUMERO = '@senguichet_telephone'   // téléphone acheteur
-const STORAGE_KEY_EMAIL  = '@senguichet_orga_email'  // email organisateur
+const STORAGE_KEY_EMAIL  = '@senguichet_orga_email'  // email organisateur (déprécié, conservé pour compat)
+const STORAGE_KEY_USER   = '@senguichet_orga_user'   // objet user organisateur { id, nom, email, role, statut }
 const STORAGE_KEY_BIOMETRIC_EMAIL = '@senguichet_biometric_email' // email pour reconnexion biométrique
 
 export function AuthProvider({ children }) {
@@ -18,6 +19,7 @@ export function AuthProvider({ children }) {
   const [numeroTel, setNumeroTel] = useState(null)
   const [jwt, setJwt] = useState(null)
   const [email, setEmail] = useState(null)
+  const [user, setUser] = useState(null) // { id, nom, email, telephone, role, statut }
   const [chargement, setChargement] = useState(true)
   const [hasSavedSession, setHasSavedSession] = useState(false)
   const [sessionEmail, setSessionEmail] = useState(null)
@@ -44,11 +46,13 @@ export function AuthProvider({ children }) {
           setRole('controleur')
         }
       } else if (roleStocke === 'organisateur') {
-        const mail = await AsyncStorage.getItem(STORAGE_KEY_EMAIL)
         const token = await AsyncStorage.getItem(STORAGE_KEY_JWT)
-        if (mail && token) {
-          setEmail(mail)
+        const userData = await AsyncStorage.getItem(STORAGE_KEY_USER)
+        if (token && userData) {
+          const parsed = JSON.parse(userData)
+          setUser(parsed)
           setJwt(token)
+          setEmail(parsed.email)
           setRole('organisateur')
         }
       }
@@ -82,16 +86,19 @@ export function AuthProvider({ children }) {
   }
 
   // Connexion organisateur (email + mot de passe)
-  const connecterOrganisateur = async (token, mail) => {
+  // userData : { id, nom, email, telephone, role, statut } venant du backend
+  const connecterOrganisateur = async (token, userData) => {
     await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'organisateur')
     await AsyncStorage.setItem(STORAGE_KEY_JWT, token)
-    await AsyncStorage.setItem(STORAGE_KEY_EMAIL, mail)
-    await AsyncStorage.setItem(STORAGE_KEY_BIOMETRIC_EMAIL, mail)
+    await AsyncStorage.setItem(STORAGE_KEY_EMAIL, userData.email)
+    await AsyncStorage.setItem(STORAGE_KEY_USER, JSON.stringify(userData))
+    await AsyncStorage.setItem(STORAGE_KEY_BIOMETRIC_EMAIL, userData.email)
     setJwt(token)
-    setEmail(mail)
+    setEmail(userData.email)
+    setUser(userData)
     setRole('organisateur')
     setHasSavedSession(true)
-    setSessionEmail(mail)
+    setSessionEmail(userData.email)
   }
 
   // Connexion rapide via biométrie (empreinte) pour les organisateurs
@@ -103,9 +110,9 @@ export function AuthProvider({ children }) {
         promptMessage: 'Connecte-toi avec ton empreinte',
       })
       if (result.success) {
-        const mail = await AsyncStorage.getItem(STORAGE_KEY_BIOMETRIC_EMAIL)
-        if (mail) {
-          await connecterOrganisateur('biometric-session', mail)
+        const userData = await AsyncStorage.getItem(STORAGE_KEY_USER)
+        if (userData) {
+          await connecterOrganisateur('biometric-session', JSON.parse(userData))
         }
       }
     } catch {
@@ -120,11 +127,13 @@ export function AuthProvider({ children }) {
       STORAGE_KEY_NUMERO,
       STORAGE_KEY_JWT,
       STORAGE_KEY_EMAIL,
+      STORAGE_KEY_USER,
     ])
     setRole(null)
     setNumeroTel(null)
     setJwt(null)
     setEmail(null)
+    setUser(null)
   }
 
   return (
@@ -134,6 +143,7 @@ export function AuthProvider({ children }) {
         numeroTel,
         jwt,
         email,
+        user,
         chargement,
         connecterAcheteur,
         connecterControleur,

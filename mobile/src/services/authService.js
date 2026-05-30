@@ -1,6 +1,7 @@
 // Service d'authentification : OTP acheteur, code contrôleur, email organisateur
-// Mode démo : toutes les fonctions retournent des valeurs mockées
+// Mode démo : toutes les fonctions retournent des valeurs mockées (sauf organisateur qui appelle l'API)
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { appelAPI } from './apiService'
 
 const MOCK_MODE = true // Sera remplacé par API lorsque le backend Node.js sera prêt
 
@@ -36,13 +37,13 @@ export const inscrireOrganisateur = async (payload) => {
   return data
 }
 
-// Connexion organisateur (email + mot de passe, mock : toujours accepté)
-// Retourne un token JWT et le rôle associé
+// Connexion organisateur (email + mot de passe)
+// Appelle le backend Express, retourne { token, user }
 export const connecterOrganisateur = async (email, motsDePasse) => {
-  if (MOCK_MODE) return { token: 'mock-jwt-organisateur', role: 'organisateur' } // Sera remplacé par API
-  const axios = (await import('axios')).default
-  const { data } = await axios.post('http://localhost:3000/api/auth/organisateur/connexion', { email, motsDePasse })
-  return data
+  return appelAPI('/auth/organisateur/connexion', {
+    method: 'POST',
+    body: { email, motDePasse: motsDePasse },
+  })
 }
 
 // Connexion administrateur (non utilisé dans l'app actuelle)

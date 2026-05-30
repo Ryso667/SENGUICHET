@@ -1,6 +1,5 @@
-// Écran de création d'un événement (organisateur)
-// Inclut : nom, catégorie (dropdown), description, date, catégories de billets
-// Le code événement 6 chiffres est généré côté service avec expo-crypto
+// Écran de création / modification d'un événement (organisateur)
+// Appelle l'API backend, plus de fallback AsyncStorage pour l'organisateur
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import {
@@ -13,7 +12,7 @@ import * as ImagePicker from 'expo-image-picker'
 import BoutonPrincipal from '../../components/BoutonPrincipal'
 
 import { colors, fonts, spacing, borderRadius } from '../../constants/theme'
-import { modifierEvenement, ajouterAudit, creerEvenement, creerEvenementAPI, modifierEvenementAPI } from '../../services/eventService'
+import { creerEvenementAPI, modifierEvenementAPI } from '../../services/eventService'
 
 const CATEGORIES = [
   'Concert', 'Festival', 'Théâtre', 'Sport', 'Conférence',
@@ -25,21 +24,26 @@ const BILLET_CATEGORIES = [
 ]
 
 export default function CreerEvenementScreen({ navigation, route }) {
-  const { email } = useAuth()
+  const { user } = useAuth()
   const eventExistant = route.params?.event || null
   const [nom, setNom] = useState(eventExistant?.nom || '')
   const [categorie, setCategorie] = useState(eventExistant?.categorie || '')
   const [categorieCustom, setCategorieCustom] = useState('')
   const [date, setDate] = useState(eventExistant?.date || '')
+  const [dateFin, setDateFin] = useState(eventExistant?.dateFin || '')
   const [lieu, setLieu] = useState(eventExistant?.lieu || '')
+  const [ville, setVille] = useState(eventExistant?.ville || '')
   const [heure, setHeure] = useState(eventExistant?.heure || '')
   const [description, setDescription] = useState(eventExistant?.description || '')
   const [poster, setPoster] = useState(eventExistant?.poster ? { uri: eventExistant.poster } : null)
   const [dateExpanded, setDateExpanded] = useState(false)
+  const [dateFinExpanded, setDateFinExpanded] = useState(false)
   const [heureExpanded, setHeureExpanded] = useState(false)
   // État de navigation du calendrier inline
   const [browseYear, setBrowseYear] = useState(() => date ? parseInt(date.split('-')[0]) : new Date().getFullYear())
   const [browseMonth, setBrowseMonth] = useState(() => date ? parseInt(date.split('-')[1]) - 1 : new Date().getMonth())
+  const [browseYearFin, setBrowseYearFin] = useState(() => dateFin ? parseInt(dateFin.split('-')[0]) : new Date().getFullYear())
+  const [browseMonthFin, setBrowseMonthFin] = useState(() => dateFin ? parseInt(dateFin.split('-')[1]) - 1 : new Date().getMonth())
   // État du sélecteur d'heure inline
   const [editHour, setEditHour] = useState(() => { const h = parseInt(heure?.split(':')[0]); return isNaN(h) ? 12 : h })
   const [editMinute, setEditMinute] = useState(() => { const m = parseInt(heure?.split(':')[1]); return isNaN(m) ? 0 : Math.floor(m / 5) * 5 })
@@ -97,32 +101,17 @@ export default function CreerEvenementScreen({ navigation, route }) {
   const handleConfirm = async () => {
     setRecapVisible(false)
     try {
-      const data = { nom, date, lieu, heure, categorie: categorieFinale, description, categories, poster }
+      const data = { nom, date, dateFin, lieu, ville, heure, categorie: categorieFinale, description, categories, poster }
       if (eventExistant) {
-        try {
-          await modifierEvenementAPI(eventExistant.id, data)
-        } catch {
-          await modifierEvenement(eventExistant.id, data)
-          await ajouterAudit('modification', {
-            eventId: eventExistant.id,
-            eventNom: nom,
-            par: email,
-            changements: { nom, date, lieu, heure },
-          })
-        }
+        await modifierEvenementAPI(eventExistant.id, data)
         Alert.alert('✅ Modifié', 'L\'événement a été mis à jour.')
       } else {
-        try {
-          const result = await creerEvenementAPI(data)
-          Alert.alert('✅ Événement créé !', `Code : ${result.evenement?.scanCode || ''}\nEn attente de validation par l'administrateur.`)
-        } catch {
-          const evt = await creerEvenement({ ...data, email })
-          Alert.alert('Événement créé !', `Code : ${evt.code}\nPartage ce code avec les contrôleurs.`)
-        }
+        await creerEvenementAPI(data)
+        Alert.alert('✅ Événement créé !', 'En attente de validation par l\'administrateur.')
       }
       navigation.navigate('Dashboard')
     } catch (e) {
-      Alert.alert('Erreur', e.message)
+      Alert.alert('Erreur', e.message || 'Impossible de contacter le serveur')
     }
   }
 
@@ -218,10 +207,66 @@ export default function CreerEvenementScreen({ navigation, route }) {
             </View>
           )}
 
+          <Text style={styles.label}>Date de fin (optionnelle)</Text>
+          <TouchableOpacity style={styles.input} onPress={() => setDateFinExpanded(!dateFinExpanded)}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={[styles.inputText, !dateFin && { color: colors.muted }]}>
+                {dateFin || 'Même jour (par défaut)'}
+              </Text>
+              <Feather name={dateFinExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={colors.mid} />
+            </View>
+          </TouchableOpacity>
+          {dateFinExpanded && (
+            <View style={styles.calendar}>
+              <View style={styles.calHeader}>
+                <TouchableOpacity onPress={() => {
+                  if (browseMonthFin === 0) { setBrowseMonthFin(11); setBrowseYearFin(browseYearFin - 1) }
+                  else setBrowseMonthFin(browseMonthFin - 1)
+                }}>
+                  <Feather name="chevron-left" size={22} color={colors.accent} />
+                </TouchableOpacity>
+                <Text style={styles.calHeaderText}>{MONTHS[browseMonthFin]} {browseYearFin}</Text>
+                <TouchableOpacity onPress={() => {
+                  if (browseMonthFin === 11) { setBrowseMonthFin(0); setBrowseYearFin(browseYearFin + 1) }
+                  else setBrowseMonthFin(browseMonthFin + 1)
+                }}>
+                  <Feather name="chevron-right" size={22} color={colors.accent} />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.calWeek}>
+                {DAYS.map(d => <Text key={d} style={styles.calWeekDay}>{d}</Text>)}
+              </View>
+              <View style={styles.calGrid}>
+                {[...Array(getFirstDay(browseYearFin, browseMonthFin))].map((_, i) => (
+                  <View key={`ef${i}`} style={styles.calDay} />
+                ))}
+                {[...Array(getDaysInMonth(browseYearFin, browseMonthFin))].map((_, i) => {
+                  const day = i + 1
+                  const dateStr = `${browseYearFin}-${pad(browseMonthFin + 1)}-${pad(day)}`
+                  const selected = dateFin === dateStr
+                  return (
+                    <TouchableOpacity
+                      key={day} style={[styles.calDay, selected && styles.calDaySelected]}
+                      onPress={() => { setDateFin(dateStr); setDateFinExpanded(false) }}
+                    >
+                      <Text style={[styles.calDayText, selected && styles.calDayTextSelected]}>{day}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            </View>
+          )}
+
           <Text style={styles.label}>Lieu</Text>
           <TextInput
             style={styles.input} value={lieu} onChangeText={setLieu}
             placeholder="Monument Renaissance, Grand Théâtre..." placeholderTextColor={colors.muted}
+          />
+
+          <Text style={styles.label}>Ville</Text>
+          <TextInput
+            style={styles.input} value={ville} onChangeText={setVille}
+            placeholder="Dakar, Saint-Louis..." placeholderTextColor={colors.muted}
           />
 
           <Text style={styles.label}>Horaire</Text>
@@ -375,9 +420,19 @@ export default function CreerEvenementScreen({ navigation, route }) {
               <Text style={styles.recapLabel}>Date</Text>
               <Text style={styles.recapValue}>{date}</Text>
             </View>
+            {!!dateFin && (
+              <View style={styles.recapRow}>
+                <Text style={styles.recapLabel}>Date fin</Text>
+                <Text style={styles.recapValue}>{dateFin}</Text>
+              </View>
+            )}
             <View style={styles.recapRow}>
               <Text style={styles.recapLabel}>Lieu</Text>
               <Text style={styles.recapValue}>{lieu}</Text>
+            </View>
+            <View style={styles.recapRow}>
+              <Text style={styles.recapLabel}>Ville</Text>
+              <Text style={styles.recapValue}>{ville}</Text>
             </View>
             <View style={styles.recapRow}>
               <Text style={styles.recapLabel}>Horaire</Text>

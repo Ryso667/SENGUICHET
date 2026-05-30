@@ -24,7 +24,7 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
     setChargement(true)
     try {
       const reponse = await connecterOrganisateur(email, mdp)
-      await connecter(reponse.token, email)
+      await connecter(reponse.token, reponse.user)
     } catch {
       alert('Email ou mot de passe incorrect')
     } finally {

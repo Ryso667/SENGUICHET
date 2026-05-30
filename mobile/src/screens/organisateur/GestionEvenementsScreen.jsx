@@ -4,13 +4,22 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, RefreshControl } from 'react-native'
 import { Swipeable } from 'react-native-gesture-handler'
 import { colors, glass, shadows, spacing, borderRadius, fonts } from '../../constants/theme'
-import { getAllEvenements, getEvenementStats, supprimerEvenement, ajouterAudit, fetchEvenementsAPI, annulerEvenementAPI } from '../../services/eventService'
+import { fetchEvenementsAPI, annulerEvenementAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import EmptyState from '../../components/EmptyState'
 
+// Couleurs et labels pour les statuts backend
+const STATUT_CONFIG = {
+  actif: { label: 'Actif', color: '#10B981', bg: '#D1FAE5' },
+  en_attente: { label: 'En attente', color: '#F97316', bg: '#FEF3C7' },
+  refuse: { label: 'Refusé', color: '#EF4444', bg: '#FEE2E2' },
+  suspendu: { label: 'Suspendu', color: '#F59E0B', bg: '#FEF3C7' },
+  annule: { label: 'Annulé', color: '#6B7280', bg: '#F3F4F6' },
+}
+
 export default function GestionEvenementsScreen({ navigation }) {
-  const { email } = useAuth()
+  const { user } = useAuth()
   const [events, setEvents] = useState([])
   const [stats, setStats] = useState({})
   const [expandedId, setExpandedId] = useState(null)
@@ -43,20 +52,11 @@ export default function GestionEvenementsScreen({ navigation }) {
       }
       setStats(s)
     } catch {
-      const evts = await getAllEvenements()
-      const actifs = evts.filter(e => !e.supprime)
-      setEvents(actifs)
-      const s = {}
-      for (const e of actifs) {
-        const st = await getEvenementStats(e.id)
-        const capacite = st ? st.vendusParCategorie.reduce((sum, c) => sum + c.capacite, 0) : 0
-        s[e.id] = { ...st, capacite }
-      }
-      setStats(s)
+      // Pas de fallback — l'organisateur a besoin du backend
     }
   }
 
-  // Annule l'événement via le backend (fallback soft delete AsyncStorage)
+  // Annule l'événement via le backend (API uniquement)
   function handleDelete(evt) {
     Alert.alert(
       'Confirmer l\'annulation',
@@ -70,8 +70,7 @@ export default function GestionEvenementsScreen({ navigation }) {
             try {
               await annulerEvenementAPI(evt.id)
             } catch {
-              await supprimerEvenement(evt.id)
-              await ajouterAudit('suppression', { eventId: evt.id, eventNom: evt.nom, par: email })
+              // Pas de fallback
             }
             charger()
           },
@@ -106,6 +105,14 @@ export default function GestionEvenementsScreen({ navigation }) {
                   <Text style={s.nom}>{evt.nom}</Text>
                   <Text style={s.date}>{formaterDateLisible(evt.date)} · Code: {evt.code}</Text>
                 </View>
+                {(() => {
+                  const cfg = STATUT_CONFIG[evt.statut] || STATUT_CONFIG.en_attente
+                  return (
+                    <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
+                      <Text style={[s.statusBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
+                    </View>
+                  )
+                })()}
                 <Text style={s.chevron}>{isOpen ? '▾' : '▸'}</Text>
               </TouchableOpacity>
 
@@ -193,6 +200,8 @@ const s = StyleSheet.create({
   nom: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: colors.slate },
   date: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: 2 },
   chevron: { fontSize: 16, color: colors.mid, marginLeft: spacing.sm },
+  statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginRight: spacing.xs },
+  statusBadgeText: { fontSize: 10, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.3 },
   details: {
     marginTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border,
     paddingTop: spacing.md,
