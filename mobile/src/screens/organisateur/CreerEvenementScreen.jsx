@@ -13,7 +13,7 @@ import * as ImagePicker from 'expo-image-picker'
 import BoutonPrincipal from '../../components/BoutonPrincipal'
 
 import { colors, fonts, spacing, borderRadius } from '../../constants/theme'
-import { modifierEvenement, ajouterAudit, creerEvenement } from '../../services/eventService'
+import { modifierEvenement, ajouterAudit, creerEvenement, creerEvenementAPI, modifierEvenementAPI } from '../../services/eventService'
 
 const CATEGORIES = [
   'Concert', 'Festival', 'Théâtre', 'Sport', 'Conférence',
@@ -99,17 +99,26 @@ export default function CreerEvenementScreen({ navigation, route }) {
     try {
       const data = { nom, date, lieu, heure, categorie: categorieFinale, description, categories, poster }
       if (eventExistant) {
-        await modifierEvenement(eventExistant.id, data)
-        await ajouterAudit('modification', {
-          eventId: eventExistant.id,
-          eventNom: nom,
-          par: email,
-          changements: { nom, date, lieu, heure },
-        })
+        try {
+          await modifierEvenementAPI(eventExistant.id, data)
+        } catch {
+          await modifierEvenement(eventExistant.id, data)
+          await ajouterAudit('modification', {
+            eventId: eventExistant.id,
+            eventNom: nom,
+            par: email,
+            changements: { nom, date, lieu, heure },
+          })
+        }
         Alert.alert('✅ Modifié', 'L\'événement a été mis à jour.')
       } else {
-        const evt = await creerEvenement({ ...data, email })
-        Alert.alert('Événement créé !', `Code : ${evt.code}\nPartage ce code avec les contrôleurs.`)
+        try {
+          const result = await creerEvenementAPI(data)
+          Alert.alert('✅ Événement créé !', `Code : ${result.evenement?.scanCode || ''}\nEn attente de validation par l'administrateur.`)
+        } catch {
+          const evt = await creerEvenement({ ...data, email })
+          Alert.alert('Événement créé !', `Code : ${evt.code}\nPartage ce code avec les contrôleurs.`)
+        }
       }
       navigation.navigate('Dashboard')
     } catch (e) {

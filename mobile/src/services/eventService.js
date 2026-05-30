@@ -1,9 +1,10 @@
-// Couche de persistance AsyncStorage pour les événements et tickets
-// Toutes les fonctions sont async car AsyncStorage est asynchrone
+// Couche de persistance : AsyncStorage (offline) + API backend
+// Les fonctions API sont prioritaires ; les AsyncStorage servent de fallback
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Crypto from 'expo-crypto'
 import { insererTicketAchete } from '../database/database'
 import { getDefaultImage } from '../config/images'
+import { appelAPI } from './apiService'
 
 const CLE_SECRETE_QR = 'senguichet-cle-secrete-hmac' // Sera remplacé par variable d'environnement côté backend
 
@@ -250,4 +251,81 @@ export async function supprimerEvenement(id) {
   events[idx].supprime = true
   events[idx].deletedAt = new Date().toISOString()
   await AsyncStorage.setItem(EVENTS_KEY, JSON.stringify(events))
+}
+
+// ===== Fonctions API backend =====
+
+// Récupère la liste des événements depuis le backend
+// Retourne un tableau formaté pour le frontend
+export async function fetchEvenementsAPI() {
+  const data = await appelAPI('/evenements/')
+  if (!Array.isArray(data)) return []
+  return data.map(e => ({
+    id: String(e.id),
+    nom: e.nom || '',
+    date: e.date || '',
+    lieu: e.lieu || '',
+    categorie: e.categorie || '',
+    code: e.code || '',
+    statut: e.statut || 'en_attente',
+    remplis: e.remplis || 0,
+    capacite: e.capacite || 0,
+    revenus: e.revenus || '0 FCFA',
+  }))
+}
+
+// Crée un événement via le backend
+// data : { nom, date, lieu, heure, categorie, description, categories, email }
+// Les catégories de billets sont envoyées comme ticketTypes
+export async function creerEvenementAPI(data) {
+  const capacite = data.categories.reduce((sum, c) => sum + Number(c.capacite), 0)
+  const body = {
+    titre: data.nom,
+    description: data.description || '',
+    lieu: data.lieu,
+    ville: data.lieu,
+    categorie: data.categorie,
+    dateDebut: data.date,
+    heureDebut: data.heure || '00:00',
+    capacite,
+    ticketTypes: data.categories.map(c => ({
+      nom: c.nom,
+      description: '',
+      prix: Number(c.prix),
+      quantite: Number(c.capacite),
+    })),
+  }
+  return await appelAPI('/evenements/', { method: 'POST', body })
+}
+
+// Récupère le détail d'un événement depuis le backend
+export async function fetchEvenementDetailAPI(id) {
+  return await appelAPI(`/evenements/${id}`)
+}
+
+// Modifie un événement via le backend
+export async function modifierEvenementAPI(id, data) {
+  const capacite = data.categories.reduce((sum, c) => sum + Number(c.capacite), 0)
+  const body = {
+    titre: data.nom,
+    description: data.description || '',
+    lieu: data.lieu,
+    ville: data.lieu,
+    categorie: data.categorie,
+    dateDebut: data.date,
+    heureDebut: data.heure || '00:00',
+    capacite,
+    ticketTypes: data.categories.map(c => ({
+      nom: c.nom,
+      description: '',
+      prix: Number(c.prix),
+      quantite: Number(c.capacite),
+    })),
+  }
+  return await appelAPI(`/evenements/${id}`, { method: 'PUT', body })
+}
+
+// Annule un événement via le backend
+export async function annulerEvenementAPI(id) {
+  return await appelAPI(`/evenements/${id}/annuler`, { method: 'PUT' })
 }

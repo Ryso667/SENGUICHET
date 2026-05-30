@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing 
 import { LinearGradient } from 'expo-linear-gradient'
 import Svg, { Circle } from 'react-native-svg'
 import { colors, glass, gradients, shadows, spacing, borderRadius, fonts } from '../../constants/theme'
-import { getAllEvenements, getEvenementStats } from '../../services/eventService'
+import { getAllEvenements, getEvenementStats, fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import BoutonPrincipal from '../../components/BoutonPrincipal'
 import Skeleton from '../../components/Skeleton'
@@ -46,17 +46,34 @@ export default function OrganisateurDashboardScreen({ navigation }) {
     return unsubscribe
   }, [navigation])
 
-  // Charge les événements et leurs statistiques
+  // Charge les événements depuis le backend (fallback AsyncStorage)
   async function loadData() {
     setLoading(true)
-    const evts = await getAllEvenements()
-    const actifs = evts.filter(e => !e.supprime)
-    setEvents(actifs)
-    const s = {}
-    for (const e of actifs) {
-      s[e.id] = await getEvenementStats(e.id)
+    try {
+      const evts = await fetchEvenementsAPI()
+      setEvents(evts)
+      const s = {}
+      for (const e of evts) {
+        s[e.id] = {
+          totalVendus: e.remplis || 0,
+          totalScannes: 0,
+          recettes: e.revenus ? parseInt(e.revenus.replace(/\D/g, '')) || 0 : 0,
+          capacite: e.capacite || 0,
+        }
+      }
+      setStats(s)
+    } catch {
+      const evts = await getAllEvenements()
+      const actifs = evts.filter(e => !e.supprime)
+      setEvents(actifs)
+      const s = {}
+      for (const e of actifs) {
+        const st = await getEvenementStats(e.id)
+        const capacite = st ? st.vendusParCategorie.reduce((sum, c) => sum + c.capacite, 0) : 0
+        s[e.id] = { ...st, capacite }
+      }
+      setStats(s)
     }
-    setStats(s)
     setLoading(false)
   }
 
@@ -141,9 +158,9 @@ export default function OrganisateurDashboardScreen({ navigation }) {
           const diffDays = Math.ceil((dateEvent - now) / (1000 * 60 * 60 * 24))
           const statusColor = diffDays < 0 ? '#EF4444' : diffDays <= 7 ? '#F97316' : '#10B981'
 
-          // Calcul du pourcentage de remplissage toutes catégories confondues
-          const totalCapacite = st ? st.vendusParCategorie.reduce((sum, c) => sum + c.capacite, 0) : 0
-          const totalVendusEvt = st ? st.vendusParCategorie.reduce((sum, c) => sum + c.vendus, 0) : 0
+          // Calcul du pourcentage de remplissage
+          const totalCapacite = st?.capacite || evt.capacite || 0
+          const totalVendusEvt = st?.totalVendus || evt.remplis || 0
           const pct = totalCapacite > 0 ? (totalVendusEvt / totalCapacite) * 100 : 0
 
           // Barre de revenu : couleur selon le ratio par rapport au max
@@ -170,9 +187,9 @@ export default function OrganisateurDashboardScreen({ navigation }) {
 
               {isOpen && st && (
                 <View style={s.eventDetails}>
-                  {/* Section billets vendus avec cercle SVG de progression */}
+                  {/* Section remplissage avec cercle SVG de progression */}
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm }}>
-                    <Text style={s.detailTitle}>Billets vendus</Text>
+                    <Text style={s.detailTitle}>Remplissage</Text>
                     <View style={{ width: 54, height: 54, alignItems: 'center', justifyContent: 'center' }}>
                       <Svg width={54} height={54} viewBox="0 0 54 54">
                         <Circle cx={27} cy={27} r={24} stroke="#EEF2FF" strokeWidth={6} fill="none" />
@@ -185,26 +202,14 @@ export default function OrganisateurDashboardScreen({ navigation }) {
                       <Text style={{ position: 'absolute', fontSize: 11, fontFamily: fonts.outfit.bold, color: colors.slate }}>{Math.round(pct)}%</Text>
                     </View>
                   </View>
-                  {st.vendusParCategorie.map((c, i) => (
-                    <View key={i} style={s.barRow}>
-                      <Text style={s.barLabel}>{c.nom}</Text>
-                      <View style={s.barBg}>
-                        <View style={[s.barFill, { width: `${(c.vendus / Math.max(c.capacite, 1)) * 100}%` }]} />
-                      </View>
-                      <Text style={s.barCount}>{c.vendus}/{c.capacite}</Text>
+                  {/* Barre de remplissage globale */}
+                  <View style={s.barRow}>
+                    <Text style={s.barLabel}>Vendus</Text>
+                    <View style={s.barBg}>
+                      <View style={[s.barFill, { width: `${pct}%` }]} />
                     </View>
-                  ))}
-
-                  <Text style={[s.detailTitle, { marginTop: spacing.md }]}>Scans à l'entrée</Text>
-                  {st.scannesParCategorie.map((c, i) => (
-                    <View key={i} style={s.barRow}>
-                      <Text style={s.barLabel}>{c.nom}</Text>
-                      <View style={s.barBg}>
-                        <View style={[s.barFill, { width: `${(c.scannes / Math.max(c.vendus, 1)) * 100}%`, backgroundColor: '#10B981' }]} />
-                      </View>
-                      <Text style={s.barCount}>{c.scannes}/{c.vendus}</Text>
-                    </View>
-                  ))}
+                    <Text style={s.barCount}>{totalVendusEvt}/{totalCapacite}</Text>
+                  </View>
 
                   <View style={s.eventActions}>
                     <TouchableOpacity style={s.actionBtn} onPress={() => navigation.navigate('VoirTickets', { eventId: evt.id })}>

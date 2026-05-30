@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, RefreshControl } from 'react-native'
 import { Swipeable } from 'react-native-gesture-handler'
 import { colors, glass, shadows, spacing, borderRadius, fonts } from '../../constants/theme'
-import { getAllEvenements, getEvenementStats, supprimerEvenement, ajouterAudit } from '../../services/eventService'
+import { getAllEvenements, getEvenementStats, supprimerEvenement, ajouterAudit, fetchEvenementsAPI, annulerEvenementAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import EmptyState from '../../components/EmptyState'
@@ -29,29 +29,50 @@ export default function GestionEvenementsScreen({ navigation }) {
   }, [])
 
   async function charger() {
-    const evts = await getAllEvenements()
-    const actifs = evts.filter(e => !e.supprime)
-    setEvents(actifs)
-    const s = {}
-    for (const e of actifs) {
-      s[e.id] = await getEvenementStats(e.id)
+    try {
+      const evts = await fetchEvenementsAPI()
+      setEvents(evts)
+      const s = {}
+      for (const e of evts) {
+        s[e.id] = {
+          totalVendus: e.remplis || 0,
+          totalScannes: 0,
+          recettes: e.revenus ? parseInt(e.revenus.replace(/\D/g, '')) || 0 : 0,
+          capacite: e.capacite || 0,
+        }
+      }
+      setStats(s)
+    } catch {
+      const evts = await getAllEvenements()
+      const actifs = evts.filter(e => !e.supprime)
+      setEvents(actifs)
+      const s = {}
+      for (const e of actifs) {
+        const st = await getEvenementStats(e.id)
+        const capacite = st ? st.vendusParCategorie.reduce((sum, c) => sum + c.capacite, 0) : 0
+        s[e.id] = { ...st, capacite }
+      }
+      setStats(s)
     }
-    setStats(s)
   }
 
-  // Soft delete : marque supprime=true et enregistre dans le journal d'audit
+  // Annule l'événement via le backend (fallback soft delete AsyncStorage)
   function handleDelete(evt) {
     Alert.alert(
-      'Confirmer la suppression',
-      `Supprimer définitivement "${evt.nom}" ?\n\nCette action est irréversible.`,
+      'Confirmer l\'annulation',
+      `Annuler définitivement "${evt.nom}" ?\n\nCette action est irréversible.`,
       [
         { text: 'Annuler', style: 'cancel' },
         {
-          text: 'Supprimer',
+          text: 'Annuler l\'événement',
           style: 'destructive',
           onPress: async () => {
-            await supprimerEvenement(evt.id)
-            await ajouterAudit('suppression', { eventId: evt.id, eventNom: evt.nom, par: email })
+            try {
+              await annulerEvenementAPI(evt.id)
+            } catch {
+              await supprimerEvenement(evt.id)
+              await ajouterAudit('suppression', { eventId: evt.id, eventNom: evt.nom, par: email })
+            }
             charger()
           },
         },
@@ -96,36 +117,19 @@ export default function GestionEvenementsScreen({ navigation }) {
                       <Text style={s.miniStatLabel}>vendus</Text>
                     </View>
                     <View style={s.miniStat}>
-                      <Text style={s.miniStatValue}>{st.totalScannes}</Text>
-                      <Text style={s.miniStatLabel}>scannés</Text>
-                    </View>
-                    <View style={s.miniStat}>
                       <Text style={s.miniStatValue}>{(st.recettes || 0).toLocaleString()} F</Text>
                       <Text style={s.miniStatLabel}>recettes</Text>
                     </View>
                   </View>
 
-                  <Text style={s.detailTitle}>Ventes</Text>
-                  {st.vendusParCategorie.map((c, i) => (
-                    <View key={i} style={s.barRow}>
-                      <Text style={s.barLabel}>{c.nom}</Text>
-                      <View style={s.barBg}>
-                        <View style={[s.barFill, { width: `${(c.vendus / Math.max(c.capacite, 1)) * 100}%` }]} />
-                      </View>
-                      <Text style={s.barCount}>{c.vendus}/{c.capacite}</Text>
+                  <Text style={s.detailTitle}>Remplissage</Text>
+                  <View style={s.barRow}>
+                    <Text style={s.barLabel}>Vendus</Text>
+                    <View style={s.barBg}>
+                      <View style={[s.barFill, { width: `${(st.capacite || 1) > 0 ? (st.totalVendus / (st.capacite || 1)) * 100 : 0}%` }]} />
                     </View>
-                  ))}
-
-                  <Text style={[s.detailTitle, { marginTop: spacing.md }]}>Scans</Text>
-                  {st.scannesParCategorie.map((c, i) => (
-                    <View key={i} style={s.barRow}>
-                      <Text style={s.barLabel}>{c.nom}</Text>
-                      <View style={s.barBg}>
-                        <View style={[s.barFill, { width: `${(c.scannes / Math.max(c.vendus, 1)) * 100}%`, backgroundColor: '#10B981' }]} />
-                      </View>
-                      <Text style={s.barCount}>{c.scannes}/{c.vendus}</Text>
-                    </View>
-                  ))}
+                    <Text style={s.barCount}>{st.totalVendus}/{st.capacite || '?'}</Text>
+                  </View>
 
                   <TouchableOpacity
                     style={s.voirTickets}
