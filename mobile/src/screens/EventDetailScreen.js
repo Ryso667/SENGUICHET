@@ -35,25 +35,52 @@ export default function EventDetailScreen({ route, navigation }) {
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [phone, setPhone] = useState(() => formaterTelStocke(numeroTel))
   const [showCategorySheet, setShowCategorySheet] = useState(false)
+  const [error, setError] = useState(null)
+  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
     (async () => {
-      const data = await fetchEvenementDetailPublic(eventId)
-      setEvent(data)
-      if (data && data.tickets.length > 0) {
-        setSelectedTicket(data.tickets[1] || data.tickets[0])
+      try {
+        setError(null)
+        const data = await fetchEvenementDetailPublic(eventId)
+        if (!data) {
+          setError('Événement introuvable')
+          return
+        }
+        setEvent(data)
+        if (data.tickets.length > 0) {
+          setSelectedTicket(data.tickets[1] || data.tickets[0])
+        }
+      } catch (err) {
+        setError(err.message || 'Erreur de chargement')
       }
     })()
-  }, [eventId])
+  }, [eventId, retryCount])
 
   const handleBuy = () => {
-    const tel = `+221 ${phone.replace(/\s/g, '')}`
+    const tel = `+221${phone.replace(/\s/g, '')}`
     navigation.navigate('Paiement', {
       eventId: event.id,
       eventTitle: event.title,
       ticket: selectedTicket,
       telephone: tel,
     })
+  }
+
+  if (error) {
+    return (
+      <BuyerLayout>
+        <SafeAreaView style={styles.safe}>
+          <View style={styles.loadingContainer}>
+            <Feather name="alert-circle" size={32} color={colors.muted} />
+            <Text style={styles.loadingText}>{error}</Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={() => setRetryCount(c => c + 1)}>
+              <Text style={styles.retryText}>Réessayer</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </BuyerLayout>
+    )
   }
 
   if (!event) {
@@ -230,6 +257,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.mid,
     fontFamily: fonts.jakarta.regular,
+    textAlign: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  retryBtn: {
+    marginTop: spacing.sm,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: colors.accent,
+    borderRadius: borderRadius.md,
+  },
+  retryText: {
+    fontSize: 12,
+    color: '#fff',
+    fontFamily: fonts.jakarta.semiBold,
   },
   banner: {
     height: 130,

@@ -60,7 +60,7 @@ const lister = async (req, res) => {
       `SELECT e.*,
         COALESCE(SUM(ct.places_disponibles), 0) AS places_restantes,
         COALESCE(SUM(ct.capacite), 0) AS capacite_billets,
-        (SELECT COALESCE(SUM(b.prix_paye), 0) FROM billet b JOIN categorie_ticket ct2 ON b.categorie_ticket_id = ct2.id WHERE ct2.evenement_id = e.id) AS revenus
+        (SELECT COALESCE(SUM(b.prix_paye), 0) FROM billet b JOIN categorie_ticket ct2 ON b.categorie_ticket_id = ct2.id WHERE ct2.evenement_id = e.id AND b.statut = 'ACTIF') AS revenus
       FROM evenement e
       LEFT JOIN categorie_ticket ct ON ct.evenement_id = e.id
       WHERE e.organisateur_id = ? AND e.statut != 'annule'
@@ -105,7 +105,36 @@ const detail = async (req, res) => {
 
     const [tickets] = await pool.query("SELECT * FROM categorie_ticket WHERE evenement_id = ?", [id]);
 
-    res.json({ evenement: rows[0], tickets });
+    // Stats des billets vendus (uniquement ACTIF = payés)
+    const [ventes] = await pool.query(
+      `SELECT
+        COALESCE(COUNT(*), 0) AS total_vendus,
+        COALESCE(SUM(b.prix_paye), 0) AS revenus
+      FROM billet b
+      JOIN categorie_ticket ct ON b.categorie_ticket_id = ct.id
+      WHERE ct.evenement_id = ? AND b.statut = 'ACTIF'`,
+      [id]
+    );
+
+    const capacite_billets = tickets.reduce((s, t) => s + t.capacite, 0);
+    const places_restantes = tickets.reduce((s, t) => s + t.places_disponibles, 0);
+    const remplis = capacite_billets - places_restantes;
+    const taux_remplissage = capacite_billets > 0
+      ? Math.round((remplis / capacite_billets) * 100)
+      : 0;
+
+    res.json({
+      evenement: rows[0],
+      tickets,
+      stats: {
+        capacite_billets,
+        places_restantes,
+        billets_vendus: ventes[0].total_vendus,
+        revenus: ventes[0].revenus,
+        remplis,
+        taux_remplissage,
+      },
+    });
   } catch (err) {
     console.error("Detail evenement error:", err);
     res.status(500).json({ message: "Erreur" });
@@ -334,7 +363,7 @@ const detailPublic = async (req, res) => {
       [id]
     );
 
-    res.json({ evenement: rows[0], types_billets: tickets });
+    res.json({ evenement: rows[0], categories: tickets });
   } catch (err) {
     console.error("Detail public error:", err);
     res.status(500).json({ message: "Erreur" });

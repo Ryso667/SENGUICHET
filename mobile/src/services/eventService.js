@@ -1,259 +1,9 @@
-// Couche de persistance : AsyncStorage (offline) + API backend
-// Les fonctions API sont prioritaires ; les AsyncStorage servent de fallback
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import * as Crypto from 'expo-crypto'
-import { insererTicketAchete } from '../database/database'
+// Couche API backend pour les événements et catégories
+// Toutes les données viennent exclusivement du backend (aucun stockage local)
 import { getDefaultImage } from '../config/images'
 import { appelAPI } from './apiService'
 
-const CLE_SECRETE_QR = 'senguichet-cle-secrete-hmac' // Sera remplacé par variable d'environnement côté backend
-
-// Clés de stockage dans AsyncStorage
-const EVENTS_KEY = '@senguichet_evenements'  // liste des événements créés
-const TICKETS_KEY = '@senguichet_tickets'     // tous les tickets achetés
-
-// Génère un ID unique lisible : timestamp base36 + 4 caractères aléatoires
-function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
-}
-
-// Formate un nombre avec padding, ex: 3 → "003"
-function formatNum(n, len = 3) {
-  return String(n).padStart(len, '0')
-}
-
-// Retourne tous les événements stockés, ou [] si rien
-export async function getAllEvenements() {
-  const raw = await AsyncStorage.getItem(EVENTS_KEY)
-  return raw ? JSON.parse(raw) : []
-}
-
-// Retourne un événement par son ID, ou null
-export async function getEvenement(id) {
-  const events = await getAllEvenements()
-  return events.find(e => e.id === id) || null
-}
-
-// Génère un code contrôleur sécurisé : 4 chiffres via expo-crypto
-// Vérifie l'unicité contre les codes existants
-async function genererCodeSecurise(existingCodes) {
-  let code
-  const bytes = new Uint8Array(2)
-  do {
-    Crypto.getRandomValues(bytes)
-    code = String(1000 + bytes[0] % 9000)
-  } while (existingCodes.includes(code))
-  return code
-}
-
-// Crée un nouvel événement avec un code contrôleur 4 chiffres (crypto-sécurisé)
-// Les catégories recoivent un ID unique au moment de la création
-export async function creerEvenement({ nom, date, description, categorie, categories, poster, lieu, heure, email }) {
-  const events = await getAllEvenements()
-  const existingCodes = events.map(e => e.code)
-  const defaultImg = getDefaultImage(categorie)
-  const evt = {
-    id: generateId(),
-    nom,
-    date,
-    lieu: lieu || '',
-    heure: heure || '',
-    categorie: categorie || '',
-    description: description || '',
-    code: await genererCodeSecurise(existingCodes),
-    categories: categories.map(c => ({ id: generateId(), nom: c.nom, prix: Number(c.prix), capacite: Number(c.capacite) })),
-    poster: poster?.uri || defaultImg.poster,
-    bg: defaultImg.bg,
-    emoji: defaultImg.emoji,
-    ticketCount: 0,
-    createdAt: new Date().toISOString(),
-    email: email || '',
-  }
-  events.push(evt)
-  await AsyncStorage.setItem(EVENTS_KEY, JSON.stringify(events))
-  await ajouterAudit('creation', { eventId: evt.id, eventNom: evt.nom, par: email || 'organisateur' })
-  return evt
-}
-
-// Achète un ticket : incrémente le compteur, génère un numéro unique,
-// sauvegarde le ticket et met à jour le compteur de l'événement
-export async function acheterTicket(eventId, categorieId, telephone) {
-  const events = await getAllEvenements()
-  const idx = events.findIndex(e => e.id === eventId)
-  if (idx === -1) throw new Error('Événement introuvable')
-  const evt = events[idx]
-  const cat = evt.categories.find(c => c.id === categorieId)
-  if (!cat) throw new Error('Catégorie introuvable')
-
-  evt.ticketCount++
-  const numero = `TKT-${evt.nom.slice(0, 4).toUpperCase()}-${formatNum(evt.ticketCount)}`
-  const ticketId = generateId()
-  const timestamp = new Date().toISOString()
-
-  // Génération d'une signature cryptographique pour le QR (anti-contrefaçon offline)
-  // Les champs uuid|transaction_ref|timestamp|event_id|category sont concaténés dans le même ordre
-  // que le vérificateur scanService.js pour une compatibilité HMAC — les deux bouts doivent matcher
-  const signaturePayload = `${ticketId}|${numero}|${timestamp}|${eventId}|${cat.nom}`
-  const signature = await Crypto.digestStringAsync(
-    Crypto.CryptoDigestAlgorithm.SHA256,
-    signaturePayload + CLE_SECRETE_QR
-  )
-
-  // Contenu complet du QR code (sera parsé par scanService.verifierBillet)
-  const qrPayload = JSON.stringify({
-    uuid: ticketId,
-    hmac: signature,
-    event_id: eventId,
-    category: cat.nom,
-    timestamp,
-    transaction_ref: numero,
-  })
-
-  const ticket = {
-    id: ticketId,
-    eventId,
-    eventNom: evt.nom,
-    eventDate: evt.date,
-    eventHeure: evt.heure || null,
-    eventLieu: evt.lieu || null,
-    categorie: cat.nom,
-    prix: cat.prix,
-    telephone,
-    numero,
-    statut: 'valide',
-    dateAchat: timestamp,
-    dateScan: null,
-    qrData: qrPayload,
-  }
-
-  const tickets = await getAllTickets()
-  tickets.push(ticket)
-  await AsyncStorage.setItem(TICKETS_KEY, JSON.stringify(tickets))
-  events[idx] = evt
-  await AsyncStorage.setItem(EVENTS_KEY, JSON.stringify(events))
-  await insererTicketAchete(ticket)
-  return ticket
-}
-
-// Retourne tous les tickets (utilisé par acheteur et controleur)
-export async function getAllTickets() {
-  const raw = await AsyncStorage.getItem(TICKETS_KEY)
-  return raw ? JSON.parse(raw) : []
-}
-
-// Filtre les tickets par événement
-export async function getTicketsByEvent(eventId) {
-  const tickets = await getAllTickets()
-  return tickets.filter(t => t.eventId === eventId)
-}
-
-// Calcule les statistiques de vente pour le dashboard organisateur :
-// vendus par catégorie, scannés par catégorie, recettes totales
-export async function getEvenementStats(eventId) {
-  const evt = await getEvenement(eventId)
-  if (!evt) return null
-  const tickets = await getTicketsByEvent(eventId)
-
-  const vendusParCategorie = evt.categories.map(cat => ({
-    nom: cat.nom,
-    vendus: tickets.filter(t => t.categorie === cat.nom).length,
-    capacite: cat.capacite,
-    prix: cat.prix,
-  }))
-
-  const scannesParCategorie = evt.categories.map(cat => ({
-    nom: cat.nom,
-    scannes: tickets.filter(t => t.categorie === cat.nom && t.statut === 'utilise').length,
-    vendus: tickets.filter(t => t.categorie === cat.nom).length,
-  }))
-
-  const recettes = tickets.reduce((sum, t) => sum + t.prix, 0)
-
-  return {
-    totalVendus: tickets.length,
-    totalScannes: tickets.filter(t => t.statut === 'utilise').length,
-    recettes,
-    vendusParCategorie,
-    scannesParCategorie,
-  }
-}
-
-// Retourne les tickets d'un acheteur par son téléphone
-export async function getTicketsAcheteur(telephone) {
-  const tickets = await getAllTickets()
-  return tickets.filter(t => t.telephone === telephone)
-}
-
-// Clé de stockage pour les logs d'audit dans AsyncStorage
-const AUDIT_KEY = '@senguichet_audit'
-
-// Ajoute une entrée dans le journal d'audit pour tracer les actions organisateur
-// action : 'creation' | 'modification' | 'suppression'
-// params : { eventId, eventNom, par, changements }
-export async function ajouterAudit(action, { eventId, eventNom, par, changements }) {
-  const raw = await AsyncStorage.getItem(AUDIT_KEY)
-  const logs = raw ? JSON.parse(raw) : []
-  logs.push({
-    id: generateId(),
-    action,
-    eventId,
-    eventNom,
-    par: par || 'inconnu',
-    changements: changements || null,
-    timestamp: new Date().toISOString(),
-  })
-  await AsyncStorage.setItem(AUDIT_KEY, JSON.stringify(logs))
-}
-
-// Récupère tous les logs d'audit, du plus récent au plus ancien
-export async function getAuditLogs() {
-  const raw = await AsyncStorage.getItem(AUDIT_KEY)
-  return raw ? JSON.parse(raw).reverse() : []
-}
-
-// Modifie un événement existant en préservant son ID et son code contrôleur
-// updates : { nom, date, lieu, heure, categorie, description, categories, poster, bg, emoji }
-// Lance une erreur si l'ID n'existe pas
-export async function modifierEvenement(id, updates) {
-  const events = await getAllEvenements()
-  const idx = events.findIndex(e => e.id === id)
-  if (idx === -1) throw new Error('Événement introuvable')
-  const old = events[idx]
-  const updated = {
-    ...old,
-    nom: updates.nom ?? old.nom,
-    date: updates.date ?? old.date,
-    lieu: updates.lieu ?? old.lieu,
-    heure: updates.heure ?? old.heure,
-    categorie: updates.categorie ?? old.categorie,
-    description: updates.description ?? old.description,
-    categories: updates.categories.map(c => ({
-      id: c.id || generateId(),
-      nom: c.nom,
-      prix: Number(c.prix),
-      capacite: Number(c.capacite),
-    })),
-    poster: updates.poster?.uri ?? old.poster,
-    bg: updates.bg ?? old.bg,
-    emoji: updates.emoji ?? old.emoji,
-  }
-  events[idx] = updated
-  await AsyncStorage.setItem(EVENTS_KEY, JSON.stringify(events))
-  return updated
-}
-
-// Supprime un événement (soft delete) : marque supprime=true et enregistre la date
-// Ne supprime pas physiquement les données dans AsyncStorage
-export async function supprimerEvenement(id) {
-  const events = await getAllEvenements()
-  const idx = events.findIndex(e => e.id === id)
-  if (idx === -1) throw new Error('Événement introuvable')
-  events[idx].supprime = true
-  events[idx].deletedAt = new Date().toISOString()
-  await AsyncStorage.setItem(EVENTS_KEY, JSON.stringify(events))
-}
-
-// ===== Fonctions API backend =====
+// ===== Fonctions organisateur =====
 
 // Récupère la liste des événements depuis le backend
 // Retourne un tableau formaté pour le frontend
@@ -261,8 +11,6 @@ export async function fetchEvenementsAPI() {
   const data = await appelAPI('/evenements/')
   if (!Array.isArray(data)) return []
   return data.map(e => {
-    // Normalisation des statuts : le backend lister mappe 'actif' en 'active' et
-    // 'actif+soldout' en 'sold-out', mais le mobile utilise les clés françaises
     const rawStatut = e.statut || 'en_attente'
     let statut = rawStatut
     if (statut === 'active') statut = 'actif'
@@ -284,7 +32,6 @@ export async function fetchEvenementsAPI() {
 
 // Crée un événement via le backend
 // data : { nom, date, dateFin, lieu, ville, heure, categorie, description, categories }
-// Les catégories de billets sont envoyées comme ticketTypes
 export async function creerEvenementAPI(data) {
   const capacite = data.categories.reduce((sum, c) => sum + Number(c.capacite), 0)
   const body = {
@@ -308,13 +55,11 @@ export async function creerEvenementAPI(data) {
 }
 
 // Récupère le détail d'un événement depuis le backend
-// Normalise les champs backend (titre, date_debut, scan_code, capacite_totale)
-// vers les noms attendus par les écrans (nom, date, code, capacite)
 export async function fetchEvenementDetailAPI(id) {
   const data = await appelAPI(`/evenements/${id}`)
   if (!data || !data.evenement) return data
-
   const e = data.evenement
+  const s = data.stats || {}
   return {
     evenement: {
       id: String(e.id),
@@ -326,7 +71,11 @@ export async function fetchEvenementDetailAPI(id) {
       code: e.scan_code || '',
       statut: e.statut || 'en_attente',
       description: e.description || '',
-      remplis: 0, // non retourné par le détail (nécessite sous-requête billets)
+      remplis: s.remplis ?? 0,
+      revenus: s.revenus ?? 0,
+      taux_remplissage: s.taux_remplissage ?? 0,
+      places_restantes: s.places_restantes ?? 0,
+      billets_vendus: s.billets_vendus ?? 0,
     },
     tickets: (data.tickets || []).map(t => ({
       id: String(t.id),
@@ -368,9 +117,9 @@ export async function annulerEvenementAPI(id) {
   return await appelAPI(`/evenements/${id}/annuler`, { method: 'PUT' })
 }
 
+// ===== Fonctions acheteur =====
+
 // Récupère la liste des événements publics (acheteur) avec filtres optionnels
-// Appelle GET /api/evenements/public avec paramètres de recherche
-// Retourne le format attendu par les écrans acheteur
 export async function fetchEvenementsPublics(filtres = {}) {
   const params = new URLSearchParams()
   if (filtres.categorie) params.append('categorie', filtres.categorie)
@@ -382,7 +131,7 @@ export async function fetchEvenementsPublics(filtres = {}) {
   if (!Array.isArray(data)) return []
   return data.map(e => ({
     id: String(e.id),
-    title: e.nom || '',
+    title: e.titre || e.nom || '',
     date: e.date_debut || e.date || '',
     location: e.lieu || '',
     category: e.categorie || '',
@@ -399,8 +148,6 @@ export async function fetchEvenementsPublics(filtres = {}) {
 }
 
 // Récupère le détail public d'un événement par son ID
-// Appelle GET /api/evenements/public/:id
-// Retourne le format attendu par EventDetailScreen avec bg et emoji par défaut selon catégorie
 export async function fetchEvenementDetailPublic(eventId) {
   const data = await appelAPI(`/evenements/public/${eventId}`)
   if (!data || !data.evenement) return null
@@ -420,6 +167,7 @@ export async function fetchEvenementDetailPublic(eventId) {
       price: c.prix,
       desc: c.description || '',
     })),
+    time: e.date_debut ? e.date_debut.slice(11, 16) : '',
     priceMin: e.prix_min || 0,
     priceMax: e.prix_max || 0,
   }

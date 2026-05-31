@@ -7,17 +7,18 @@ import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
-import { useTickets } from '../hooks/useTickets'
 import EventCard from '../components/EventCard'
 import BuyerLayout from '../components/BuyerLayout'
 import { getDefaultImage } from '../config/images'
 import { formaterBadgeDate, formaterDateLisible } from '../utils/dateUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
+import { mesBillets } from '../services/billetService'
 
 const STATUTS = {
-  valide: { label: 'VALIDE', color: '#059669', dot: '#059669' },
+  actif: { label: 'VALIDE', color: '#059669', dot: '#059669' },
+  en_attente: { label: 'EN ATTENTE', color: '#f59e0b', dot: '#f59e0b' },
   utilise: { label: 'UTILISÉ', color: '#64748b', dot: '#64748b' },
-  expire: { label: 'EXPIRÉ', color: '#dc2626', dot: '#dc2626' },
+  rembourse: { label: 'REMBOURSÉ', color: '#dc2626', dot: '#dc2626' },
 }
 
 function formaterPourEventCard(e) {
@@ -35,17 +36,20 @@ function formaterPourEventCard(e) {
 
 export default function HomeScreen({ navigation }) {
   const [evenements, setEvenements] = useState([])
-  const { tickets, refresh } = useTickets()
-  const { deconnecter } = useAuth()
+  const [tickets, setTickets] = useState([])
+  const { deconnecter, numeroTel } = useAuth()
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
-      refresh()
+      if (numeroTel) {
+        const data = await mesBillets(numeroTel)
+        setTickets(data || [])
+      }
       const events = await fetchEvenementsPublics()
       setEvenements(events.map(formaterPourEventCard))
     })
     return unsubscribe
-  }, [navigation, refresh])
+  }, [navigation, numeroTel])
 
   return (
     <BuyerLayout>
@@ -109,7 +113,7 @@ export default function HomeScreen({ navigation }) {
               <EventCard
                 key={event.id}
                 event={event}
-                onPress={() => navigation.navigate('EventDetail', { event })}
+                onPress={() => navigation.navigate('EventDetail', { eventId: event.id, event })}
               />
             ))}
           </ScrollView>
@@ -127,7 +131,7 @@ export default function HomeScreen({ navigation }) {
 
               {tickets.slice(0, 3).map((t) => (
                 <TouchableOpacity
-                  key={t.id}
+                  key={t.numero || t.id}
                   style={styles.ticketCard}
                   onPress={() => navigation.navigate('Ticket', { ticket: t })}
                   activeOpacity={0.7}

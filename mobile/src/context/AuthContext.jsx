@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect } from 'react'
 import { Alert } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as LocalAuthentication from 'expo-local-authentication'
+import { nettoyerDonneesLegacy } from '../utils/cleanupLegacyData'
 const AuthContext = createContext(null)
 
 // Clés de stockage permanent (AsyncStorage)
@@ -24,8 +25,9 @@ export function AuthProvider({ children }) {
   const [hasSavedSession, setHasSavedSession] = useState(false)
   const [sessionEmail, setSessionEmail] = useState(null)
 
-  // Au démarrage : restaure la session depuis AsyncStorage
+  // Au démarrage : nettoie les données legacy et restaure la session
   useEffect(() => {
+    nettoyerDonneesLegacy()
     restaurerSession()
   }, [])
 

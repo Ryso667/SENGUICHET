@@ -6,12 +6,15 @@ import { appelAPI } from './apiService'
 // Appelle POST /api/billets/acheter
 // body : { evenement_id, categorie_ticket_id, telephone }
 // Retourne { billet: { id, uuid, numero, prix_paye, qrData, statut }, transaction: { reference, montant, statut } }
+// Achète un billet via le backend
+// Les champs du body doivent correspondre aux clés camelCase attendues par le contrôleur
+// evenementId, categorieTicketId — les underscores ne sont pas reconnus par Express
 export async function acheterBillet(evenementId, categorieTicketId, telephone) {
   return await appelAPI('/billets/acheter', {
     method: 'POST',
     body: {
-      evenement_id: evenementId,
-      categorie_ticket_id: categorieTicketId,
+      evenementId,
+      categorieTicketId,
       telephone,
     },
   })
@@ -29,11 +32,11 @@ export async function mesBillets(telephone) {
     uuid: b.uuid || '',
     eventNom: b.evenement_titre || '',
     eventDate: b.date_debut || '',
-    eventLieu: b.lieu || '',
+    eventLieu: b.evenement_lieu || '',
     categorie: b.categorie_nom || '',
-    numero: b.numero || '',
+    numero: b.numero || `TKT-${b.id}`,
     prix: b.prix_paye || 0,
-    statut: (b.statut_billet || 'EN_ATTENTE').toLowerCase(),
+    statut: (b.statut || 'EN_ATTENTE').toLowerCase(),
     telephone: b.telephone_acheteur || telephone,
     dateAchat: b.date_creation || '',
     qrData: b.payload_signature ? JSON.stringify({

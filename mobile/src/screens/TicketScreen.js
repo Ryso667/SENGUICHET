@@ -67,13 +67,14 @@ async function genererQRPayload(ticket) {
 
 export default function TicketScreen({ route, navigation }) {
   const { ticket } = route.params
-  const [qrValue, setQrValue] = useState(ticket.qrData || null)
+  const [qrValue, setQrValue] = useState(null)
+  const [qrReady, setQrReady] = useState(false)
   const [exporting, setExporting] = useState(false)
   const intervalRef = useRef(null)
   const qrRef = useRef(null)
 
   useEffect(() => {
-    genererQRPayload(ticket).then(setQrValue)
+    genererQRPayload(ticket).then((v) => { setQrValue(v); setQrReady(true) })
     intervalRef.current = setInterval(async () => {
       const nouveauPayload = await genererQRPayload(ticket)
       setQrValue(nouveauPayload)
@@ -107,7 +108,8 @@ export default function TicketScreen({ route, navigation }) {
 
   const isScanned = ticket.statut === 'utilise'
   const organisateurNom = 'SENGUICHET'
-  const dateStr = formatDateTicket(ticket.eventDate)
+  const dateStr = formatDateTicket(ticket.eventDate || ticket.dateAchat)
+  const eventNom = ticket.eventNom || ticket.evenement
   const scannedStr = ticket.dateScan ? formatDatetimeLong(ticket.dateScan) : null
 
   return (
@@ -133,7 +135,7 @@ export default function TicketScreen({ route, navigation }) {
             <Text style={s.dash}>{DASHES}</Text>
 
             {/* 2. Nom de l'événement */}
-            <Text style={s.eventName}>{ticket.eventNom?.toUpperCase() || 'ÉVÉNEMENT'}</Text>
+            <Text style={s.eventName}>{eventNom?.toUpperCase() || 'ÉVÉNEMENT'}</Text>
             <Text style={s.dash}>{DASHES}</Text>
 
             {/* 3. Date, heure et lieu */}
@@ -149,15 +151,21 @@ export default function TicketScreen({ route, navigation }) {
             {/* 5. QR Code avec overlay si scanné */}
             <View style={s.qrSection}>
               <View style={s.qrWrapper}>
-                <QRCode
-                  value={qrValue}
-                  size={200}
-                  backgroundColor="white"
-                  color="#0f172a"
-                  ecl="H"
-                  quietZone={8}
-                  getRef={(c) => { qrRef.current = c }}
-                />
+                {qrReady ? (
+                  <QRCode
+                    value={qrValue}
+                    size={200}
+                    backgroundColor="white"
+                    color="#0f172a"
+                    ecl="H"
+                    quietZone={8}
+                    getRef={(c) => { qrRef.current = c }}
+                  />
+                ) : (
+                  <View style={s.qrPlaceholder}>
+                    <ActivityIndicator size="small" color={colors.accent} />
+                  </View>
+                )}
                 {isScanned && (
                   <View style={s.scannedOverlay}>
                     <View style={s.redCircle}>
@@ -324,6 +332,12 @@ const s = StyleSheet.create({
     padding: spacing.sm,
     backgroundColor: colors.white,
     borderRadius: borderRadius.sm,
+  },
+  qrPlaceholder: {
+    width: 200,
+    height: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scannedOverlay: {
     position: 'absolute',

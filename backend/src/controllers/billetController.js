@@ -38,6 +38,33 @@ const acheter = async (req, res) => {
 
     const montantTotal = cat.prix * quantite;
 
+    // Anti-doublon : si le mobile appelle 2× (StrictMode, retry...), on ne crée pas 2 billets
+    const [recent] = await pool.query(
+      `SELECT b.id, b.uuid, b.numero, b.prix_paye AS prix, e.titre AS evenement, ct.nom AS categorie, b.date_creation AS dateAchat, b.payload_signature
+       FROM billet b
+       JOIN evenement e ON e.id = b.evenement_id
+       JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+       WHERE b.evenement_id = ? AND b.categorie_ticket_id = ? AND b.telephone_acheteur = ? AND b.statut = 'ACTIF' AND b.date_creation > DATE_SUB(NOW(), INTERVAL 5 SECOND)
+       LIMIT 1`,
+      [evenementId, categorieTicketId, telephone]
+    );
+    if (recent.length > 0) {
+      const existing = recent[0];
+      return res.status(200).json({
+        billet: {
+          id: existing.id,
+          uuid: existing.uuid,
+          numero: existing.numero,
+          prix: existing.prix,
+          evenement: existing.evenement,
+          categorie: existing.categorie,
+          dateAchat: existing.dateAchat,
+          qrPayload: existing.payload_signature,
+        },
+        paiement: { reference: existing.id + '-dup', redirectUrl: null, referenceOperateur: null, provider: 'DUPLICATE' },
+      });
+    }
+
     const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
@@ -52,18 +79,24 @@ const acheter = async (req, res) => {
       const payload_signature = crypto.createHmac('sha256', HMAC_SECRET).update(signaturePayload).digest('hex');
 
       const [billetResult] = await conn.query(
-        `INSERT INTO billet (uuid, evenement_id, categorie_ticket_id, telephone_acheteur, payload_signature, prix_paye, statut)
-         VALUES (?, ?, ?, ?, ?, ?, 'EN_ATTENTE')`,
-        [uuid, evenementId, categorieTicketId, telephone, payload_signature, montantTotal]
+        `INSERT INTO billet (uuid, numero, evenement_id, categorie_ticket_id, telephone_acheteur, payload_signature, prix_paye, statut)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIF')`,
+        [uuid, numero, evenementId, categorieTicketId, telephone, payload_signature, montantTotal]
       );
 
       const billetId = billetResult.insertId;
+
+      // Réserver les places immédiatement
+      await conn.query(
+        "UPDATE categorie_ticket SET places_disponibles = places_disponibles - ? WHERE id = ? AND places_disponibles >= ?",
+        [quantite, categorieTicketId, quantite]
+      );
 
       // Créer la transaction
       const reference = 'PAI-' + uuidv4().slice(0, 12).toUpperCase();
       await conn.query(
         `INSERT INTO transaction (reference, billet_id, montant, frais, devise, statut, moyen_paiement, telephone_payeur)
-         VALUES (?, ?, ?, 0, 'FCFA', 'PENDING', ?, ?)`,
+         VALUES (?, ?, ?, 0, 'FCFA', 'SUCCESS', ?, ?)`,
         [reference, billetId, montantTotal, provider, telephone]
       );
 
@@ -142,7 +175,7 @@ const mesBillets = async (req, res) => {
     if (!telephone) return res.status(400).json({ message: "Paramètre téléphone requis" });
 
     const [rows] = await pool.query(
-      `SELECT b.id, b.uuid, b.prix_paye, b.statut, b.payload_signature, b.date_creation,
+      `SELECT b.id, b.uuid, b.numero, b.prix_paye, b.statut, b.payload_signature, b.date_creation, b.telephone_acheteur,
         e.titre AS evenement_titre, e.lieu AS evenement_lieu, e.date_debut,
         ct.nom AS categorie_nom, ct.prix AS categorie_prix
       FROM billet b
@@ -153,7 +186,7 @@ const mesBillets = async (req, res) => {
       [telephone]
     );
 
-    res.json(rows);
+    res.json(rows.map(r => ({ ...r, statut: r.statut.toLowerCase() })));
   } catch (err) {
     console.error("Mes billets error:", err);
     res.status(500).json({ message: "Erreur" });
