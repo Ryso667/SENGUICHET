@@ -5,7 +5,7 @@ import { Animated, Text, TouchableOpacity, View, StyleSheet } from 'react-native
 import { colors, fonts, spacing } from '../constants/theme'
 
 // État vide avec animation de fondu au montage
-// Props : icon (string, emoji), title (string), subtitle (string, optionnel),
+// Props : icon (string emoji ou élément React), title (string), subtitle (string, optionnel),
 //         actionLabel (string, optionnel), onAction (function, optionnel)
 export default function EmptyState({ icon, title, subtitle, actionLabel, onAction }) {
   const opacity = useRef(new Animated.Value(0)).current
@@ -20,7 +20,11 @@ export default function EmptyState({ icon, title, subtitle, actionLabel, onActio
 
   return (
     <Animated.View style={[styles.container, { opacity }]}>
-      {icon && <Text style={styles.icon}>{icon}</Text>}
+      {icon && typeof icon === 'string' ? (
+        <Text style={styles.icon}>{icon}</Text>
+      ) : (
+        icon
+      )}
       <Text style={styles.title}>{title}</Text>
       {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
       {actionLabel && onAction && (

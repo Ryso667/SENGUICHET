@@ -2,7 +2,7 @@
 // En mode démo, n'importe quel email/mdp fonctionne
 import { useState } from 'react'
 import {
-  View, Text, TextInput,
+  View, Text, TextInput, TouchableOpacity,
   KeyboardAvoidingView, Platform, ScrollView, StyleSheet,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -24,9 +24,9 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
     setChargement(true)
     try {
       const reponse = await connecterOrganisateur(email, mdp)
-      await connecter(reponse.token, email)
-    } catch {
-      alert('Email ou mot de passe incorrect')
+      await connecter(reponse.token, reponse.user)
+    } catch (err) {
+      alert(err?.message || 'Email ou mot de passe incorrect')
     } finally {
       setChargement(false)
     }
@@ -82,6 +82,14 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
             desactive={!email || !mdp}
             onPress={handleConnexion}
           />
+
+          {/* Lien vers l'inscription organisateur */}
+          <View style={styles.inscriptionRow}>
+            <Text style={styles.inscriptionText}>Pas encore de compte ?{' '}</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('InscriptionOrganisateur')}>
+              <Text style={styles.inscriptionLink}>S'inscrire</Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -124,6 +132,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.slate,
     marginBottom: 6,
+  },
+  inscriptionRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  inscriptionText: {
+    fontFamily: 'Outfit_400Regular',
+    fontSize: 13,
+    color: colors.mid,
+  },
+  inscriptionLink: {
+    fontFamily: 'Outfit_600SemiBold',
+    fontSize: 13,
+    color: colors.accent,
   },
   input: {
     backgroundColor: colors.white,

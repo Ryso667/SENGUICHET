@@ -1,5 +1,5 @@
 // Barre de navigation inférieure premium pour l'acheteur
-// Onglet actif : icône dans un cercle dégradé Indigo→Rose
+// Onglet actif : icône dans un cercle dégradé Cyan→Bleu
 // Onglets inactifs : icône grise simple
 // S'adapte à la route courante pour la surbrillance
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
@@ -31,7 +31,7 @@ export default function BottomNav() {
           >
             {active ? (
               <LinearGradient
-                colors={['#6366F1', '#EC4899']}
+                colors={['#00C8FF', '#0077FF']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.activeIcon}
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   activeLabel: {
-    color: '#6366F1',
+    color: '#00C8FF',
     fontFamily: fonts.jakarta.semiBold,
   },
 })

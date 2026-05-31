@@ -1,147 +1,95 @@
-// Écran de consultation des tickets par événement (organisateur)
-// Recherche par code événement à 4 chiffres, affiche la liste avec statuts
+// Consultation des tickets d'un événement (lecture seule)
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { colors, glass, shadows, spacing, borderRadius, fonts } from '../../constants/theme'
-import { getAllEvenements, getTicketsByEvent } from '../../services/eventService'
-import { formaterDateLisible } from '../../utils/dateUtils'
+import { View, Text, StyleSheet, ScrollView } from 'react-native'
+import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
+import { fetchEvenementDetailAPI } from '../../services/eventService'
+import Skeleton from '../../components/Skeleton'
 
-const LAST_EVENT_KEY = '@senguichet_org_last_event_id'
-
-// Badge coloré selon le statut du ticket
 const STATUS_BADGE = {
-  valide: { label: 'Valide', bg: colors.greenLight, color: colors.green },
-  utilise: { label: 'Utilisé', bg: '#F1F5F9', color: colors.mid },
-  expire: { label: 'Expiré', bg: '#FEF2F2', color: colors.red },
+  valide: { label: 'Valide', color: '#00E5A0', bg: '#D1FAE5' },
+  utilise: { label: 'Utilisé', color: '#64748b', bg: '#F1F5F9' },
+  expire: { label: 'Expiré', color: '#EF4444', bg: '#FEE2E2' },
 }
 
-export default function VoirTicketsScreen({ route, navigation }) {
+export default function VoirTicketsScreen({ route }) {
   const { eventId } = route.params || {}
-  const [code, setCode] = useState('')
-  const [event, setEvent] = useState(null)
+  const [evenement, setEvenement] = useState(null)
   const [tickets, setTickets] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  // Si un eventId est passé en paramètre, charge directement l'événement
   useEffect(() => {
-    if (eventId) {
-      loadEvent(eventId)
-      sauvegarderDernierChoix(eventId)
-    } else {
-      restaurerDernierChoix()
-    }
+    if (eventId) charger()
   }, [eventId])
 
-  async function sauvegarderDernierChoix(id) {
-    await AsyncStorage.setItem(LAST_EVENT_KEY, id)
-  }
-
-  async function restaurerDernierChoix() {
-    const saved = await AsyncStorage.getItem(LAST_EVENT_KEY)
-    if (saved) loadEvent(saved)
-  }
-
-  async function loadEvent(id) {
-    const events = await getAllEvenements()
-    const evt = events.find(e => e.id === id)
-    if (evt) {
-      setEvent(evt)
-      const t = await getTicketsByEvent(id)
-      setTickets(t)
+  async function charger() {
+    setLoading(true)
+    try {
+      const data = await fetchEvenementDetailAPI(eventId)
+      setEvenement(data.evenement || data)
+      setTickets(data.tickets || [])
+    } catch {
+      // Backend requis
     }
+    setLoading(false)
   }
 
-  // Recherche un événement par son code 4 chiffres (généré par eventService.creerEvenement)
-  async function handleSearch() {
-    const events = await getAllEvenements()
-    const evt = events.find(e => e.code === code)
-    if (!evt) {
-      Alert.alert('Introuvable', 'Aucun événement avec ce code')
-      return
-    }
-    setEvent(evt)
-    const t = await getTicketsByEvent(evt.id)
-    setTickets(t)
-    await sauvegarderDernierChoix(evt.id)
+  if (loading) {
+    return (
+      <View style={s.container}>
+        <Skeleton type="card" count={5} />
+      </View>
+    )
   }
 
   return (
-    <ScrollView style={s.container}>
-      <TouchableOpacity style={s.backBtn} onPress={() => navigation.navigate('Dashboard')}>
-        <Text style={s.backBtnText}>← Retour</Text>
-      </TouchableOpacity>
-
-      {!event && (
-        <View style={s.searchSection}>
-          <Text style={s.searchTitle}>Code événement</Text>
-          <TextInput style={s.codeInput} placeholder="0000"
-            value={code} onChangeText={setCode} keyboardType="number-pad" maxLength={4} />
-          <TouchableOpacity style={s.searchBtn} onPress={handleSearch}>
-            <Text style={s.searchBtnText}>Rechercher</Text>
-          </TouchableOpacity>
+    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
+      {evenement && (
+        <View style={s.eventInfo}>
+          <Text style={s.eventName}>{evenement.nom}</Text>
+          <Text style={s.ticketCount}>{tickets.length} billet(s)</Text>
         </View>
       )}
 
-      {event && (
-        <>
-          <View style={s.eventInfo}>
-            <Text style={s.eventName}>{event.nom}</Text>
-            <Text style={s.eventDate}>{formaterDateLisible(event.date)}</Text>
-            <Text style={s.ticketCount}>{tickets.length} ticket(s)</Text>
-          </View>
-
-          {tickets.length === 0 ? (
-            <Text style={s.empty}>Aucun ticket pour cet événement</Text>
-          ) : (
-            tickets.map(t => {
-              const badge = STATUS_BADGE[t.statut] || STATUS_BADGE.valide
-              return (
-                <View key={t.id} style={s.ticketRow}>
-                  <Text style={s.ticketNumero}>{t.numero}</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={s.ticketCategorie}>{t.categorie}</Text>
-                    <Text style={s.ticketTel}>{t.telephone}</Text>
-                  </View>
-                  <View style={[s.badge, { backgroundColor: badge.bg }]}>
-                    <Text style={[s.badgeText, { color: badge.color }]}>{badge.label}</Text>
-                  </View>
-                </View>
-              )
-            })
-          )}
-        </>
+      {tickets.length === 0 ? (
+        <Text style={s.empty}>Aucun billet pour cet événement</Text>
+      ) : (
+        tickets.map(t => {
+          const badge = STATUS_BADGE[t.statut] || STATUS_BADGE.valide
+          return (
+            <View key={t.id} style={s.ticketRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={s.ticketNumero}>{t.numero || t.id?.toString()?.slice(0, 8) || '-'}</Text>
+                <Text style={s.ticketCategorie}>{t.categorie || 'Standard'}</Text>
+                <Text style={s.ticketTel}>{t.telephone || t.telephoneAcheteur || '-'}</Text>
+              </View>
+              <Text style={s.ticketPrix}>{t.prix || 0} FCFA</Text>
+              <View style={[s.badge, { backgroundColor: badge.bg }]}>
+                <Text style={[s.badgeText, { color: badge.color }]}>{badge.label}</Text>
+              </View>
+            </View>
+          )
+        })
       )}
+      <View style={{ height: 40 }} />
     </ScrollView>
   )
 }
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg, padding: spacing.lg },
-  backBtn: { marginBottom: spacing.md },
-  backBtnText: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.accent },
-  searchSection: { paddingTop: spacing.xl, alignItems: 'center' },
-  searchTitle: { fontSize: 20, fontFamily: fonts.outfit.bold, color: colors.slate },
-  codeInput: {
-    ...glass, width: 120, height: 60, borderRadius: borderRadius.lg, marginTop: spacing.md,
-    textAlign: 'center', fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.slate, ...shadows.sm,
-  },
-  searchBtn: {
-    backgroundColor: colors.accent, paddingVertical: spacing.sm, paddingHorizontal: spacing.xl,
-    borderRadius: borderRadius.lg, marginTop: spacing.md,
-  },
-  searchBtnText: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: colors.white },
   eventInfo: { marginBottom: spacing.lg },
-  eventName: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.slate },
-  eventDate: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: 4 },
-  ticketCount: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent, marginTop: spacing.sm },
-  empty: { textAlign: 'center', fontSize: 16, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: spacing.xl },
+  eventName: { fontSize: 22, fontFamily: fonts.outfit.bold, color: colors.slate },
+  ticketCount: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent, marginTop: 4 },
+  empty: { textAlign: 'center', fontSize: 16, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: 60 },
   ticketRow: {
-    flexDirection: 'row', alignItems: 'center', ...glass, borderRadius: borderRadius.lg,
-    padding: spacing.md, marginBottom: spacing.sm, ...shadows.sm,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: borderRadius.lg,
+    padding: spacing.md, marginBottom: spacing.sm, elevation: 2,
+    shadowColor: '#00C8FF', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8,
   },
-  ticketNumero: { fontSize: 12, fontFamily: fonts.outfit.bold, color: colors.accent, width: 90 },
-  ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.slate },
+  ticketNumero: { fontSize: 12, fontFamily: fonts.outfit.bold, color: colors.accent },
+  ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.slate, marginTop: 2 },
   ticketTel: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: 2 },
-  badge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: borderRadius.sm },
+  ticketPrix: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.slate, marginRight: spacing.sm },
+  badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
   badgeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold },
 })

@@ -10,7 +10,7 @@ export default function ControleurDashboardScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.conteneur}>
-        <Feather name="shield" size={48} color="#6366F1" />
+        <Feather name="shield" size={48} color="#00C8FF" />
         <Text style={styles.titre}>Mode Contrôleur</Text>
         <Text style={styles.sousTitre}>Connecté avec succès</Text>
 
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#ef4444',
+    backgroundColor: '#FF4D6D',
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 28,

@@ -60,7 +60,7 @@ const lister = async (req, res) => {
       `SELECT e.*,
         COALESCE(SUM(ct.places_disponibles), 0) AS places_restantes,
         COALESCE(SUM(ct.capacite), 0) AS capacite_billets,
-        (SELECT COALESCE(SUM(b.prix_paye), 0) FROM billet b JOIN categorie_ticket ct2 ON b.categorie_ticket_id = ct2.id WHERE ct2.evenement_id = e.id) AS revenus
+        (SELECT COALESCE(SUM(b.prix_paye), 0) FROM billet b JOIN categorie_ticket ct2 ON b.categorie_ticket_id = ct2.id WHERE ct2.evenement_id = e.id AND b.statut = 'ACTIF') AS revenus
       FROM evenement e
       LEFT JOIN categorie_ticket ct ON ct.evenement_id = e.id
       WHERE e.organisateur_id = ? AND e.statut != 'annule'
@@ -85,6 +85,7 @@ const lister = async (req, res) => {
         capacite: r.capacite_billets || r.capacite_totale,
         revenus: `${parseInt(r.revenus || 0).toLocaleString()} FCFA`,
         statut,
+        code: r.scan_code || '',
         img: `/images/event-${(r.id % 3) + 1}.jpg`,
       };
     });
@@ -104,7 +105,36 @@ const detail = async (req, res) => {
 
     const [tickets] = await pool.query("SELECT * FROM categorie_ticket WHERE evenement_id = ?", [id]);
 
-    res.json({ evenement: rows[0], tickets });
+    // Stats des billets vendus (uniquement ACTIF = payés)
+    const [ventes] = await pool.query(
+      `SELECT
+        COALESCE(COUNT(*), 0) AS total_vendus,
+        COALESCE(SUM(b.prix_paye), 0) AS revenus
+      FROM billet b
+      JOIN categorie_ticket ct ON b.categorie_ticket_id = ct.id
+      WHERE ct.evenement_id = ? AND b.statut = 'ACTIF'`,
+      [id]
+    );
+
+    const capacite_billets = tickets.reduce((s, t) => s + t.capacite, 0);
+    const places_restantes = tickets.reduce((s, t) => s + t.places_disponibles, 0);
+    const remplis = capacite_billets - places_restantes;
+    const taux_remplissage = capacite_billets > 0
+      ? Math.round((remplis / capacite_billets) * 100)
+      : 0;
+
+    res.json({
+      evenement: rows[0],
+      tickets,
+      stats: {
+        capacite_billets,
+        places_restantes,
+        billets_vendus: ventes[0].total_vendus,
+        revenus: ventes[0].revenus,
+        remplis,
+        taux_remplissage,
+      },
+    });
   } catch (err) {
     console.error("Detail evenement error:", err);
     res.status(500).json({ message: "Erreur" });
@@ -284,5 +314,61 @@ const adminDetail = async (req, res) => {
   }
 };
 
-module.exports = { creer, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail };
+// Liste les événements publics avec statut='actif' et date_fin >= NOW
+// Accessible sans authentification — uniquement les événements validés par l'admin
+const listerPublic = async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT e.id, e.titre, e.description, e.lieu, e.ville, e.categorie,
+        e.date_debut, e.date_fin, e.capacite_totale, e.affiche_url,
+        (SELECT MIN(ct.prix) FROM categorie_ticket ct WHERE ct.evenement_id = e.id) AS prix_min,
+        (SELECT MAX(ct.prix) FROM categorie_ticket ct WHERE ct.evenement_id = e.id) AS prix_max
+      FROM evenement e
+      WHERE e.statut = 'actif' AND (e.date_fin IS NULL OR e.date_fin >= NOW())
+      ORDER BY e.date_debut ASC`
+    );
+
+    res.json(rows.map(r => ({
+      id: r.id,
+      titre: r.titre,
+      description: r.description,
+      lieu: r.lieu,
+      ville: r.ville,
+      categorie: r.categorie,
+      date_debut: r.date_debut,
+      date_fin: r.date_fin,
+      capacite_totale: r.capacite_totale,
+      affiche_url: r.affiche_url,
+      prix_min: r.prix_min || 0,
+      prix_max: r.prix_max || 0,
+    })));
+  } catch (err) {
+    console.error("Lister public error:", err);
+    res.status(500).json({ message: "Erreur" });
+  }
+};
+
+// Détail public d'un événement avec ses catégories de billets
+const detailPublic = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [rows] = await pool.query(
+      "SELECT id, titre, description, lieu, ville, categorie, date_debut, date_fin, capacite_totale, affiche_url FROM evenement WHERE id = ? AND statut = 'actif'",
+      [id]
+    );
+    if (!rows.length) return res.status(404).json({ message: "Événement introuvable" });
+
+    const [tickets] = await pool.query(
+      "SELECT id, nom, description, prix, capacite, places_disponibles FROM categorie_ticket WHERE evenement_id = ?",
+      [id]
+    );
+
+    res.json({ evenement: rows[0], categories: tickets });
+  } catch (err) {
+    console.error("Detail public error:", err);
+    res.status(500).json({ message: "Erreur" });
+  }
+};
+
+module.exports = { creer, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic };
 

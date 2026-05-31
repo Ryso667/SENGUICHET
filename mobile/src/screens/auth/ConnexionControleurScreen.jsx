@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   retour: {
     fontFamily: 'Outfit_500Medium',
     fontSize: 15,
-    color: '#6366F1',
+    color: '#00C8FF',
     marginBottom: 16,
   },
   titre: {

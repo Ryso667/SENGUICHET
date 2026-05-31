@@ -18,6 +18,18 @@ async function migrate() {
   try {
     console.log("⏳ Migration en cours...");
     await connection.query(sql);
+
+    try {
+      await connection.query(`
+        ALTER TABLE billet
+        ADD COLUMN IF NOT EXISTS statut ENUM('EN_ATTENTE','ACTIF','UTILISE','REMBOURSE') NOT NULL DEFAULT 'EN_ATTENTE'
+        AFTER est_utilise
+      `);
+      console.log("✅ Colonne statut ajoutée à billet");
+    } catch (e) {
+      // Ignorer si colonne existe déjà
+    }
+
     console.log("✅ Base de données migrée avec succès");
   } catch (err) {
     console.error("❌ Erreur migration:", err.message);

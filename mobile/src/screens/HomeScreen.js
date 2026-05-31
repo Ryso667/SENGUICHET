@@ -3,111 +3,53 @@
 import { useEffect, useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { Feather } from '@expo/vector-icons'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
-import { useTickets } from '../hooks/useTickets'
 import EventCard from '../components/EventCard'
 import BuyerLayout from '../components/BuyerLayout'
 import { getDefaultImage } from '../config/images'
 import { formaterBadgeDate, formaterDateLisible } from '../utils/dateUtils'
+import { fetchEvenementsPublics } from '../services/eventService'
+import { mesBillets } from '../services/billetService'
 
 const STATUTS = {
-  valide: { label: 'VALIDE', color: '#059669', dot: '#059669' },
+  actif: { label: 'VALIDE', color: '#059669', dot: '#059669' },
+  en_attente: { label: 'EN ATTENTE', color: '#f59e0b', dot: '#f59e0b' },
   utilise: { label: 'UTILISÉ', color: '#64748b', dot: '#64748b' },
-  expire: { label: 'EXPIRÉ', color: '#dc2626', dot: '#dc2626' },
+  rembourse: { label: 'REMBOURSÉ', color: '#dc2626', dot: '#dc2626' },
 }
 
-// Sera remplacé par API : événements mockés en attente du backend
-const MOCKS = [
-  {
-    id: 'dmf-2026', title: 'Dakar Music Festival',
-    month: 'MAI', day: '24', emoji: '🎶', bg: '#6d28d9',
-    priceLabel: '5 000F – 15 000F',
-    location: 'Monument Renaissance',
-    category: 'Concert', date: '24 Mai 2026', time: '19h00',
-    desc: 'Le plus grand festival de musique à Dakar.',
-    tickets: [
-      { id: 'standard', name: 'Entrée Standard', price: 5000, desc: 'Générale' },
-      { id: 'vip', name: 'VIP Carré Or', price: 15000, desc: 'Vue scène + Boisson' },
-    ],
-  },
-  {
-    id: 'starlight', title: 'Soirée Starlight',
-    month: 'JUIN', day: '02', emoji: '✨', bg: '#0284c7',
-    priceLabel: '10 000F',
-    location: 'Grand Théâtre',
-    category: 'Soirée', date: '02 Juin 2026', time: '21h00',
-    desc: 'Une soirée magique sous les étoiles.',
-    tickets: [
-      { id: 'standard', name: 'Entrée Standard', price: 10000, desc: 'Accès soirée' },
-    ],
-  },
-]
-
-// Transforme un événement stocké (AsyncStorage) au format d'affichage HomeScreen
-// Sera remplacé par API : mapping backend → UI
-function formaterEvenement(e) {
-  if (e.tickets) return e
-  const def = getDefaultImage(e.categorie)
+function formaterPourEventCard(e) {
+  const def = getDefaultImage(e.category)
   const { day, month } = formaterBadgeDate(e.date)
-  const prices = (e.categories || []).map(c => c.prix).filter(p => p != null)
-  const min = prices.length ? Math.min(...prices) : 0
-  const max = prices.length ? Math.max(...prices) : 0
-  const priceLabel = prices.length > 1 ? `${min.toLocaleString()}F – ${max.toLocaleString()}F`
-    : prices.length === 1 ? `${min.toLocaleString()}F`
+  const time = e.date ? new Date(e.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
+  const priceLabel = e.priceMin > 0
+    ? `${e.priceMin.toLocaleString()}F${e.priceMax > e.priceMin ? ` – ${e.priceMax.toLocaleString()}F` : ''}`
     : '—'
   return {
-    id: e.id, title: e.nom || '', month, day,
-    emoji: def.emoji, bg: def.bg, priceLabel,
-    location: e.lieu || '', category: e.categorie || '',
-    date: e.date || '', time: e.heure || '', desc: e.description || '',
-    tickets: (e.categories || []).map(c => ({ id: c.id, name: c.nom, price: c.prix, desc: '' })),
+    ...e,
+    month, day, bg: def.bg, emoji: def.emoji, time, priceLabel,
   }
 }
 
 export default function HomeScreen({ navigation }) {
-  const [evenements, setEvenements] = useState(MOCKS)
-  const { tickets, refresh } = useTickets()
-  const { deconnecter } = useAuth()
+  const [evenements, setEvenements] = useState([])
+  const [tickets, setTickets] = useState([])
+  const { deconnecter, numeroTel } = useAuth()
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
-      refresh()
-      try {
-        const raw = await AsyncStorage.getItem('@senguichet_evenements')
-        const stored = raw ? JSON.parse(raw) : []
-        const uniques = []
-        const seenIds = new Set()
-        for (const s of stored) {
-          if (!seenIds.has(s.id)) { seenIds.add(s.id); uniques.push(s) }
-        }
-        const formats = uniques.map(e => {
-          const f = formaterEvenement(e)
-          // Migration : comble les champs manquants depuis les MOCKS
-          // (événements sauvegardés avant l'ajout de lieu, heure, desc, catégorie)
-          if (!f.time || !f.location || !f.desc) {
-            const mock = MOCKS.find(m => m.id === f.id)
-            if (mock) {
-              if (!f.time) f.time = mock.time
-              if (!f.location) f.location = mock.location
-              if (!f.desc) f.desc = mock.desc
-              if (!f.emoji || f.emoji === '📅') f.emoji = mock.emoji
-              if (f.bg === '#6366F1') f.bg = mock.bg
-            }
-          }
-          return f
-        })
-        const mocksUniques = MOCKS.filter(m => !seenIds.has(m.id))
-        setEvenements([...formats, ...mocksUniques])
-      } catch (e) {
-        console.warn('Failed to load events', e)
+      if (numeroTel) {
+        const data = await mesBillets(numeroTel)
+        setTickets(data || [])
       }
+      const events = await fetchEvenementsPublics()
+      setEvenements(events.map(formaterPourEventCard))
     })
     return unsubscribe
-  }, [navigation, refresh])
+  }, [navigation, numeroTel])
 
   return (
     <BuyerLayout>
@@ -116,7 +58,7 @@ export default function HomeScreen({ navigation }) {
           {/* En-tête avec logo et déconnexion */}
           <View style={styles.header}>
             <View>
-              <LinearGradient colors={['#6366F1', '#EC4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.logoGradient}>
+              <LinearGradient colors={['#00C8FF', '#0077FF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.logoGradient}>
                 <Text style={styles.logoText}>SENGUICHET</Text>
               </LinearGradient>
               <Text style={styles.welcome}>
@@ -143,7 +85,7 @@ export default function HomeScreen({ navigation }) {
 
           {/* CTA principal premium */}
           <TouchableOpacity style={styles.heroCta} activeOpacity={0.9} onPress={() => navigation.navigate('EventSearch')}>
-            <LinearGradient colors={['#6366F1', '#EC4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroGradient}>
+            <LinearGradient colors={['#00C8FF', '#0077FF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroGradient}>
               <View style={styles.heroRow}>
                 <View style={styles.heroIcon}>
                   <Feather name="shopping-cart" size={20} color="#fff" />
@@ -171,7 +113,7 @@ export default function HomeScreen({ navigation }) {
               <EventCard
                 key={event.id}
                 event={event}
-                onPress={() => navigation.navigate('EventDetail', { event })}
+                onPress={() => navigation.navigate('EventDetail', { eventId: event.id, event })}
               />
             ))}
           </ScrollView>
@@ -189,13 +131,13 @@ export default function HomeScreen({ navigation }) {
 
               {tickets.slice(0, 3).map((t) => (
                 <TouchableOpacity
-                  key={t.id}
+                  key={t.numero || t.id}
                   style={styles.ticketCard}
                   onPress={() => navigation.navigate('Ticket', { ticket: t })}
                   activeOpacity={0.7}
                 >
-                  <LinearGradient colors={['#ECFDF5', '#D1FAE5']} style={styles.ticketEmojiBox}>
-                    <Text style={styles.ticketEmoji}>🎫</Text>
+                  <LinearGradient colors={['#E0FFF0', '#D1FAE5']} style={styles.ticketEmojiBox}>
+                    <MaterialCommunityIcons name="ticket-outline" size={20} color="#16a34a" />
                   </LinearGradient>
                   <View style={styles.ticketInfo}>
                     <Text style={styles.ticketTitle}>{t.eventNom}</Text>

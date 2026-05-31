@@ -40,7 +40,7 @@ export default function SupportScreen() {
               activeOpacity={0.7}
               disabled={!item.action}
             >
-              <LinearGradient colors={['#EEF2FF', '#FDF2F8']} style={s.iconBox}>
+              <LinearGradient colors={['#E0F7FF', '#FDF2F8']} style={s.iconBox}>
                 <Feather name={item.icon} size={18} color={colors.accent} />
               </LinearGradient>
               <View style={s.cardText}>

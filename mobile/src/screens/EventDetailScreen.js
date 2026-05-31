@@ -1,6 +1,6 @@
 // Écran détail d'un événement avec sélection de catégorie et paiement
 // Inclut : bannière, infos, sélection ticket, saisie téléphone, double confirmation paiement
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   View, Text, ScrollView, TextInput,
   TouchableOpacity, StyleSheet, Alert, Modal,
@@ -10,8 +10,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { acheterTicket, getAllEvenements } from '../services/eventService'
+import { fetchEvenementDetailPublic } from '../services/eventService'
+import { ActivityIndicator } from 'react-native'
 import { useAuth } from '../context/AuthContext'
 import { formaterDateLisible } from '../utils/dateUtils'
 import BuyerLayout from '../components/BuyerLayout'
@@ -29,65 +29,70 @@ function formaterTelStocke(telComplet) {
 }
 
 export default function EventDetailScreen({ route, navigation }) {
-  const { event } = route.params
+  const { eventId } = route.params
   const { numeroTel } = useAuth()
-  const [selectedTicket, setSelectedTicket] = useState(event.tickets[1] || event.tickets[0])
+  const [event, setEvent] = useState(null)
+  const [selectedTicket, setSelectedTicket] = useState(null)
   const [phone, setPhone] = useState(() => formaterTelStocke(numeroTel))
   const [showCategorySheet, setShowCategorySheet] = useState(false)
+  const [error, setError] = useState(null)
+  const [retryCount, setRetryCount] = useState(0)
 
-  // Paiement avec double confirmation pour éviter les achats involontaires
-  // Sera remplacé par API : intégration Wave/Orange Money réelle
+  useEffect(() => {
+    (async () => {
+      try {
+        setError(null)
+        const data = await fetchEvenementDetailPublic(eventId)
+        if (!data) {
+          setError('Événement introuvable')
+          return
+        }
+        setEvent(data)
+        if (data.tickets.length > 0) {
+          setSelectedTicket(data.tickets[1] || data.tickets[0])
+        }
+      } catch (err) {
+        setError(err.message || 'Erreur de chargement')
+      }
+    })()
+  }, [eventId, retryCount])
+
   const handleBuy = () => {
-    const tel = `+221 ${phone.replace(/\s/g, '')}`
-    const prix = selectedTicket.price || selectedTicket.prix
-    Alert.alert(
-      'Confirmer le paiement',
-      `${selectedTicket.name} — ${prix?.toLocaleString() || '?'} FCFA\nTéléphone: ${tel}`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Confirmer',
-          onPress: async () => {
-            try {
-              // Si l'événement n'existe pas encore dans AsyncStorage, le créer avec ses catégories
-              // Sera remplacé par API : création côté serveur
-              const events = await getAllEvenements()
-              if (!events.find(e => e.id === event.id)) {
-                events.push({
-                  id: event.id,
-                  nom: event.title,
-                  date: event.date,
-                  lieu: event.location || '',
-                  heure: event.time || '',
-                  categorie: event.category || '',
-                  description: event.desc || '',
-                  poster: event.poster || '',
-                  categories: event.tickets.map(t => ({
-                    id: t.id,
-                    nom: t.name,
-                    prix: t.price,
-                    capacite: 999,
-                  })),
-                  ticketCount: 0,
-                  createdAt: new Date().toISOString(),
-                })
-                await AsyncStorage.setItem('@senguichet_evenements', JSON.stringify(events))
-              }
+    const tel = `+221${phone.replace(/\s/g, '')}`
+    navigation.navigate('Paiement', {
+      eventId: event.id,
+      eventTitle: event.title,
+      ticket: selectedTicket,
+      telephone: tel,
+    })
+  }
 
-              const ticket = await acheterTicket(event.id, selectedTicket.id, tel)
+  if (error) {
+    return (
+      <BuyerLayout>
+        <SafeAreaView style={styles.safe}>
+          <View style={styles.loadingContainer}>
+            <Feather name="alert-circle" size={32} color={colors.muted} />
+            <Text style={styles.loadingText}>{error}</Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={() => setRetryCount(c => c + 1)}>
+              <Text style={styles.retryText}>Réessayer</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </BuyerLayout>
+    )
+  }
 
-              Alert.alert('🎫 Paiement validé !', 'Votre Smart Ticket a été généré et enregistré localement.', [
-                {
-                  text: 'Voir mon ticket',
-                  onPress: () => navigation.replace('Ticket', { ticket }),
-                },
-              ])
-            } catch (err) {
-              Alert.alert('Erreur', err.message)
-            }
-          },
-        },
-      ]
+  if (!event) {
+    return (
+      <BuyerLayout>
+        <SafeAreaView style={styles.safe}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.accent} />
+            <Text style={styles.loadingText}>Chargement...</Text>
+          </View>
+        </SafeAreaView>
+      </BuyerLayout>
     )
   }
 
@@ -113,7 +118,7 @@ export default function EventDetailScreen({ route, navigation }) {
                   </View>
                   {!!event.location && (
                     <View style={styles.tag}>
-                      <Feather name="map-pin" size={9} color="#6366f1" />
+                      <Feather name="map-pin" size={9} color="#00C8FF" />
                       <Text style={styles.tagText}>{event.location}</Text>
                     </View>
                   )}
@@ -131,7 +136,7 @@ export default function EventDetailScreen({ route, navigation }) {
                 <Text style={styles.descText}>{event.desc}</Text>
               </View>
 
-              <LinearGradient colors={['#EEF2FF', '#FDF2F8']} style={styles.noAccount}>
+              <LinearGradient colors={['#E0F7FF', '#FDF2F8']} style={styles.noAccount}>
                 <Feather name="zap" size={14} color={colors.accent} />
                 <Text style={styles.noAccountText}>
                   <Text style={styles.noAccountStrong}>Aucune inscription requise.</Text> Saisis ton numéro Wave ou Orange Money.
@@ -227,7 +232,7 @@ export default function EventDetailScreen({ route, navigation }) {
 
           <View style={styles.bottomBar}>
             <TouchableOpacity style={styles.buyBtn} onPress={handleBuy} activeOpacity={0.9}>
-              <LinearGradient colors={['#6366F1', '#EC4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.buyGradient}>
+              <LinearGradient colors={['#00C8FF', '#0077FF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.buyGradient}>
                 <Feather name="shopping-cart" size={15} color="#fff" />
                 <Text style={styles.buyBtnText}>Payer {selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
               </LinearGradient>
@@ -242,6 +247,31 @@ export default function EventDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.white },
   flex: { flex: 1 },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 13,
+    color: colors.mid,
+    fontFamily: fonts.jakarta.regular,
+    textAlign: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  retryBtn: {
+    marginTop: spacing.sm,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: colors.accent,
+    borderRadius: borderRadius.md,
+  },
+  retryText: {
+    fontSize: 12,
+    color: '#fff',
+    fontFamily: fonts.jakarta.semiBold,
+  },
   banner: {
     height: 130,
     alignItems: 'center',

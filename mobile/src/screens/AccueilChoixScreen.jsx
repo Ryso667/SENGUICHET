@@ -1,13 +1,11 @@
 // Écran de sélection du rôle (Acheteur / Contrôleur / Organisateur)
 // Affiche 3 cartes animées — point d'entrée avant redirection vers la pile de navigation adaptée
 import React, { useEffect, useRef } from 'react'
-import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Alert } from 'react-native'
-import { Feather } from '@expo/vector-icons'
+import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Alert, Image } from 'react-native'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { LinearGradient } from 'expo-linear-gradient'
-import * as LocalAuthentication from 'expo-local-authentication'
 import { viderTickets } from '../database/database'
-import { useAuth } from '../context/AuthContext'
 import { colors, gradients, shadows, spacing, borderRadius, fonts } from '../constants/theme'
 
 // Définition des 3 rôles avec leur titre, icône, dégradé et écran de destination
@@ -17,7 +15,7 @@ const ROLES = [
     key: 'acheteur',
     title: 'Acheteur',
     subtitle: "Achète tes billets\nen un clic",
-    icon: '🎟️',
+    icon: 'ticket-outline',
     gradient: gradients.acheteur,
     screen: 'EntrerNumero',
   },
@@ -25,7 +23,7 @@ const ROLES = [
     key: 'controleur',
     title: 'Contrôleur',
     subtitle: "Scanne les billets\nà l'entrée",
-    icon: '📸',
+    icon: 'qrcode-scan',
     gradient: gradients.controleur,
     screen: 'ConnexionControleur',
   },
@@ -33,7 +31,7 @@ const ROLES = [
     key: 'organisateur',
     title: 'Organisateur',
     subtitle: 'Crée et gère\ntes événements',
-    icon: '🎪',
+    icon: 'calendar-star',
     gradient: gradients.organisateur,
     screen: 'ConnexionOrganisateur',
   },
@@ -41,7 +39,6 @@ const ROLES = [
 
 // Écran d'accueil avec sélection du rôle utilisateur et animation d'entrée des cartes
 export default function AccueilChoixScreen({ navigation }) {
-  const { hasSavedSession, sessionEmail, tenterBiometrie } = useAuth()
   const animations = useRef(ROLES.map(() => new Animated.Value(0))).current
 
   // Animation d'entrée : les 3 cartes apparaissent en décalé (stagger 120ms)
@@ -56,24 +53,14 @@ export default function AccueilChoixScreen({ navigation }) {
       <StatusBar barStyle="dark-content" />
       {/* Titre et logo de l'application */}
       <View style={s.header}>
-        <Text style={s.logo}>🎫</Text>
+        <Image
+          source={require('../../assets/logo_mobile.jpeg')}
+          style={s.logo}
+          resizeMode="contain"
+        />
         <Text style={s.title}>Senguichet</Text>
         <Text style={s.tagline}>Billets & Événements</Text>
       </View>
-
-      {/* Bouton de connexion rapide par empreinte (organisateur avec session sauvegardée) */}
-      {hasSavedSession && sessionEmail && (
-        <TouchableOpacity style={s.bioBtn} onPress={tenterBiometrie} activeOpacity={0.85}>
-          <LinearGradient colors={BIO_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.bioGradient}>
-            <Feather name="fingerprint" size={18} color="#FFFFFF" />
-            <View>
-              <Text style={s.bioLabel}>Connexion rapide</Text>
-              <Text style={s.bioEmail}>{sessionEmail}</Text>
-            </View>
-            <Text style={s.bioArrow}>→</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      )}
 
       {/* 3 cartes de sélection de rôle avec animation d'entrée */}
       <View style={s.cards}>
@@ -95,7 +82,7 @@ export default function AccueilChoixScreen({ navigation }) {
                   start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                   style={s.card}
                 >
-                  <Text style={s.cardIcon}>{role.icon}</Text>
+                  <MaterialCommunityIcons name={role.icon} size={36} color="#fff" />
                   <Text style={s.cardTitle}>{role.title}</Text>
                   <Text style={s.cardSubtitle}>{role.subtitle}</Text>
                   <View style={s.arrow}>
@@ -118,7 +105,7 @@ export default function AccueilChoixScreen({ navigation }) {
               const appKeys = keys.filter(k => k.startsWith('@senguichet_'))
               await AsyncStorage.multiRemove(appKeys)
               await viderTickets()
-              Alert.alert('✅ Fait', 'Données effacées. Redémarre l\'app.')
+              Alert.alert('Données effacées', 'Redémarre l\'app.')
             }},
           ])
         }}
@@ -132,46 +119,17 @@ export default function AccueilChoixScreen({ navigation }) {
 const s = StyleSheet.create({
   container: { flex: 1 },
   header: { alignItems: 'center', paddingTop: 80, paddingBottom: spacing.xl },
-  logo: { fontSize: 48, marginBottom: spacing.sm },
+  logo: { width: 64, height: 64, marginBottom: spacing.sm, borderRadius: 16 },
   title: { fontSize: 32, fontFamily: fonts.outfit.bold, color: colors.slate },
   tagline: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: 4 },
   cards: { flex: 1, justifyContent: 'center', gap: spacing.md, paddingHorizontal: spacing.xl },
   cardWrap: { borderRadius: borderRadius.xl, ...shadows.lg },
   card: { borderRadius: borderRadius.xl, padding: spacing.lg, minHeight: 140, justifyContent: 'center' },
-  cardIcon: { fontSize: 36, marginBottom: spacing.xs },
+  cardIcon: { marginBottom: spacing.xs },
   cardTitle: { fontSize: 22, fontFamily: fonts.outfit.bold, color: colors.white },
   cardSubtitle: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
   arrow: { position: 'absolute', right: spacing.lg, top: '50%', marginTop: -12 },
   arrowText: { fontSize: 24, color: 'rgba(255,255,255,0.6)' },
-  bioBtn: {
-    marginHorizontal: spacing.xl,
-    marginBottom: spacing.md,
-    borderRadius: borderRadius.xl,
-    overflow: 'hidden',
-    ...shadows.md,
-  },
-  bioGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.md,
-    gap: 12,
-  },
-  bioLabel: {
-    fontFamily: fonts.outfit.semiBold,
-    fontSize: 14,
-    color: '#FFFFFF',
-  },
-  bioEmail: {
-    fontFamily: fonts.jakarta.regular,
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: 1,
-  },
-  bioArrow: {
-    marginLeft: 'auto',
-    fontSize: 18,
-    color: 'rgba(255,255,255,0.7)',
-  },
   reset: { alignItems: 'center', paddingBottom: 40 },
   resetText: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.muted, textDecorationLine: 'underline' },
 })
