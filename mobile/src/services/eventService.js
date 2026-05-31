@@ -367,3 +367,50 @@ export async function modifierEvenementAPI(id, data) {
 export async function annulerEvenementAPI(id) {
   return await appelAPI(`/evenements/${id}/annuler`, { method: 'PUT' })
 }
+
+// Récupère les événements publics depuis le backend (sans auth)
+// Utile pour la page d'accueil non connectée
+export async function fetchEvenementsPublics() {
+  const data = await appelAPI('/evenements/public/')
+  if (!Array.isArray(data)) return []
+  return data.map(e => ({
+    id: String(e.id),
+    nom: e.titre || e.nom || '',
+    date: e.date_debut || e.date || '',
+    lieu: e.lieu || '',
+    categorie: e.categorie || '',
+    description: e.description || '',
+    poster: e.poster || getDefaultImage(e.categorie).poster,
+    statut: e.statut || 'actif',
+    capacite: e.capacite_totale || e.capacite || 0,
+    remplis: e.remplis || 0,
+  }))
+}
+
+// Récupère le détail d'un événement public depuis le backend (sans auth)
+// Retourne { evenement, ticketTypes } pour l écran détail public
+export async function fetchEvenementDetailPublic(id) {
+  const data = await appelAPI(`/evenements/${id}/public`)
+  if (!data || !data.evenement) return data
+  const e = data.evenement
+  return {
+    evenement: {
+      id: String(e.id),
+      nom: e.titre || e.nom || '',
+      date: e.date_debut || e.date || '',
+      lieu: e.lieu || '',
+      categorie: e.categorie || '',
+      description: e.description || '',
+      poster: e.poster || getDefaultImage(e.categorie).poster,
+      statut: e.statut || 'actif',
+      capacite: e.capacite_totale || 0,
+    },
+    ticketTypes: (data.ticketTypes || []).map(t => ({
+      id: String(t.id),
+      nom: t.nom,
+      prix: t.prix,
+      places_disponibles: t.places_disponibles ?? t.quantite,
+      capacite: t.capacite || t.quantite,
+    })),
+  }
+}
