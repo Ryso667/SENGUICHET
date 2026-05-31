@@ -67,7 +67,7 @@ const DashboardHome = () => {
               </div>
               <p className="stat-label">{s.label}</p>
               {s.trend && (
-                <span className="text-xs flex items-center gap-1" style={{ color: s.positive ? "#22C55E" : "#EF4444", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <span className="text-xs flex items-center gap-1" style={{ color: s.positive ? "var(--success)" : "var(--error)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   ↑ {s.trend} vs mois dernier
                 </span>
               )}

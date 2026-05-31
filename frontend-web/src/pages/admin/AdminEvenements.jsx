@@ -100,7 +100,7 @@ const AdminEvenements = () => {
   const v = (val) => val != null && val !== "" ? val : "—";
 
   return (
-    <div className="min-h-screen bg-[#0A0B1A] flex">
+    <div className="min-h-screen bg-[#0D1B2A] flex">
       <AdminSidebar />
       <div className="flex-1 lg:ml-[260px] p-6 sm:p-8">
         <h1 className="text-2xl font-bold mb-6" style={{ fontFamily: "Outfit, sans-serif", color: "#F1F5F9" }}>Événements</h1>
@@ -151,12 +151,12 @@ const AdminEvenements = () => {
                             <>
                               <button onClick={() => { if (pendingConfirm && confirmAction === "accepter") handleAction(e.id, "accepter"); else { setConfirmId(e.id); setConfirmAction("accepter"); } }}
                                 className="px-3 py-1.5 rounded-lg text-xs transition-all"
-                                style={{ background: pendingConfirm && confirmAction === "accepter" ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(34,197,94,0.3)", color: "#22C55E" }}>
+                                style={{ background: pendingConfirm && confirmAction === "accepter" ? "rgba(0,229,160,0.15)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(0,229,160,0.3)", color: "var(--success)" }}>
                                 {pendingConfirm && confirmAction === "accepter" ? "✓ Confirmer" : "Accepter"}
                               </button>
                               <button onClick={() => { if (pendingConfirm && confirmAction === "refuser") handleAction(e.id, "refuser"); else { setConfirmId(e.id); setConfirmAction("refuser"); } }}
                                 className="px-3 py-1.5 rounded-lg text-xs transition-all"
-                                style={{ background: pendingConfirm && confirmAction === "refuser" ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444" }}>
+                                style={{ background: pendingConfirm && confirmAction === "refuser" ? "rgba(255,77,109,0.15)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(255,77,109,0.3)", color: "var(--error)" }}>
                                 {pendingConfirm && confirmAction === "refuser" ? "✓ Confirmer" : "Refuser"}
                               </button>
                             </>
@@ -164,14 +164,14 @@ const AdminEvenements = () => {
                           {e.statut === "actif" && (
                             <button onClick={() => { if (pendingConfirm && confirmAction === "suspendre") handleAction(e.id, "suspendre"); else { setConfirmId(e.id); setConfirmAction("suspendre"); } }}
                               className="px-3 py-1.5 rounded-lg text-xs transition-all"
-                              style={{ background: pendingConfirm && confirmAction === "suspendre" ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444" }}>
+                              style={{ background: pendingConfirm && confirmAction === "suspendre" ? "rgba(255,77,109,0.15)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(255,77,109,0.3)", color: "var(--error)" }}>
                               {pendingConfirm && confirmAction === "suspendre" ? "✓ Confirmer" : "Suspendre"}
                             </button>
                           )}
                           {e.statut === "suspendu" && (
                             <button onClick={() => { if (pendingConfirm && confirmAction === "reactiver") handleAction(e.id, "reactiver"); else { setConfirmId(e.id); setConfirmAction("reactiver"); } }}
                               className="px-3 py-1.5 rounded-lg text-xs transition-all"
-                              style={{ background: pendingConfirm && confirmAction === "reactiver" ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(34,197,94,0.3)", color: "#22C55E" }}>
+                              style={{ background: pendingConfirm && confirmAction === "reactiver" ? "rgba(0,229,160,0.15)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(0,229,160,0.3)", color: "var(--success)" }}>
                               {pendingConfirm && confirmAction === "reactiver" ? "✓ Confirmer" : "Réactiver"}
                             </button>
                           )}
@@ -223,7 +223,7 @@ const AdminEvenements = () => {
               <InfoRow label="Date" value={modal.date} />
               <InfoRow label="Capacité" value={modal.capacite != null ? `${modal.capacite} places` : "—"} />
               {modal.statut === "refuse" && modal.commentaire_admin && (
-                <InfoRow label="Commentaire refus" value={modal.commentaire_admin} style={{ gridColumn: "1 / -1", color: "#EF4444" }} />
+                <InfoRow label="Commentaire refus" value={modal.commentaire_admin} style={{ gridColumn: "1 / -1", color: "var(--error)" }} />
               )}
             </div>
 
@@ -253,7 +253,7 @@ const AdminEvenements = () => {
                         </p>
                       </div>
                       <div className="text-right" style={{ flexShrink: 0, marginLeft: "1rem" }}>
-                        <p style={{ color: "#22C55E", fontSize: "0.9rem", fontWeight: 600, whiteSpace: "nowrap" }}>
+                        <p style={{ color: "var(--success)", fontSize: "0.9rem", fontWeight: 600, whiteSpace: "nowrap" }}>
                           {parseInt(t.prix).toLocaleString()} FCFA
                         </p>
                         <p style={{ color: "var(--text-secondary)", fontSize: "0.75rem", whiteSpace: "nowrap" }}>
@@ -268,8 +268,8 @@ const AdminEvenements = () => {
 
             {/* Commentaire de refus déjà affiché */}
             {modal.statut === "refuse" && modal.commentaire_admin && (
-              <div style={{ padding: "0.75rem", borderRadius: "8px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", marginBottom: "1rem" }}>
-                <p className="text-xs font-medium mb-1" style={{ color: "#EF4444" }}>Commentaire de refus</p>
+              <div style={{ padding: "0.75rem", borderRadius: "8px", background: "rgba(255,77,109,0.08)", border: "1px solid rgba(255,77,109,0.2)", marginBottom: "1rem" }}>
+                <p className="text-xs font-medium mb-1" style={{ color: "var(--error)" }}>Commentaire de refus</p>
                 <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.85rem" }}>{modal.commentaire_admin}</p>
               </div>
             )}
@@ -296,8 +296,8 @@ const AdminEvenements = () => {
                       <button onClick={() => handleAction(modal.id, "refuser")} disabled={!refuseComment.trim() || actionLoading}
                         className="px-4 py-2 rounded-lg text-sm"
                         style={{
-                          background: !refuseComment.trim() ? "rgba(239,68,68,0.3)" : "rgba(239,68,68,0.15)",
-                          border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444",
+                          background: !refuseComment.trim() ? "rgba(255,77,109,0.3)" : "rgba(255,77,109,0.15)",
+                          border: "1px solid rgba(255,77,109,0.3)", color: "var(--error)",
                           cursor: !refuseComment.trim() ? "not-allowed" : "pointer",
                         }}>
                         {actionLoading ? "Refus..." : "Confirmer le refus"}
@@ -307,12 +307,12 @@ const AdminEvenements = () => {
                 ) : (
                   <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
                     <button onClick={() => setShowRefuseInput(true)} className="px-4 py-2 rounded-lg text-sm"
-                      style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444" }}>
+                      style={{ background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", color: "var(--error)" }}>
                       Refuser
                     </button>
                     <button onClick={() => handleAction(modal.id, "accepter")} disabled={actionLoading}
                       className="px-4 py-2 rounded-lg text-sm"
-                      style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)", color: "#22C55E" }}>
+                      style={{ background: "rgba(0,229,160,0.1)", border: "1px solid rgba(0,229,160,0.3)", color: "var(--success)" }}>
                       {actionLoading ? "Accepter..." : "Accepter"}
                     </button>
                   </div>

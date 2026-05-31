@@ -1,14 +1,25 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import logo from "../assets/logo.jpg";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { isAuthenticated, userRole, isLoading } = useAuth();
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0A0B1A] flex items-center justify-center">
-        <div className="h-10 w-10 border-4 border-[#6366F1] border-t-transparent rounded-full" style={{ animation: "spin 1s linear infinite" }} />
+      <div className="min-h-screen bg-[#0D1B2A] flex flex-col items-center justify-center gap-6">
+        <img
+          src={logo}
+          alt="SENGUICHET"
+          style={{
+            height: 100, width: "auto",
+            animation: "pulseLogo 2s ease-in-out infinite",
+          }}
+        />
+        <p style={{ color: "#A0B4C8", fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "0.875rem" }}>
+          Chargement...
+        </p>
       </div>
     );
   }

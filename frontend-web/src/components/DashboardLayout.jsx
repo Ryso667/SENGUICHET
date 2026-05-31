@@ -16,7 +16,7 @@ const DashboardLayout = ({ children, title = "Dashboard" }) => {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-[#0A0B1A] flex">
+    <div className="min-h-screen bg-[#0D1B2A] flex">
       <Sidebar />
 
       <div className="flex-1 lg:ml-[260px] flex flex-col">
@@ -28,7 +28,7 @@ const DashboardLayout = ({ children, title = "Dashboard" }) => {
             <button className="lg:hidden text-white text-lg" onClick={() => navigate(-1)}>←</button>
             <h1 className="text-lg font-bold text-white" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>{title}</h1>
           </div>
-          <button onClick={() => { logout(); navigate("/connexion"); }} className="lg:hidden px-3 py-1.5 rounded-xl text-xs" style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <button onClick={() => { logout(); navigate("/connexion"); }} className="lg:hidden px-3 py-1.5 rounded-xl text-xs" style={{ background: "rgba(255,77,109,0.12)", border: "1px solid rgba(255,77,109,0.3)", color: "var(--error)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             Déconnexion
           </button>
         </header>
@@ -49,7 +49,7 @@ const DashboardLayout = ({ children, title = "Dashboard" }) => {
                 className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg text-[10px] transition-all"
                 style={{
                   color: location.pathname === item.path ? "#818CF8" : "rgba(255,255,255,0.35)",
-                  background: location.pathname === item.path ? "rgba(99,102,241,0.1)" : "transparent",
+                  background: location.pathname === item.path ? "rgba(0,200,255,0.1)" : "transparent",
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
                 }}
               >

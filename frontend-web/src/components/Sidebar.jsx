@@ -26,7 +26,7 @@ const Sidebar = () => {
       </div>
 
       <div className="p-4 border-b flex items-center gap-3" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6366F1] to-[#FB923C] flex items-center justify-center text-white font-bold text-sm">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00C8FF] to-[#0077FF] flex items-center justify-center text-white font-bold text-sm">
           {user?.nom?.charAt(0)?.toUpperCase() || "O"}
         </div>
         <div>
@@ -47,9 +47,9 @@ const Sidebar = () => {
               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all"
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                background: active ? "rgba(99,102,241,0.10)" : "transparent",
+                background: active ? "rgba(0,200,255,0.10)" : "transparent",
                 color: active ? "#F1F5F9" : "rgba(255,255,255,0.45)",
-                borderLeft: active ? "3px solid #6366F1" : "3px solid transparent",
+                borderLeft: active ? "3px solid var(--primary)" : "3px solid transparent",
               }}
               onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
               onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "transparent"; }}

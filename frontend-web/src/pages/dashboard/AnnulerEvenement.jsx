@@ -46,17 +46,17 @@ const AnnulerEvenement = () => {
       <div className="max-w-lg mx-auto mt-8">
         <div className="glass-card p-8 text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center text-2xl"
-            style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)" }}>
+            style={{ background: "rgba(255,77,109,0.15)", border: "1px solid rgba(255,77,109,0.3)" }}>
             ⚠️
           </div>
 
-          <h2 className="text-xl font-bold mb-2" style={{ fontFamily: "Outfit, sans-serif", color: "#EF4444" }}>
+          <h2 className="text-xl font-bold mb-2" style={{ fontFamily: "Outfit, sans-serif", color: "var(--error)" }}>
             Annuler cet événement ?
           </h2>
           <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>{eventName}</p>
 
           <div className="p-4 rounded-xl text-sm text-left mb-6"
-            style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)", color: "#F59E0B" }}>
+            style={{ background: "rgba(255,179,71,0.1)", border: "1px solid rgba(255,179,71,0.25)", color: "var(--warning)" }}>
             <p className="font-medium mb-1">⚠️ Cette action est irréversible.</p>
             <p>Les <strong>{buyers} acheteurs</strong> seront remboursés automatiquement via Wave / Orange Money sous 24-48h.</p>
           </div>

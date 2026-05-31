@@ -14,9 +14,9 @@ const CategorySelect = ({ value, onChange, options, label }) => (
       className="input-premium appearance-none cursor-pointer"
       style={{ paddingRight: "40px" }}
     >
-      <option value="" disabled style={{ background: "#0A0B1A", color: "#94A3B8" }}>{label}</option>
+      <option value="" disabled style={{ background: "var(--bg)", color: "var(--text-secondary)" }}>{label}</option>
       {options.map((o) => (
-        <option key={o} value={o} style={{ background: "#0A0B1A", color: "#F1F5F9" }}>{o}</option>
+        <option key={o} value={o} style={{ background: "var(--bg)", color: "#F1F5F9" }}>{o}</option>
       ))}
     </select>
     <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--text-secondary)", fontSize: "0.7rem" }}>▼</span>
@@ -31,11 +31,11 @@ const Toast = ({ message, visible, onClose }) => {
   return (
     <div
       className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl"
-      style={{ background: "rgba(34,197,94,0.12)", backdropFilter: "blur(20px)", border: "1px solid rgba(34,197,94,0.3)", color: "#22C55E", fontFamily: "'Plus Jakarta Sans', sans-serif", animation: "fadeInUp 0.3s ease", minWidth: "280px" }}
+      style={{ background: "rgba(0,229,160,0.12)", backdropFilter: "blur(20px)", border: "1px solid rgba(0,229,160,0.3)", color: "var(--success)", fontFamily: "'Plus Jakarta Sans', sans-serif", animation: "fadeInUp 0.3s ease", minWidth: "280px" }}
     >
       <span className="text-lg">✓</span>
       <span className="text-sm font-medium" style={{ flex: 1 }}>{message}</span>
-      <button onClick={onClose} className="text-lg leading-none" style={{ background: "none", border: "none", color: "rgba(34,197,94,0.5)", cursor: "pointer", padding: 0 }}>×</button>
+      <button onClick={onClose} className="text-lg leading-none" style={{ background: "none", border: "none", color: "rgba(0,229,160,0.5)", cursor: "pointer", padding: 0 }}>×</button>
     </div>
   );
 };
@@ -207,12 +207,12 @@ const ModifierEvenement = () => {
               <div
                 onClick={() => fileInputRef.current?.click()}
                 className="relative flex flex-col items-center justify-center rounded-xl cursor-pointer transition-all overflow-hidden"
-                style={{ border: `2px dashed ${form.affichePreview ? "rgba(99,102,241,0.4)" : "rgba(255,255,255,0.12)"}`, background: form.affichePreview ? "transparent" : "rgba(255,255,255,0.03)", minHeight: "180px" }}
+                style={{ border: `2px dashed ${form.affichePreview ? "rgba(0,200,255,0.4)" : "rgba(255,255,255,0.12)"}`, background: form.affichePreview ? "transparent" : "rgba(255,255,255,0.03)", minHeight: "180px" }}
               >
                 {form.affichePreview ? (
                   <>
                     <img src={form.affichePreview} alt="Aperçu" className="w-full h-full object-cover rounded-xl" style={{ maxHeight: "240px" }} />
-                    <button type="button" onClick={(e) => { e.stopPropagation(); setForm((p) => ({ ...p, affiche: null, affichePreview: null })); }} className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm" style={{ background: "rgba(0,0,0,0.6)", color: "#EF4444", border: "none", cursor: "pointer" }}>✕</button>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); setForm((p) => ({ ...p, affiche: null, affichePreview: null })); }} className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm" style={{ background: "rgba(0,0,0,0.6)", color: "var(--error)", border: "none", cursor: "pointer" }}>✕</button>
                   </>
                 ) : (
                   <>

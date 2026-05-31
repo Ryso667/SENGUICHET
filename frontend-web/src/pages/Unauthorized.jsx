@@ -5,7 +5,7 @@ const Unauthorized = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#0A0B1A] flex items-center justify-center px-4 relative">
+    <div className="min-h-screen bg-[#0D1B2A] flex items-center justify-center px-4 relative">
       <div className="orb-indigo" />
       <div className="orb-accent" />
 

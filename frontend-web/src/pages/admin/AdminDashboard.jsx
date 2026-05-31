@@ -45,18 +45,18 @@ const AdminDashboard = () => {
   const today = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   return (
-    <div className="min-h-screen bg-[#0A0B1A] flex">
+    <div className="min-h-screen bg-[#0D1B2A] flex">
       <aside className="hidden lg:flex flex-col w-[260px] fixed h-full z-20" style={{ background: "#060710", borderRight: "1px solid rgba(255,255,255,0.08)" }}>
         <div className="p-6 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-          <p className="text-xl font-bold" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 800, background: "linear-gradient(135deg, #FB923C, #EF4444)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>SenGuichet</p>
+          <p className="text-xl font-bold" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 800, background: "linear-gradient(135deg, var(--accent), var(--error))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>SenGuichet</p>
         </div>
         <div className="p-4 border-b flex items-center gap-3" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FB923C] to-[#EF4444] flex items-center justify-center text-white font-bold text-sm">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0077FF] to-[#FF4D6D] flex items-center justify-center text-white font-bold text-sm">
             {user?.nom?.charAt(0)?.toUpperCase() || "A"}
           </div>
           <div>
             <p className="text-sm font-medium text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{user?.nom || "Admin"}</p>
-            <span className="px-2 py-0.5 rounded-full text-[10px]" style={{ background: "rgba(239,68,68,0.2)", color: "#FB923C", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Admin</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px]" style={{ background: "rgba(255,77,109,0.2)", color: "var(--accent)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Admin</span>
           </div>
         </div>
         <nav className="flex-1 p-3 space-y-1">
@@ -67,9 +67,9 @@ const AdminDashboard = () => {
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all"
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                background: activeNav === item.key ? "rgba(251,146,60,0.1)" : "transparent",
-                color: activeNav === item.key ? "#FB923C" : "rgba(255,255,255,0.5)",
-                borderLeft: activeNav === item.key ? "3px solid #FB923C" : "3px solid transparent",
+                background: activeNav === item.key ? "rgba(0,119,255,0.1)" : "transparent",
+                color: activeNav === item.key ? "var(--accent)" : "rgba(255,255,255,0.5)",
+                borderLeft: activeNav === item.key ? "3px solid var(--accent)" : "3px solid transparent",
               }}
             >
               <span>{item.icon}</span>
@@ -78,7 +78,7 @@ const AdminDashboard = () => {
           ))}
         </nav>
         <div className="p-3">
-          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#EF4444", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm" style={{ background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.2)", color: "var(--error)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             Déconnexion
           </button>
         </div>
@@ -91,7 +91,7 @@ const AdminDashboard = () => {
               <h1 className="text-xl font-bold text-white" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>Dashboard Admin 👋</h1>
               <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)", fontFamily: "'Plus Jakarta Sans', sans-serif", textTransform: "capitalize" }}>{today}</p>
             </div>
-            <button onClick={handleLogout} className="lg:hidden px-3 py-2 rounded-xl text-xs" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#EF4444", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <button onClick={handleLogout} className="lg:hidden px-3 py-2 rounded-xl text-xs" style={{ background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.2)", color: "var(--error)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Déconnexion
             </button>
           </div>
@@ -103,7 +103,7 @@ const AdminDashboard = () => {
               <div key={stat.label} className="glass-card p-4 sm:p-5">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-lg">{stat.icon}</span>
-                  <span className="text-lg sm:text-2xl font-bold" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700, background: "linear-gradient(135deg, #FB923C, #EF4444)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{stat.value}</span>
+                  <span className="text-lg sm:text-2xl font-bold" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700, background: "linear-gradient(135deg, var(--accent), var(--error))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{stat.value}</span>
                 </div>
                 <p className="text-xs" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{stat.label}</p>
               </div>
@@ -162,8 +162,8 @@ const AdminDashboard = () => {
                 onClick={() => navigate(item.key === "dashboard" ? "/admin/dashboard" : item.key === "organisateurs" ? "/admin/organisateurs" : "/admin/evenements")}
                 className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg text-[10px] transition-all"
                 style={{
-                  color: activeNav === item.key ? "#FB923C" : "rgba(255,255,255,0.4)",
-                  background: activeNav === item.key ? "rgba(251,146,60,0.1)" : "transparent",
+                  color: activeNav === item.key ? "var(--accent)" : "rgba(255,255,255,0.4)",
+                  background: activeNav === item.key ? "rgba(0,119,255,0.1)" : "transparent",
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
                 }}
               >
