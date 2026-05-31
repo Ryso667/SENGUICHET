@@ -26,10 +26,10 @@ const Parametres = () => {
     <button
       onClick={() => setVal(!val)}
       className="w-12 h-6 rounded-full relative transition-all"
-      style={{ background: val ? "rgba(99,102,241,0.4)" : "rgba(255,255,255,0.1)" }}
+      style={{ background: val ? "rgba(0,200,255,0.4)" : "rgba(255,255,255,0.1)" }}
     >
       <div className={`w-5 h-5 rounded-full absolute top-0.5 transition-all ${val ? "left-[26px]" : "left-0.5"}`}
-        style={{ background: val ? "#6366F1" : "rgba(255,255,255,0.3)" }} />
+        style={{ background: val ? "var(--primary)" : "rgba(255,255,255,0.3)" }} />
     </button>
   );
 
@@ -114,7 +114,7 @@ const Parametres = () => {
         })}
 
         {saved && (
-          <div className="glass-card px-4 py-3 text-sm text-center" style={{ color: "#22C55E", animation: "fadeInDown 0.3s ease" }}>
+          <div className="glass-card px-4 py-3 text-sm text-center" style={{ color: "var(--success)", animation: "fadeInDown 0.3s ease" }}>
             ✓ Paramètres mis à jour avec succès
           </div>
         )}

@@ -25,7 +25,7 @@ const AdminOrganisateurs = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0A0B1A] flex">
+    <div className="min-h-screen bg-[#0D1B2A] flex">
       <AdminSidebar />
       <div className="flex-1 lg:ml-[260px] p-6 sm:p-8">
         <h1 className="text-2xl font-bold mb-6" style={{ fontFamily: "Outfit, sans-serif", color: "#F1F5F9" }}>Gestion des organisateurs</h1>

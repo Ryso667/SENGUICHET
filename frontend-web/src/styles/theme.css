@@ -1,0 +1,41 @@
+/* ============================================================
+   SENGUICHET - Thème officiel
+   Basé sur le logo : fond #0D1B2A, S cyan #00C8FF → #0077FF
+   ============================================================ */
+
+:root {
+  /* Couleurs principales */
+  --primary: #00C8FF;
+  --primary-dark: #0077FF;
+  --accent: #0077FF;
+  --accent-light: #0099FF;
+
+  /* Fond */
+  --bg: #0D1B2A;
+  --surface: rgba(21, 34, 50, 0.8);
+  --surface-card: #152232;
+  --border: #1E3448;
+
+  /* Texte */
+  --text-primary: #FFFFFF;
+  --text-accent: #00C8FF;
+  --text-secondary: #A0B4C8;
+
+  /* États */
+  --success: #00E5A0;
+  --error: #FF4D6D;
+  --warning: #FFB347;
+
+  /* Dégradés et effets */
+  --gradient: linear-gradient(135deg, #00C8FF 0%, #0077FF 100%);
+  --glow-primary: 0 0 20px rgba(0, 200, 255, 0.3);
+  --glow-accent: 0 0 20px rgba(0, 119, 255, 0.2);
+
+  /* Ombres */
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+  /* Rayons */
+  --radius-card: 12px;
+  --radius-btn: 9999px;
+  --radius-input: 8px;
+}

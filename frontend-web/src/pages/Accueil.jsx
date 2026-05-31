@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import logo from "../assets/logo.jpg";
 
 const steps = [
   {
@@ -49,7 +50,7 @@ const Accueil = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#0A0B1A]">
+    <div className="min-h-screen bg-[#0D1B2A]">
       <div className="orb-indigo" />
       <div className="orb-accent" />
       <div className="orb-3" />
@@ -61,8 +62,8 @@ const Accueil = () => {
         <div className="hero-image-wrapper">
           <img src="/images/hero-bg.jpg" alt="Festival background" />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0B1A]/80 via-[#0A0B1A]/50 to-[#0A0B1A]" />
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.15) 0%, transparent 60%), radial-gradient(ellipse at 80% 50%, rgba(251,146,60,0.1) 0%, transparent 60%)" }} />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0D1B2A]/80 via-[#0D1B2A]/50 to-[#0D1B2A]" />
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 20% 50%, rgba(0,200,255,0.15) 0%, transparent 60%), radial-gradient(ellipse at 80% 50%, rgba(0,119,255,0.1) 0%, transparent 60%)" }} />
 
         <div className="relative z-10 flex flex-col items-center text-center px-4 max-w-4xl">
           <span
@@ -70,7 +71,7 @@ const Accueil = () => {
             style={{
               background: "rgba(255,255,255,0.04)",
               backdropFilter: "blur(20px)",
-              border: "1px solid rgba(99,102,241,0.4)",
+              border: "1px solid rgba(0,200,255,0.4)",
               fontFamily: "'Plus Jakarta Sans', sans-serif",
               animation: "pulse-glow 3s infinite",
             }}
@@ -140,7 +141,7 @@ const Accueil = () => {
                 <img src={step.img} alt={step.title} className="img-card-img" />
                 <div className="img-card-overlay" />
                 <div className="img-card-content p-8 flex flex-col justify-end h-full min-h-[320px]">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 text-lg font-bold" style={{ fontFamily: "Outfit, sans-serif", background: "var(--gradient)", boxShadow: "0 4px 20px rgba(99,102,241,0.4)" }}>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 text-lg font-bold" style={{ fontFamily: "Outfit, sans-serif", background: "var(--gradient)", boxShadow: "0 4px 20px rgba(0,200,255,0.4)" }}>
                     {step.num}
                   </div>
                   <h3 className="text-lg font-semibold text-white mb-2" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 600 }}>{step.title}</h3>
@@ -154,7 +155,7 @@ const Accueil = () => {
 
       {/* SECTION 3 — FONCTIONNALITÉS */}
       <section className="py-20 sm:py-28 px-4 relative overflow-hidden" style={{ background: "#080914" }} id="features">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full" style={{ background: "rgba(99,102,241,0.05)", filter: "blur(100px)" }} />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full" style={{ background: "rgba(0,200,255,0.05)", filter: "blur(100px)" }} />
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-4">
             <span className="inline-block text-xs font-semibold uppercase tracking-[3px] mb-3 gradient-text" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Fonctionnalités</span>
@@ -171,7 +172,7 @@ const Accueil = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {features.map((feat, i) => (
               <div key={feat.title} className="glass-card-hover p-6 flex items-start gap-4" style={{ animation: `fadeInUp ${0.3 + i * 0.08}s ease-out both` }}>
-                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-lg" style={{ background: "rgba(99,102,241,0.12)", backdropFilter: "blur(10px)", border: "1px solid rgba(99,102,241,0.2)", animation: "float 3s ease-in-out infinite", animationDelay: `${i * 0.3}s` }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-lg" style={{ background: "rgba(0,200,255,0.12)", backdropFilter: "blur(10px)", border: "1px solid rgba(0,200,255,0.2)", animation: "float 3s ease-in-out infinite", animationDelay: `${i * 0.3}s` }}>
                   {feat.icon}
                 </div>
                 <div>
@@ -198,7 +199,7 @@ const Accueil = () => {
             <div className="space-y-4">
               {smartTicketPoints.map((pt) => (
                 <div key={pt} className="flex items-center gap-3 text-sm" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                  <span className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "rgba(34,197,94,0.15)", color: "#22C55E", fontSize: "12px" }}>✓</span>
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "rgba(0,229,160,0.15)", color: "var(--success)", fontSize: "12px" }}>✓</span>
                   <span style={{ color: "rgba(255,255,255,0.7)" }}>{pt}</span>
                 </div>
               ))}
@@ -206,36 +207,36 @@ const Accueil = () => {
           </div>
 
           <div className="flex justify-center" style={{ animation: "slideInRight 0.8s ease-out both" }}>
-            <div className="w-[280px] rounded-2xl overflow-hidden relative group" style={{ boxShadow: "0 25px 80px rgba(99,102,241,0.25)", background: "white", transform: "rotate(-2deg)", transition: "transform 400ms ease" }}
+            <div className="w-[280px] rounded-2xl overflow-hidden relative group" style={{ boxShadow: "0 25px 80px rgba(0,200,255,0.25)", background: "white", transform: "rotate(-2deg)", transition: "transform 400ms ease" }}
               onMouseEnter={(e) => e.currentTarget.style.transform = "rotate(0deg) scale(1.03)"}
               onMouseLeave={(e) => e.currentTarget.style.transform = "rotate(-2deg)"}
             >
               <div className="h-[140px] relative overflow-hidden">
                 <img src="/images/event-1.jpg" alt="Concert" className="w-full h-full object-cover" style={{ filter: "brightness(0.6)" }} />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.4), rgba(251,146,60,0.4))" }} />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(0,200,255,0.4), rgba(0,119,255,0.4))" }} />
                 <div className="absolute bottom-3 left-4 right-4">
                   <p className="text-white font-bold text-sm" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>Concert Thiossane Live</p>
                   <p className="text-white/70 text-[10px]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>24 Mai 2026 • Dakar Arena</p>
                 </div>
               </div>
               <div className="relative flex items-center justify-center" style={{ height: 1 }}>
-                <div style={{ position: "absolute", left: -7, width: 14, height: 14, borderRadius: "50%", background: "#0A0B1A" }} />
+                <div style={{ position: "absolute", left: -7, width: 14, height: 14, borderRadius: "50%", background: "var(--bg)" }} />
                 <div style={{ flex: 1, borderTop: "2px dashed rgba(0,0,0,0.08)" }} />
-                <div style={{ position: "absolute", right: -7, width: 14, height: 14, borderRadius: "50%", background: "#0A0B1A" }} />
+                <div style={{ position: "absolute", right: -7, width: 14, height: 14, borderRadius: "50%", background: "var(--bg)" }} />
               </div>
               <div className="p-5 flex flex-col items-center gap-3">
                 <svg width="110" height="110" viewBox="0 0 100 100" fill="none">
-                  <rect x="4" y="4" width="92" height="92" rx="4" fill="white" stroke="#6366F1" strokeWidth="0.5" />
+                  <rect x="4" y="4" width="92" height="92" rx="4" fill="white" stroke="#00C8FF" strokeWidth="0.5" />
                   {[0,1,2,3,4,5,6].map((row) =>
                     [0,1,2,3,4,5,6].map((col) => (
                       <rect key={`${row}-${col}`} x={10 + col * 11} y={10 + row * 11} width="6" height="6" rx="1" fill={Math.random() > 0.45 ? "#333" : "#eee"} />
                     ))
                   )}
                 </svg>
-                <p className="text-xs tracking-widest" style={{ color: "#6366F1", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600 }}>
+                <p className="text-xs tracking-widest" style={{ color: "var(--primary)", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600 }}>
                   ID: THIO-2026-9876
                 </p>
-                <p className="text-[10px] font-semibold" style={{ color: "#6366F1", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>SenGuichet</p>
+                <p className="text-[10px] font-semibold" style={{ color: "var(--primary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>SenGuichet</p>
               </div>
             </div>
           </div>
@@ -243,7 +244,7 @@ const Accueil = () => {
       </section>
 
       {/* SECTION 5 — STATISTIQUES */}
-      <section className="py-20 sm:py-24 px-4 relative" style={{ background: "radial-gradient(ellipse at center, rgba(99,102,241,0.12) 0%, #0A0B1A 70%)" }}>
+      <section className="py-20 sm:py-24 px-4 relative" style={{ background: "radial-gradient(ellipse at center, rgba(0,200,255,0.12) 0%, #0D1B2A 70%)" }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-3" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>
@@ -265,8 +266,8 @@ const Accueil = () => {
       <section className="py-24 px-4 relative" id="contact">
         <div className="max-w-xl mx-auto" style={{ animation: "fadeInScale 0.6s ease-out both" }}>
           <div className="glass-card p-12 sm:p-14 text-center relative overflow-hidden">
-            <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full" style={{ background: "rgba(99,102,241,0.15)", filter: "blur(40px)" }} />
-            <div className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full" style={{ background: "rgba(251,146,60,0.1)", filter: "blur(40px)" }} />
+            <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full" style={{ background: "rgba(0,200,255,0.15)", filter: "blur(40px)" }} />
+            <div className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full" style={{ background: "rgba(0,119,255,0.1)", filter: "blur(40px)" }} />
             <div className="relative z-10">
               <div className="text-5xl mb-4">🎯</div>
               <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>
@@ -287,11 +288,17 @@ const Accueil = () => {
       </section>
 
       {/* FOOTER */}
-      <footer style={{ background: "#060710", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+      <footer style={{ background: "#152232", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
         <div className="max-w-6xl mx-auto px-4 py-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
             <div>
-              <p className="text-lg font-bold gradient-text mb-2" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 800 }}>SenGuichet</p>
+              <div className="flex items-center gap-3 mb-3">
+                <img src={logo} alt="SENGUICHET" style={{ height: 30, width: "auto" }} />
+                <span style={{ fontFamily: "Outfit, sans-serif", fontSize: "1rem", fontWeight: 700 }}>
+                  <span style={{ color: "#FFFFFF" }}>SEN</span>
+                  <span style={{ color: "#00C8FF", fontStyle: "italic", fontWeight: 800 }}>GUICHET</span>
+                </span>
+              </div>
               <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.35)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 Billetterie événementielle professionnelle au Sénégal.
               </p>

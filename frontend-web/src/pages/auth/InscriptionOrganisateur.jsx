@@ -6,12 +6,13 @@ import { useAuth } from "../../context/AuthContext";
 import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import AlertMessage from "../../components/AlertMessage";
+import logo from "../../assets/logo.jpg";
 
 const strengthConfig = [
-  { label: "Faible", color: "#EF4444", segments: 1 },
-  { label: "Moyen", color: "#F59E0B", segments: 2 },
-  { label: "Fort", color: "#22C55E", segments: 3 },
-  { label: "Très fort", color: "#22C55E", segments: 4 },
+  { label: "Faible", color: "var(--error)", segments: 1 },
+  { label: "Moyen", color: "var(--warning)", segments: 2 },
+  { label: "Fort", color: "var(--success)", segments: 3 },
+  { label: "Très fort", color: "var(--success)", segments: 4 },
 ];
 
 const getPasswordStrength = (pwd) => {
@@ -65,20 +66,17 @@ const InscriptionOrganisateur = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0B1A] flex">
+    <div className="min-h-screen bg-[#0D1B2A] flex">
       <div className="hidden lg:flex w-[40%] relative overflow-hidden items-center justify-center">
         <img src="/images/event-3.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" style={{ filter: "brightness(0.25) blur(3px)", transform: "scale(1.08)" }} />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0A0B1A]/90 via-[#0A0B1A]/50 to-transparent" />
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at top, rgba(251,146,60,0.12) 0%, transparent 70%)" }} />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0D1B2A]/90 via-[#0D1B2A]/50 to-transparent" />
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at top, rgba(0,119,255,0.12) 0%, transparent 70%)" }} />
         <div className="relative z-10 text-center px-8 max-w-sm" style={{ animation: "fadeInUp 0.6s ease-out" }}>
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ background: "var(--gradient)", boxShadow: "0 8px 30px rgba(99,102,241,0.4)" }}>
-            <span className="text-2xl">🚀</span>
-          </div>
-          <p className="text-4xl font-bold mb-4" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 800, background: "var(--gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>SenGuichet</p>
-          <p className="text-white/80 text-sm mb-8" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Rejoignez la billetterie qui connecte les événements sénégalais.</p>
+          <img src={logo} alt="SENGUICHET" style={{ height: 90, width: "auto", display: "block", margin: "0 auto 16px" }} />
+          <p className="text-sm mb-8" style={{ color: "#A0B4C8", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Rejoignez la billetterie qui connecte les événements sénégalais.</p>
           <div className="space-y-3 text-left mx-auto max-w-[220px]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             {["Sécurisé", "Rapide", "Professionnel"].map((item, i) => (
-              <p key={item} className="text-white/60 text-sm flex items-center gap-3" style={{ animation: `slideInLeft 0.4s ease-out ${0.3 + i * 0.15}s both` }}><span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px]" style={{ background: "rgba(34,197,94,0.15)", color: "#22C55E" }}>✓</span> {item}</p>
+              <p key={item} className="text-white/60 text-sm flex items-center gap-3" style={{ animation: `slideInLeft 0.4s ease-out ${0.3 + i * 0.15}s both` }}><span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px]" style={{ background: "rgba(0,229,160,0.15)", color: "var(--success)" }}>✓</span> {item}</p>
             ))}
           </div>
         </div>
@@ -90,10 +88,15 @@ const InscriptionOrganisateur = () => {
         <div className="orb-accent" />
         <div className="w-full max-w-[440px]" style={{ animation: "fadeInUp 0.4s ease-out" }}>
           <div className="lg:hidden text-center mb-6">
-            <p className="text-3xl font-bold gradient-text" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 800 }}>SenGuichet</p>
+            <img src={logo} alt="SENGUICHET" style={{ height: 50, width: "auto", display: "block", margin: "0 auto 8px" }} />
+            <p className="text-sm" style={{ color: "#A0B4C8", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Billetterie en ligne tout événement</p>
           </div>
 
           <div className="glass-card p-8 sm:p-10">
+            <div className="text-center mb-6" style={{ marginTop: "-0.5rem" }}>
+              <img src={logo} alt="SENGUICHET" style={{ height: 80, width: "auto", display: "block", margin: "0 auto" }} />
+              <p className="text-sm mt-2" style={{ color: "#A0B4C8", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Billetterie en ligne tout événement</p>
+            </div>
             <h1 className="text-2xl font-bold gradient-text mb-1" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>Créer votre compte</h1>
             <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Créez votre compte et commencez à organiser</p>
 
@@ -139,7 +142,7 @@ const InscriptionOrganisateur = () => {
 
             <p className="text-center mt-6 text-sm" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Déjà un compte ?{" "}
-              <Link to="/connexion" className="font-medium hover:underline" style={{ color: "#6366F1" }}>Se connecter</Link>
+              <Link to="/connexion" className="font-medium hover:underline" style={{ color: "var(--primary)" }}>Se connecter</Link>
             </p>
           </div>
         </div>

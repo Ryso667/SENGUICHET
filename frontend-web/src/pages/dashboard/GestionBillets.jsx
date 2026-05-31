@@ -59,11 +59,11 @@ const QRModal = ({ ticket, onClose }) => (
         <rect x="60" y="160" width="30" height="10" fill="white" />
         <rect x="100" y="160" width="10" height="30" fill="white" />
         <rect x="120" y="160" width="40" height="30" fill="white" />
-        <rect x="30" y="30" width="10" height="10" fill="#6366F1" />
-        <rect x="130" y="30" width="10" height="10" fill="#6366F1" />
-        <rect x="170" y="20" width="10" height="10" fill="#6366F1" />
-        <rect x="100" y="70" width="10" height="10" fill="#FB923C" />
-        <rect x="170" y="50" width="10" height="10" fill="#6366F1" />
+        <rect x="30" y="30" width="10" height="10" fill="#00C8FF" />
+        <rect x="130" y="30" width="10" height="10" fill="#00C8FF" />
+        <rect x="170" y="20" width="10" height="10" fill="#00C8FF" />
+        <rect x="100" y="70" width="10" height="10" fill="#0077FF" />
+        <rect x="170" y="50" width="10" height="10" fill="#00C8FF" />
       </svg>
       <p className="text-sm font-bold text-white" style={{ fontFamily: "Outfit, sans-serif" }}>{ticket.id}</p>
       <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>{ticket.telephone} • {ticket.type}</p>
@@ -121,7 +121,7 @@ const GestionBillets = () => {
                   <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{t.date}</td>
                   <td className="px-4 py-3"><span className={`badge ${badgeClass[t.statut]}`}>{t.statut}</span></td>
                   <td className="px-4 py-3">
-                    <button onClick={() => setQrTicket(t)} className="px-2.5 py-1.5 rounded-lg text-xs transition-all hover:scale-95" style={{ background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.25)", color: "#818CF8" }}>
+                    <button onClick={() => setQrTicket(t)} className="px-2.5 py-1.5 rounded-lg text-xs transition-all hover:scale-95" style={{ background: "rgba(0,200,255,0.12)", border: "1px solid rgba(0,200,255,0.25)", color: "#818CF8" }}>
                       👁 QR
                     </button>
                   </td>
