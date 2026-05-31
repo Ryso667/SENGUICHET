@@ -1,95 +1,37 @@
 // Écran de recherche d'événements avec barre de recherche et filtrage
-// Les événements sont mockés en dur pour le moment
+// Les événements sont chargés depuis l'API via fetchEvenementsPublics
 import { useState, useMemo, useEffect } from 'react'
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Feather } from '@expo/vector-icons'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import { getDefaultImage } from '../config/images'
 import { formaterBadgeDate, formaterDateLisible } from '../utils/dateUtils'
+import { fetchEvenementsPublics } from '../services/eventService'
 import BuyerLayout from '../components/BuyerLayout'
 
-// Sera remplacé par API : événements mockés en attente du backend
-const MOCKS = [
-  {
-    id: 'dmf-2026', title: 'Dakar Music Festival',
-    emoji: '🎶', bg: '#6d28d9',
-    priceLabel: '5 000F – 15 000F',
-    location: 'Monument Renaissance',
-    category: 'Concert', date: '24 Mai 2026', time: '19h00',
-    desc: 'Le plus grand festival de musique à Dakar.',
-    tickets: [
-      { id: 'standard', name: 'Entrée Standard', price: 5000, desc: 'Générale' },
-      { id: 'vip', name: 'VIP Carré Or', price: 15000, desc: 'Vue scène + Boisson' },
-    ],
-  },
-  {
-    id: 'starlight', title: 'Soirée Starlight',
-    emoji: '✨', bg: '#0284c7',
-    priceLabel: '10 000F',
-    location: 'Grand Théâtre',
-    category: 'Soirée', date: '02 Juin 2026', time: '21h00',
-    desc: 'Une soirée magique sous les étoiles.',
-    tickets: [
-      { id: 'standard', name: 'Entrée Standard', price: 10000, desc: 'Accès soirée' },
-    ],
-  },
-]
-
-// Transforme un événement AsyncStorage au format d'affichage EventSearchScreen
-// Sera remplacé par API : mapping backend → UI
-function formaterEvenement(e) {
-  if (e.tickets) return e
-  const def = getDefaultImage(e.categorie)
+// Formate un événement de l'API au format attendu par les cartes de l'écran
+function formaterPourEventCard(e) {
+  const def = getDefaultImage(e.category)
   const { day, month } = formaterBadgeDate(e.date)
-  const prices = (e.categories || []).map(c => c.prix).filter(p => p != null)
-  const min = prices.length ? Math.min(...prices) : 0
-  const max = prices.length ? Math.max(...prices) : 0
-  const priceLabel = prices.length > 1 ? `${min.toLocaleString()}F – ${max.toLocaleString()}F`
-    : prices.length === 1 ? `${min.toLocaleString()}F`
+  const time = e.date ? new Date(e.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
+  const priceLabel = e.priceMin > 0
+    ? `${e.priceMin.toLocaleString()}F${e.priceMax > e.priceMin ? ` – ${e.priceMax.toLocaleString()}F` : ''}`
     : '—'
   return {
-    id: e.id, title: e.nom || '', month, day,
-    emoji: def.emoji, bg: def.bg, priceLabel, location: e.lieu || '',
-    category: e.categorie || '', date: e.date || '', time: e.heure || '', desc: e.description || '',
-    tickets: (e.categories || []).map(c => ({ id: c.id, name: c.nom, price: c.prix, desc: '' })),
+    ...e,
+    month, day, bg: def.bg, emoji: def.emoji, time, priceLabel,
   }
 }
 
 export default function EventSearchScreen({ navigation }) {
-  const [allEvents, setAllEvents] = useState(MOCKS)
+  const [allEvents, setAllEvents] = useState([])
   const [query, setQuery] = useState('')
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
-      try {
-        const raw = await AsyncStorage.getItem('@senguichet_evenements')
-        const stored = raw ? JSON.parse(raw) : []
-        const uniques = []
-        const seenIds = new Set()
-        for (const s of stored) {
-          if (!seenIds.has(s.id)) { seenIds.add(s.id); uniques.push(s) }
-        }
-        const mocksUniques = MOCKS.filter(m => !seenIds.has(m.id))
-        setAllEvents([...uniques.map(e => {
-          const f = formaterEvenement(e)
-          // Migration : comble les champs manquants depuis les MOCKS
-          if (!f.time || !f.location || !f.desc) {
-            const mock = MOCKS.find(m => m.id === f.id)
-            if (mock) {
-              if (!f.time) f.time = mock.time
-              if (!f.location) f.location = mock.location
-              if (!f.desc) f.desc = mock.desc
-              if (!f.emoji || f.emoji === '📅') f.emoji = mock.emoji
-              if (f.bg === '#00C8FF') f.bg = mock.bg
-            }
-          }
-          return f
-        }), ...mocksUniques])
-      } catch (e) {
-        console.warn('Failed to load events', e)
-      }
+      const events = await fetchEvenementsPublics()
+      setAllEvents(events.map(formaterPourEventCard))
     })
     return unsubscribe
   }, [navigation])
@@ -141,7 +83,7 @@ export default function EventSearchScreen({ navigation }) {
               <TouchableOpacity
                 key={event.id}
                 style={styles.card}
-                onPress={() => navigation.navigate('EventDetail', { event })}
+                onPress={() => navigation.navigate('EventDetail', { eventId: event.id, event })}
                 activeOpacity={0.7}
               >
                 <View style={[styles.cardBanner, { backgroundColor: event.bg }]}>
