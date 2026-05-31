@@ -10,6 +10,7 @@ import { Swipeable } from 'react-native-gesture-handler'
 import { useAuth } from '../context/AuthContext'
 import { useTickets } from '../hooks/useTickets'
 import { formaterDateLisible } from '../utils/dateUtils'
+import { mesBillets } from '../services/billetService'
 import BuyerLayout from '../components/BuyerLayout'
 import EmptyState from '../components/EmptyState'
 
@@ -21,12 +22,30 @@ const STATUTS = {
 
 export default function MesTicketsScreen({ navigation }) {
   const { tickets, ticketsSupprimes, refresh, softDelete, restore } = useTickets()
-  const { deconnecter } = useAuth()
+  const { deconnecter, numeroTel } = useAuth()
+
+  const [apiTickets, setApiTickets] = useState(null)
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', refresh)
+    const unsubscribe = navigation.addListener('focus', async () => {
+      // Sync depuis l'API, fallback offline SQLite
+      try {
+        if (numeroTel) {
+          const data = await mesBillets(numeroTel)
+          if (Array.isArray(data) && data.length > 0) {
+            setApiTickets(data)
+          } else {
+            setApiTickets(null)
+          }
+        }
+      } catch (e) {
+        // Fallback offline : les tickets locaux SQLite sont utilisés
+        setApiTickets(null)
+      }
+      refresh()
+    })
     return unsubscribe
-  }, [navigation, refresh])
+  }, [navigation, refresh, numeroTel])
 
   const [refreshing, setRefreshing] = useState(false)
 
@@ -66,8 +85,8 @@ export default function MesTicketsScreen({ navigation }) {
             <LinearGradient colors={['#00C8FF', '#0077FF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.logoGradient}>
               <Text style={s.logoText}>Mes tickets</Text>
             </LinearGradient>
-            {tickets.length > 0 && (
-              <Text style={s.sub}>{tickets.length} actif{tickets.length > 1 ? 's' : ''}</Text>
+            {ticketsAffiches.length > 0 && (
+              <Text style={s.sub}>{ticketsAffiches.length} actif{ticketsAffiches.length > 1 ? 's' : ''}</Text>
             )}
           </View>
           <TouchableOpacity onPress={() => Alert.alert('Déconnexion', 'Revenir à l\'authentification ?', [
@@ -83,35 +102,36 @@ export default function MesTicketsScreen({ navigation }) {
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00C8FF']} />}
         >
-          {tickets.length === 0 && ticketsSupprimes.length === 0 && (
+          {ticketsAffiches.length === 0 && ticketsSupprimes.length === 0 && (
             <EmptyState icon={<MaterialCommunityIcons name="ticket-outline" size={48} color={colors.mid} />} title="Aucun ticket" subtitle="Achète tes premiers billets" />
           )}
 
-          {tickets.map((t) => {
+          {ticketsAffiches.map((t) => {
+            const ticket = t.statut_billet ? { ...t, statut: t.statut_billet.toLowerCase() } : t
             const renderRightActions = () => (
-              <TouchableOpacity style={s.swipeDelete} onPress={() => handleDelete(t)}>
+              <TouchableOpacity style={s.swipeDelete} onPress={() => handleDelete(ticket)}>
                 <Text style={s.swipeDeleteText}>Supprimer</Text>
               </TouchableOpacity>
             )
             return (
-              <Swipeable key={t.id} renderRightActions={renderRightActions}>
+              <Swipeable key={ticket.id} renderRightActions={renderRightActions}>
               <TouchableOpacity
                 style={s.card}
-                onPress={() => navigation.navigate('Ticket', { ticket: t })}
+                onPress={() => navigation.navigate('Ticket', { ticket })}
                 activeOpacity={0.7}
               >
                 <LinearGradient colors={['#E0FFF0', '#D1FAE5']} style={s.emojiBox}>
                     <MaterialCommunityIcons name="ticket-outline" size={20} color="#16a34a" />
                 </LinearGradient>
                 <View style={s.info}>
-                  <Text style={s.eventNom}>{t.eventNom}</Text>
-                  <Text style={s.meta}>{t.categorie} · {formaterDateLisible(t.eventDate)}</Text>
-                  <Text style={s.num}>#{t.numero}</Text>
+                  <Text style={s.eventNom}>{ticket.eventNom}</Text>
+                  <Text style={s.meta}>{ticket.categorie} · {formaterDateLisible(ticket.eventDate)}</Text>
+                  <Text style={s.num}>#{ticket.numero}</Text>
                 </View>
                 <View style={s.badge}>
-                  <View style={[s.dot, { backgroundColor: (STATUTS[t.statut]?.dot || '#059669') }]} />
-                  <Text style={[s.badgeText, { color: (STATUTS[t.statut]?.color || '#059669') }]}>
-                    {STATUTS[t.statut]?.label || 'VALIDE'}
+                  <View style={[s.dot, { backgroundColor: (STATUTS[ticket.statut]?.dot || '#059669') }]} />
+                  <Text style={[s.badgeText, { color: (STATUTS[ticket.statut]?.color || '#059669') }]}>
+                    {STATUTS[ticket.statut]?.label || 'VALIDE'}
                   </Text>
                 </View>
               </TouchableOpacity>
