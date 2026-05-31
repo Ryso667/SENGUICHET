@@ -1,9 +1,9 @@
 // Bouton principal de l'application
-// Utilise un dégradé Indigo → Rose comme spécifié dans la charte graphique
+// Utilise un dégradé Cyan → Bleu (thème officiel)
 // Si desactive = true, passe en gris (muted)
 import { TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-// Bouton principal avec dégradé Indigo→Rose et état de chargement intégré
+// Bouton principal avec dégradé Cyan→Bleu et état de chargement intégré
 // Props : titre (string), chargement (bool), desactive (bool), onPress (function)
 export default function BoutonPrincipal({ titre, chargement, desactive, onPress }) {
   return (
@@ -13,7 +13,7 @@ export default function BoutonPrincipal({ titre, chargement, desactive, onPress 
       activeOpacity={0.85}
     >
       <LinearGradient
-        colors={desactive ? ['#94a3b8', '#94a3b8'] : ['#6366F1', '#EC4899']}
+        colors={desactive ? ['#94a3b8', '#94a3b8'] : ['#00C8FF', '#0077FF']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.bouton}
@@ -31,6 +31,7 @@ export default function BoutonPrincipal({ titre, chargement, desactive, onPress 
 const styles = StyleSheet.create({
   bouton: {
     height: 56,
+    paddingHorizontal: 40,
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { Feather } from '@expo/vector-icons'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
@@ -95,7 +95,7 @@ export default function HomeScreen({ navigation }) {
               if (!f.location) f.location = mock.location
               if (!f.desc) f.desc = mock.desc
               if (!f.emoji || f.emoji === '📅') f.emoji = mock.emoji
-              if (f.bg === '#6366F1') f.bg = mock.bg
+              if (f.bg === '#00C8FF') f.bg = mock.bg
             }
           }
           return f
@@ -116,7 +116,7 @@ export default function HomeScreen({ navigation }) {
           {/* En-tête avec logo et déconnexion */}
           <View style={styles.header}>
             <View>
-              <LinearGradient colors={['#6366F1', '#EC4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.logoGradient}>
+              <LinearGradient colors={['#00C8FF', '#0077FF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.logoGradient}>
                 <Text style={styles.logoText}>SENGUICHET</Text>
               </LinearGradient>
               <Text style={styles.welcome}>
@@ -143,7 +143,7 @@ export default function HomeScreen({ navigation }) {
 
           {/* CTA principal premium */}
           <TouchableOpacity style={styles.heroCta} activeOpacity={0.9} onPress={() => navigation.navigate('EventSearch')}>
-            <LinearGradient colors={['#6366F1', '#EC4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroGradient}>
+            <LinearGradient colors={['#00C8FF', '#0077FF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroGradient}>
               <View style={styles.heroRow}>
                 <View style={styles.heroIcon}>
                   <Feather name="shopping-cart" size={20} color="#fff" />
@@ -194,8 +194,8 @@ export default function HomeScreen({ navigation }) {
                   onPress={() => navigation.navigate('Ticket', { ticket: t })}
                   activeOpacity={0.7}
                 >
-                  <LinearGradient colors={['#ECFDF5', '#D1FAE5']} style={styles.ticketEmojiBox}>
-                    <Text style={styles.ticketEmoji}>🎫</Text>
+                  <LinearGradient colors={['#E0FFF0', '#D1FAE5']} style={styles.ticketEmojiBox}>
+                    <MaterialCommunityIcons name="ticket-outline" size={20} color="#16a34a" />
                   </LinearGradient>
                   <View style={styles.ticketInfo}>
                     <Text style={styles.ticketTitle}>{t.eventNom}</Text>

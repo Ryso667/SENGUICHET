@@ -300,8 +300,36 @@ export async function creerEvenementAPI(data) {
 }
 
 // Récupère le détail d'un événement depuis le backend
+// Normalise les champs backend (titre, date_debut, scan_code, capacite_totale)
+// vers les noms attendus par les écrans (nom, date, code, capacite)
 export async function fetchEvenementDetailAPI(id) {
-  return await appelAPI(`/evenements/${id}`)
+  const data = await appelAPI(`/evenements/${id}`)
+  if (!data || !data.evenement) return data
+
+  const e = data.evenement
+  return {
+    evenement: {
+      id: String(e.id),
+      nom: e.titre || '',
+      date: e.date_debut || '',
+      lieu: e.lieu || '',
+      categorie: e.categorie || '',
+      capacite: e.capacite_totale || 0,
+      code: e.scan_code || '',
+      statut: e.statut || 'en_attente',
+      description: e.description || '',
+      remplis: 0, // non retourné par le détail (nécessite sous-requête billets)
+    },
+    tickets: (data.tickets || []).map(t => ({
+      id: String(t.id),
+      nom: t.nom,
+      prix: t.prix,
+      capacite: t.capacite,
+      places_disponibles: t.places_disponibles,
+      statut: 'valide',
+      description: t.description || '',
+    })),
+  }
 }
 
 // Modifie un événement via le backend

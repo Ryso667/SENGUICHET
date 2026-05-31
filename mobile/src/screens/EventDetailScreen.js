@@ -76,7 +76,7 @@ export default function EventDetailScreen({ route, navigation }) {
 
               const ticket = await acheterTicket(event.id, selectedTicket.id, tel)
 
-              Alert.alert('🎫 Paiement validé !', 'Votre Smart Ticket a été généré et enregistré localement.', [
+              Alert.alert('Paiement validé !', 'Votre Smart Ticket a été généré et enregistré localement.', [
                 {
                   text: 'Voir mon ticket',
                   onPress: () => navigation.replace('Ticket', { ticket }),
@@ -113,7 +113,7 @@ export default function EventDetailScreen({ route, navigation }) {
                   </View>
                   {!!event.location && (
                     <View style={styles.tag}>
-                      <Feather name="map-pin" size={9} color="#6366f1" />
+                      <Feather name="map-pin" size={9} color="#00C8FF" />
                       <Text style={styles.tagText}>{event.location}</Text>
                     </View>
                   )}
@@ -131,7 +131,7 @@ export default function EventDetailScreen({ route, navigation }) {
                 <Text style={styles.descText}>{event.desc}</Text>
               </View>
 
-              <LinearGradient colors={['#EEF2FF', '#FDF2F8']} style={styles.noAccount}>
+              <LinearGradient colors={['#E0F7FF', '#FDF2F8']} style={styles.noAccount}>
                 <Feather name="zap" size={14} color={colors.accent} />
                 <Text style={styles.noAccountText}>
                   <Text style={styles.noAccountStrong}>Aucune inscription requise.</Text> Saisis ton numéro Wave ou Orange Money.
@@ -227,7 +227,7 @@ export default function EventDetailScreen({ route, navigation }) {
 
           <View style={styles.bottomBar}>
             <TouchableOpacity style={styles.buyBtn} onPress={handleBuy} activeOpacity={0.9}>
-              <LinearGradient colors={['#6366F1', '#EC4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.buyGradient}>
+              <LinearGradient colors={['#00C8FF', '#0077FF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.buyGradient}>
                 <Feather name="shopping-cart" size={15} color="#fff" />
                 <Text style={styles.buyBtnText}>Payer {selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
               </LinearGradient>

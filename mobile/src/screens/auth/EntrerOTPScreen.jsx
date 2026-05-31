@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   retour: {
     fontFamily: 'Outfit_600SemiBold',
     fontSize: 14,
-    color: '#6366F1',
+    color: '#00C8FF',
     marginBottom: 24,
   },
   titre: {
@@ -180,11 +180,11 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#10B981',
+    backgroundColor: '#00E5A0',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
-    shadowColor: '#10B981',
+    shadowColor: '#00E5A0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -193,6 +193,6 @@ const styles = StyleSheet.create({
   successText: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 20,
-    color: '#10B981',
+    color: '#00E5A0',
   },
 })

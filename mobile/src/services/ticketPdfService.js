@@ -80,7 +80,7 @@ function construireHtmlTicket(ticket, qrDataUrl) {
   .logo-circle {
     width: 28pt; height: 28pt;
     border-radius: 50%;
-    background: #EEF2FF;
+    background: #E0F7FF;
     display: inline-flex;
     align-items: center;
     justify-content: center;

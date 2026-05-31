@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Feather } from '@expo/vector-icons'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import { Swipeable } from 'react-native-gesture-handler'
@@ -63,7 +63,7 @@ export default function MesTicketsScreen({ navigation }) {
       <SafeAreaView style={s.safe}>
         <View style={s.header}>
           <View>
-            <LinearGradient colors={['#6366F1', '#EC4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.logoGradient}>
+            <LinearGradient colors={['#00C8FF', '#0077FF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.logoGradient}>
               <Text style={s.logoText}>Mes tickets</Text>
             </LinearGradient>
             {tickets.length > 0 && (
@@ -81,10 +81,10 @@ export default function MesTicketsScreen({ navigation }) {
         </View>
 
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6366F1']} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00C8FF']} />}
         >
           {tickets.length === 0 && ticketsSupprimes.length === 0 && (
-            <EmptyState icon="🎫" title="Aucun ticket" subtitle="Achète tes premiers billets" />
+            <EmptyState icon={<MaterialCommunityIcons name="ticket-outline" size={48} color={colors.mid} />} title="Aucun ticket" subtitle="Achète tes premiers billets" />
           )}
 
           {tickets.map((t) => {
@@ -100,8 +100,8 @@ export default function MesTicketsScreen({ navigation }) {
                 onPress={() => navigation.navigate('Ticket', { ticket: t })}
                 activeOpacity={0.7}
               >
-                <LinearGradient colors={['#ECFDF5', '#D1FAE5']} style={s.emojiBox}>
-                  <Text style={s.emoji}>🎫</Text>
+                <LinearGradient colors={['#E0FFF0', '#D1FAE5']} style={s.emojiBox}>
+                    <MaterialCommunityIcons name="ticket-outline" size={20} color="#16a34a" />
                 </LinearGradient>
                 <View style={s.info}>
                   <Text style={s.eventNom}>{t.eventNom}</Text>
@@ -133,7 +133,7 @@ export default function MesTicketsScreen({ navigation }) {
                   activeOpacity={0.7}
                 >
                   <View style={[s.emojiBox, { backgroundColor: colors.border }]}>
-                    <Text style={s.emoji}>🗑️</Text>
+                    <Feather name="trash-2" size={20} color={colors.muted} />
                   </View>
                   <View style={s.info}>
                     <Text style={[s.eventNom, { color: colors.muted }]}>{t.eventNom}</Text>
@@ -157,7 +157,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: 80,
-    backgroundColor: '#ef4444',
+    backgroundColor: '#FF4D6D',
     borderRadius: borderRadius.md,
     marginBottom: spacing.sm,
   },

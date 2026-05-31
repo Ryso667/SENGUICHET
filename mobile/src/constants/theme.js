@@ -1,43 +1,43 @@
-// Couleurs de l'application (charte graphique Option A : Iris & Pêche)
-// Fond : #F8F9FD (blanc soyeux teinté bleu-gris)
+// Couleurs de l'application (charte graphique : thème Cyan/Bleu)
+// Fond : #F8F9FC (blanc soyeux)
 // Surface : #FFFFFF (blanc pur)
 // Texte : #0F172A (ardoise foncé)
-// Primaire : #6366F1 (Indigo / Iris)
-// Accent : #EC4899 (Rose / Pêche)
+// Primaire : #00C8FF (Cyan vif)
+// Accent : #0077FF (Bleu profond)
 export const colors = {
   bg: '#f8f9fc',
   white: '#FFFFFF',
   slate: '#0f172a',
-  mid: '#64748b',
+  mid: '#A0B4C8',
   muted: '#94a3b8',
   border: '#edf0f5',
-  accent: '#6366F1',
-  accentLight: '#EEF2FF',
-  rose: '#EC4899',
-  green: '#10B981',
-  greenLight: '#ECFDF5',
-  red: '#ef4444',
-  cyan: '#06B6D4',
-  violet: '#8B5CF6',
+  accent: '#00C8FF',
+  accentLight: '#E0F7FF',
+  rose: '#0077FF',
+  green: '#00E5A0',
+  greenLight: '#E0FFF0',
+  red: '#FF4D6D',
+  cyan: '#00C8FF',
+  violet: '#0077FF',
   orange: '#F97316',
 }
 
 // Verre (glassmorphism)
 export const glass = {
   bg: 'rgba(255,255,255,0.7)',
-  darkBg: 'rgba(15,23,42,0.05)',
-  border: 'rgba(255,255,255,0.3)',
+  darkBg: 'rgba(0,200,255,0.05)',
+  border: 'rgba(0,200,255,0.15)',
   blur: 20,
   radius: 20,
 }
 
-// Dégradés par rôle
+// Dégradés par rôle - Cyan → Bleu
 export const gradients = {
-  primary: ['#6366F1', '#EC4899'],
-  acheteur: ['#6366F1', '#06B6D4'],
-  controleur: ['#8B5CF6', '#EC4899'],
-  organisateur: ['#EC4899', '#F97316'],
-  hero: ['rgba(99,102,241,0.04)', 'rgba(236,72,153,0.04)'],
+  primary: ['#00C8FF', '#0077FF'],
+  acheteur: ['#00C8FF', '#0077FF'],
+  controleur: ['#0077FF', '#00C8FF'],
+  organisateur: ['#00C8FF', '#00E5A0'],
+  hero: ['rgba(0,200,255,0.04)', 'rgba(0,119,255,0.04)'],
 }
 
 // Espacements cohérents dans toute l'app
@@ -59,24 +59,24 @@ export const borderRadius = {
   full: 9999,
 }
 
-// Ombres teintées indigo (colored shadows)
+// Ombres teintées cyan (colored shadows)
 export const shadows = {
   sm: {
-    shadowColor: '#6366F1',
+    shadowColor: '#00C8FF',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 2,
   },
   md: {
-    shadowColor: '#6366F1',
+    shadowColor: '#00C8FF',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
     elevation: 4,
   },
   lg: {
-    shadowColor: '#6366F1',
+    shadowColor: '#00C8FF',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 24,

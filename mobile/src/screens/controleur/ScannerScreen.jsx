@@ -2,17 +2,18 @@
 // Processus en 5 étapes : lecture QR → parsing → HMAC → recherche locale → statut
 import { useState, useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import { verifierBillet, telechargerTickets, getStats } from '../../services/scanService'
 import { useAuth } from '../../context/AuthContext'
 
 // Couleurs d'affichage selon le résultat du scan (5 statuts possibles)
 const COULEURS = {
-  VALIDE: { fond: '#22c55e', icone: '✅', label: 'Entrée autorisée' },
-  DEJA_UTILISE: { fond: '#f97316', icone: '🟠', label: 'Déjà utilisé' },
-  EXPIRE: { fond: '#ef4444', icone: '🔴', label: 'Billet expiré' },
-  INCONNU: { fond: '#b91c1c', icone: '🔴', label: 'Billet inconnu' },
-  FRAUDE: { fond: '#dc2626', icone: '🚨', label: 'FRAUDE suspectée' },
+  VALIDE: { fond: '#22c55e', icone: 'check-circle', label: 'Entrée autorisée' },
+  DEJA_UTILISE: { fond: '#f97316', icone: 'alert-circle', label: 'Déjà utilisé' },
+  EXPIRE: { fond: '#FF4D6D', icone: 'clock-outline', label: 'Billet expiré' },
+  INCONNU: { fond: '#b91c1c', icone: 'help-circle', label: 'Billet inconnu' },
+  FRAUDE: { fond: '#dc2626', icone: 'alert-octagon', label: 'FRAUDE suspectée' },
 }
 
 export default function ScannerScreen({ navigation, route }) {
@@ -108,7 +109,7 @@ export default function ScannerScreen({ navigation, route }) {
           Chaque statut a sa propre couleur (vert = VALIDE, rouge = erreur, orange = déjà utilisé) */}
       {scanne && (
         <View style={[styles.resultat, { backgroundColor: (COULEURS[scanne.resultat] || COULEURS.INCONNU).fond }]}>
-          <Text style={styles.resultatIcone}>{(COULEURS[scanne.resultat] || COULEURS.INCONNU).icone}</Text>
+          <MaterialCommunityIcons name={(COULEURS[scanne.resultat] || COULEURS.INCONNU).icone} size={64} color="#fff" />
           <Text style={styles.resultatMessage}>{(COULEURS[scanne.resultat] || COULEURS.INCONNU).label}</Text>
           {scanne.message && <Text style={styles.resultatDetail}>{scanne.message}</Text>}
         </View>
@@ -129,10 +130,10 @@ const styles = StyleSheet.create({
   zoneCadre: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   cadre: { width: 250, height: 250, borderWidth: 2, borderColor: '#22c55e', borderRadius: 16, opacity: 0.8 },
   chargement: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: '#fbbf24', marginTop: 16 },
-  bouton: { paddingHorizontal: 24, paddingVertical: 14, backgroundColor: '#6366F1', borderRadius: 12 },
+  bouton: { paddingHorizontal: 24, paddingVertical: 14, backgroundColor: '#00C8FF', borderRadius: 12 },
   boutonTexte: { fontFamily: 'Outfit_600SemiBold', fontSize: 15, color: '#FFFFFF' },
   resultat: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
-  resultatIcone: { fontSize: 64, marginBottom: 16 },
+  resultatIcone: { marginBottom: 16 },
   resultatMessage: { fontFamily: 'Outfit_700Bold', fontSize: 24, color: '#FFFFFF', marginBottom: 8 },
   resultatDetail: { fontFamily: 'Outfit_400Regular', fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: 32 },
 })

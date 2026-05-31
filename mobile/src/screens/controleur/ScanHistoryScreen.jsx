@@ -5,13 +5,14 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, 
 import { Feather } from '@expo/vector-icons'
 import { formaterDateHeure } from '../../utils/dateUtils'
 import { getHistorique, synchroniser, getStats, reinitialiser } from '../../services/scanService'
+import { colors } from '../../constants/theme'
 import EmptyState from '../../components/EmptyState'
 
 // Couleurs par résultat de scan (fond pastel, texte, icône)
 const PROFIL = {
   VALIDE: { bg: '#f0fdf4', text: '#166534', dot: '#22c55e', icon: 'check-circle', label: 'Valide' },
   DEJA_UTILISE: { bg: '#fff7ed', text: '#9a3412', dot: '#f97316', icon: 'alert-triangle', label: 'Déjà utilisé' },
-  EXPIRE: { bg: '#fef2f2', text: '#991b1b', dot: '#ef4444', icon: 'clock', label: 'Expiré' },
+  EXPIRE: { bg: '#fef2f2', text: '#991b1b', dot: '#FF4D6D', icon: 'clock', label: 'Expiré' },
   INCONNU: { bg: '#fef2f2', text: '#7f1d1d', dot: '#b91c1c', icon: 'help-circle', label: 'Inconnu' },
   FRAUDE: { bg: '#fef2f2', text: '#dc2626', dot: '#dc2626', icon: 'shield-off', label: 'Fraude' },
 }
@@ -60,7 +61,7 @@ export default function ScanHistoryScreen() {
   return (
     <View style={styles.conteneur}>
       <ScrollView contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6366F1']} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00C8FF']} />}
       >
         {/* Bandeau des stats : tickets locaux + chaque statut de scan */}
         <View style={styles.statsBanner}>
@@ -121,7 +122,7 @@ export default function ScanHistoryScreen() {
 
         {/* Liste des scans */}
         {scans.length === 0 ? (
-          <EmptyState icon="📋" title="Aucun scan" subtitle="Les scans apparaîtront ici" />
+          <EmptyState icon={<Feather name="clipboard" size={48} color={colors.mid} />} title="Aucun scan" subtitle="Les scans apparaîtront ici" />
         ) : (
           scans.map((item) => {
             const p = PROFIL[item.resultat] || PROFIL.INCONNU
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statTicket: { alignItems: 'center', paddingRight: 16, minWidth: 80 },
-  statTicketNombre: { fontFamily: 'Outfit_700Bold', fontSize: 28, color: '#6366F1' },
+  statTicketNombre: { fontFamily: 'Outfit_700Bold', fontSize: 28, color: '#00C8FF' },
   statTicketLabel: { fontFamily: 'Outfit_400Regular', fontSize: 11, color: '#94a3b8', marginTop: 2 },
   statDivider: { width: 1, height: 60, backgroundColor: '#edf0f5', marginRight: 12 },
   statGrille: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
@@ -182,8 +183,8 @@ const styles = StyleSheet.create({
   // Actions
   actions: { flexDirection: 'row', paddingHorizontal: 16, paddingTop: 12, gap: 8 },
   actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 12 },
-  actionSync: { backgroundColor: '#6366F1' },
-  actionReset: { backgroundColor: '#ef4444' },
+  actionSync: { backgroundColor: '#00C8FF' },
+  actionReset: { backgroundColor: '#FF4D6D' },
   actionTexte: { fontFamily: 'Outfit_600SemiBold', fontSize: 13, color: '#FFFFFF' },
 
   // Section

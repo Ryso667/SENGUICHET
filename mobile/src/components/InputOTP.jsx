@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     color: '#0f172a',
   },
   caseRemplie: {
-    borderColor: '#6366F1',
-    backgroundColor: '#EEF2FF',
+    borderColor: '#00C8FF',
+    backgroundColor: '#E0F7FF',
   },
 })

@@ -1,12 +1,16 @@
 // Carte d'affichage d'un événement dans les listes
 // Affiche le nom, la date, la catégorie et le statut — utilisée dans HomeScreen et EventSearchScreen
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { Feather } from '@expo/vector-icons'
 import { fonts, colors, spacing, borderRadius, shadows, glass } from '../constants/theme'
+import { getDefaultImage } from '../config/images'
 
 // Carte d'événement avec bannière colorée, badge date, infos et prix
-// Props : event (objet avec title, month, day, bg, emoji, location, time, priceLabel), onPress (function)
+// Props : event (objet avec title, month, day, bg, emoji, category, location, time, priceLabel), onPress (function)
 export default function EventCard({ event, onPress }) {
+  const def = event.category ? getDefaultImage(event.category) : null
+  const iconName = def?.icon || null
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.banner, { backgroundColor: event.bg }]}>
@@ -14,7 +18,11 @@ export default function EventCard({ event, onPress }) {
           <Text style={styles.badgeMonth}>{event.month}</Text>
           <Text style={styles.badgeDay}>{event.day}</Text>
         </View>
-        <Text style={styles.emoji}>{event.emoji}</Text>
+        {iconName ? (
+          <MaterialCommunityIcons name={iconName} size={26} color="#fff" />
+        ) : (
+          <Text style={styles.emoji}>{event.emoji}</Text>
+        )}
       </View>
       <View style={styles.body}>
         <Text style={styles.title} numberOfLines={1}>{event.title}</Text>

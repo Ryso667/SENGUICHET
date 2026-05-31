@@ -1,7 +1,8 @@
 // Écran de sélection du rôle (Acheteur / Contrôleur / Organisateur)
 // Affiche 3 cartes animées — point d'entrée avant redirection vers la pile de navigation adaptée
 import React, { useEffect, useRef } from 'react'
-import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Alert } from 'react-native'
+import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Alert, Image } from 'react-native'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { LinearGradient } from 'expo-linear-gradient'
 import { viderTickets } from '../database/database'
@@ -14,7 +15,7 @@ const ROLES = [
     key: 'acheteur',
     title: 'Acheteur',
     subtitle: "Achète tes billets\nen un clic",
-    icon: '🎟️',
+    icon: 'ticket-outline',
     gradient: gradients.acheteur,
     screen: 'EntrerNumero',
   },
@@ -22,7 +23,7 @@ const ROLES = [
     key: 'controleur',
     title: 'Contrôleur',
     subtitle: "Scanne les billets\nà l'entrée",
-    icon: '📸',
+    icon: 'qrcode-scan',
     gradient: gradients.controleur,
     screen: 'ConnexionControleur',
   },
@@ -30,7 +31,7 @@ const ROLES = [
     key: 'organisateur',
     title: 'Organisateur',
     subtitle: 'Crée et gère\ntes événements',
-    icon: '🎪',
+    icon: 'calendar-star',
     gradient: gradients.organisateur,
     screen: 'ConnexionOrganisateur',
   },
@@ -52,7 +53,11 @@ export default function AccueilChoixScreen({ navigation }) {
       <StatusBar barStyle="dark-content" />
       {/* Titre et logo de l'application */}
       <View style={s.header}>
-        <Text style={s.logo}>🎫</Text>
+        <Image
+          source={require('../../assets/logo_mobile.jpeg')}
+          style={s.logo}
+          resizeMode="contain"
+        />
         <Text style={s.title}>Senguichet</Text>
         <Text style={s.tagline}>Billets & Événements</Text>
       </View>
@@ -77,7 +82,7 @@ export default function AccueilChoixScreen({ navigation }) {
                   start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                   style={s.card}
                 >
-                  <Text style={s.cardIcon}>{role.icon}</Text>
+                  <MaterialCommunityIcons name={role.icon} size={36} color="#fff" />
                   <Text style={s.cardTitle}>{role.title}</Text>
                   <Text style={s.cardSubtitle}>{role.subtitle}</Text>
                   <View style={s.arrow}>
@@ -100,7 +105,7 @@ export default function AccueilChoixScreen({ navigation }) {
               const appKeys = keys.filter(k => k.startsWith('@senguichet_'))
               await AsyncStorage.multiRemove(appKeys)
               await viderTickets()
-              Alert.alert('✅ Fait', 'Données effacées. Redémarre l\'app.')
+              Alert.alert('Données effacées', 'Redémarre l\'app.')
             }},
           ])
         }}
@@ -114,13 +119,13 @@ export default function AccueilChoixScreen({ navigation }) {
 const s = StyleSheet.create({
   container: { flex: 1 },
   header: { alignItems: 'center', paddingTop: 80, paddingBottom: spacing.xl },
-  logo: { fontSize: 48, marginBottom: spacing.sm },
+  logo: { width: 64, height: 64, marginBottom: spacing.sm, borderRadius: 16 },
   title: { fontSize: 32, fontFamily: fonts.outfit.bold, color: colors.slate },
   tagline: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: 4 },
   cards: { flex: 1, justifyContent: 'center', gap: spacing.md, paddingHorizontal: spacing.xl },
   cardWrap: { borderRadius: borderRadius.xl, ...shadows.lg },
   card: { borderRadius: borderRadius.xl, padding: spacing.lg, minHeight: 140, justifyContent: 'center' },
-  cardIcon: { fontSize: 36, marginBottom: spacing.xs },
+  cardIcon: { marginBottom: spacing.xs },
   cardTitle: { fontSize: 22, fontFamily: fonts.outfit.bold, color: colors.white },
   cardSubtitle: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
   arrow: { position: 'absolute', right: spacing.lg, top: '50%', marginTop: -12 },

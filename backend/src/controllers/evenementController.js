@@ -85,6 +85,7 @@ const lister = async (req, res) => {
         capacite: r.capacite_billets || r.capacite_totale,
         revenus: `${parseInt(r.revenus || 0).toLocaleString()} FCFA`,
         statut,
+        code: r.scan_code || '',
         img: `/images/event-${(r.id % 3) + 1}.jpg`,
       };
     });

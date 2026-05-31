@@ -82,7 +82,7 @@ export default function EventSearchScreen({ navigation }) {
               if (!f.location) f.location = mock.location
               if (!f.desc) f.desc = mock.desc
               if (!f.emoji || f.emoji === '📅') f.emoji = mock.emoji
-              if (f.bg === '#6366F1') f.bg = mock.bg
+              if (f.bg === '#00C8FF') f.bg = mock.bg
             }
           }
           return f
@@ -130,7 +130,7 @@ export default function EventSearchScreen({ navigation }) {
           </View>
         </View>
 
-        <ScrollView style={styles.flex} contentContainerStyle={styles.list}>
+        <ScrollView style={styles.flex} contentContainerStyle={styles.list} keyboardShouldPersistTaps="handled">
           {results.length === 0 ? (
             <View style={styles.empty}>
               <Feather name="search" size={28} color={colors.border} />
