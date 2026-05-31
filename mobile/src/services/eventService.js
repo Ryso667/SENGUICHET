@@ -368,49 +368,59 @@ export async function annulerEvenementAPI(id) {
   return await appelAPI(`/evenements/${id}/annuler`, { method: 'PUT' })
 }
 
-// Récupère les événements publics depuis le backend (sans auth)
-// Utile pour la page d'accueil non connectée
-export async function fetchEvenementsPublics() {
-  const data = await appelAPI('/evenements/public/')
+// Récupère la liste des événements publics (acheteur) avec filtres optionnels
+// Appelle GET /api/evenements/public avec paramètres de recherche
+// Retourne le format attendu par les écrans acheteur
+export async function fetchEvenementsPublics(filtres = {}) {
+  const params = new URLSearchParams()
+  if (filtres.categorie) params.append('categorie', filtres.categorie)
+  if (filtres.prixMax) params.append('prix_max', filtres.prixMax)
+  if (filtres.dateMin) params.append('date_min', filtres.dateMin)
+  if (filtres.dateMax) params.append('date_max', filtres.dateMax)
+  const query = params.toString() ? `?${params.toString()}` : ''
+  const data = await appelAPI(`/evenements/public${query}`)
   if (!Array.isArray(data)) return []
   return data.map(e => ({
     id: String(e.id),
-    nom: e.titre || e.nom || '',
+    title: e.nom || '',
     date: e.date_debut || e.date || '',
-    lieu: e.lieu || '',
-    categorie: e.categorie || '',
-    description: e.description || '',
-    poster: e.poster || getDefaultImage(e.categorie).poster,
-    statut: e.statut || 'actif',
-    capacite: e.capacite_totale || e.capacite || 0,
-    remplis: e.remplis || 0,
+    location: e.lieu || '',
+    category: e.categorie || '',
+    desc: e.description || '',
+    tickets: (e.categories || []).map(c => ({
+      id: String(c.id),
+      name: c.nom,
+      price: c.prix,
+      desc: c.description || '',
+    })),
+    priceMin: e.prix_min || 0,
+    priceMax: e.prix_max || 0,
   }))
 }
 
-// Récupère le détail d'un événement public depuis le backend (sans auth)
-// Retourne { evenement, ticketTypes } pour l écran détail public
-export async function fetchEvenementDetailPublic(id) {
-  const data = await appelAPI(`/evenements/${id}/public`)
-  if (!data || !data.evenement) return data
+// Récupère le détail public d'un événement par son ID
+// Appelle GET /api/evenements/public/:id
+// Retourne le format attendu par EventDetailScreen avec bg et emoji par défaut selon catégorie
+export async function fetchEvenementDetailPublic(eventId) {
+  const data = await appelAPI(`/evenements/public/${eventId}`)
+  if (!data || !data.evenement) return null
   const e = data.evenement
   return {
-    evenement: {
-      id: String(e.id),
-      nom: e.titre || e.nom || '',
-      date: e.date_debut || e.date || '',
-      lieu: e.lieu || '',
-      categorie: e.categorie || '',
-      description: e.description || '',
-      poster: e.poster || getDefaultImage(e.categorie).poster,
-      statut: e.statut || 'actif',
-      capacite: e.capacite_totale || 0,
-    },
-    ticketTypes: (data.ticketTypes || []).map(t => ({
-      id: String(t.id),
-      nom: t.nom,
-      prix: t.prix,
-      places_disponibles: t.places_disponibles ?? t.quantite,
-      capacite: t.capacite || t.quantite,
+    id: String(e.id),
+    title: e.titre || '',
+    date: e.date_debut || '',
+    location: e.lieu || '',
+    category: e.categorie || '',
+    desc: e.description || '',
+    bg: e.categorie ? getDefaultImage(e.categorie).bg : '#E0F7FF',
+    emoji: e.categorie ? getDefaultImage(e.categorie).emoji : '🎉',
+    tickets: (data.categories || []).map(c => ({
+      id: String(c.id),
+      name: c.nom,
+      price: c.prix,
+      desc: c.description || '',
     })),
+    priceMin: e.prix_min || 0,
+    priceMax: e.prix_max || 0,
   }
 }
