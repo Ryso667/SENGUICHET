@@ -6,5 +6,6 @@ const router = express.Router();
 
 router.use("/auth", authRoutes);
 router.use("/evenements", evenementRoutes);
+router.use("/billets", require("./billets"));
 
 module.exports = router;
