@@ -1,6 +1,6 @@
 // Écran détail d'un événement avec sélection de catégorie et paiement
 // Inclut : bannière, infos, sélection ticket, saisie téléphone, double confirmation paiement
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   View, Text, ScrollView, TextInput,
   TouchableOpacity, StyleSheet, Alert, Modal,
@@ -10,8 +10,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { acheterTicket, getAllEvenements } from '../services/eventService'
+import { fetchEvenementDetailPublic } from '../services/eventService'
+import { ActivityIndicator } from 'react-native'
 import { useAuth } from '../context/AuthContext'
 import { formaterDateLisible } from '../utils/dateUtils'
 import BuyerLayout from '../components/BuyerLayout'
@@ -29,65 +29,43 @@ function formaterTelStocke(telComplet) {
 }
 
 export default function EventDetailScreen({ route, navigation }) {
-  const { event } = route.params
+  const { eventId } = route.params
   const { numeroTel } = useAuth()
-  const [selectedTicket, setSelectedTicket] = useState(event.tickets[1] || event.tickets[0])
+  const [event, setEvent] = useState(null)
+  const [selectedTicket, setSelectedTicket] = useState(null)
   const [phone, setPhone] = useState(() => formaterTelStocke(numeroTel))
   const [showCategorySheet, setShowCategorySheet] = useState(false)
 
-  // Paiement avec double confirmation pour éviter les achats involontaires
-  // Sera remplacé par API : intégration Wave/Orange Money réelle
+  useEffect(() => {
+    (async () => {
+      const data = await fetchEvenementDetailPublic(eventId)
+      setEvent(data)
+      if (data && data.tickets.length > 0) {
+        setSelectedTicket(data.tickets[1] || data.tickets[0])
+      }
+    })()
+  }, [eventId])
+
   const handleBuy = () => {
     const tel = `+221 ${phone.replace(/\s/g, '')}`
-    const prix = selectedTicket.price || selectedTicket.prix
-    Alert.alert(
-      'Confirmer le paiement',
-      `${selectedTicket.name} — ${prix?.toLocaleString() || '?'} FCFA\nTéléphone: ${tel}`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Confirmer',
-          onPress: async () => {
-            try {
-              // Si l'événement n'existe pas encore dans AsyncStorage, le créer avec ses catégories
-              // Sera remplacé par API : création côté serveur
-              const events = await getAllEvenements()
-              if (!events.find(e => e.id === event.id)) {
-                events.push({
-                  id: event.id,
-                  nom: event.title,
-                  date: event.date,
-                  lieu: event.location || '',
-                  heure: event.time || '',
-                  categorie: event.category || '',
-                  description: event.desc || '',
-                  poster: event.poster || '',
-                  categories: event.tickets.map(t => ({
-                    id: t.id,
-                    nom: t.name,
-                    prix: t.price,
-                    capacite: 999,
-                  })),
-                  ticketCount: 0,
-                  createdAt: new Date().toISOString(),
-                })
-                await AsyncStorage.setItem('@senguichet_evenements', JSON.stringify(events))
-              }
+    navigation.navigate('Paiement', {
+      eventId: event.id,
+      eventTitle: event.title,
+      ticket: selectedTicket,
+      telephone: tel,
+    })
+  }
 
-              const ticket = await acheterTicket(event.id, selectedTicket.id, tel)
-
-              Alert.alert('Paiement validé !', 'Votre Smart Ticket a été généré et enregistré localement.', [
-                {
-                  text: 'Voir mon ticket',
-                  onPress: () => navigation.replace('Ticket', { ticket }),
-                },
-              ])
-            } catch (err) {
-              Alert.alert('Erreur', err.message)
-            }
-          },
-        },
-      ]
+  if (!event) {
+    return (
+      <BuyerLayout>
+        <SafeAreaView style={styles.safe}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.accent} />
+            <Text style={styles.loadingText}>Chargement...</Text>
+          </View>
+        </SafeAreaView>
+      </BuyerLayout>
     )
   }
 
@@ -242,6 +220,17 @@ export default function EventDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.white },
   flex: { flex: 1 },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 13,
+    color: colors.mid,
+    fontFamily: fonts.jakarta.regular,
+  },
   banner: {
     height: 130,
     alignItems: 'center',
