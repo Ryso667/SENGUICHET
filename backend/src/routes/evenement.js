@@ -3,6 +3,10 @@ const router = express.Router();
 const authMiddleware = require("../middleware/auth");
 const e = require("../controllers/evenementController");
 
+// Routes publiques (sans authentification)
+router.get('/public', e.listerPublic);
+router.get('/public/:id', e.detailPublic);
+
 // Organisateur routes
 router.post("/", authMiddleware(["ORGANISATEUR"]), e.creer);
 router.get("/", authMiddleware(["ORGANISATEUR"]), e.lister);

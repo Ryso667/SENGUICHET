@@ -285,5 +285,61 @@ const adminDetail = async (req, res) => {
   }
 };
 
-module.exports = { creer, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail };
+// Liste les événements publics avec statut='actif' et date_fin >= NOW
+// Accessible sans authentification — uniquement les événements validés par l'admin
+const listerPublic = async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT e.id, e.titre, e.description, e.lieu, e.ville, e.categorie,
+        e.date_debut, e.date_fin, e.capacite_totale, e.affiche_url,
+        (SELECT MIN(ct.prix) FROM categorie_ticket ct WHERE ct.evenement_id = e.id) AS prix_min,
+        (SELECT MAX(ct.prix) FROM categorie_ticket ct WHERE ct.evenement_id = e.id) AS prix_max
+      FROM evenement e
+      WHERE e.statut = 'actif' AND (e.date_fin IS NULL OR e.date_fin >= NOW())
+      ORDER BY e.date_debut ASC`
+    );
+
+    res.json(rows.map(r => ({
+      id: r.id,
+      titre: r.titre,
+      description: r.description,
+      lieu: r.lieu,
+      ville: r.ville,
+      categorie: r.categorie,
+      date_debut: r.date_debut,
+      date_fin: r.date_fin,
+      capacite_totale: r.capacite_totale,
+      affiche_url: r.affiche_url,
+      prix_min: r.prix_min || 0,
+      prix_max: r.prix_max || 0,
+    })));
+  } catch (err) {
+    console.error("Lister public error:", err);
+    res.status(500).json({ message: "Erreur" });
+  }
+};
+
+// Détail public d'un événement avec ses catégories de billets
+const detailPublic = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [rows] = await pool.query(
+      "SELECT id, titre, description, lieu, ville, categorie, date_debut, date_fin, capacite_totale, affiche_url FROM evenement WHERE id = ? AND statut = 'actif'",
+      [id]
+    );
+    if (!rows.length) return res.status(404).json({ message: "Événement introuvable" });
+
+    const [tickets] = await pool.query(
+      "SELECT id, nom, description, prix, capacite, places_disponibles FROM categorie_ticket WHERE evenement_id = ?",
+      [id]
+    );
+
+    res.json({ evenement: rows[0], types_billets: tickets });
+  } catch (err) {
+    console.error("Detail public error:", err);
+    res.status(500).json({ message: "Erreur" });
+  }
+};
+
+module.exports = { creer, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic };
 

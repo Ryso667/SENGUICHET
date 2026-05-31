@@ -260,18 +260,26 @@ export async function supprimerEvenement(id) {
 export async function fetchEvenementsAPI() {
   const data = await appelAPI('/evenements/')
   if (!Array.isArray(data)) return []
-  return data.map(e => ({
-    id: String(e.id),
-    nom: e.nom || '',
-    date: e.date || '',
-    lieu: e.lieu || '',
-    categorie: e.categorie || '',
-    code: e.code || '',
-    statut: e.statut || 'en_attente',
-    remplis: e.remplis || 0,
-    capacite: e.capacite || 0,
-    revenus: e.revenus || '0 FCFA',
-  }))
+  return data.map(e => {
+    // Normalisation des statuts : le backend lister mappe 'actif' en 'active' et
+    // 'actif+soldout' en 'sold-out', mais le mobile utilise les clés françaises
+    const rawStatut = e.statut || 'en_attente'
+    let statut = rawStatut
+    if (statut === 'active') statut = 'actif'
+    if (statut === 'sold-out') statut = 'actif'
+    return {
+      id: String(e.id),
+      nom: e.nom || '',
+      date: e.date || '',
+      lieu: e.lieu || '',
+      categorie: e.categorie || '',
+      code: e.code || '',
+      statut,
+      remplis: e.remplis || 0,
+      capacite: e.capacite || 0,
+      revenus: e.revenus || '0 FCFA',
+    }
+  })
 }
 
 // Crée un événement via le backend

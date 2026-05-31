@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 import { colors, glass, shadows, spacing, borderRadius, fonts } from '../../constants/theme'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
@@ -94,15 +95,41 @@ export default function OrganisateurDashboardScreen({ navigation }) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} />}
       >
         {/* Greeting */}
-        <View style={s.greeting}>
-          <Text style={s.bonjour}>Bonjour, {user?.nom || 'Organisateur'}</Text>
-          <Text style={s.sousTitre}>
-            {totalEvents > 0
-              ? `${events.length} événement${events.length > 1 ? 's' : ''} au total`
-              : enAttente > 0 ? `${enAttente} en attente de validation`
-              : 'Aucun événement pour le moment'}
-          </Text>
-        </View>
+        {/* En-tête dégradé pastel Cyan */}
+        <LinearGradient colors={['rgba(0,200,255,0.09)', 'rgba(0,119,255,0.03)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.greeting}>
+          <View style={s.headerRow}>
+            <View style={s.avatarCircle}>
+              <MaterialCommunityIcons name="account-tie" size={22} color={colors.accent} />
+            </View>
+            <View style={s.headerText}>
+              <Text style={s.bonjour}>Bonjour, {user?.nom || 'Organisateur'}</Text>
+              <Text style={s.sousTitre}>
+                {totalEvents > 0
+                  ? `${totalEvents} événement${totalEvents > 1 ? 's' : ''}`
+                  : enAttente > 0 ? `${enAttente} en attente`
+                  : 'Aucun événement'}
+              </Text>
+            </View>
+          </View>
+          {/* Sous-titre contextuel : répartition par statut */}
+          {totalEvents > 0 && (
+            <View style={s.statsPills}>
+              {actifs > 0 && (
+                <View style={[s.statPill, { backgroundColor: 'rgba(0,229,160,0.15)' }]}>
+                  <Text style={[s.statPillText, { color: '#00E5A0' }]}>{actifs} actif{actifs > 1 ? 's' : ''}</Text>
+                </View>
+              )}
+              {enAttente > 0 && (
+                <View style={[s.statPill, { backgroundColor: 'rgba(249,115,22,0.15)' }]}>
+                  <Text style={[s.statPillText, { color: '#F97316' }]}>{enAttente} en attente</Text>
+                </View>
+              )}
+            </View>
+          )}
+        </LinearGradient>
+
+        {/* Indicateur de pull-to-refresh */}
+        <Text style={s.refreshHint}>↓ Tirez vers le bas pour actualiser</Text>
 
         {/* Stats grid */}
         {loading ? (
@@ -241,14 +268,33 @@ const s = StyleSheet.create({
   quickLabel: { fontSize: 13, fontFamily: fonts.outfit.semiBold },
   mainContent: { flex: 1 },
   greeting: {
-    paddingHorizontal: spacing.lg, paddingTop: spacing.xl + 20, paddingBottom: spacing.lg,
-    backgroundColor: colors.white, borderBottomLeftRadius: 24, borderBottomRightRadius: 24,
-    ...shadows.sm,
+    paddingHorizontal: spacing.lg, paddingTop: spacing.xl + 20, paddingBottom: spacing.md,
+    borderBottomLeftRadius: 24, borderBottomRightRadius: 24,
   },
-  bonjour: { fontSize: 26, fontFamily: fonts.outfit.bold, color: colors.slate },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  avatarCircle: {
+    width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,200,255,0.12)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  headerText: { flex: 1 },
+  bonjour: { fontSize: 22, fontFamily: fonts.outfit.bold, color: colors.slate },
   sousTitre: {
     fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.mid,
-    marginTop: 6,
+    marginTop: 2,
+  },
+  statsPills: {
+    flexDirection: 'row', gap: spacing.sm,
+    paddingTop: spacing.sm, paddingLeft: 60,
+  },
+  statPill: {
+    paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12,
+  },
+  statPillText: {
+    fontSize: 11, fontFamily: fonts.outfit.semiBold,
+  },
+  refreshHint: {
+    textAlign: 'center', color: colors.muted, fontSize: 11, fontFamily: fonts.jakarta.regular,
+    paddingTop: spacing.sm, paddingBottom: 0, letterSpacing: 0.3,
   },
   loading: { textAlign: 'center', color: colors.mid, fontSize: 14, fontFamily: fonts.jakarta.regular, marginTop: 60 },
   statsRow: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.lg, gap: spacing.sm, marginTop: spacing.lg, marginBottom: spacing.md },
