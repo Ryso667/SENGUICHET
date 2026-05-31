@@ -7,5 +7,6 @@ const router = express.Router();
 router.use("/auth", authRoutes);
 router.use("/evenements", evenementRoutes);
 router.use("/billets", require("./billets"));
+router.use("/paiements", require("./paiements"));
 
 module.exports = router;
