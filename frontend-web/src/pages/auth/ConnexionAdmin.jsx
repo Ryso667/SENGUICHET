@@ -35,20 +35,20 @@ const ConnexionAdmin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0B1A] flex">
+    <div className="min-h-screen bg-[#0D1B2A] flex">
       <div className="hidden lg:flex w-[40%] relative overflow-hidden items-center justify-center">
         <img src="/images/event-1.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" style={{ filter: "brightness(0.25) blur(3px)", transform: "scale(1.08)" }} />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0A0B1A]/90 via-[#0A0B1A]/50 to-transparent" />
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at top, rgba(251,146,60,0.12) 0%, transparent 70%)" }} />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0D1B2A]/90 via-[#0D1B2A]/50 to-transparent" />
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at top, rgba(0,119,255,0.12) 0%, transparent 70%)" }} />
         <div className="relative z-10 text-center px-8 max-w-sm" style={{ animation: "fadeInUp 0.6s ease-out" }}>
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ background: "linear-gradient(135deg, #FB923C, #EF4444)", boxShadow: "0 8px 30px rgba(251,146,60,0.3)" }}>
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ background: "linear-gradient(135deg, var(--accent), var(--error))", boxShadow: "0 8px 30px rgba(0,119,255,0.3)" }}>
             <span className="text-2xl">🛡️</span>
           </div>
-          <p className="text-4xl font-bold mb-4" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 800, background: "linear-gradient(135deg, #FB923C, #EF4444)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>SenGuichet</p>
+          <p className="text-4xl font-bold mb-4" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 800, background: "linear-gradient(135deg, var(--accent), var(--error))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>SenGuichet</p>
           <p className="text-white/80 text-sm mb-8" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Espace d'administration de la plateforme SenGuichet.</p>
           <div className="space-y-3 text-left mx-auto max-w-[220px]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             {["Sécurisé", "Rapide", "Professionnel"].map((item, i) => (
-              <p key={item} className="text-white/60 text-sm flex items-center gap-3" style={{ animation: `slideInLeft 0.4s ease-out ${0.3 + i * 0.15}s both` }}><span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px]" style={{ background: "rgba(34,197,94,0.15)", color: "#22C55E" }}>✓</span> {item}</p>
+              <p key={item} className="text-white/60 text-sm flex items-center gap-3" style={{ animation: `slideInLeft 0.4s ease-out ${0.3 + i * 0.15}s both` }}><span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px]" style={{ background: "rgba(0,229,160,0.15)", color: "var(--success)" }}>✓</span> {item}</p>
             ))}
           </div>
         </div>
@@ -64,11 +64,11 @@ const ConnexionAdmin = () => {
           </div>
 
           <div className="glass-card p-8 sm:p-10 relative">
-            <span className="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-medium" style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", color: "#FB923C", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <span className="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-medium" style={{ background: "rgba(255,77,109,0.15)", border: "1px solid rgba(255,77,109,0.3)", color: "var(--accent)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Administration
             </span>
 
-            <h1 className="text-2xl font-bold mb-1" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700, background: "linear-gradient(135deg, #FB923C, #EF4444)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+            <h1 className="text-2xl font-bold mb-1" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700, background: "linear-gradient(135deg, var(--accent), var(--error))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               Accès Administrateur
             </h1>
             <p className="text-sm mb-8" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Espace réservé à l'équipe SenGuichet</p>

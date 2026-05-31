@@ -20,7 +20,7 @@ const pieData = [
   { name: "Festival Dakar", value: 97 },
 ];
 
-const pieColors = ["#6366F1", "#FB923C", "#22C55E", "#F59E0B"];
+const pieColors = ["var(--primary)", "var(--accent)", "var(--success)", "var(--warning)"];
 
 const topEvents = [
   { nom: "Concert Thiossane Live", billets: 320, revenus: "3 200 000 F", taux: 78 },
@@ -68,9 +68,9 @@ const Statistiques = () => {
             onClick={() => setPeriod(p)}
             className="px-4 py-2 rounded-xl text-xs font-medium transition-all"
             style={{
-              background: period === p ? "rgba(99,102,241,0.15)" : "rgba(255,255,255,0.04)",
+              background: period === p ? "rgba(0,200,255,0.15)" : "rgba(255,255,255,0.04)",
               color: period === p ? "#818CF8" : "var(--text-secondary)",
-              border: period === p ? "1px solid rgba(99,102,241,0.3)" : "1px solid var(--border)",
+              border: period === p ? "1px solid rgba(0,200,255,0.3)" : "1px solid var(--border)",
             }}
           >
             {p}
@@ -91,15 +91,15 @@ const Statistiques = () => {
           <AreaChart data={ventesData}>
             <defs>
               <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#6366F1" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="#6366F1" stopOpacity={0} />
+                <stop offset="0%" stopColor="#00C8FF" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="#00C8FF" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
             <XAxis dataKey="date" stroke="rgba(255,255,255,0.2)" fontSize={11} tickMargin={6} />
             <YAxis stroke="rgba(255,255,255,0.2)" fontSize={11} tickMargin={6} />
             <Tooltip content={<CustomTooltip />} />
-            <Area type="monotone" dataKey="billets" stroke="#6366F1" strokeWidth={2.5} fill="url(#areaGrad)" dot={false} activeDot={{ r: 5, fill: "#6366F1", stroke: "#0A0B1A", strokeWidth: 2 }} />
+            <Area type="monotone" dataKey="billets" stroke="#00C8FF" strokeWidth={2.5} fill="url(#areaGrad)" dot={false} activeDot={{ r: 5, fill: "var(--primary)", stroke: "var(--bg)", strokeWidth: 2 }} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -133,7 +133,7 @@ const Statistiques = () => {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-2 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
-                    <div className="h-full rounded-full transition-all" style={{ width: `${e.taux}%`, background: i === 0 ? "linear-gradient(90deg, #6366F1, #818CF8)" : i === 1 ? "linear-gradient(90deg, #FB923C, #FBBF24)" : i === 2 ? "linear-gradient(90deg, #22C55E, #4ADE80)" : "linear-gradient(90deg, #F59E0B, #FBBF24)" }} />
+                    <div className="h-full rounded-full transition-all" style={{ width: `${e.taux}%`, background: i === 0 ? "linear-gradient(90deg, var(--primary), #818CF8)" : i === 1 ? "linear-gradient(90deg, var(--accent), #FBBF24)" : i === 2 ? "linear-gradient(90deg, var(--success), #4ADE80)" : "linear-gradient(90deg, var(--warning), #FBBF24)" }} />
                   </div>
                   <span className="text-xs font-medium" style={{ color: "var(--text-primary)", minWidth: 48, textAlign: "right" }}>{e.taux}%</span>
                 </div>

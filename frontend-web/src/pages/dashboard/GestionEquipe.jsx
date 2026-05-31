@@ -20,7 +20,7 @@ const ConfirmRegenModal = ({ open, onConfirm, onClose }) => {
         </p>
         <div className="flex gap-3">
           <button onClick={onClose} className="btn-ghost btn-sm" style={{ flex: 1 }}>Annuler</button>
-          <button onClick={onConfirm} className="btn-primary btn-sm" style={{ flex: 1, background: "linear-gradient(135deg, #FB923C, #EF4444)" }}>Régénérer</button>
+          <button onClick={onConfirm} className="btn-primary btn-sm" style={{ flex: 1, background: "linear-gradient(135deg, var(--accent), var(--error))" }}>Régénérer</button>
         </div>
       </div>
     </div>
