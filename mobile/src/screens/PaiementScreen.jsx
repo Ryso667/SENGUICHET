@@ -1,22 +1,23 @@
-// Écran de paiement avec double confirmation avant achat
-// Affiche un récapitulatif, demande confirmation, puis procède au paiement
+// Écran de paiement avec champ téléphone et double confirmation avant achat
+// Le téléphone est demandé ici (pas dans EventDetailScreen) pour les utilisateurs sociaux
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Easing } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import { acheterBillet } from '../services/billetService'
 import BuyerLayout from '../components/BuyerLayout'
+import { useAuth } from '../context/AuthContext'
 
 export default function PaiementScreen({ route, navigation }) {
-  const { eventId, eventTitle, ticket, telephone } = route.params
-  const [etape, setEtape] = useState('confirm') // 'confirm' | 'pending' | 'success' | 'failed'
+  const { eventId, eventTitle, ticket, telephone: telParam } = route.params
+  const { definirTelephone, numeroTel, profil } = useAuth()
+  const [telephone, setTelephone] = useState(telParam || numeroTel || '')
+  const [etape, setEtape] = useState('saisie') // 'saisie' | 'confirm' | 'pending' | 'success' | 'failed'
   const [billet, setBillet] = useState(null)
   const [error, setError] = useState('')
   const spinAnim = useRef(new Animated.Value(0)).current
-
-  // Animation du spinner pendant le paiement
   const [spinning, setSpinning] = useState(false)
 
   const demarrerPaiement = useCallback(async () => {
@@ -33,7 +34,11 @@ export default function PaiementScreen({ route, navigation }) {
     anim.start()
 
     try {
-      const resultat = await acheterBillet(eventId, ticket.id, telephone)
+      // Nettoyer le format du téléphone
+      const telPropre = telephone.replace(/[^\d]/g, '')
+      const telComplet = telPropre.startsWith('221') ? `+${telPropre}` : `+221${telPropre}`
+
+      const resultat = await acheterBillet(eventId, ticket.id, telComplet, profil?.email)
       anim.stop()
       setSpinning(false)
 
@@ -41,7 +46,9 @@ export default function PaiementScreen({ route, navigation }) {
         throw new Error('Réponse invalide du serveur')
       }
 
-      // Petite pause pour l'UX
+      // Sauvegarder le téléphone pour les prochains achats
+      await definirTelephone(telComplet)
+
       await new Promise(resolve => setTimeout(resolve, 1500))
 
       setBillet({ ...resultat.billet, eventId })
@@ -52,9 +59,8 @@ export default function PaiementScreen({ route, navigation }) {
       setEtape('failed')
       setError(err.message || 'Erreur de connexion au serveur')
     }
-  }, [eventId, ticket, telephone, spinAnim])
+  }, [eventId, ticket, telephone, spinAnim, definirTelephone])
 
-  // Redirection vers le ticket après succès
   useEffect(() => {
     if (etape === 'success' && billet) {
       const timer = setTimeout(() => {
@@ -63,6 +69,13 @@ export default function PaiementScreen({ route, navigation }) {
       return () => clearTimeout(timer)
     }
   }, [etape, billet, navigation])
+
+  const handleConfirm = () => {
+    if (!telephone || telephone.replace(/[^\d]/g, '').length < 6) {
+      return
+    }
+    setEtape('confirm')
+  }
 
   const spin = spinAnim.interpolate({
     inputRange: [0, 1],
@@ -74,10 +87,59 @@ export default function PaiementScreen({ route, navigation }) {
       <SafeAreaView style={s.safe}>
         <View style={s.container}>
 
+          {/* Étape 0 : Saisie du téléphone */}
+          {etape === 'saisie' && (
+            <>
+              <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+                <Feather name="arrow-left" size={18} color={colors.slate} />
+              </TouchableOpacity>
+
+              <Text style={s.eventTitleMin}>{eventTitle}</Text>
+              <Text style={s.ticketInfoMin}>{ticket.name} — {ticket.price?.toLocaleString()} FCFA</Text>
+
+              <View style={s.phoneSection}>
+                <Feather name="smartphone" size={22} color={colors.accent} />
+                <Text style={s.phoneTitle}>Ton numéro Wave ou Orange Money</Text>
+                <Text style={s.phoneSubtitle}>Pour recevoir ton billet et le paiement</Text>
+
+                <View style={s.phoneRow}>
+                  <View style={s.countryCode}>
+                    <Text style={s.codeText}>+221</Text>
+                  </View>
+                  <TextInput
+                    style={s.phoneInput}
+                    value={telephone}
+                    onChangeText={setTelephone}
+                    keyboardType="phone-pad"
+                    placeholder="77 XXX XX XX"
+                    placeholderTextColor={colors.muted}
+                  />
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={s.continueBtn}
+                onPress={handleConfirm}
+                activeOpacity={0.9}
+                disabled={!telephone || telephone.replace(/[^\d]/g, '').length < 6}
+              >
+                <LinearGradient
+                  colors={['#00C8FF', '#0077FF']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={s.continueGradient}
+                >
+                  <Text style={s.continueText}>Continuer</Text>
+                  <Feather name="arrow-right" size={16} color="#fff" />
+                </LinearGradient>
+              </TouchableOpacity>
+            </>
+          )}
+
           {/* Étape 1 : Confirmation */}
           {etape === 'confirm' && (
             <>
-              <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+              <TouchableOpacity style={s.backBtn} onPress={() => setEtape('saisie')}>
                 <Feather name="arrow-left" size={18} color={colors.slate} />
               </TouchableOpacity>
 
@@ -107,7 +169,7 @@ export default function PaiementScreen({ route, navigation }) {
 
                 <View style={s.detailRow}>
                   <Text style={s.detailLabel}>Téléphone</Text>
-                  <Text style={s.detailValue}>+221 {telephone.replace('+221', '')}</Text>
+                  <Text style={s.detailValue}>+221 {telephone.replace(/[^\d]/g, '').slice(-9)}</Text>
                 </View>
               </View>
 
@@ -195,7 +257,7 @@ export default function PaiementScreen({ route, navigation }) {
                   <Text style={s.errorDetail}>{error}</Text>
                   <TouchableOpacity
                     style={s.retryBtn}
-                    onPress={() => setEtape('confirm')}
+                    onPress={() => setEtape('saisie')}
                     activeOpacity={0.8}
                   >
                     <LinearGradient colors={['#00C8FF', '#0077FF']} style={s.retryGradient}>
@@ -208,7 +270,6 @@ export default function PaiementScreen({ route, navigation }) {
             </>
           )}
 
-          {/* Pied de page */}
           <View style={s.footer}>
             <Feather name="lock" size={11} color={colors.muted} />
             <Text style={s.footerText}>Paiement sécurisé</Text>
@@ -249,6 +310,21 @@ const s = StyleSheet.create({
     textAlign: 'center',
     marginTop: 4,
   },
+  eventTitleMin: {
+    fontFamily: fonts.outfit.semiBold,
+    fontSize: 15,
+    color: colors.slate,
+    textAlign: 'center',
+    marginTop: spacing.sm,
+  },
+  ticketInfoMin: {
+    fontFamily: fonts.jakarta.regular,
+    fontSize: 12,
+    color: colors.mid,
+    textAlign: 'center',
+    marginTop: 2,
+    marginBottom: spacing.xl,
+  },
   centerArea: {
     flex: 1,
     alignItems: 'center',
@@ -267,6 +343,74 @@ const s = StyleSheet.create({
     fontFamily: fonts.jakarta.regular,
     fontSize: 12,
     color: colors.mid,
+  },
+
+  // Section téléphone
+  phoneSection: {
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: spacing.xl,
+  },
+  phoneTitle: {
+    fontFamily: fonts.outfit.semiBold,
+    fontSize: 16,
+    color: colors.slate,
+    marginTop: spacing.sm,
+  },
+  phoneSubtitle: {
+    fontFamily: fonts.jakarta.regular,
+    fontSize: 12,
+    color: colors.mid,
+    marginBottom: spacing.md,
+  },
+  phoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+    width: '100%',
+    ...shadows.sm,
+  },
+  countryCode: {
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    backgroundColor: colors.border,
+  },
+  codeText: {
+    fontSize: 13,
+    fontFamily: fonts.jakarta.semiBold,
+    color: colors.slate,
+  },
+  phoneInput: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: fonts.jakarta.semiBold,
+    color: colors.slate,
+    padding: 0,
+    paddingHorizontal: 14,
+    outlineStyle: 'none',
+  },
+
+  // Bouton continuer
+  continueBtn: {
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+    ...shadows.md,
+  },
+  continueGradient: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  continueText: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 15,
+    color: '#fff',
   },
 
   // Carte de confirmation

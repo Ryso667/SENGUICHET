@@ -41,5 +41,9 @@ yarn-error.*
 /ios
 /android
 
+# Firebase config (sensible)
+google-services.json
+GoogleService-Info.plist
+
 .playwright-mcp/
 frontend-web/build/

@@ -146,4 +146,80 @@ const adminListerOrganisateurs = async (req, res) => {
   }
 };
 
-module.exports = { inscription, connexionOrganisateur, connexionAdmin, adminListerOrganisateurs };
+// Connexion sociale via Firebase (Google/Apple)
+// Reçoit un token ID Firebase, le vérifie, crée ou lie l'acheteur
+const connexionSociale = async (req, res) => {
+  try {
+    const { firebaseToken } = req.body;
+    if (!firebaseToken) {
+      return res.status(400).json({ message: "Token Firebase requis" });
+    }
+
+    const { verifierTokenFirebase } = require("../services/firebaseAdmin");
+    let profil;
+    try {
+      profil = await verifierTokenFirebase(firebaseToken);
+    } catch (err) {
+      return res.status(401).json({ message: "Token invalide ou expiré" });
+    }
+
+    if (!profil.email) {
+      return res.status(400).json({ message: "Email requis pour la connexion sociale" });
+    }
+
+    // Chercher un acheteur existant par email ou provider_id
+    const [existants] = await pool.query(
+      `SELECT id, nom, email, telephone, photo_url, auth_provider, provider_id
+       FROM acheteur
+       WHERE email = ? OR (auth_provider = ? AND provider_id = ?)
+       LIMIT 1`,
+      [profil.email, profil.auth_provider, profil.uid]
+    );
+
+    let acheteur;
+    if (existants.length > 0) {
+      // Mettre à jour l'existant (photo, nom, provider)
+      acheteur = existants[0];
+      await pool.query(
+        `UPDATE acheteur
+         SET nom = COALESCE(?, nom),
+             photo_url = COALESCE(?, photo_url),
+             auth_provider = ?,
+             provider_id = ?,
+             dernier_acces = NOW()
+         WHERE id = ?`,
+        [profil.nom, profil.photo_url, profil.auth_provider, profil.uid, acheteur.id]
+      );
+    } else {
+      // Créer un nouvel acheteur
+      const [result] = await pool.query(
+        `INSERT INTO acheteur (nom, email, photo_url, auth_provider, provider_id, date_inscription, dernier_acces)
+         VALUES (?, ?, ?, ?, ?, NOW(), NOW())`,
+        [profil.nom, profil.email, profil.photo_url, profil.auth_provider, profil.uid]
+      );
+      acheteur = { id: result.insertId, nom: profil.nom, email: profil.email, photo_url: profil.photo_url, auth_provider: profil.auth_provider };
+    }
+
+    // Générer le JWT de session
+    const token = generateToken(
+      { id: acheteur.id, email: profil.email },
+      "ACHETEUR"
+    );
+
+    res.json({
+      token,
+      user: {
+        id: acheteur.id,
+        nom: profil.nom,
+        email: profil.email,
+        photo_url: profil.photo_url,
+        auth_provider: profil.auth_provider,
+      },
+    });
+  } catch (err) {
+    console.error("Connexion sociale error:", err);
+    res.status(500).json({ message: "Erreur lors de la connexion sociale" });
+  }
+};
+
+module.exports = { inscription, connexionOrganisateur, connexionAdmin, adminListerOrganisateurs, connexionSociale };

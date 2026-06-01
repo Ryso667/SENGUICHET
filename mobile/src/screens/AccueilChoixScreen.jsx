@@ -17,7 +17,7 @@ const ROLES = [
     subtitle: "Achète tes billets\nen un clic",
     icon: 'ticket-outline',
     gradient: gradients.acheteur,
-    screen: 'EntrerNumero',
+    screen: 'SocialAuth',
   },
   {
     key: 'controleur',

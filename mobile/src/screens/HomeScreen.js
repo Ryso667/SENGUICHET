@@ -37,19 +37,21 @@ function formaterPourEventCard(e) {
 export default function HomeScreen({ navigation }) {
   const [evenements, setEvenements] = useState([])
   const [tickets, setTickets] = useState([])
-  const { deconnecter, numeroTel } = useAuth()
+  const { deconnecter, numeroTel, profil } = useAuth()
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
-      if (numeroTel) {
-        const data = await mesBillets(numeroTel)
+      // Support OTP (numeroTel) et social auth (profil.email)
+      const identifiant = numeroTel || profil?.email
+      if (identifiant) {
+        const data = await mesBillets(identifiant)
         setTickets(data || [])
       }
       const events = await fetchEvenementsPublics()
       setEvenements(events.map(formaterPourEventCard))
     })
     return unsubscribe
-  }, [navigation, numeroTel])
+  }, [navigation, numeroTel, profil])
 
   return (
     <BuyerLayout>

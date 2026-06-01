@@ -4,28 +4,31 @@ import { appelAPI } from './apiService'
 
 // Achète un billet via le backend
 // Appelle POST /api/billets/acheter
-// body : { evenement_id, categorie_ticket_id, telephone }
+// body : { evenement_id, categorie_ticket_id, telephone, email }
+// email : optionnel, permet au backend d'envoyer la confirmation
 // Retourne { billet: { id, uuid, numero, prix_paye, qrData, statut }, transaction: { reference, montant, statut } }
-// Achète un billet via le backend
-// Les champs du body doivent correspondre aux clés camelCase attendues par le contrôleur
-// evenementId, categorieTicketId — les underscores ne sont pas reconnus par Express
-export async function acheterBillet(evenementId, categorieTicketId, telephone) {
+export async function acheterBillet(evenementId, categorieTicketId, telephone, email) {
+  const body = { evenementId, categorieTicketId, telephone }
+  if (email) body.email = email
   return await appelAPI('/billets/acheter', {
     method: 'POST',
-    body: {
-      evenementId,
-      categorieTicketId,
-      telephone,
-    },
+    body,
   })
 }
 
-// Récupère la liste des billets d'un acheteur par téléphone
-// Appelle GET /api/billets/mes-billets?telephone=...
+// Récupère la liste des billets d'un acheteur par téléphone ou email
+// Appelle GET /api/billets/mes-billets?telephone=... ou ?email=...
 // Retourne un tableau de billets enrichis (nom événement, date, lieu, catégorie ticket)
-export async function mesBillets(telephone) {
-  const params = new URLSearchParams({ telephone })
-  const data = await appelAPI(`/billets/mes-billets?${params.toString()}`)
+export async function mesBillets(identifiant) {
+  const telPropre = identifiant?.replace(/[^\d+]/g, '') || ''
+  const params = new URLSearchParams()
+  if (telPropre.length > 3) {
+    params.append('telephone', telPropre)
+  } else {
+    params.append('email', identifiant)
+  }
+  const query = params.toString()
+  const data = await appelAPI(`/billets/mes-billets?${query}`)
   if (!Array.isArray(data)) return []
   return data.map(b => ({
     id: String(b.id),
@@ -37,7 +40,7 @@ export async function mesBillets(telephone) {
     numero: b.numero || `TKT-${b.id}`,
     prix: b.prix_paye || 0,
     statut: (b.statut || 'EN_ATTENTE').toLowerCase(),
-    telephone: b.telephone_acheteur || telephone,
+    telephone: b.telephone_acheteur || identifiant,
     dateAchat: b.date_creation || '',
     qrData: b.payload_signature ? JSON.stringify({
       uuid: b.uuid,

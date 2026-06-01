@@ -1,8 +1,8 @@
 // Écran détail d'un événement avec sélection de catégorie et paiement
-// Inclut : bannière, infos, sélection ticket, saisie téléphone, double confirmation paiement
+// Le téléphone est maintenant demandé à l'écran de paiement (flow social auth)
 import { useState, useEffect } from 'react'
 import {
-  View, Text, ScrollView, TextInput,
+  View, Text, ScrollView,
   TouchableOpacity, StyleSheet, Alert, Modal,
   KeyboardAvoidingView, Platform,
 } from 'react-native'
@@ -12,28 +12,13 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import { fetchEvenementDetailPublic } from '../services/eventService'
 import { ActivityIndicator } from 'react-native'
-import { useAuth } from '../context/AuthContext'
 import { formaterDateLisible } from '../utils/dateUtils'
 import BuyerLayout from '../components/BuyerLayout'
 
-// Formate le numéro stocké (+22177XXXXXX → 77 XXX XX XX) pour l'affichage
-function formaterTelStocke(telComplet) {
-  if (!telComplet) return ''
-  const chiffres = telComplet.replace(/\D/g, '').slice(-9)
-  let resultat = ''
-  for (let i = 0; i < chiffres.length; i++) {
-    if (i === 2 || i === 5 || i === 7) resultat += ' '
-    resultat += chiffres[i]
-  }
-  return resultat
-}
-
 export default function EventDetailScreen({ route, navigation }) {
   const { eventId } = route.params
-  const { numeroTel } = useAuth()
   const [event, setEvent] = useState(null)
   const [selectedTicket, setSelectedTicket] = useState(null)
-  const [phone, setPhone] = useState(() => formaterTelStocke(numeroTel))
   const [showCategorySheet, setShowCategorySheet] = useState(false)
   const [error, setError] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
@@ -58,12 +43,12 @@ export default function EventDetailScreen({ route, navigation }) {
   }, [eventId, retryCount])
 
   const handleBuy = () => {
-    const tel = `+221${phone.replace(/\s/g, '')}`
+    // Le téléphone est demandé à l'étape de paiement
     navigation.navigate('Paiement', {
       eventId: event.id,
       eventTitle: event.title,
       ticket: selectedTicket,
-      telephone: tel,
+      telephone: '',
     })
   }
 
@@ -139,7 +124,7 @@ export default function EventDetailScreen({ route, navigation }) {
               <LinearGradient colors={['#E0F7FF', '#FDF2F8']} style={styles.noAccount}>
                 <Feather name="zap" size={14} color={colors.accent} />
                 <Text style={styles.noAccountText}>
-                  <Text style={styles.noAccountStrong}>Aucune inscription requise.</Text> Saisis ton numéro Wave ou Orange Money.
+                  <Text style={styles.noAccountStrong}>Connexion rapide.</Text> Ton téléphone sera demandé au paiement.
                 </Text>
               </LinearGradient>
 
@@ -205,23 +190,8 @@ export default function EventDetailScreen({ route, navigation }) {
               </Modal>
 
               <Text style={[styles.sectionLabel, { marginTop: spacing.md }]}>
-                <Feather name="smartphone" size={12} color={colors.slate} />                 2. Votre téléphone
+                <Feather name="smartphone" size={12} color={colors.slate} />                 2. Ton téléphone sera demandé au paiement
               </Text>
-
-              <View style={styles.phoneRow}>
-                <View style={styles.countryCode}>
-                  <Text style={styles.flag}>🇸🇳</Text>
-                  <Text style={styles.codeText}>+221</Text>
-                </View>
-                <TextInput
-                  style={styles.phoneInput}
-                  value={phone}
-                  onChangeText={setPhone}
-                  keyboardType="phone-pad"
-                  placeholder="77 XXX XX XX"
-                  placeholderTextColor={colors.muted}
-                />
-              </View>
 
               <View style={styles.paymentRow}>
                 <Feather name="credit-card" size={11} color={colors.accent} />
@@ -484,35 +454,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
   },
   radioInner: { width: 6, height: 6, borderRadius: 50, backgroundColor: colors.white },
-
-  phoneRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.bg,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: 'hidden',
-  },
-  countryCode: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    backgroundColor: colors.border,
-  },
-  flag: { fontSize: 13 },
-  codeText: { fontSize: 12, fontFamily: fonts.jakarta.semiBold, color: colors.slate },
-  phoneInput: {
-    flex: 1,
-    fontSize: 12,
-    fontFamily: fonts.jakarta.semiBold,
-    color: colors.slate,
-    padding: 0,
-    paddingHorizontal: 14,
-    outlineStyle: 'none',
-  },
 
   paymentRow: {
     flexDirection: 'row',
