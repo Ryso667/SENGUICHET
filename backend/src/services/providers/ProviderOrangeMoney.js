@@ -41,7 +41,7 @@ class ProviderOrangeMoney extends IPaymentProvider {
 
     if (!response.ok) {
       const err = await response.text().catch(() => '');
-      console.warn('Orange Money - Erreur obtention token:', response.status, err);
+      console.error('Orange Money - Erreur obtention token:', response.status, err);
       throw new Error(`Orange Money auth error: ${response.status}`);
     }
 
@@ -58,7 +58,7 @@ class ProviderOrangeMoney extends IPaymentProvider {
 
     if (!response.ok) {
       const err = await response.text().catch(() => '');
-      console.warn('Orange Money - Erreur obtention clé publique:', response.status, err);
+      console.error('Orange Money - Erreur obtention clé publique:', response.status, err);
       throw new Error(`Orange Money public key error: ${response.status}`);
     }
 
@@ -72,6 +72,10 @@ class ProviderOrangeMoney extends IPaymentProvider {
     if (typeof montant !== 'number' || montant <= 0) {
       throw new Error('Montant invalide');
     }
+    if (devise && devise !== 'XOF') {
+      throw new Error('Orange Money ne supporte que la devise XOF');
+    }
+    // Orange Money gère les callbacks depuis la configuration du dashboard — le paramètre callbackUrl est accepté mais non utilisé ici
     // Sera remplacé par API
     const token = await this._obtenirToken();
     const publicKey = await this._obtenirClePublique(token);
@@ -79,20 +83,17 @@ class ProviderOrangeMoney extends IPaymentProvider {
     return {
       redirectUrl: null,
       referenceOperateur: reference,
-      metadata: {
-        accessToken: token,
-        publicKey,
-      },
+      metadata: { publicKey },
     };
   }
 
   // Confirme le paiement avec le code OTP saisi par l'utilisateur
-  async confirmerOtp({ msisdn, otp, encryptedPin, montant, reference, token }) {
+  async confirmerOtp({ msisdn, otp, encryptedPin, montant, reference }) {
     if (!msisdn || !otp || !encryptedPin || typeof montant !== 'number' || montant <= 0) {
       throw new Error('Paramètres OTP invalides');
     }
 
-    const accessToken = token || await this._obtenirToken();
+    const accessToken = await this._obtenirToken();
 
     const response = await this._fetchWithTimeout(`${this.baseUrl}/v1.0/payment/otp`, {
       method: 'POST',
@@ -111,8 +112,8 @@ class ProviderOrangeMoney extends IPaymentProvider {
 
     if (!response.ok) {
       const err = await response.text().catch(() => '');
-      console.warn('Orange Money - Erreur confirmation OTP:', response.status, err);
-      return { transactionId: null, status: 'FAILED', referenceOperateur: reference };
+      console.error('Orange Money - Erreur confirmation OTP:', response.status, err);
+      throw new Error(`Orange Money OTP error: ${response.status}`);
     }
 
     const data = await response.json();
@@ -138,7 +139,7 @@ class ProviderOrangeMoney extends IPaymentProvider {
     });
 
     if (!response.ok) {
-      console.warn('Orange Money - Erreur vérification paiement:', response.status);
+      console.error('Orange Money - Erreur vérification paiement:', response.status);
       return { statut: 'FAILED' };
     }
 
