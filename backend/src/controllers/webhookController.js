@@ -66,6 +66,10 @@ const gererWebhookWave = async (req, res) => {
         }
       }
 
+      if (!tx) {
+        return res.status(200).json({ message: 'Ignoré' });
+      }
+
       await pool.query(
         "UPDATE transaction SET statut = 'SUCCESS', date_mise_a_jour = NOW() WHERE id = ?",
         [tx.id]
