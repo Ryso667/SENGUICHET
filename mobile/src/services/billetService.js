@@ -7,13 +7,20 @@ import { appelAPI } from './apiService'
 // body : { evenement_id, categorie_ticket_id, telephone, email }
 // email : optionnel, permet au backend d'envoyer la confirmation
 // Retourne { billet: { id, uuid, numero, prix_paye, qrData, statut }, transaction: { reference, montant, statut } }
-export async function acheterBillet(evenementId, categorieTicketId, telephone, email) {
-  const body = { evenementId, categorieTicketId, telephone }
+export async function acheterBillet(evenementId, categorieTicketId, telephone, email, provider = 'SIMULATION') {
+  const body = { evenementId, categorieTicketId, telephone, provider }
   if (email) body.email = email
   return await appelAPI('/billets/acheter', {
     method: 'POST',
     body,
   })
+}
+
+// Vérifie le statut d'une transaction de paiement
+// Appelle GET /api/billets/statut-paiement?reference=...
+// Retourne le statut de la transaction
+export async function statutPaiement(reference) {
+  return await appelAPI(`/billets/statut-paiement?reference=${encodeURIComponent(reference)}`)
 }
 
 // Récupère la liste des billets d'un acheteur par téléphone ou email

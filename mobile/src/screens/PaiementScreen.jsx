@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
-import { acheterBillet } from '../services/billetService'
+import { acheterBillet, statutPaiement } from '../services/billetService'
 import BuyerLayout from '../components/BuyerLayout'
 import { useAuth } from '../context/AuthContext'
 
@@ -19,8 +19,12 @@ export default function PaiementScreen({ route, navigation }) {
   const [error, setError] = useState('')
   const spinAnim = useRef(new Animated.Value(0)).current
   const [spinning, setSpinning] = useState(false)
+  const [provider, setProvider] = useState(null) // 'WAVE' | 'ORANGE_MONEY' | null
+  const [referencePaiement, setReferencePaiement] = useState(null)
 
-  const demarrerPaiement = useCallback(async () => {
+  const demarrerPaiement = useCallback(async (providerName) => {
+    if (!providerName) return
+    setProvider(providerName)
     setEtape('pending')
     setSpinning(true)
     const anim = Animated.loop(
@@ -34,11 +38,10 @@ export default function PaiementScreen({ route, navigation }) {
     anim.start()
 
     try {
-      // Nettoyer le format du téléphone
       const telPropre = telephone.replace(/[^\d]/g, '')
       const telComplet = telPropre.startsWith('221') ? `+${telPropre}` : `+221${telPropre}`
 
-      const resultat = await acheterBillet(eventId, ticket.id, telComplet, profil?.email)
+      const resultat = await acheterBillet(eventId, ticket.id, telComplet, profil?.email, providerName)
       anim.stop()
       setSpinning(false)
 
@@ -46,20 +49,39 @@ export default function PaiementScreen({ route, navigation }) {
         throw new Error('Réponse invalide du serveur')
       }
 
-      // Sauvegarder le téléphone pour les prochains achats
       await definirTelephone(telComplet)
 
-      await new Promise(resolve => setTimeout(resolve, 1500))
-
-      setBillet({ ...resultat.billet, eventId })
-      setEtape('success')
+      // Sera remplacé par la navigation vers les écrans de paiement
+      if (providerName === 'WAVE' && resultat.paiement?.redirectUrl) {
+        setReferencePaiement(resultat.paiement.reference)
+        navigation.replace('WebViewWave', {
+          redirectUrl: resultat.paiement.redirectUrl,
+          transactionReference: resultat.paiement.reference,
+          eventId,
+          ticket: { ...resultat.billet, eventId },
+        })
+      } else if (providerName === 'ORANGE_MONEY') {
+        setReferencePaiement(resultat.paiement.reference)
+        navigation.replace('PaiementOrange', {
+          transactionReference: resultat.paiement.reference,
+          montant: ticket.price,
+          eventId,
+          ticket: { ...resultat.billet, eventId },
+          telephone: telComplet,
+        })
+      } else {
+        // Simulation (fallback)
+        await new Promise(resolve => setTimeout(resolve, 1500))
+        setBillet({ ...resultat.billet, eventId })
+        setEtape('success')
+      }
     } catch (err) {
       anim.stop()
       setSpinning(false)
       setEtape('failed')
       setError(err.message || 'Erreur de connexion au serveur')
     }
-  }, [eventId, ticket, telephone, spinAnim, definirTelephone])
+  }, [eventId, ticket, telephone, spinAnim, definirTelephone, profil, navigation])
 
   useEffect(() => {
     if (etape === 'success' && billet) {
@@ -183,7 +205,7 @@ export default function PaiementScreen({ route, navigation }) {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={s.payBtn}
-                  onPress={demarrerPaiement}
+                  onPress={() => setEtape('choix')}
                   activeOpacity={0.9}
                 >
                   <LinearGradient
@@ -195,6 +217,52 @@ export default function PaiementScreen({ route, navigation }) {
                     <Feather name="check" size={16} color="#fff" />
                     <Text style={s.payText}>Confirmer le paiement</Text>
                   </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+
+          {/* Étape 1.5 : Choix du moyen de paiement */}
+          {etape === 'choix' && (
+            <>
+              <TouchableOpacity style={s.backBtn} onPress={() => setEtape('confirm')}>
+                <Feather name="arrow-left" size={18} color={colors.slate} />
+              </TouchableOpacity>
+
+              <Text style={s.eventTitleMin}>{eventTitle}</Text>
+              <Text style={s.ticketInfoMin}>{ticket.name} — {ticket.price?.toLocaleString()} FCFA</Text>
+
+              <View style={s.providerSection}>
+                <Text style={s.providerTitle}>Choisis ton moyen de paiement</Text>
+
+                <TouchableOpacity
+                  style={[s.providerCard, provider === 'WAVE' && s.providerCardSelected]}
+                  onPress={() => demarrerPaiement('WAVE')}
+                  activeOpacity={0.8}
+                >
+                  <View style={s.providerIcon}>
+                    <Feather name="zap" size={24} color="#6366F1" />
+                  </View>
+                  <View style={s.providerInfo}>
+                    <Text style={s.providerName}>Wave</Text>
+                    <Text style={s.providerDesc}>Paiement rapide via l'app Wave</Text>
+                  </View>
+                  <Feather name="chevron-right" size={20} color={colors.mid} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[s.providerCard, provider === 'ORANGE_MONEY' && s.providerCardSelected]}
+                  onPress={() => demarrerPaiement('ORANGE_MONEY')}
+                  activeOpacity={0.8}
+                >
+                  <View style={s.providerIcon}>
+                    <Feather name="smartphone" size={24} color="#FF6B00" />
+                  </View>
+                  <View style={s.providerInfo}>
+                    <Text style={s.providerName}>Orange Money</Text>
+                    <Text style={s.providerDesc}>Paiement par code OTP depuis ton téléphone</Text>
+                  </View>
+                  <Feather name="chevron-right" size={20} color={colors.mid} />
                 </TouchableOpacity>
               </View>
             </>
@@ -554,5 +622,52 @@ const s = StyleSheet.create({
     fontSize: 10,
     color: colors.muted,
     fontFamily: fonts.jakarta.regular,
+  },
+  providerSection: {
+    marginTop: spacing.xl,
+    gap: spacing.md,
+  },
+  providerTitle: {
+    fontFamily: fonts.outfit.semiBold,
+    fontSize: 16,
+    color: colors.slate,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  providerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    borderWidth: 2,
+    borderColor: colors.border,
+    gap: spacing.md,
+    ...shadows.sm,
+  },
+  providerCardSelected: {
+    borderColor: '#6366F1',
+  },
+  providerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  providerInfo: {
+    flex: 1,
+  },
+  providerName: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 15,
+    color: colors.slate,
+  },
+  providerDesc: {
+    fontFamily: fonts.jakarta.regular,
+    fontSize: 11,
+    color: colors.mid,
+    marginTop: 2,
   },
 })
