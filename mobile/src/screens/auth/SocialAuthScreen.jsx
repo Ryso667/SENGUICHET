@@ -9,12 +9,6 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { fonts, colors, spacing, borderRadius, shadows } from '../../constants/theme'
 import { useAuth } from '../../context/AuthContext'
-import { GoogleSignin } from '@react-native-google-signin/google-signin'
-
-// Configuration unique de GoogleSignin
-GoogleSignin.configure({
-  webClientId: process.env.EXPO_PUBLIC_FIREBASE_GOOGLE_CLIENT_ID,
-})
 
 export default function SocialAuthScreen({ navigation }) {
   const { connecterAcheteurSocial } = useAuth()
@@ -24,6 +18,10 @@ export default function SocialAuthScreen({ navigation }) {
   const handleGooglePress = async () => {
     setLoading('google')
     try {
+      const GoogleSignin = (await import('@react-native-google-signin/google-signin')).GoogleSignin
+      GoogleSignin.configure({
+        webClientId: process.env.EXPO_PUBLIC_FIREBASE_GOOGLE_CLIENT_ID,
+      })
       await GoogleSignin.hasPlayServices()
       const { idToken } = await GoogleSignin.signIn()
       await handleGoogleToken(idToken)

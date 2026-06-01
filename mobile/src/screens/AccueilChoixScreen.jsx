@@ -6,18 +6,19 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { LinearGradient } from 'expo-linear-gradient'
 import { viderTickets } from '../database/database'
+import { useAuth } from '../context/AuthContext'
 import { colors, gradients, shadows, spacing, borderRadius, fonts } from '../constants/theme'
 
 // Définition des 3 rôles avec leur titre, icône, dégradé et écran de destination
 // Sera remplacé par une configuration dynamique venant d'une API
 const ROLES = [
   {
-    key: 'acheteur',
+          key: 'acheteur',
     title: 'Acheteur',
     subtitle: "Achète tes billets\nen un clic",
     icon: 'ticket-outline',
     gradient: gradients.acheteur,
-    screen: 'SocialAuth',
+    screen: null, // Désactivé : connexion immédiate via connecterAcheteur
   },
   {
     key: 'controleur',
@@ -39,6 +40,7 @@ const ROLES = [
 
 // Écran d'accueil avec sélection du rôle utilisateur et animation d'entrée des cartes
 export default function AccueilChoixScreen({ navigation }) {
+  const { connecterAcheteur } = useAuth()
   const animations = useRef(ROLES.map(() => new Animated.Value(0))).current
 
   // Animation d'entrée : les 3 cartes apparaissent en décalé (stagger 120ms)
@@ -75,7 +77,14 @@ export default function AccueilChoixScreen({ navigation }) {
             <Animated.View key={role.key} style={[s.cardWrap, { opacity, transform: [{ scale }] }]}>
               <TouchableOpacity
                 activeOpacity={0.9}
-                onPress={() => navigation.navigate(role.screen)}
+                onPress={() => {
+                  if (!role.screen) {
+                    // Mode test : bypass auth sociale
+                    connecterAcheteur('+221771234567')
+                  } else {
+                    navigation.navigate(role.screen)
+                  }
+                }}
               >
                 <LinearGradient
                   colors={role.gradient}

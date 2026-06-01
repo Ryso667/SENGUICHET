@@ -143,4 +143,53 @@ const gererConfirmationOrange = async (req, res) => {
   }
 };
 
-module.exports = { gererWebhookWave, gererConfirmationOrange };
+// IPN (Instant Payment Notification) PayDunya
+// Reçu quand le statut du paiement change (confirmé, annulé, échoué)
+const gererIpnPayDunya = async (req, res) => {
+  try {
+    const data = req.body?.data;
+    if (!data) {
+      return res.status(400).json({ message: 'Données IPN manquantes' });
+    }
+
+    const status = data.status;
+    const token = data.invoice?.token;
+
+    if (!token) {
+      return res.status(200).json({ received: true });
+    }
+
+    // Récupérer notre référence depuis custom_data
+    const reference = data.custom_data?.reference;
+    if (!reference) {
+      return res.status(200).json({ received: true });
+    }
+
+    if (status === 'completed') {
+      const [transactions] = await pool.query(
+        "SELECT id, billet_id FROM transaction WHERE reference = ? AND statut = 'PENDING'",
+        [reference]
+      );
+
+      if (transactions.length > 0) {
+        const tx = transactions[0];
+        await pool.query(
+          "UPDATE transaction SET statut = 'SUCCESS', reference_operateur = ?, date_mise_a_jour = NOW() WHERE id = ?",
+          [token, tx.id]
+        );
+        await pool.query(
+          "UPDATE billet SET statut = 'ACTIF' WHERE id = ?",
+          [tx.billet_id]
+        );
+        console.log(`PayDunya IPN : paiement confirmé ${reference}`);
+      }
+    }
+
+    res.status(200).json({ received: true });
+  } catch (err) {
+    console.error('IPN PayDunya error:', err);
+    res.status(200).json({ received: true });
+  }
+};
+
+module.exports = { gererWebhookWave, gererConfirmationOrange, gererIpnPayDunya };

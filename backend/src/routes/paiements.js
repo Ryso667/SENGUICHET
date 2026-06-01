@@ -22,4 +22,13 @@ router.post("/wave/webhook", express.raw({ type: "application/json" }), webhookC
 // Confirmation Orange Money (JSON normal)
 router.post("/orange/confirmer", express.json(), webhookController.gererConfirmationOrange);
 
+// Redirections et IPN PayDunya
+router.get("/paydunya/return/:reference", (req, res) => {
+  res.status(200).json({ message: 'Paiement PayDunya terminé', reference: req.params.reference });
+});
+router.get("/paydunya/cancel/:reference", (req, res) => {
+  res.status(200).json({ message: 'Paiement PayDunya annulé', reference: req.params.reference });
+});
+router.post("/paydunya/ipn", express.urlencoded({ extended: true }), webhookController.gererIpnPayDunya);
+
 module.exports = router;

@@ -19,7 +19,7 @@ export default function PaiementScreen({ route, navigation }) {
   const [error, setError] = useState('')
   const spinAnim = useRef(new Animated.Value(0)).current
   const [spinning, setSpinning] = useState(false)
-  const [provider, setProvider] = useState(null) // 'WAVE' | 'ORANGE_MONEY' | null
+  const [provider, setProvider] = useState(null) // 'WAVE' | 'ORANGE_MONEY' | 'PAYDUNYA' | null
   const [referencePaiement, setReferencePaiement] = useState(null)
 
   const demarrerPaiement = useCallback(async (providerName) => {
@@ -53,6 +53,14 @@ export default function PaiementScreen({ route, navigation }) {
 
       // Sera remplacé par la navigation vers les écrans de paiement
       if (providerName === 'WAVE' && resultat.paiement?.redirectUrl) {
+        setReferencePaiement(resultat.paiement.reference)
+        navigation.replace('WebViewWave', {
+          redirectUrl: resultat.paiement.redirectUrl,
+          transactionReference: resultat.paiement.reference,
+          eventId,
+          ticket: { ...resultat.billet, eventId },
+        })
+      } else if (providerName === 'PAYDUNYA' && resultat.paiement?.redirectUrl) {
         setReferencePaiement(resultat.paiement.reference)
         navigation.replace('WebViewWave', {
           redirectUrl: resultat.paiement.redirectUrl,
@@ -261,6 +269,21 @@ export default function PaiementScreen({ route, navigation }) {
                   <View style={s.providerInfo}>
                     <Text style={s.providerName}>Orange Money</Text>
                     <Text style={s.providerDesc}>Paiement par code OTP depuis ton téléphone</Text>
+                  </View>
+                  <Feather name="chevron-right" size={20} color={colors.mid} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[s.providerCard, provider === 'PAYDUNYA' && s.providerCardSelected]}
+                  onPress={() => demarrerPaiement('PAYDUNYA')}
+                  activeOpacity={0.8}
+                >
+                  <View style={s.providerIcon}>
+                    <Feather name="credit-card" size={24} color="#00A859" />
+                  </View>
+                  <View style={s.providerInfo}>
+                    <Text style={s.providerName}>PayDunya</Text>
+                    <Text style={s.providerDesc}>Wave, Orange Money, cartes, Free Money...</Text>
                   </View>
                   <Feather name="chevron-right" size={20} color={colors.mid} />
                 </TouchableOpacity>
