@@ -47,12 +47,24 @@ const gererWebhookWave = async (req, res) => {
         [sessionId]
       );
 
-      if (transactions.length === 0) {
-        console.warn(`Webhook Wave : session ${sessionId} non trouvée`);
-        return res.status(200).json({ message: 'Ignoré' });
+      // Fallback : chercher par référence interne si présente dans les métadonnées
+      let tx;
+      if (transactions.length > 0) {
+        tx = transactions[0];
+      } else if (event.data.metadata?.reference) {
+        const [fallbackTx] = await pool.query(
+          "SELECT id, billet_id, reference FROM transaction WHERE reference = ?",
+          [event.data.metadata.reference]
+        );
+        if (fallbackTx.length > 0) {
+          tx = fallbackTx[0];
+          // Mettre à jour reference_operateur pour les prochains webhooks
+          await pool.query(
+            "UPDATE transaction SET reference_operateur = ? WHERE id = ?",
+            [sessionId, tx.id]
+          );
+        }
       }
-
-      const tx = transactions[0];
 
       await pool.query(
         "UPDATE transaction SET statut = 'SUCCESS', date_mise_a_jour = NOW() WHERE id = ?",

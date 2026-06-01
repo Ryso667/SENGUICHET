@@ -124,6 +124,7 @@ const acheter = async (req, res) => {
           devise: 'FCFA',
           reference,
           callbackUrl: `/api/paiements/notifier/${reference}`,
+          metadata: { reference },
         });
 
         // Mettre à jour la référence opérateur
@@ -137,6 +138,16 @@ const acheter = async (req, res) => {
         console.error("Payment initiation error:", paymentError);
         paymentResult = { redirectUrl: null, referenceOperateur: null };
       }
+
+      // Contenu du QR code
+      const qrPayload = JSON.stringify({
+        uuid,
+        hmac: payload_signature,
+        event_id: evenementId,
+        category: cat.nom,
+        timestamp,
+        transaction_ref: reference,
+      });
 
       // Envoyer email de confirmation en arrière-plan
       if (ticketEmail) {
@@ -153,16 +164,6 @@ const acheter = async (req, res) => {
           }).catch(err => console.error("Email error:", err));
         });
       }
-
-      // Contenu du QR code
-      const qrPayload = JSON.stringify({
-        uuid,
-        hmac: payload_signature,
-        event_id: evenementId,
-        category: cat.nom,
-        timestamp,
-        transaction_ref: reference,
-      });
 
       res.status(201).json({
         billet: {
