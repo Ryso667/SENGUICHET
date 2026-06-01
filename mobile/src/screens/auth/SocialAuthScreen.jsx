@@ -1,43 +1,39 @@
 // Écran de connexion sociale (Google / Apple)
 // Remplace l'ancien flow téléphone + OTP
-// Google : utilise expo-auth-session/providers/google (hook useAuthRequest)
+// Google : utilise @react-native-google-signin/google-signin (signé natif)
 // Apple  : utilise expo-apple-authentication (iOS uniquement)
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { fonts, colors, spacing, borderRadius, shadows } from '../../constants/theme'
 import { useAuth } from '../../context/AuthContext'
-import * as WebBrowser from 'expo-web-browser'
-import * as Google from 'expo-auth-session/providers/google'
+import { GoogleSignin } from '@react-native-google-signin/google-signin'
 
-// Requis par expo-auth-session : termine une session OAuth en cours au montage
-WebBrowser.maybeCompleteAuthSession()
+// Configuration unique de GoogleSignin
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_FIREBASE_GOOGLE_CLIENT_ID,
+})
 
 export default function SocialAuthScreen({ navigation }) {
   const { connecterAcheteurSocial } = useAuth()
   const [loading, setLoading] = useState(null)
 
-  // Hook OAuth Google — useIdTokenAuthRequest est spécialisé pour Firebase
-  // Le second argument { path: 'redirect' } configure la redirect URI via auth.expo.io
-  const [googleRequest, googleResponse, googlePromptAsync] = Google.useIdTokenAuthRequest(
-    {
-      clientId: process.env.EXPO_PUBLIC_FIREBASE_GOOGLE_CLIENT_ID,
-      iosClientId: process.env.EXPO_PUBLIC_FIREBASE_IOS_CLIENT_ID,
-      scopes: ['profile', 'email'],
-    },
-    { useProxy: true } // Force auth.expo.io au lieu du scheme natif
-  )
-
-  // Réaction à la fin du flux OAuth Google
-  useEffect(() => {
-    if (googleResponse?.type === 'success') {
-      handleGoogleToken(googleResponse.params.idToken)
-    } else if (googleResponse && googleResponse.type !== 'success') {
+  // Déclenche la connexion Google native
+  const handleGooglePress = async () => {
+    setLoading('google')
+    try {
+      await GoogleSignin.hasPlayServices()
+      const { idToken } = await GoogleSignin.signIn()
+      await handleGoogleToken(idToken)
+    } catch (err) {
+      if (err.code !== 'SIGN_IN_CANCELLED') {
+        Alert.alert('Erreur', err.message || 'Échec de la connexion Google')
+      }
       setLoading(null)
     }
-  }, [googleResponse])
+  }
 
   // Échange le token Google contre un token Firebase puis connecte via backend
   const handleGoogleToken = async (idToken) => {
@@ -50,10 +46,6 @@ export default function SocialAuthScreen({ navigation }) {
       Alert.alert('Erreur', err.message || 'Échec de la connexion Google')
     }
     setLoading(null)
-  }
-
-  const handleGooglePress = () => {
-    googlePromptAsync()
   }
 
   // Gère la connexion Apple via expo-apple-authentication
@@ -107,7 +99,7 @@ export default function SocialAuthScreen({ navigation }) {
           <TouchableOpacity
             style={[styles.socialBtn, styles.googleBtn]}
             onPress={handleGooglePress}
-            disabled={!!loading || !googleRequest}
+            disabled={!!loading}
             activeOpacity={0.8}
           >
             {loading === 'google' ? (

@@ -11,8 +11,16 @@ class PaymentService {
       case 'SIMULATION':
         return new ProviderSimulation();
       case 'WAVE':
+        if (!process.env.WAVE_API_KEY) {
+          console.warn('PaymentService: WAVE_API_KEY non configurée, fallback vers SIMULATION');
+          return new ProviderSimulation();
+        }
         return new ProviderWave();
       case 'ORANGE_MONEY':
+        if (!process.env.ORANGE_CLIENT_ID) {
+          console.warn('PaymentService: ORANGE_CLIENT_ID non configuré, fallback vers SIMULATION');
+          return new ProviderSimulation();
+        }
         return new ProviderOrangeMoney();
       default:
         throw new Error(`Provider ${type} non supporté`);

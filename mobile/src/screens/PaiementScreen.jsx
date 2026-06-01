@@ -60,7 +60,7 @@ export default function PaiementScreen({ route, navigation }) {
           eventId,
           ticket: { ...resultat.billet, eventId },
         })
-      } else if (providerName === 'ORANGE_MONEY') {
+      } else if (providerName === 'ORANGE_MONEY' && resultat.paiement?.metadata?.publicKey) {
         setReferencePaiement(resultat.paiement.reference)
         navigation.replace('PaiementOrange', {
           transactionReference: resultat.paiement.reference,
@@ -264,6 +264,7 @@ export default function PaiementScreen({ route, navigation }) {
                   </View>
                   <Feather name="chevron-right" size={20} color={colors.mid} />
                 </TouchableOpacity>
+
               </View>
             </>
           )}
