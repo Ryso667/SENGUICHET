@@ -24,11 +24,25 @@ class ProviderWave extends IPaymentProvider {
     return `t=${timestamp},v1=${signature}`;
   }
 
+  // Effectue une requête fetch avec timeout via AbortController
+  async _fetchWithTimeout(url, options, timeoutMs = 30000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+      return response;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
   // Crée une session de paiement Wave Checkout
   async initierPaiement({ montant, devise, reference, callbackUrl, metadata }) {
-    // Wave ne supporte que le XOF — devise est intentionnellement ignoré
-    if (montant == null || montant <= 0) {
+    if (typeof montant !== 'number' || montant <= 0) {
       throw new Error('Montant invalide');
+    }
+    if (devise && devise !== 'XOF') {
+      throw new Error('Wave ne supporte que la devise XOF');
     }
     const baseUrl = callbackUrl || process.env.API_BASE_URL || 'http://localhost:8080/api';
     const timestamp = Math.floor(Date.now() / 1000);
@@ -44,7 +58,7 @@ class ProviderWave extends IPaymentProvider {
     const body = JSON.stringify(bodyObj);
     const waveSignature = this._signRequest(body, timestamp);
 
-    const response = await fetch(`${this.baseUrl}/checkout/sessions`, {
+    const response = await this._fetchWithTimeout(`${this.baseUrl}/checkout/sessions`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${this.apiKey}`,
@@ -69,11 +83,14 @@ class ProviderWave extends IPaymentProvider {
 
   // Vérifie le statut d'une session Wave
   async verifierPaiement(referenceOperateur) {
+    if (!referenceOperateur) {
+      throw new Error('referenceOperateur requis');
+    }
     const timestamp = Math.floor(Date.now() / 1000);
     const body = '';
     const waveSignature = this._signRequest(body, timestamp);
 
-    const response = await fetch(`${this.baseUrl}/checkout/sessions/${referenceOperateur}`, {
+    const response = await this._fetchWithTimeout(`${this.baseUrl}/checkout/sessions/${referenceOperateur}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${this.apiKey}`,
@@ -82,6 +99,7 @@ class ProviderWave extends IPaymentProvider {
     });
 
     if (!response.ok) {
+      console.warn('Wave API error:', response.status, response.statusText);
       return { statut: 'FAILED' };
     }
 
