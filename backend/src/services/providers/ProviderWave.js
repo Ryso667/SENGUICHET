@@ -26,13 +26,21 @@ class ProviderWave extends IPaymentProvider {
 
   // Crée une session de paiement Wave Checkout
   async initierPaiement({ montant, devise, reference, callbackUrl, metadata }) {
+    // Wave ne supporte que le XOF — devise est intentionnellement ignoré
+    if (montant == null || montant <= 0) {
+      throw new Error('Montant invalide');
+    }
+    const baseUrl = callbackUrl || process.env.API_BASE_URL || 'http://localhost:8080/api';
     const timestamp = Math.floor(Date.now() / 1000);
     const bodyObj = {
       amount: String(montant),
       currency: 'XOF',
-      success_url: `${process.env.API_BASE_URL || 'http://localhost:8080/api'}/paiements/wave/success/${reference}`,
-      error_url: `${process.env.API_BASE_URL || 'http://localhost:8080/api'}/paiements/wave/error/${reference}`,
+      success_url: `${baseUrl}/paiements/wave/success/${reference}`,
+      error_url: `${baseUrl}/paiements/wave/error/${reference}`,
     };
+    if (metadata) {
+      bodyObj.metadata = metadata;
+    }
     const body = JSON.stringify(bodyObj);
     const waveSignature = this._signRequest(body, timestamp);
 
