@@ -53,7 +53,7 @@ const acheter = async (req, res) => {
        FROM billet b
        JOIN evenement e ON e.id = b.evenement_id
        JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
-       WHERE b.evenement_id = ? AND b.categorie_ticket_id = ? AND b.telephone_acheteur = ? AND b.statut = 'ACTIF' AND b.date_creation > DATE_SUB(NOW(), INTERVAL 5 SECOND)
+       WHERE b.evenement_id = ? AND b.categorie_ticket_id = ? AND b.telephone_acheteur = ? AND b.statut IN ('ACTIF', 'EN_ATTENTE') AND b.date_creation > DATE_SUB(NOW(), INTERVAL 5 SECOND)
        LIMIT 1`,
       [evenementId, categorieTicketId, telephone]
     );
@@ -89,7 +89,7 @@ const acheter = async (req, res) => {
 
       const [billetResult] = await conn.query(
         `INSERT INTO billet (uuid, numero, evenement_id, categorie_ticket_id, telephone_acheteur, payload_signature, prix_paye, statut)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIF')`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'EN_ATTENTE')`,
         [uuid, numero, evenementId, categorieTicketId, telephone, payload_signature, montantTotal]
       );
 
@@ -105,7 +105,7 @@ const acheter = async (req, res) => {
       const reference = 'PAI-' + uuidv4().slice(0, 12).toUpperCase();
       await conn.query(
         `INSERT INTO transaction (reference, billet_id, montant, frais, devise, statut, moyen_paiement, telephone_payeur)
-         VALUES (?, ?, ?, 0, 'FCFA', 'SUCCESS', ?, ?)`,
+         VALUES (?, ?, ?, 0, 'FCFA', 'PENDING', ?, ?)`,
         [reference, billetId, montantTotal, provider, telephone]
       );
 

@@ -2,15 +2,18 @@
 // ProviderFactory instancie le bon provider selon le type
 
 const ProviderSimulation = require('./providers/ProviderSimulation');
+const ProviderWave = require('./providers/ProviderWave');
+const ProviderOrangeMoney = require('./providers/ProviderOrangeMoney');
 
 class PaymentService {
   static getProvider(type) {
     switch (type) {
       case 'SIMULATION':
         return new ProviderSimulation();
-      // case 'ORANGE_MONEY': return new ProviderOrangeMoney();
-      // case 'WAVE': return new ProviderWave();
-      // case 'FREE_MONEY': return new ProviderFreeMoney();
+      case 'WAVE':
+        return new ProviderWave();
+      case 'ORANGE_MONEY':
+        return new ProviderOrangeMoney();
       default:
         throw new Error(`Provider ${type} non supporté`);
     }
