@@ -99,7 +99,7 @@ const gererConfirmationOrange = async (req, res) => {
       return res.status(400).json({ message: 'Champs obligatoires manquants' });
     }
 
-    const ProviderOrangeMoney = require('./providers/ProviderOrangeMoney');
+    const ProviderOrangeMoney = require('../services/providers/ProviderOrangeMoney');
     const provider = new ProviderOrangeMoney();
 
     const resultat = await provider.confirmerOtp({

@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
-import { acheterBillet, statutPaiement } from '../services/billetService'
+import { acheterBillet } from '../services/billetService'
 import BuyerLayout from '../components/BuyerLayout'
 import { useAuth } from '../context/AuthContext'
 

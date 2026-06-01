@@ -8,7 +8,7 @@ import { WebView } from 'react-native-webview'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
-import { statutPaiement } from '../services/billetService'
+import { statutPaiement } from '../services/paiementService'
 
 const POLL_INTERVAL = 3000 // 3 secondes entre chaque vérification
 const MAX_POLLS = 60 // 3 minutes maximum

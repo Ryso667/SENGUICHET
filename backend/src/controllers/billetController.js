@@ -121,7 +121,7 @@ const acheter = async (req, res) => {
       try {
         paymentResult = await paymentProvider.initierPaiement({
           montant: montantTotal,
-          devise: 'FCFA',
+          devise: 'XOF',
           reference,
           callbackUrl: `/api/paiements/notifier/${reference}`,
           metadata: { reference },

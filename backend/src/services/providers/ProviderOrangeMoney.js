@@ -1,6 +1,7 @@
 // Intégration du fournisseur de paiement Orange Money (API OTP Orange Sonatel Sénégal)
 // Gère l'initiation de paiement, la confirmation OTP et la vérification de statut
 
+const crypto = require('crypto');
 const IPaymentProvider = require('./IPaymentProvider');
 
 class ProviderOrangeMoney extends IPaymentProvider {
@@ -95,6 +96,11 @@ class ProviderOrangeMoney extends IPaymentProvider {
 
     const accessToken = await this._obtenirToken();
 
+    // Si le PIN est en clair (< 50 chars), le chiffrer avec la clé publique RSA
+    const encryptedPinValue = (encryptedPin && encryptedPin.length < 50)
+      ? await this._encrypterPin(encryptedPin, accessToken)
+      : encryptedPin;
+
     const response = await this._fetchWithTimeout(`${this.baseUrl}/v1.0/payment/otp`, {
       method: 'POST',
       headers: {
@@ -104,7 +110,7 @@ class ProviderOrangeMoney extends IPaymentProvider {
       body: JSON.stringify({
         msisdn,
         otp,
-        encryptedPin,
+        encryptedPin: encryptedPinValue,
         amount: String(montant),
         merchantCode: this.merchantCode,
       }),
@@ -152,6 +158,16 @@ class ProviderOrangeMoney extends IPaymentProvider {
     };
 
     return { statut: mapping[data.status] || 'PENDING' };
+  }
+
+  // Chiffre un PIN en clair avec la clé publique RSA d'Orange Money
+  async _encrypterPin(pin, token) {
+    const publicKey = await this._obtenirClePublique(token);
+    const encrypted = crypto.publicEncrypt(
+      { key: publicKey, padding: crypto.constants.RSA_PKCS1_PADDING },
+      Buffer.from(pin)
+    );
+    return encrypted.toString('base64');
   }
 
   // Remboursement non disponible en MVP

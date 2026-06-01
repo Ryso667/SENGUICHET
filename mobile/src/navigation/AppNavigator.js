@@ -137,7 +137,7 @@ export default function AppNavigator() {
             <Stack.Screen name="Support" component={SupportScreen} />
             <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
             <Stack.Screen name="PaiementOrange" component={PaiementOrangeScreen} options={{ headerShown: false }} />
-          </>
+          </>)}
 
         {/* Contrôleur connecté */}
         {role === 'controleur' && (
