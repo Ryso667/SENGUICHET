@@ -173,98 +173,104 @@ export default function EventDetailScreen({ route, navigation }) {
         showsVerticalScrollIndicator={false}
       >
 
-          {/* Emoji hero centré */}
-          <View style={styles.hero}>
-            <Text style={styles.heroEmoji}>{event.emoji}</Text>
-          </View>
-
-          {/* Carte titre et métadonnées */}
-          <GlassContainer style={styles.detailsCard}>
-            <Text style={styles.title}>{event.title}</Text>
-            <View style={styles.tags}>
-              <View style={styles.tag}>
-                <Feather name="calendar" size={9} color="#fff" />
-                <Text style={styles.tagText}>{formaterDateLisible(event.date)}</Text>
-              </View>
-              {!!event.location && (
-                <View style={styles.tag}>
-                  <Feather name="map-pin" size={9} color="#fff" />
-                  <Text style={styles.tagText}>{event.location}</Text>
-                </View>
-              )}
-              {!!event.time && (
-                <View style={styles.tag}>
-                  <Feather name="clock" size={9} color="#fff" />
-                  <Text style={styles.tagText}>{event.time}</Text>
-                </View>
-              )}
+        {/* Header titre immersif */}
+        <View style={styles.headerSection}>
+          <Text style={styles.headerCategory}>{event.category || 'Événement'}</Text>
+          <Text style={styles.headerTitle}>{event.title}</Text>
+          <View style={styles.headerMeta}>
+            <View style={styles.headerMetaItem}>
+              <Feather name="calendar" size={11} color="rgba(255,255,255,0.6)" />
+              <Text style={styles.headerMetaText}>{formaterDateLisible(event.date)}</Text>
             </View>
+            {!!event.location && (
+              <View style={styles.headerMetaItem}>
+                <Feather name="map-pin" size={11} color="rgba(255,255,255,0.6)" />
+                <Text style={styles.headerMetaText}>{event.location}</Text>
+              </View>
+            )}
+            {!!event.time && (
+              <View style={styles.headerMetaItem}>
+                <Feather name="clock" size={11} color="rgba(255,255,255,0.6)" />
+                <Text style={styles.headerMetaText}>{event.time}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Carte description */}
+        {!!event.desc && (
+          <GlassContainer style={styles.descCard}>
+            <Text style={styles.descText}>{event.desc}</Text>
           </GlassContainer>
+        )}
 
-          {/* Description de l'événement */}
-          {!!event.desc && (
-            <GlassContainer style={styles.descCard}>
-              <Feather name="info" size={11} color={colors.textWhiteMuted} />
-              <Text style={styles.descText}>{event.desc}</Text>
-            </GlassContainer>
-          )}
-
-          {/* Mention connexion rapide */}
-          <GlassContainer style={styles.infoCard}>
+        {/* Carte info achat */}
+        <GlassContainer style={styles.infoCard}>
+          <View style={styles.infoRow}>
             <Feather name="zap" size={14} color="#fff" />
             <Text style={styles.infoText}>
               <Text style={styles.infoStrong}>Connexion rapide.</Text> Ton téléphone sera demandé au paiement.
             </Text>
-          </GlassContainer>
-
-          {/* 1. Sélection catégorie */}
-          <View style={styles.sectionLabel}>
-            <Feather name="package" size={12} color="#fff" />
-            <Text style={styles.sectionLabelText}>  1. Choisir la catégorie</Text>
           </View>
+        </GlassContainer>
 
-          <TouchableOpacity
-            onPress={() => setShowCategorySheet(true)}
-            activeOpacity={0.7}
-          >
-            <GlassContainer style={styles.categorySelector}>
-              <View>
-                <Text style={styles.categorySelectorLabel}>{selectedTicket.name}</Text>
-                <Text style={styles.categorySelectorPrice}>{selectedTicket.price.toLocaleString()} FCFA</Text>
-              </View>
-              <Feather name="chevron-up" size={18} color="#fff" />
-            </GlassContainer>
-          </TouchableOpacity>
+        {/* Section catégorie de billet */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Catégorie</Text>
+          <Text style={styles.sectionSub}>Sélectionne ton billet</Text>
+        </View>
 
-          {/* 2. Saisie téléphone */}
-          <View style={[styles.sectionLabel, { marginTop: spacing.md }]}>
-            <Feather name="smartphone" size={12} color="#fff" />
-            <Text style={styles.sectionLabelText}>  2. Ton numéro Wave</Text>
-          </View>
-
-          <GlassContainer style={[styles.phoneRow, telephone.replace(/[^\d]/g, '').length >= 6 && styles.phoneRowActive]}>
-            <View style={styles.countryCode}>
-              <Text style={styles.codeText}>+221</Text>
+        <TouchableOpacity
+          onPress={() => setShowCategorySheet(true)}
+          activeOpacity={0.7}
+        >
+          <GlassContainer style={styles.categorySelector}>
+            <View style={styles.categorySelectorLeft}>
+              <Text style={styles.categorySelectorLabel}>{selectedTicket.name}</Text>
+              <Text style={styles.categorySelectorPrice}>{selectedTicket.price.toLocaleString()} FCFA</Text>
             </View>
-            <TextInput
-              style={styles.phoneInput}
-              value={telephone}
-              onChangeText={setTelephone}
-              keyboardType="phone-pad"
-              placeholder="77 XXX XX XX"
-              placeholderTextColor={colors.textWhiteMuted}
-            />
+            <View style={styles.categorySelectorRight}>
+              <View style={styles.priceChip}>
+                <Text style={styles.priceChipText}>Places limitées</Text>
+              </View>
+              <Feather name="chevron-down" size={16} color="rgba(255,255,255,0.5)" />
+            </View>
           </GlassContainer>
+        </TouchableOpacity>
+
+        {/* Section téléphone */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Numéro Wave</Text>
+          <Text style={styles.sectionSub}>Pour recevoir ton billet</Text>
+        </View>
+
+        <GlassContainer style={[styles.phoneRow, telephone.replace(/[^\d]/g, '').length >= 6 && styles.phoneRowActive]}>
+          <View style={styles.countryCode}>
+            <Text style={styles.codeText}>+221</Text>
+          </View>
+          <TextInput
+            style={styles.phoneInput}
+            value={telephone}
+            onChangeText={setTelephone}
+            keyboardType="phone-pad"
+            placeholder="77 XXX XX XX"
+            placeholderTextColor={colors.textWhiteMuted}
+          />
+        </GlassContainer>
 
         </ScrollView>
 
         {/* Barre d'achat fixe en bas */}
         <View style={styles.bottomBar}>
+          <View style={styles.bottomBarTotal}>
+            <Text style={styles.bottomBarTotalLabel}>Total</Text>
+            <Text style={styles.bottomBarTotalPrice}>{selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
+          </View>
           <TouchableOpacity
             onPress={handleBuy}
             activeOpacity={0.9}
             disabled={!isValidPhone}
-            style={!isValidPhone && styles.buyBtnDisabled}
+            style={[styles.buyBtnWrap, !isValidPhone && styles.buyBtnDisabled]}
           >
             <LinearGradient
               colors={[catColor, `${catColor}88`]}
@@ -272,10 +278,8 @@ export default function EventDetailScreen({ route, navigation }) {
               end={{ x: 1, y: 1 }}
               style={styles.buyBtnGradient}
             >
-              <Feather name="shopping-cart" size={18} color="#fff" style={{ marginRight: 8 }} />
-              <Text style={styles.buyBtnText}>
-                Payer {selectedTicket?.price?.toLocaleString() || '0'} FCFA
-              </Text>
+              <Text style={styles.buyBtnText}>Acheter</Text>
+              <Feather name="arrow-right" size={16} color="#fff" />
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -492,111 +496,128 @@ const styles = StyleSheet.create({
     zIndex: 10,
     overflow: 'hidden',
   },
-  // Section héro avec emoji
-  hero: {
-    alignItems: 'center',
-    paddingVertical: spacing.xl,
+  // Section header immersif (sans emoji)
+  headerSection: {
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xs,
   },
-  heroEmoji: {
-    fontSize: 64,
-  },
-  // Carte titre et tags
-  detailsCard: {
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
-  title: {
-    fontFamily: fonts.outfit.extraBold,
-    fontSize: 22,
-    color: '#fff',
+  headerCategory: {
+    fontSize: 11,
+    fontFamily: fonts.jakarta.semiBold,
+    color: 'rgba(255,255,255,0.5)',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
     marginBottom: spacing.sm,
-    letterSpacing: -0.3,
-    ...textShadow,
   },
-  tags: {
+  headerTitle: {
+    fontFamily: fonts.outfit.extraBold,
+    fontSize: 28,
+    color: '#fff',
+    letterSpacing: -0.5,
+    lineHeight: 34,
+    ...textShadow,
+    marginBottom: spacing.sm,
+  },
+  headerMeta: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  tag: {
+  headerMetaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    borderRadius: borderRadius.sm,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    gap: 5,
   },
-  tagText: {
-    fontSize: 10,
-    fontFamily: fonts.jakarta.semiBold,
-    color: 'rgba(255,255,255,0.8)',
+  headerMetaText: {
+    fontSize: 12,
+    fontFamily: fonts.jakarta.regular,
+    color: 'rgba(255,255,255,0.6)',
   },
   // Carte description
   descCard: {
-    flexDirection: 'row',
-    gap: 7,
-    padding: 12,
-    alignItems: 'flex-start',
-    marginBottom: 14,
+    padding: spacing.md,
+    marginBottom: spacing.md,
   },
   descText: {
-    fontSize: 11,
-    color: colors.textWhiteMuted,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.75)',
     fontFamily: fonts.jakarta.regular,
-    flex: 1,
-    lineHeight: 16,
+    lineHeight: 20,
   },
-  // Carte info rapide
+  // Carte info achat
   infoCard: {
+    padding: spacing.md,
+    marginBottom: spacing.xl,
+  },
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    padding: 12,
-    marginBottom: 22,
+    gap: 8,
   },
   infoText: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.8)',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
     fontFamily: fonts.jakarta.regular,
     flex: 1,
-    lineHeight: 16,
+    lineHeight: 17,
   },
   infoStrong: {
     fontFamily: fonts.jakarta.semiBold,
     color: '#fff',
   },
-  // Labels de section
-  sectionLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 10,
+  // Sections
+  sectionHeader: {
+    marginBottom: spacing.sm,
   },
-  sectionLabelText: {
+  sectionTitle: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 12,
+    fontSize: 16,
     color: '#fff',
-    letterSpacing: -0.1,
+    letterSpacing: -0.2,
   },
-  // Sélecteur de catégorie
+  sectionSub: {
+    fontSize: 11,
+    fontFamily: fonts.jakarta.regular,
+    color: 'rgba(255,255,255,0.4)',
+    marginTop: 2,
+  },
+  // Sélecteur de catégorie premium
   categorySelector: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 14,
-    marginBottom: spacing.md,
+    padding: spacing.md,
+    marginBottom: spacing.xl,
+  },
+  categorySelectorLeft: {
+    gap: 4,
   },
   categorySelectorLabel: {
     fontFamily: fonts.outfit.semiBold,
-    fontSize: 14,
+    fontSize: 16,
     color: '#fff',
   },
   categorySelectorPrice: {
-    fontFamily: fonts.jakarta.regular,
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: 2,
+    fontFamily: fonts.outfit.bold,
+    fontSize: 20,
+    color: '#fff',
+    letterSpacing: -0.3,
+  },
+  categorySelectorRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  priceChip: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  priceChipText: {
+    fontSize: 10,
+    fontFamily: fonts.jakarta.semiBold,
+    color: 'rgba(255,255,255,0.5)',
   },
   // Overlay et conteneur sheet
   sheetOverlay: {
@@ -673,12 +694,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 4,
   },
-  // Input téléphone
+  // Input téléphone premium
   phoneRow: {
     flexDirection: 'row',
     alignItems: 'center',
     overflow: 'hidden',
     marginTop: 4,
+    marginBottom: spacing.xl,
   },
   phoneRowActive: {
     borderColor: '#1AB3E5',
@@ -686,29 +708,54 @@ const styles = StyleSheet.create({
   countryCode: {
     paddingHorizontal: 14,
     paddingVertical: 14,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   codeText: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: fonts.jakarta.semiBold,
     color: '#fff',
   },
   phoneInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: fonts.jakarta.semiBold,
     color: '#fff',
     padding: 0,
     paddingHorizontal: 14,
     outlineStyle: 'none',
   },
-  // Barre d'achat en bas
+  // Barre d'achat en bas — premium
   bottomBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: spacing.md,
     paddingBottom: Platform.OS === 'ios' ? spacing.xl : spacing.md,
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255,255,255,0.1)',
+    borderTopColor: 'rgba(255,255,255,0.08)',
+    gap: 12,
+  },
+  bottomBarTotal: {
+    gap: 2,
+  },
+  bottomBarTotalLabel: {
+    fontSize: 10,
+    fontFamily: fonts.jakarta.regular,
+    color: 'rgba(255,255,255,0.4)',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  bottomBarTotalPrice: {
+    fontSize: 18,
+    fontFamily: fonts.outfit.bold,
+    color: '#fff',
+    letterSpacing: -0.3,
+  },
+  buyBtnWrap: {
+    flex: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   buyBtnDisabled: {
     opacity: 0.5,
@@ -717,15 +764,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
     paddingVertical: 16,
-    borderRadius: borderRadius.lg,
   },
   buyBtnText: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: fonts.outfit.semiBold,
     color: '#fff',
     letterSpacing: -0.2,
-    ...textShadow,
   },
   // Modal paiement
   paySheetOverlay: {
