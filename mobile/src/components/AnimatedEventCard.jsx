@@ -1,23 +1,27 @@
 // Carte événement avec animations springIn, stagger, et scalePress
 // Remplace EventCard.js — design glass avec image de fond
 // Props : event, onPress, index (pour stagger), style
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native'
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { fonts, colors, spacing, borderRadius, glass, animations } from '../constants/theme'
-import { getDefaultImage } from '../config/images'
+import { fonts, borderRadius, animations } from '../constants/theme'
+import { getDefaultImage, getCategoryImageUrl } from '../config/images'
 import useSpringAnimation from '../hooks/useSpringAnimation'
 
-// Carte événement animée avec apparition spring et feedback press
+// Carte événement animée avec apparition spring, feedback press, image de fond
 // event : objet { title, month, day, bg, emoji, category, location, time, priceLabel }
 // onPress : fonction callback
 // index : nombre pour le délai stagger (défaut 0)
-export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle }) {
+// cardStyle : style supplémentaire sur le wrapper
+// height : hauteur de la carte (défaut 220)
+export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle, height = 220 }) {
   const spring = useRef(new Animated.Value(0)).current
   const { value: scale, scalePressIn, scalePressOut } = useSpringAnimation(1)
   const def = event.category ? getDefaultImage(event.category) : null
   const iconName = def?.icon || null
+  const [imageError, setImageError] = useState(false)
+  const imageUrl = event.category ? getCategoryImageUrl(event.category) : null
 
   useEffect(() => {
     const delay = index * animations.stagger
@@ -47,16 +51,24 @@ export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle
   }
 
   return (
-    <Animated.View style={[styles.wrapper, cardStyle, animatedStyle]}>
+    <Animated.View style={[styles.wrapper, { height }, cardStyle, animatedStyle]}>
       <TouchableOpacity
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={0.9}
+        style={styles.touch}
       >
         <View style={[styles.card, { backgroundColor: event.bg || '#6366F1' }]}>
+          {imageUrl && !imageError && (
+            <Animated.Image
+              source={{ uri: imageUrl }}
+              style={styles.cardImage}
+              onError={() => setImageError(true)}
+            />
+          )}
           <LinearGradient
-            colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.4)']}
+            colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)']}
             style={styles.overlay}
           />
           <View style={styles.badge}>
@@ -93,11 +105,20 @@ const styles = StyleSheet.create({
     width: 180,
     marginRight: 12,
   },
+  touch: {
+    flex: 1,
+  },
   card: {
-    height: 220,
+    flex: 1,
     borderRadius: borderRadius.xl,
     overflow: 'hidden',
     position: 'relative',
+  },
+  cardImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
