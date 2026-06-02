@@ -3,37 +3,7 @@ import * as Print from 'expo-print'
 import * as Sharing from 'expo-sharing'
 import * as FileSystem from 'expo-file-system/legacy'
 import { Alert } from 'react-native'
-
-function formatDateTicket(dateStr) {
-  if (!dateStr) return ''
-  if (dateStr.includes('/')) {
-    const [j, m, a] = dateStr.split('/')
-    return `${j.padStart(2, '0')}-${m.padStart(2, '0')}-${a}`
-  }
-  if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
-    const d = new Date(dateStr)
-    if (!isNaN(d.getTime())) {
-      return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`
-    }
-  }
-  return dateStr
-}
-
-function formatDatetimeLong(dateStr) {
-  if (!dateStr) return ''
-  if (dateStr.includes('T')) {
-    const d = new Date(dateStr)
-    if (!isNaN(d.getTime())) {
-      const jj = String(d.getDate()).padStart(2, '0')
-      const mm = String(d.getMonth() + 1).padStart(2, '0')
-      const hh = String(d.getHours()).padStart(2, '0')
-      const min = String(d.getMinutes()).padStart(2, '0')
-      const sec = String(d.getSeconds()).padStart(2, '0')
-      return `${jj}-${mm}-${d.getFullYear()} ${hh}:${min}:${sec}`
-    }
-  }
-  return dateStr
-}
+import { formatDateTicket, formatDatetimeLong } from '../utils/dateUtils'
 
 function formatPrix(prix) {
   if (prix == null) return '—'

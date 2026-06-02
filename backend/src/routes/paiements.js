@@ -1,4 +1,4 @@
-// Routes de paiement : statut transaction, webhook Wave, confirmation Orange Money
+// Routes de paiement : statut transaction et webhook Wave
 
 const express = require("express");
 const router = express.Router();
@@ -18,17 +18,5 @@ router.get("/:reference/statut", paiementController.statutPaiement);
 
 // Webhook Wave (body brut pour vérification HMAC)
 router.post("/wave/webhook", express.raw({ type: "application/json" }), webhookController.gererWebhookWave);
-
-// Confirmation Orange Money (JSON normal)
-router.post("/orange/confirmer", express.json(), webhookController.gererConfirmationOrange);
-
-// Redirections et IPN PayDunya
-router.get("/paydunya/return/:reference", (req, res) => {
-  res.status(200).json({ message: 'Paiement PayDunya terminé', reference: req.params.reference });
-});
-router.get("/paydunya/cancel/:reference", (req, res) => {
-  res.status(200).json({ message: 'Paiement PayDunya annulé', reference: req.params.reference });
-});
-router.post("/paydunya/ipn", express.urlencoded({ extended: true }), webhookController.gererIpnPayDunya);
 
 module.exports = router;

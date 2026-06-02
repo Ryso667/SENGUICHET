@@ -13,12 +13,11 @@ export const colors = {
   border: '#edf0f5',
   accent: '#00C8FF',
   accentLight: '#E0F7FF',
-  rose: '#0077FF',
   green: '#00E5A0',
   greenLight: '#E0FFF0',
   red: '#FF4D6D',
   cyan: '#00C8FF',
-  violet: '#0077FF',
+  violet: '#6366F1',
   orange: '#F97316',
 }
 
@@ -34,7 +33,6 @@ export const glass = {
 // Dégradés par rôle - Cyan → Bleu
 export const gradients = {
   primary: ['#00C8FF', '#0077FF'],
-  acheteur: ['#00C8FF', '#0077FF'],
   controleur: ['#0077FF', '#00C8FF'],
   organisateur: ['#00C8FF', '#00E5A0'],
   hero: ['rgba(0,200,255,0.04)', 'rgba(0,119,255,0.04)'],

@@ -17,7 +17,7 @@ const ROLES = [
     title: 'Acheteur',
     subtitle: "Achète tes billets\nen un clic",
     icon: 'ticket-outline',
-    gradient: gradients.acheteur,
+    gradient: gradients.primary,
     screen: null, // Désactivé : connexion immédiate via connecterAcheteur
   },
   {

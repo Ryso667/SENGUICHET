@@ -9,8 +9,8 @@ import { fonts, colors, spacing, borderRadius, shadows } from '../constants/them
 import { useAuth } from '../context/AuthContext'
 import EventCard from '../components/EventCard'
 import BuyerLayout from '../components/BuyerLayout'
-import { getDefaultImage } from '../config/images'
-import { formaterBadgeDate, formaterDateLisible } from '../utils/dateUtils'
+import { formaterDateLisible } from '../utils/dateUtils'
+import { formaterPourEventCard } from '../utils/eventUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
 import { mesBillets } from '../services/billetService'
 
@@ -19,19 +19,6 @@ const STATUTS = {
   en_attente: { label: 'EN ATTENTE', color: '#f59e0b', dot: '#f59e0b' },
   utilise: { label: 'UTILISÉ', color: '#64748b', dot: '#64748b' },
   rembourse: { label: 'REMBOURSÉ', color: '#dc2626', dot: '#dc2626' },
-}
-
-function formaterPourEventCard(e) {
-  const def = getDefaultImage(e.category)
-  const { day, month } = formaterBadgeDate(e.date)
-  const time = e.date ? new Date(e.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
-  const priceLabel = e.priceMin > 0
-    ? `${e.priceMin.toLocaleString()}F${e.priceMax > e.priceMin ? ` – ${e.priceMax.toLocaleString()}F` : ''}`
-    : '—'
-  return {
-    ...e,
-    month, day, bg: def.bg, emoji: def.emoji, time, priceLabel,
-  }
 }
 
 export default function HomeScreen({ navigation }) {

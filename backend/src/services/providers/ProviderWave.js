@@ -9,7 +9,7 @@ class ProviderWave extends IPaymentProvider {
     super();
     this.apiKey = process.env.WAVE_API_KEY;
     this.signingSecret = process.env.WAVE_SIGNING_SECRET;
-    this.baseUrl = (process.env.WAVE_BASE_URL || 'https://api.wave.com') + '/v1';
+    this.baseUrl = process.env.WAVE_BASE_URL || 'https://api.wave.com/v1';
   }
 
   get nom() { return 'WAVE' }

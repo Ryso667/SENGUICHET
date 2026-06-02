@@ -22,10 +22,8 @@ import EventSearchScreen from '../screens/EventSearchScreen'
 import EventDetailScreen from '../screens/EventDetailScreen'
 import TicketScreen from '../screens/TicketScreen'
 import MesTicketsScreen from '../screens/MesTicketsScreen'
-import PaiementScreen from '../screens/PaiementScreen'
 import SupportScreen from '../screens/SupportScreen'
 import WebViewWaveScreen from '../screens/WebViewWaveScreen'
-import PaiementOrangeScreen from '../screens/PaiementOrangeScreen'
 
 // Écrans contrôleur
 import ScannerScreen from '../screens/controleur/ScannerScreen'
@@ -133,10 +131,8 @@ export default function AppNavigator() {
             <Stack.Screen name="EventDetail" component={EventDetailScreen} />
             <Stack.Screen name="Ticket" component={TicketScreen} />
             <Stack.Screen name="MesTickets" component={MesTicketsScreen} />
-            <Stack.Screen name="Paiement" component={PaiementScreen} />
             <Stack.Screen name="Support" component={SupportScreen} />
             <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="PaiementOrange" component={PaiementOrangeScreen} options={{ headerShown: false }} />
           </>)}
 
         {/* Contrôleur connecté */}

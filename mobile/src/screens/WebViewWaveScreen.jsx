@@ -87,7 +87,7 @@ export default function WebViewWaveScreen({ route, navigation }) {
           {erreur ? <Text style={s.subText}>{erreur}</Text> : null}
           <TouchableOpacity
             style={s.retryBtn}
-            onPress={() => navigation.replace('Paiement', { eventId, eventTitle: ticket.evenement, ticket })}
+            onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
             <LinearGradient colors={['#00C8FF', '#0077FF']} style={s.retryGradient}>

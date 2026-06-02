@@ -11,7 +11,7 @@ const HMAC_SECRET = process.env.HMAC_SECRET || 'senguichet-cle-secrete-hmac';
 
 const acheter = async (req, res) => {
   try {
-    const { evenementId, categorieTicketId, telephone, quantite = 1, provider = 'SIMULATION', email } = req.body;
+    const { evenementId, categorieTicketId, telephone, quantite = 1, provider = 'WAVE', email } = req.body;
 
     if (!evenementId || !categorieTicketId || !telephone) {
       return res.status(400).json({ message: "Champs obligatoires manquants" });
@@ -132,6 +132,19 @@ const acheter = async (req, res) => {
           await pool.query(
             "UPDATE transaction SET reference_operateur = ? WHERE reference = ?",
             [paymentResult.referenceOperateur, reference]
+          );
+        }
+
+        // Si pas de redirectUrl (mode simulation/sync), confirmer immédiatement
+        // Évite que le billet reste bloqué en EN_ATTENTE sans réponse asynchrone
+        if (!paymentResult.redirectUrl) {
+          await pool.query(
+            "UPDATE transaction SET statut = 'SUCCESS', date_mise_a_jour = NOW() WHERE reference = ?",
+            [reference]
+          );
+          await pool.query(
+            "UPDATE billet SET statut = 'ACTIF' WHERE id = ?",
+            [billetId]
           );
         }
       } catch (paymentError) {
