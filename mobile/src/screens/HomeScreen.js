@@ -1,329 +1,248 @@
-// Écran d'accueil acheteur avec événements et tickets récents
-// Affiche les événements à venir, les tickets actifs et un accès rapide à l'achat
-import { useEffect, useState } from 'react'
-import { View, Text, Image, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
-import { fonts, colors, spacing, borderRadius, shadows, gradients } from '../constants/theme'
+// Écran d'accueil acheteur — version Apple Invites
+// Fond : image Unsplash plein écran + overlay
+// Header : carte glass "Bonjour" avec compteur tickets
+// Section : cartes événements horizontales animées
+// Section : tickets récents en glass
+// CTA : Explorer les événements en glass button
+import { useEffect, useState, useRef } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, Animated, StyleSheet } from 'react-native'
+import { Feather } from '@expo/vector-icons'
+import { fonts, colors, spacing, borderRadius, glass, animations } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
+import BlurBackground from '../components/BlurBackground'
+import GlassContainer from '../components/GlassContainer'
+import GlassButton from '../components/GlassButton'
 import AnimatedEventCard from '../components/AnimatedEventCard'
-import BuyerLayout from '../components/BuyerLayout'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { formaterPourEventCard } from '../utils/eventUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
 import { mesBillets } from '../services/billetService'
 
 const STATUTS = {
-  actif: { label: 'VALIDE', color: '#059669', dot: '#059669' },
-  en_attente: { label: 'EN ATTENTE', color: '#f59e0b', dot: '#f59e0b' },
-  utilise: { label: 'UTILISÉ', color: '#64748b', dot: '#64748b' },
-  rembourse: { label: 'REMBOURSÉ', color: '#dc2626', dot: '#dc2626' },
+  actif: { label: 'VALIDE', color: '#00E5A0', dot: '#00E5A0' },
+  en_attente: { label: 'EN ATTENTE', color: '#F97316', dot: '#F97316' },
+  utilise: { label: 'UTILISÉ', color: '#94A3B8', dot: '#94A3B8' },
+  rembourse: { label: 'REMBOURSÉ', color: '#FF4D6D', dot: '#FF4D6D' },
 }
 
 export default function HomeScreen({ navigation }) {
   const [evenements, setEvenements] = useState([])
   const [tickets, setTickets] = useState([])
+  const [category, setCategory] = useState(null)
   const { deconnecter, numeroTel, profil } = useAuth()
+  const headerSpring = useRef(new Animated.Value(0)).current
+  const sectionSpring = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    Animated.spring(headerSpring, {
+      toValue: 1,
+      friction: animations.spring.friction,
+      tension: animations.spring.tension,
+      useNativeDriver: true,
+    }).start()
+  }, [headerSpring])
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
-      // Support OTP (numeroTel) et social auth (profil.email)
       const identifiant = numeroTel || profil?.email
       if (identifiant) {
         const data = await mesBillets(identifiant)
         setTickets(data || [])
       }
       const events = await fetchEvenementsPublics()
-      setEvenements(events.map(formaterPourEventCard))
+      const formatted = events.map(formaterPourEventCard)
+      setEvenements(formatted)
+      if (formatted.length > 0) {
+        setCategory(formatted[0].category)
+      }
+
+      Animated.spring(sectionSpring, {
+        toValue: 1,
+        friction: animations.spring.friction,
+        tension: animations.spring.tension,
+        useNativeDriver: true,
+      }).start()
     })
     return unsubscribe
   }, [navigation, numeroTel, profil])
 
+  const headerStyle = {
+    opacity: headerSpring,
+    transform: [{ translateY: headerSpring.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }],
+  }
+
   return (
-    <BuyerLayout>
-      <SafeAreaView style={styles.safe}>
-        <ScrollView style={styles.flex} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          {/* En-tête avec titre et déconnexion */}
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.titleBadge}>
-                <Text style={styles.homeTitle}>Senguichet</Text>
-              </LinearGradient>
-              <View style={styles.welcomeBadge}>
-                <Text style={styles.welcome}>
-                  {tickets.length > 0
-                    ? `${tickets.length} ticket${tickets.length > 1 ? 's' : ''} actif${tickets.length > 1 ? 's' : ''}`
-                    : 'Aucun ticket actif'}
+    <View style={styles.container}>
+      <BlurBackground category={category} />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Header Bonjour */}
+        <Animated.View style={[styles.headerWrap, headerStyle]}>
+          <GlassContainer style={styles.headerCard}>
+            <View style={styles.headerRow}>
+              <View style={styles.avatar}>
+                <Feather name="user" size={20} color="#fff" />
+              </View>
+              <View style={styles.headerText}>
+                <Text style={styles.greeting}>Bonjour</Text>
+                <Text style={styles.name}>{profil?.nom || 'Invité'}</Text>
+              </View>
+              <TouchableOpacity onPress={deconnecter} style={styles.logoutBtn}>
+                <Feather name="log-out" size={16} color="rgba(255,255,255,0.7)" />
+              </TouchableOpacity>
+            </View>
+            {tickets.length > 0 && (
+              <View style={styles.ticketCount}>
+                <Feather name="tag" size={12} color="#00E5A0" />
+                <Text style={styles.ticketCountText}>
+                  {tickets.length} ticket{tickets.length > 1 ? 's' : ''} actif{tickets.length > 1 ? 's' : ''}
                 </Text>
               </View>
+            )}
+          </GlassContainer>
+        </Animated.View>
+
+        {/* Section événements */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>À découvrir</Text>
+        </View>
+
+        {evenements.length === 0 && (
+          <Text style={styles.emptyText}>Aucun événement dispo pour le moment</Text>
+        )}
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.eventsRow}>
+          {evenements.map((event, i) => (
+            <AnimatedEventCard
+              key={event.id}
+              event={event}
+              index={i}
+              onPress={() => navigation.navigate('EventDetail', { eventId: event.id, event })}
+            />
+          ))}
+        </ScrollView>
+
+        {/* Section mes tickets */}
+        {tickets.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Mes tickets</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('MesTickets')}>
+                <Text style={styles.voirTout}>Voir tout</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              onPress={() => Alert.alert(
-                'Déconnexion',
-                'Revenir à l\'authentification ?',
-                [
-                  { text: 'Annuler', style: 'cancel' },
-                  { text: 'OK', onPress: deconnecter },
-                ]
-              )}
-            >
-              <View style={styles.logoutBtn}>
-                <Feather name="log-out" size={16} color={colors.mid} />
-              </View>
-            </TouchableOpacity>
-          </View>
 
-          {/* CTA principal premium */}
-          <TouchableOpacity style={styles.heroCta} activeOpacity={0.9} onPress={() => navigation.navigate('EventSearch')}>
-            <LinearGradient colors={['#00C8FF', '#0077FF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroGradient}>
-              <View style={styles.heroRow}>
-                <View style={styles.heroIcon}>
-                  <Feather name="shopping-cart" size={20} color="#fff" />
-                </View>
-                <View style={styles.heroText}>
-                  <Text style={styles.heroTitle}>Acheter un ticket</Text>
-                  <Text style={styles.heroSub}>Choisis ton événement, paie en un clic</Text>
-                </View>
-                <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.7)" />
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          {/* Section événements */}
-          <View style={styles.sectionHeader}>
-            <Feather name="calendar" size={15} color={colors.slate} />
-            <Text style={styles.sectionTitle}>Événements</Text>
-          </View>
-
-          {evenements.length === 0 && (
-            <Text style={styles.emptyEvents}>Aucun événement dispo pour le moment</Text>
-          )}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.eventsRow}>
-            {evenements.map((event, index) => (
-              <AnimatedEventCard
-                key={event.id}
-                event={event}
-                index={index}
-                onPress={() => navigation.navigate('EventDetail', { eventId: event.id, event })}
-              />
-            ))}
-          </ScrollView>
-
-          {/* Section mes tickets */}
-          {tickets.length > 0 && (
-            <>
-              <View style={styles.sectionHeader}>
-                <Feather name="tag" size={15} color={colors.slate} />
-                <Text style={styles.sectionTitle}>Mes tickets</Text>
-                <View style={styles.sectionCount}>
-                  <Text style={styles.sectionCountText}>{tickets.length}</Text>
-                </View>
-              </View>
-
-              {tickets.slice(0, 3).map((t) => (
+            <View style={styles.ticketsList}>
+              {tickets.slice(0, 3).map((t, i) => (
                 <TouchableOpacity
                   key={t.numero || t.id}
-                  style={styles.ticketCard}
                   onPress={() => navigation.navigate('Ticket', { ticket: t })}
                   activeOpacity={0.7}
                 >
-                  <LinearGradient colors={['#E0FFF0', '#D1FAE5']} style={styles.ticketEmojiBox}>
-                    <MaterialCommunityIcons name="ticket-outline" size={20} color="#16a34a" />
-                  </LinearGradient>
-                  <View style={styles.ticketInfo}>
-                    <Text style={styles.ticketTitle}>{t.eventNom}</Text>
-                    <Text style={styles.ticketMeta}>{t.categorie} · {formaterDateLisible(t.eventDate)}</Text>
-                  </View>
-                  <View style={styles.ticketStatus}>
-                    <View style={[styles.dot, { backgroundColor: (STATUTS[t.statut]?.dot || '#059669') }]} />
-                    <Text style={[styles.ticketLabel, { color: (STATUTS[t.statut]?.color || '#059669') }]}>
-                      {STATUTS[t.statut]?.label || 'VALIDE'}
-                    </Text>
-                  </View>
+                  <GlassContainer style={styles.ticketCard} intensity={40}>
+                    <View style={[styles.ticketDot, { backgroundColor: (STATUTS[t.statut]?.dot || '#00E5A0') }]} />
+                    <View style={styles.ticketInfo}>
+                      <Text style={styles.ticketTitle}>{t.eventNom || 'Événement'}</Text>
+                      <Text style={styles.ticketMeta}>
+                        {t.categorie} · {formaterDateLisible(t.eventDate)}
+                      </Text>
+                    </View>
+                    <View style={[styles.statusBadge, { backgroundColor: `${STATUTS[t.statut]?.color || '#00E5A0'}25` }]}>
+                      <Text style={[styles.statusText, { color: STATUTS[t.statut]?.color || '#00E5A0' }]}>
+                        {STATUTS[t.statut]?.label || 'VALIDE'}
+                      </Text>
+                    </View>
+                  </GlassContainer>
                 </TouchableOpacity>
               ))}
+            </View>
+          </>
+        )}
 
-              {tickets.length > 3 && (
-                <TouchableOpacity style={styles.viewAll} onPress={() => navigation.navigate('MesTickets')}>
-                  <Text style={styles.viewAllText}>Voir tout ({tickets.length})</Text>
-                  <Feather name="chevron-right" size={12} color={colors.accent} />
-                </TouchableOpacity>
-              )}
-            </>
-          )}
+        {/* CTA Explorer */}
+        <View style={styles.ctaWrap}>
+          <GlassButton
+            title="Explorer les événements"
+            icon="search"
+            onPress={() => navigation.navigate('EventSearch')}
+          />
+        </View>
 
-          <View style={styles.footer}>
-            <Feather name="shield" size={11} color={colors.muted} />
-            <Text style={styles.footerText}>Paiement Wave & Orange Money · Sans compte requis</Text>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </BuyerLayout>
+        {/* Footer */}
+        <Text style={styles.footer}>Paiement Wave & Orange Money · Sans compte requis</Text>
+      </ScrollView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  flex: { flex: 1 },
-  scroll: { paddingBottom: spacing.lg },
-
-  // Header premium
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  headerLeft: { alignItems: 'center' },
-  titleBadge: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 14,
-    overflow: 'hidden',
-  },
-  homeTitle: { fontSize: 16, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: 1 },
-  welcomeBadge: {
-    backgroundColor: colors.greenLight,
-    paddingHorizontal: 12,
-    paddingVertical: 3,
-    borderRadius: 10,
-    marginTop: 6,
-  },
-  welcome: {
-    fontSize: 12,
-    color: '#16a34a',
-    fontFamily: fonts.jakarta.semiBold,
-    textAlign: 'center',
-  },
-  logoutBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadows.sm,
-  },
-
-  // Hero CTA premium
-  heroCta: {
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
-    borderRadius: borderRadius.lg,
-    overflow: 'hidden',
-    ...shadows.md,
-  },
-  heroGradient: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: 20,
-  },
-  heroRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  heroIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+  container: { flex: 1 },
+  scroll: { flex: 1 },
+  scrollContent: { paddingBottom: spacing.lg },
+  headerWrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
+  headerCard: { padding: spacing.md },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  avatar: {
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
   },
-  heroText: { flex: 1 },
-  heroTitle: {
-    fontFamily: fonts.outfit.bold,
-    fontSize: 16,
-    color: '#fff',
-    letterSpacing: -0.2,
+  headerText: { flex: 1 },
+  greeting: { fontSize: 12, color: 'rgba(255,255,255,0.7)', fontFamily: fonts.jakarta.regular },
+  name: { fontSize: 18, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.3 },
+  logoutBtn: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  heroSub: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.8)',
-    fontFamily: fonts.jakarta.regular,
-    marginTop: 2,
+  ticketCount: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    marginTop: spacing.sm, paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: glass.borderLight,
   },
-
+  ticketCountText: {
+    fontSize: 11, fontFamily: fonts.jakarta.semiBold,
+    color: '#00E5A0',
+  },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    paddingHorizontal: spacing.lg,
-    marginTop: 26,
-    marginBottom: 14,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: spacing.lg, marginTop: 24, marginBottom: 12,
   },
   sectionTitle: {
-    fontFamily: fonts.outfit.semiBold,
-    fontSize: 14,
-    color: colors.slate,
-    flex: 1,
-    letterSpacing: -0.2,
+    fontSize: 16, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.3,
   },
-  sectionCount: {
-    backgroundColor: colors.border,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
+  voirTout: {
+    fontSize: 12, fontFamily: fonts.jakarta.semiBold,
+    color: 'rgba(255,255,255,0.7)',
   },
-  sectionCountText: {
-    fontSize: 11,
-    color: colors.mid,
-    fontFamily: fonts.jakarta.semiBold,
-  },
-
-  emptyEvents: {
+  emptyText: {
     textAlign: 'center', fontSize: 14, fontFamily: fonts.jakarta.regular,
-    color: colors.mid, marginTop: spacing.lg, marginBottom: spacing.lg,
+    color: 'rgba(255,255,255,0.6)', marginVertical: spacing.lg,
   },
-  eventsRow: {
-    paddingLeft: spacing.lg,
-    paddingRight: spacing.lg,
-  },
-
+  eventsRow: { paddingLeft: spacing.lg, paddingRight: spacing.lg },
+  ticketsList: { paddingHorizontal: spacing.lg, gap: spacing.sm },
   ticketCard: {
-    marginHorizontal: spacing.lg, backgroundColor: colors.white,
-    borderRadius: borderRadius.md, padding: 14, flexDirection: 'row',
-    alignItems: 'center', marginBottom: spacing.sm, ...shadows.sm,
+    flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12,
   },
-  ticketEmojiBox: {
-    width: 40, height: 40, borderRadius: borderRadius.sm,
-    alignItems: 'center', justifyContent: 'center', marginRight: 14,
+  ticketDot: {
+    width: 8, height: 8, borderRadius: 4,
   },
-  ticketEmoji: { fontSize: 20 },
   ticketInfo: { flex: 1 },
-  ticketTitle: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.slate, letterSpacing: -0.1 },
-  ticketMeta: { fontSize: 11, color: colors.mid, fontFamily: fonts.jakarta.regular, marginTop: 2 },
-  ticketStatus: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: colors.greenLight, paddingHorizontal: 10, paddingVertical: 5, borderRadius: borderRadius.sm,
+  ticketTitle: {
+    fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff', letterSpacing: -0.1,
   },
-  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.green },
-  ticketLabel: { fontSize: 10, fontFamily: fonts.jakarta.semiBold, color: '#16a34a' },
-  viewAll: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4,
-    marginHorizontal: spacing.lg, marginBottom: spacing.sm,
-    paddingVertical: spacing.sm, backgroundColor: colors.white,
-    borderRadius: borderRadius.md, ...shadows.sm,
+  ticketMeta: {
+    fontSize: 11, color: 'rgba(255,255,255,0.6)', fontFamily: fonts.jakarta.regular, marginTop: 2,
   },
-  viewAllText: {
-    fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.accent,
+  statusBadge: {
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: borderRadius.sm,
   },
-
+  statusText: {
+    fontSize: 10, fontFamily: fonts.jakarta.semiBold,
+  },
+  ctaWrap: { paddingHorizontal: spacing.lg, marginTop: 24 },
   footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    marginTop: 28,
-    marginBottom: spacing.sm,
-  },
-  footerText: {
-    fontSize: 10,
-    color: colors.muted,
-    fontFamily: fonts.jakarta.regular,
+    textAlign: 'center', fontSize: 10, color: 'rgba(255,255,255,0.4)',
+    fontFamily: fonts.jakarta.regular, marginTop: 24, marginBottom: spacing.sm,
   },
 })
