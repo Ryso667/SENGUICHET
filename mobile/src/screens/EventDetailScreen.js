@@ -3,10 +3,10 @@
 // Conserve le flux de paiement Wave/Orange Money existant
 import { useState, useEffect, useRef } from 'react'
 import {
-  View, Text, ScrollView, TextInput,
+  View, Text, ScrollView,
   TouchableOpacity, StyleSheet, Alert, Modal,
   Platform, Image,
-  Animated, ActivityIndicator, Easing,
+  Animated, ActivityIndicator, Easing, TextInput,
 } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -62,7 +62,7 @@ export default function EventDetailScreen({ route, navigation }) {
 
   // Ouvre le modal de paiement à l'étape de confirmation
   const handleBuy = () => {
-    if (!isValidPhone || !selectedTicket) return
+    if (!selectedTicket) return
     setShowPaymentSheet(true)
     setPaymentEtape('confirm')
   }
@@ -173,41 +173,40 @@ export default function EventDetailScreen({ route, navigation }) {
         showsVerticalScrollIndicator={false}
       >
 
-        {/* Header invitation — titre hero + meta élégante */}
-        <View style={styles.headerSection}>
-          <View style={[styles.headerAccentLine, { backgroundColor: catColor }]} />
-          <Text style={styles.headerCategory}>{event.category || 'ÉVÉNEMENT'}</Text>
-          <Text style={styles.headerTitle}>{event.title}</Text>
+        {/* Hero invitation — titre XXL + date */}
+        <View style={styles.heroSection}>
+          <Text style={[styles.heroCategory, { color: catColor }]}>{event.category || 'ÉVÉNEMENT'}</Text>
+          <Text style={styles.heroTitle}>{event.title}</Text>
 
-          {event.date && (
-            <View style={styles.headerMetaBlock}>
-              <Feather name="calendar" size={13} color={catColor} />
-              <Text style={styles.headerMetaPrimary}>
-                {event.date ? formaterDateLisible(event.date).toUpperCase() : ''}
-              </Text>
-            </View>
-          )}
+          <View style={[styles.heroDivider, { backgroundColor: catColor }]} />
 
-          <View style={styles.headerMetaSecondary}>
+          <View style={styles.heroMeta}>
+            {event.date && (
+              <View style={styles.heroDateRow}>
+                <Feather name="calendar" size={14} color="#fff" />
+                <Text style={styles.heroDateText}>
+                  {formaterDateLisible(event.date).toUpperCase()}
+                </Text>
+              </View>
+            )}
             {!!event.time && (
-              <View style={styles.headerMetaChip}>
-                <Feather name="clock" size={10} color="rgba(255,255,255,0.5)" />
-                <Text style={styles.headerMetaChipText}>{event.time}</Text>
+              <View style={styles.heroMetaLine}>
+                <Feather name="clock" size={12} color="rgba(255,255,255,0.5)" />
+                <Text style={styles.heroMetaText}>{event.time}</Text>
               </View>
             )}
             {!!event.location && (
-              <View style={styles.headerMetaChip}>
-                <Feather name="map-pin" size={10} color="rgba(255,255,255,0.5)" />
-                <Text style={styles.headerMetaChipText}>{event.location}</Text>
+              <View style={styles.heroMetaLine}>
+                <Feather name="map-pin" size={12} color="rgba(255,255,255,0.5)" />
+                <Text style={styles.heroMetaText}>{event.location}</Text>
               </View>
             )}
           </View>
         </View>
 
-        {/* Description — carte premium avec accented border */}
+        {/* Description — carte large */}
         {!!event.desc && (
           <GlassContainer style={styles.descCard}>
-            <View style={[styles.descAccent, { backgroundColor: catColor }]} />
             <Text style={styles.descText}>{event.desc}</Text>
           </GlassContainer>
         )}
@@ -236,25 +235,7 @@ export default function EventDetailScreen({ route, navigation }) {
           </GlassContainer>
         </TouchableOpacity>
 
-        {/* Section téléphone */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Numéro Wave</Text>
-          <Text style={styles.sectionSub}>Pour recevoir ton billet</Text>
-        </View>
 
-        <GlassContainer style={[styles.phoneRow, telephone.replace(/[^\d]/g, '').length >= 6 && styles.phoneRowActive]}>
-          <View style={styles.countryCode}>
-            <Text style={styles.codeText}>+221</Text>
-          </View>
-          <TextInput
-            style={styles.phoneInput}
-            value={telephone}
-            onChangeText={setTelephone}
-            keyboardType="phone-pad"
-            placeholder="77 XXX XX XX"
-            placeholderTextColor={colors.textWhiteMuted}
-          />
-        </GlassContainer>
 
         </ScrollView>
 
@@ -267,8 +248,7 @@ export default function EventDetailScreen({ route, navigation }) {
           <TouchableOpacity
             onPress={handleBuy}
             activeOpacity={0.9}
-            disabled={!isValidPhone}
-            style={[styles.buyBtnWrap, !isValidPhone && styles.buyBtnDisabled]}
+            style={styles.buyBtnWrap}
           >
             <LinearGradient
               colors={[catColor, `${catColor}88`]}
@@ -384,12 +364,26 @@ export default function EventDetailScreen({ route, navigation }) {
                   </View>
                 </GlassContainer>
 
+                {/* Saisie du téléphone dans le modal */}
                 <View style={styles.payPhoneRow}>
                   <Feather name="smartphone" size={14} color={colors.textWhiteMuted} />
-                  <Text style={styles.payPhoneText}>+221 {telephone}</Text>
+                  <Text style={styles.codeText}>+221</Text>
+                  <TextInput
+                    style={styles.payPhoneInput}
+                    value={telephone}
+                    onChangeText={setTelephone}
+                    keyboardType="phone-pad"
+                    placeholder="77 XXX XX XX"
+                    placeholderTextColor="rgba(255,255,255,0.3)"
+                  />
                 </View>
 
-                <TouchableOpacity style={styles.confirmPayBtn} onPress={confirmerPaiement} activeOpacity={0.9}>
+                <TouchableOpacity
+                  style={[styles.confirmPayBtn, telephone.replace(/[^\d]/g, '').length < 6 && styles.buyBtnDisabled]}
+                  onPress={confirmerPaiement}
+                  activeOpacity={0.9}
+                  disabled={telephone.replace(/[^\d]/g, '').length < 6}
+                >
                   <LinearGradient
                     // Couleurs officielles Wave — marque partenaire, ne pas remplacer par accent
                     colors={['#1AB3E5', '#0D8ABC']}
@@ -494,87 +488,66 @@ const styles = StyleSheet.create({
     zIndex: 10,
     overflow: 'hidden',
   },
-  // Section header — style invitation premium
-  headerSection: {
-    paddingVertical: 28,
+  // Hero section — invitation XXL
+  heroSection: {
+    paddingVertical: spacing.lg,
     paddingHorizontal: spacing.xs,
-  },
-  headerAccentLine: {
-    width: 32,
-    height: 3,
-    borderRadius: 2,
-    // couleur définie en runtime via inline style
     marginBottom: spacing.md,
   },
-  headerCategory: {
-    fontSize: 11,
+  heroCategory: {
+    fontSize: 12,
     fontFamily: fonts.jakarta.semiBold,
-    color: 'rgba(255,255,255,0.5)',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
+    letterSpacing: 3,
     marginBottom: spacing.sm,
   },
-  headerTitle: {
+  heroTitle: {
     fontFamily: fonts.outfit.extraBold,
-    fontSize: 36,
+    fontSize: 42,
     color: '#fff',
-    letterSpacing: -1,
-    lineHeight: 42,
+    letterSpacing: -1.5,
+    lineHeight: 48,
     ...textShadow,
-    marginBottom: 20,
   },
-  headerMetaBlock: {
+  heroDivider: {
+    width: 48,
+    height: 2,
+    borderRadius: 1,
+    marginVertical: 20,
+  },
+  heroMeta: {
+    gap: 10,
+  },
+  heroDateRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
+    gap: 10,
   },
-  headerMetaPrimary: {
-    fontSize: 14,
+  heroDateText: {
+    fontSize: 15,
     fontFamily: fonts.jakarta.semiBold,
-    color: 'rgba(255,255,255,0.8)',
-    letterSpacing: 1.5,
+    color: '#fff',
+    letterSpacing: 2,
   },
-  headerMetaSecondary: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  headerMetaChip: {
+  heroMetaLine: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    gap: 8,
   },
-  headerMetaChipText: {
-    fontSize: 11,
-    fontFamily: fonts.jakarta.medium,
+  heroMetaText: {
+    fontSize: 13,
+    fontFamily: fonts.jakarta.regular,
     color: 'rgba(255,255,255,0.6)',
   },
-  // Carte description — premium avec bordure latérale
+  // Carte description — épurée, généreuse
   descCard: {
-    padding: spacing.lg,
-    paddingLeft: spacing.lg + 4,
+    padding: spacing.xl,
     marginBottom: spacing.xl,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  descAccent: {
-    position: 'absolute',
-    left: 0,
-    top: 12,
-    bottom: 12,
-    width: 3,
-    borderRadius: 2,
   },
   descText: {
     fontSize: 15,
     color: 'rgba(255,255,255,0.85)',
     fontFamily: fonts.jakarta.regular,
-    lineHeight: 24,
+    lineHeight: 26,
   },
   // Sections
   sectionHeader: {
@@ -706,39 +679,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 4,
   },
-  // Input téléphone premium
-  phoneRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    overflow: 'hidden',
-    marginTop: 4,
-    marginBottom: spacing.xl,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  phoneRowActive: {
-    borderColor: '#1AB3E5',
-  },
-  countryCode: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  codeText: {
-    fontSize: 15,
-    fontFamily: fonts.jakarta.semiBold,
-    color: '#fff',
-  },
-  phoneInput: {
-    flex: 1,
-    fontSize: 16,
-    fontFamily: fonts.jakarta.semiBold,
-    color: '#fff',
-    padding: 0,
-    paddingHorizontal: 16,
-    outlineStyle: 'none',
-  },
+
   // Barre d'achat en bas — premium
   bottomBar: {
     flexDirection: 'row',
@@ -859,14 +800,26 @@ const styles = StyleSheet.create({
   payPhoneRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     marginBottom: spacing.lg,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    width: '100%',
   },
-  payPhoneText: {
-    fontFamily: fonts.jakarta.medium,
-    fontSize: 14,
+  payPhoneInput: {
+    flex: 1,
+    fontSize: 16,
+    fontFamily: fonts.jakarta.semiBold,
     color: '#fff',
-    ...textShadow,
+    padding: 10,
+    outlineStyle: 'none',
+  },
+  codeText: {
+    fontFamily: fonts.jakarta.semiBold,
+    fontSize: 15,
+    color: '#fff',
   },
   confirmPayBtn: {
     width: '100%',
