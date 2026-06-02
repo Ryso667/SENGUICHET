@@ -14,17 +14,17 @@ const CARD_RADIUS = 28
 const SCALE_INACTIVE = 0.90
 const ROTATE_INACTIVE = 3
 
-// Requêtes Unsplash contextualisées Sénégal/Afrique pour chaque catégorie
+// Toutes les catégories utilisent des images de fête/ambiance
 const CATEGORY_QUERIES = {
-  Concert: 'concert live audience stage lighting senegal dakar band night',
-  Festival: 'traditional festival celebration dance senegal africa music crowd',
-  Theatre: 'theatre stage play dramatic performance dimly lit audience',
-  Sport: 'sports stadium football match senegal competition running energy',
-  Conference: 'conference speaker stage technology audience senegal presentation',
-  Atelier: 'craft workshop creative artisan hands painting studio senegal',
-  Exposition: 'contemporary art gallery exhibition installation african artist museum',
-  'Club / Soirée': 'nightclub party neon lights dj celebration dance senegal',
-  Gala: 'luxury gala red carpet elegant evening event ceremony dinner',
+  Concert: 'party celebration music crowd dancing night senegal dakar',
+  Festival: 'festival celebration party dance crowd africa senegal',
+  Theatre: 'party celebration festive crowd event senegal dakar',
+  Sport: 'celebration party victory festive crowd senegal africa',
+  Conference: 'celebration party event festive gathering senegal dakar',
+  Atelier: 'creative celebration party community event senegal africa',
+  Exposition: 'party celebration art festive event gallery opening',
+  'Club / Soirée': 'nightclub party celebration dance crowd music senegal',
+  Gala: 'celebration party elegant festive event evening senegal',
 }
 
 const ACCESS_KEY = process.env.EXPO_PUBLIC_UNSPLASH_ACCESS_KEY
