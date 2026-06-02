@@ -7,6 +7,7 @@ import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, glass, animations } from '../constants/theme'
 import { getDefaultImage } from '../config/images'
+import useSpringAnimation from '../hooks/useSpringAnimation'
 
 // Carte événement animée avec apparition spring et feedback press
 // event : objet { title, month, day, bg, emoji, category, location, time, priceLabel }
@@ -14,7 +15,7 @@ import { getDefaultImage } from '../config/images'
 // index : nombre pour le délai stagger (défaut 0)
 export default function AnimatedEventCard({ event, onPress, index = 0 }) {
   const spring = useRef(new Animated.Value(0)).current
-  const scale = useRef(new Animated.Value(1)).current
+  const { value: scale, scalePressIn, scalePressOut } = useSpringAnimation(1)
   const def = event.category ? getDefaultImage(event.category) : null
   const iconName = def?.icon || null
 
@@ -32,23 +33,8 @@ export default function AnimatedEventCard({ event, onPress, index = 0 }) {
     return () => clearTimeout(timeout)
   }, [spring, index])
 
-  const handlePressIn = () => {
-    Animated.spring(scale, {
-      toValue: animations.scalePress.toValue,
-      friction: animations.scalePress.friction,
-      tension: animations.scalePress.tension,
-      useNativeDriver: true,
-    }).start()
-  }
-
-  const handlePressOut = () => {
-    Animated.spring(scale, {
-      toValue: 1,
-      friction: 5,
-      tension: 60,
-      useNativeDriver: true,
-    }).start()
-  }
+  const handlePressIn = () => { scalePressIn() }
+  const handlePressOut = () => { scalePressOut() }
 
   const animatedStyle = {
     opacity: spring.interpolate({ inputRange: [0, 1], outputRange: [0, 1] }),

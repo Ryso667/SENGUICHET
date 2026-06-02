@@ -2,7 +2,7 @@
 // Fond : image floutée de l'événement
 // Carte ticket centrale avec animation pulse du QR
 import { useRef, useEffect } from 'react'
-import { View, Text, Animated, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, Animated, TouchableOpacity, Alert, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import QRCode from 'react-native-qrcode-svg'
 import { fonts, spacing, borderRadius, glass } from '../constants/theme'
@@ -56,8 +56,8 @@ export default function TicketScreen({ route, navigation }) {
 
         {/* Actions */}
         <View style={styles.actions}>
-          <GlassChip label="Partager" icon="share" onPress={() => {}} />
-          <GlassChip label="PDF" icon="file-text" onPress={() => {}} />
+          <GlassChip label="Partager" icon="share" onPress={() => Alert.alert('Bientôt disponible', 'Le partage de ticket arrive bientôt')} />
+          <GlassChip label="PDF" icon="file-text" onPress={() => Alert.alert('Bientôt disponible', 'L\'export PDF arrive bientôt')} />
         </View>
       </View>
     </View>

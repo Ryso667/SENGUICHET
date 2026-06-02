@@ -31,7 +31,6 @@ export default function HomeScreen({ navigation }) {
   const [category, setCategory] = useState(null)
   const { deconnecter, numeroTel, profil } = useAuth()
   const headerSpring = useRef(new Animated.Value(0)).current
-  const sectionSpring = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
     Animated.spring(headerSpring, {
@@ -55,13 +54,6 @@ export default function HomeScreen({ navigation }) {
       if (formatted.length > 0) {
         setCategory(formatted[0].category)
       }
-
-      Animated.spring(sectionSpring, {
-        toValue: 1,
-        friction: animations.spring.friction,
-        tension: animations.spring.tension,
-        useNativeDriver: true,
-      }).start()
     })
     return unsubscribe
   }, [navigation, numeroTel, profil])

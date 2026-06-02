@@ -352,6 +352,7 @@ export default function EventDetailScreen({ route, navigation }) {
 
                 <TouchableOpacity style={styles.confirmPayBtn} onPress={confirmerPaiement} activeOpacity={0.9}>
                   <LinearGradient
+                    // Couleurs officielles Wave — marque partenaire, ne pas remplacer par accent
                     colors={['#1AB3E5', '#0D8ABC']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
@@ -379,7 +380,9 @@ export default function EventDetailScreen({ route, navigation }) {
             {paymentEtape === 'success' && (
               <View style={styles.payCenter}>
                 <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-                  <LinearGradient colors={['#1AB3E5', '#0D8ABC']} style={styles.payCheckCircle}>
+                  <LinearGradient
+                    // Couleurs officielles Wave — marque partenaire
+                    colors={['#1AB3E5', '#0D8ABC']} style={styles.payCheckCircle}>
                     <Feather name="check" size={44} color="#fff" />
                   </LinearGradient>
                 </Animated.View>
@@ -397,7 +400,9 @@ export default function EventDetailScreen({ route, navigation }) {
                 <Text style={styles.payErrorTitle}>Paiement échoué</Text>
                 <Text style={styles.payErrorDetail}>{paymentError}</Text>
                 <TouchableOpacity style={styles.payRetryBtn} onPress={() => setPaymentEtape('confirm')} activeOpacity={0.8}>
-                  <LinearGradient colors={['#1AB3E5', '#0D8ABC']} style={styles.payRetryGradient}>
+                  <LinearGradient
+                    // Couleurs officielles Wave — marque partenaire
+                    colors={['#1AB3E5', '#0D8ABC']} style={styles.payRetryGradient}>
                     <Feather name="refresh-cw" size={14} color="#fff" />
                     <Text style={styles.payRetryText}>Réessayer</Text>
                   </LinearGradient>

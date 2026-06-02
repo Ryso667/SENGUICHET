@@ -10,7 +10,7 @@ import { Platform } from 'react-native'
 //    1. Désactive "Adresse Wi-Fi privée" dans les paramètres WiFi
 //    2. Vérifie que le routeur n'isole pas les clients
 //    3. Ou utilise le mode tunnel : npx expo start --tunnel --port 8083
-const PC_IP = '192.168.1.149'
+const PC_IP = '192.168.1.14'
 const PORT = '8080'
 
 // Détermine l'URL de base selon la plateforme

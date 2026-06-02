@@ -5,6 +5,7 @@
 import { useRef, useEffect } from 'react'
 import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native'
 import { useNavigation, useRoute } from '@react-navigation/native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { fonts, glass } from '../constants/theme'
@@ -18,6 +19,7 @@ const TABS = [
 export default function GlassBottomNav() {
   const navigation = useNavigation()
   const route = useRoute()
+  const insets = useSafeAreaInsets()
   const slideAnim = useRef(new Animated.Value(0)).current
   const prevIndex = useRef(0)
 
@@ -36,7 +38,7 @@ export default function GlassBottomNav() {
   }, [currentIndex, slideAnim])
 
   return (
-    <BlurView tint="light" intensity={80} style={styles.container}>
+    <BlurView tint="light" intensity={80} style={[styles.container, { paddingBottom: 8 + insets.bottom }]}>
       {TABS.map((tab) => {
         const active = route.name === tab.key
         return (
@@ -65,7 +67,6 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: glass.borderLight,
     paddingTop: 8,
-    paddingBottom: 28,
     backgroundColor: glass.bg,
   },
   item: {

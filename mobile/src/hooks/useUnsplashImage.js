@@ -15,6 +15,9 @@ const CATEGORY_MAP = {
 
 const ACCESS_KEY = process.env.EXPO_PUBLIC_UNSPLASH_ACCESS_KEY
 
+// Cache en mémoire pour éviter les appels API répétés pour la même catégorie
+const urlCache = new Map()
+
 // Charge une image Unsplash aléatoire pour une catégorie donnée
 // category : string (optionnelle, défaut 'event party')
 // Retourne : { url, loading, error, refresh }
@@ -32,6 +35,14 @@ export default function useUnsplashImage(category) {
       setError('No Unsplash key configured')
       return
     }
+
+    // Retourne l'URL en cache si déjà chargée pour cette catégorie
+    if (urlCache.has(query)) {
+      setUrl(urlCache.get(query))
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     setError(null)
     try {
@@ -41,7 +52,9 @@ export default function useUnsplashImage(category) {
       )
       if (!res.ok) throw new Error(`Unsplash error: ${res.status}`)
       const data = await res.json()
-      setUrl(data.urls?.regular || null)
+      const imageUrl = data.urls?.regular || null
+      if (imageUrl) urlCache.set(query, imageUrl)
+      setUrl(imageUrl)
     } catch (e) {
       setError(e.message)
       setUrl(null)

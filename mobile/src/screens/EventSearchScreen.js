@@ -1,10 +1,11 @@
 // Écran de recherche d'événements — version Apple Invites
 // Fond : images Unsplash en mosaïque
 // Barre de recherche glass, chips catégories, grille 2 colonnes
-import { useState, useEffect } from 'react'
-import { View, Text, TextInput, ScrollView, StyleSheet } from 'react-native'
+import { useState, useCallback } from 'react'
+import { View, Text, TextInput, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
-import { fonts, spacing, borderRadius, glass } from '../constants/theme'
+import { fonts, spacing, glass } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
@@ -19,14 +20,14 @@ export default function EventSearchScreen({ navigation }) {
   const [search, setSearch] = useState('')
   const [activeCat, setActiveCat] = useState('Tout')
   const [events, setEvents] = useState([])
+  const { width } = useWindowDimensions()
 
-  useEffect(() => {
-    const load = async () => {
+  useFocusEffect(useCallback(() => {
+    (async () => {
       const data = await fetchEvenementsPublics()
       setEvents(data.map(formaterPourEventCard))
-    }
-    load()
-  }, [])
+    })()
+  }, []))
 
   const filtered = events.filter((e) => {
     const matchCat = activeCat === 'Tout' || e.category === activeCat
@@ -68,7 +69,7 @@ export default function EventSearchScreen({ navigation }) {
         {/* Grille résultats */}
         <View style={styles.grid}>
           {filtered.map((event, i) => (
-            <View key={event.id} style={styles.gridItem}>
+            <View key={event.id} style={{ width: (width - spacing.lg * 2 - 12) / 2 }}>
               <AnimatedEventCard
                 event={event}
                 index={i}
@@ -109,8 +110,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row', flexWrap: 'wrap',
     paddingHorizontal: spacing.lg, gap: 12,
     marginTop: spacing.sm,
-  },
-  gridItem: {
-    width: '47%',
   },
 })

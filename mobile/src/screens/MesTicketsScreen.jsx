@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useFocusEffect } from '@react-navigation/native'
-import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, glass } from '../constants/theme'
+import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import EmptyState from '../components/EmptyState'
 import { useAuth } from '../context/AuthContext'
@@ -23,6 +23,7 @@ export default function MesTicketsScreen({ navigation }) {
   const [tickets, setTickets] = useState([])
   const [refreshing, setRefreshing] = useState(false)
   const { numeroTel, profil } = useAuth()
+  const categoryForBg = tickets[0]?.categorie || null
 
   // Charge les tickets depuis le service billetService
   const loadTickets = useCallback(async () => {
@@ -72,39 +73,43 @@ export default function MesTicketsScreen({ navigation }) {
   }
 
   return (
-    <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Mes tickets</Text>
-        {tickets.length > 0 && (
-          <GlassContainer style={styles.countBadge} intensity={50}>
-            <Text style={styles.countText}>{tickets.length}</Text>
-          </GlassContainer>
-        )}
-      </View>
+    <View style={styles.container}>
+      <BlurBackground category={categoryForBg} />
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Mes tickets</Text>
+          {tickets.length > 0 && (
+            <GlassContainer style={styles.countBadge} intensity={50}>
+              <Text style={styles.countText}>{tickets.length}</Text>
+            </GlassContainer>
+          )}
+        </View>
 
-      <FlatList
-        data={tickets}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.numero || item.id}
-        contentContainerStyle={styles.list}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        ListEmptyComponent={
-          <EmptyState
-            icon="ticket"
-            title="Aucun ticket"
-            subtitle="Explore les événements et achète ton premier ticket"
-            actionLabel="Explorer"
-            onAction={() => navigation.navigate('Home')}
-          />
-        }
-      />
-    </LinearGradient>
+        <FlatList
+          data={tickets}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.numero || item.id}
+          contentContainerStyle={styles.list}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          ListEmptyComponent={
+            <EmptyState
+              icon="ticket"
+              title="Aucun ticket"
+              subtitle="Explore les événements et achète ton premier ticket"
+              actionLabel="Explorer"
+              onAction={() => navigation.navigate('Home')}
+            />
+          }
+        />
+      </View>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  content: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm,

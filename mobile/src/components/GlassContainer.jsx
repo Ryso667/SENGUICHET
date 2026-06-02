@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: glass.border,
+    // overflow hidden avec borderRadius peut crée des bords tranchés sur certains Android
     overflow: 'hidden',
   },
 })
