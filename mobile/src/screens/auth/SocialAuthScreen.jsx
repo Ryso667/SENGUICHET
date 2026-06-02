@@ -9,7 +9,8 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { fonts, colors, spacing, textShadow } from '../../constants/theme'
 import { useAuth } from '../../context/AuthContext'
-import BlurBackground from '../components/BlurBackground'
+import BlurBackground from '../../components/BlurBackground'
+import GlassContainer from '../../components/GlassContainer'
 
 export default function SocialAuthScreen({ navigation }) {
   const { connecterAcheteurSocial } = useAuth()

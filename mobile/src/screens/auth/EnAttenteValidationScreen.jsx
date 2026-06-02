@@ -6,7 +6,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 import GlassButton from '../../components/GlassButton'
 import GlassContainer from '../../components/GlassContainer'
 import { colors, spacing, fonts, textShadow } from '../../constants/theme'
-import BlurBackground from '../components/BlurBackground'
+import BlurBackground from '../../components/BlurBackground'
 
 // Composant de la barre de progression à 3 étapes
 const Stepper = ({ etapeCourante }) => {

@@ -9,7 +9,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { inscrireOrganisateur } from '../../services/authService'
 import GlassButton from '../../components/GlassButton'
 import { colors, spacing, textShadow } from '../../constants/theme'
-import BlurBackground from '../components/BlurBackground'
+import BlurBackground from '../../components/BlurBackground'
+import GlassContainer from '../../components/GlassContainer'
 
 // Calcule le niveau de force du mot de passe (0-4)
 // Retourne { score, label, couleur }
@@ -134,48 +135,56 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
 
           {/* Champ Nom */}
           <Text style={styles.label}>Nom</Text>
-          <TextInput
-            style={styles.input}
-            value={nom}
-            onChangeText={setNom}
-            placeholder="Ton nom"
-            placeholderTextColor="rgba(255,255,255,0.5)"
-            autoCapitalize="words"
-          />
+          <GlassContainer style={styles.inputWrap}>
+            <TextInput
+              style={styles.input}
+              value={nom}
+              onChangeText={setNom}
+              placeholder="Ton nom"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              autoCapitalize="words"
+            />
+          </GlassContainer>
 
           {/* Champ Téléphone */}
           <Text style={styles.label}>Téléphone</Text>
-          <TextInput
-            style={styles.input}
-            value={telephone}
-            onChangeText={(t) => setTelephone(formatterTelephone(t))}
-            keyboardType="phone-pad"
-            placeholder="+221 XX XXX XX XX"
-            placeholderTextColor="rgba(255,255,255,0.5)"
-          />
+          <GlassContainer style={styles.inputWrap}>
+            <TextInput
+              style={styles.input}
+              value={telephone}
+              onChangeText={(t) => setTelephone(formatterTelephone(t))}
+              keyboardType="phone-pad"
+              placeholder="+221 XX XXX XX XX"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+            />
+          </GlassContainer>
 
           {/* Champ Email */}
           <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            placeholder="exemple@email.com"
-            placeholderTextColor="rgba(255,255,255,0.5)"
-          />
+          <GlassContainer style={styles.inputWrap}>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              placeholder="exemple@email.com"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+            />
+          </GlassContainer>
 
           {/* Champ Mot de passe */}
           <Text style={styles.label}>Mot de passe</Text>
-          <TextInput
-            style={styles.input}
-            value={mdp}
-            onChangeText={setMdp}
-            secureTextEntry
-            placeholder="Minimum 6 caractères"
-            placeholderTextColor="rgba(255,255,255,0.5)"
-          />
+          <GlassContainer style={styles.inputWrap}>
+            <TextInput
+              style={styles.input}
+              value={mdp}
+              onChangeText={setMdp}
+              secureTextEntry
+              placeholder="Minimum 6 caractères"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+            />
+          </GlassContainer>
 
           {/* Indicateur de force du mot de passe */}
           {mdp.length > 0 && (
@@ -276,17 +285,11 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.8)',
     marginBottom: 6,
   },
+  inputWrap: { marginBottom: 16, borderRadius: 14, height: 56, justifyContent: 'center', paddingHorizontal: 16 },
   input: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 16,
-    height: 56,
     fontFamily: 'Outfit_400Regular',
     fontSize: 16,
     color: '#fff',
-    marginBottom: 16,
   },
   forceConteneur: {
     flexDirection: 'row',

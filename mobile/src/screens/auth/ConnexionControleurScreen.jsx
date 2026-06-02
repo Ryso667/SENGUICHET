@@ -11,7 +11,8 @@ import { connecterControleur as apiConnecterControleur } from '../../services/au
 import InputOTP from '../../components/InputOTP'
 import GlassButton from '../../components/GlassButton'
 import { useAuth } from '../../context/AuthContext'
-import BlurBackground from '../components/BlurBackground'
+import BlurBackground from '../../components/BlurBackground'
+import GlassContainer from '../../components/GlassContainer'
 import { spacing, textShadow } from '../../constants/theme'
 
 export default function ConnexionControleurScreen({ navigation }) {

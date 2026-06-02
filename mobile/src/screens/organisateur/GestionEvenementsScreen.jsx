@@ -197,7 +197,7 @@ const s = StyleSheet.create({
   },
   badgeText: { fontSize: 18, fontFamily: fonts.outfit.bold, color: '#fff' },
   info: { flex: 1 },
-  nom: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff' },
+  nom: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
   date: { fontSize: 12, fontFamily: fonts.outfit.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
   chevron: { fontSize: 16, color: 'rgba(255,255,255,0.6)', marginLeft: spacing.sm },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginRight: spacing.xs },

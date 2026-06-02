@@ -5,8 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { useAuth } from '../context/AuthContext'
 import BlurBackground from '../components/BlurBackground'
+import GlassContainer from '../components/GlassContainer'
 import GlassButton from '../components/GlassButton'
-import { textShadow } from '../constants/theme'
+import { textShadow, spacing } from '../constants/theme'
 export default function ControleurDashboardScreen() {
   const { deconnecter } = useAuth()
   const insets = useSafeAreaInsets()
@@ -15,10 +16,11 @@ export default function ControleurDashboardScreen() {
     <View style={styles.safe}>
       <BlurBackground category="Concert" />
       <View style={[styles.conteneur, { paddingTop: insets.top }]}>
-        <Feather name="shield" size={48} color="#FFFFFF" />
-        <Text style={styles.titre}>Mode Contrôleur</Text>
-        <Text style={styles.sousTitre}>Connecté avec succès</Text>
-
+        <GlassContainer style={styles.card}>
+          <Feather name="shield" size={48} color="#fff" />
+          <Text style={styles.titre}>Mode Contrôleur</Text>
+          <Text style={styles.sousTitre}>Connecté avec succès</Text>
+        </GlassContainer>
         <GlassButton title="Déconnexion" icon="log-out" onPress={deconnecter} />
       </View>
     </View>
@@ -34,8 +36,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
-    gap: 12,
+    gap: spacing.lg,
   },
+  card: { padding: spacing.xl, alignItems: 'center', gap: 12, width: '100%' },
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,

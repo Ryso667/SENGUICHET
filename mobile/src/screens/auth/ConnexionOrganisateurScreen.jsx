@@ -10,7 +10,8 @@ import { connecterOrganisateur } from '../../services/authService'
 import { useAuth } from '../../context/AuthContext'
 import GlassButton from '../../components/GlassButton'
 import { colors, spacing, textShadow } from '../../constants/theme'
-import BlurBackground from '../components/BlurBackground'
+import BlurBackground from '../../components/BlurBackground'
+import GlassContainer from '../../components/GlassContainer'
 
 export default function ConnexionOrganisateurScreen({ navigation }) {
   const [email, setEmail] = useState('')
@@ -60,26 +61,30 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
 
           {/* Champ email */}
           <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            placeholder="exemple@email.com"
-            placeholderTextColor="rgba(255,255,255,0.5)"
-          />
+          <GlassContainer style={styles.inputWrap}>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              placeholder="exemple@email.com"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+            />
+          </GlassContainer>
 
           {/* Champ mot de passe */}
           <Text style={styles.label}>Mot de passe</Text>
-          <TextInput
-            style={styles.input}
-            value={mdp}
-            onChangeText={setMdp}
-            secureTextEntry
-            placeholder="••••••••"
-            placeholderTextColor="rgba(255,255,255,0.5)"
-          />
+          <GlassContainer style={styles.inputWrap}>
+            <TextInput
+              style={styles.input}
+              value={mdp}
+              onChangeText={setMdp}
+              secureTextEntry
+              placeholder="••••••••"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+            />
+          </GlassContainer>
 
           <View style={{ height: 24 }} />
           {chargement ? (
@@ -157,17 +162,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     minWidth: undefined,
   },
+  inputWrap: { marginBottom: 16, borderRadius: 14, height: 56, justifyContent: 'center', paddingHorizontal: 16 },
   input: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 16,
-    height: 56,
     fontFamily: 'Outfit_400Regular',
     fontSize: 16,
     color: '#fff',
-    marginBottom: 16,
   },
   glassLoadingBtn: {
     borderRadius: 14,
