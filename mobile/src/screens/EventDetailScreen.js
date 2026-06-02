@@ -32,6 +32,7 @@ export default function EventDetailScreen({ route, navigation }) {
   const [error, setError] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
   const [telephone, setTelephone] = useState(numeroTel || '')
+  const [email, setEmail] = useState('')
   const [showPaymentSheet, setShowPaymentSheet] = useState(false)
   const [paymentEtape, setPaymentEtape] = useState('confirm') // confirm | pending | success | failed
   const [paymentError, setPaymentError] = useState('')
@@ -67,8 +68,6 @@ export default function EventDetailScreen({ route, navigation }) {
     setPaymentEtape('confirm')
   }
 
-  const isValidPhone = telephone.replace(/[^\d]/g, '').length >= 6
-
   // Déclenche l'appel API d'achat et gère les étapes de paiement
   const confirmerPaiement = async () => {
     setPaymentEtape('pending')
@@ -93,7 +92,11 @@ export default function EventDetailScreen({ route, navigation }) {
     try {
       const telPropre = telephone.replace(/[^\d]/g, '')
       const telComplet = telPropre.startsWith('221') ? `+${telPropre}` : `+221${telPropre}`
-      const resultat = await acheterBillet(event.id, selectedTicket.id, telComplet, null, 'WAVE')
+      const emailValue = email.trim() || null
+      const resultat = await acheterBillet(
+        event.id, selectedTicket.id,
+        telPropre ? telComplet : null, emailValue, 'WAVE'
+      )
 
       if (!resultat || !resultat.billet) {
         throw new Error('Réponse invalide du serveur')
@@ -359,36 +362,57 @@ export default function EventDetailScreen({ route, navigation }) {
             {/* Étape : confirmation */}
             {paymentEtape === 'confirm' && (
               <>
-                <Image source={require('../../assets/wave_logo.png')} style={styles.waveLogo} resizeMode="contain" />
-                <Text style={styles.paySheetTitle}>Confirmer le paiement</Text>
+                {/* Badge Connexion rapide — premium */}
+                <View style={[styles.payBadge, { backgroundColor: `${catColor}22` }]}>
+                  <Feather name="zap" size={14} color={catColor} />
+                  <Text style={[styles.payBadgeText, { color: catColor }]}>Connexion rapide</Text>
+                </View>
 
-                <GlassContainer style={styles.payInfoCard}>
-                  <Text style={styles.payEventTitle}>{event.title}</Text>
-                  <View style={styles.payTicketRow}>
-                    <Text style={styles.payTicketName}>{selectedTicket.name}</Text>
-                    <Text style={styles.payTicketPrice}>{selectedTicket.price.toLocaleString()} FCFA</Text>
+                {/* Résumé visuel du billet sélectionné */}
+                <GlassContainer style={styles.payTicketHero}>
+                  <View style={[styles.payTicketHeroAccent, { backgroundColor: catColor }]} />
+                  <Text style={styles.payTicketHeroName}>{selectedTicket.name}</Text>
+                  <Text style={[styles.payTicketHeroPrice, { color: catColor }]}>
+                    {selectedTicket.price.toLocaleString()} FCFA
+                  </Text>
+                  <View style={styles.payTicketHeroEventRow}>
+                    <Feather name="calendar" size={10} color={catColor} />
+                    <Text style={[styles.payTicketHeroEvent, { color: catColor }]}>{event.title}</Text>
                   </View>
                 </GlassContainer>
 
-                {/* Saisie du téléphone dans le modal */}
-                <View style={styles.payPhoneRow}>
-                  <Feather name="smartphone" size={14} color={colors.textWhiteMuted} />
-                  <Text style={styles.codeText}>+221</Text>
+                {/* Infos optionnelles — email + téléphone en petit */}
+                <Text style={styles.payOptionalLabel}>Informations (optionnel)</Text>
+                <View style={styles.payOptionalRow}>
+                  <Feather name="mail" size={12} color="rgba(255,255,255,0.3)" />
                   <TextInput
-                    style={styles.payPhoneInput}
+                    style={styles.payOptionalInput}
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    placeholder="email@exemple.com"
+                    placeholderTextColor="rgba(255,255,255,0.2)"
+                    autoCapitalize="none"
+                  />
+                </View>
+                <View style={styles.payOptionalRow}>
+                  <Feather name="smartphone" size={12} color="rgba(255,255,255,0.3)" />
+                  <Text style={styles.payCodeText}>+221</Text>
+                  <TextInput
+                    style={[styles.payOptionalInput, { marginLeft: 0 }]}
                     value={telephone}
                     onChangeText={setTelephone}
                     keyboardType="phone-pad"
                     placeholder="77 XXX XX XX"
-                    placeholderTextColor="rgba(255,255,255,0.3)"
+                    placeholderTextColor="rgba(255,255,255,0.2)"
                   />
                 </View>
 
+                {/* Bouton de paiement Wave */}
                 <TouchableOpacity
-                  style={[styles.confirmPayBtn, telephone.replace(/[^\d]/g, '').length < 6 && styles.buyBtnDisabled]}
+                  style={styles.confirmPayBtn}
                   onPress={confirmerPaiement}
                   activeOpacity={0.9}
-                  disabled={telephone.replace(/[^\d]/g, '').length < 6}
                 >
                   <LinearGradient
                     // Couleurs officielles Wave — marque partenaire, ne pas remplacer par accent
@@ -778,69 +802,95 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 1,
   },
-  waveLogo: {
-    width: 90,
-    height: 28,
-    marginBottom: spacing.md,
-  },
-  paySheetTitle: {
-    fontFamily: fonts.outfit.bold,
-    fontSize: 18,
-    color: '#fff',
-    marginBottom: spacing.md,
-  },
-  payInfoCard: {
-    width: '100%',
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
-  payEventTitle: {
-    fontFamily: fonts.outfit.semiBold,
-    fontSize: 14,
-    color: '#fff',
-    marginBottom: 6,
-    ...textShadow,
-  },
-  payTicketRow: {
+  // Badge Connexion rapide
+  payBadge: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginBottom: spacing.md,
   },
-  payTicketName: {
-    fontFamily: fonts.jakarta.regular,
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.7)',
-    ...textShadow,
+  payBadgeText: {
+    fontFamily: fonts.outfit.semiBold,
+    fontSize: 12,
+    letterSpacing: 0.5,
   },
-  payTicketPrice: {
+  // Carte héros du billet sélectionné
+  payTicketHero: {
+    width: '100%',
+    padding: spacing.xl,
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+    overflow: 'hidden',
+  },
+  payTicketHeroAccent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 3,
+  },
+  payTicketHeroName: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: 14,
-    color: '#fff',
+    color: 'rgba(255,255,255,0.6)',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: spacing.sm,
+  },
+  payTicketHeroPrice: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 34,
+    letterSpacing: -1,
+    marginBottom: spacing.xs,
     ...textShadow,
   },
-  payPhoneRow: {
+  payTicketHeroEventRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  payTicketHeroEvent: {
+    fontFamily: fonts.jakarta.regular,
+    fontSize: 11,
+    letterSpacing: 0.5,
+    opacity: 0.7,
+  },
+  // Informations optionnelles
+  payOptionalLabel: {
+    fontFamily: fonts.jakarta.semiBold,
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.3)',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    alignSelf: 'flex-start',
+    marginBottom: spacing.sm,
+  },
+  payOptionalRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: spacing.lg,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 14,
+    marginBottom: spacing.sm,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 2,
     width: '100%',
   },
-  payPhoneInput: {
+  payOptionalInput: {
     flex: 1,
-    fontSize: 16,
-    fontFamily: fonts.jakarta.semiBold,
+    fontSize: 13,
+    fontFamily: fonts.jakarta.regular,
     color: '#fff',
-    padding: 10,
+    padding: 8,
     outlineStyle: 'none',
   },
-  codeText: {
+  payCodeText: {
     fontFamily: fonts.jakarta.semiBold,
-    fontSize: 15,
-    color: '#fff',
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.5)',
   },
   confirmPayBtn: {
     width: '100%',
