@@ -628,12 +628,14 @@ const styles = StyleSheet.create({
     fontFamily: fonts.jakarta.semiBold,
     fontSize: 13,
     color: '#fff',
+    ...textShadow,
   },
   sheetItemDesc: {
     fontSize: 10,
     color: 'rgba(255,255,255,0.6)',
     fontFamily: fonts.jakarta.regular,
     marginTop: 2,
+    ...textShadow,
   },
   sheetItemRight: {
     alignItems: 'flex-end',
@@ -642,11 +644,13 @@ const styles = StyleSheet.create({
   sheetItemPrice: {
     fontFamily: fonts.outfit.bold,
     fontSize: 14,
+    ...textShadow,
   },
   sheetItemPlaces: {
     fontSize: 9,
     color: 'rgba(255,255,255,0.5)',
     fontFamily: fonts.jakarta.regular,
+    ...textShadow,
   },
   sheetCheck: {
     width: 20,
@@ -745,6 +749,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#fff',
     marginBottom: 6,
+    ...textShadow,
   },
   payTicketRow: {
     flexDirection: 'row',
@@ -755,11 +760,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.jakarta.regular,
     fontSize: 13,
     color: 'rgba(255,255,255,0.7)',
+    ...textShadow,
   },
   payTicketPrice: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: 14,
     color: '#1AB3E5',
+    ...textShadow,
   },
   payPhoneRow: {
     flexDirection: 'row',
@@ -771,6 +778,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.jakarta.medium,
     fontSize: 14,
     color: '#fff',
+    ...textShadow,
   },
   confirmPayBtn: {
     width: '100%',
