@@ -1,16 +1,25 @@
-// Fond d'écran plein écran avec gradient par catégorie (style Apple Music)
-// Fond sombre + dégradé de couleurs par catégorie + overlay pour lisibilité
-// Props : category, intensityOverlay
-import { View, StyleSheet } from 'react-native'
+// Fond d'écran plein écran avec image de fête par catégorie + dégradé (style Apple Music)
+// Affiche l'image Unsplash de la catégorie derrière un dégradé + overlay de lisibilité
+// Props : category, intensityOverlay, showImage
+import { View, Image, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { categoryGradients } from '../constants/theme'
+import { getCategoryImageUrl } from '../config/images'
 
-export default function BlurBackground({ category, intensityOverlay = true }) {
+export default function BlurBackground({ category, intensityOverlay = true, showImage = true }) {
   const gradient = categoryGradients[category] || categoryGradients.default
+  const imageUrl = showImage && category ? getCategoryImageUrl(category) : null
 
   return (
     <View style={StyleSheet.absoluteFill}>
       <View style={styles.baseBg} />
+      {imageUrl && (
+        <Image
+          source={{ uri: imageUrl }}
+          style={StyleSheet.absoluteFill}
+          resizeMode="cover"
+        />
+      )}
       <LinearGradient
         colors={gradient}
         style={StyleSheet.absoluteFill}
@@ -20,7 +29,7 @@ export default function BlurBackground({ category, intensityOverlay = true }) {
       />
       {intensityOverlay && (
         <LinearGradient
-          colors={['rgba(0,0,0,0.55)', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.55)']}
+          colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.6)']}
           locations={[0, 0.25, 0.6, 1]}
           style={StyleSheet.absoluteFill}
           pointerEvents="none"
