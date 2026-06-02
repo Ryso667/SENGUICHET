@@ -1,9 +1,31 @@
 // Service de génération de ticket PDF — layout ticket classique
 import * as Print from 'expo-print'
 import * as Sharing from 'expo-sharing'
+import * as FS from 'expo-file-system'
 import * as FileSystem from 'expo-file-system/legacy'
+import { Asset } from 'expo-asset'
 import { Alert } from 'react-native'
 import { formatDateTicket, formatDatetimeLong } from '../utils/dateUtils'
+
+// Logo en base64 mis en cache côté module (initialisation paresseuse)
+let _logoBase64Promise = null
+function getLogoBase64() {
+  if (!_logoBase64Promise) {
+    _logoBase64Promise = (async () => {
+      try {
+        const asset = Asset.fromModule(require('../../assets/logo_mobile.jpeg'))
+        await asset.downloadAsync()
+        const b64 = await FS.readAsStringAsync(asset.localUri, {
+          encoding: FS.EncodingType.Base64,
+        })
+        return b64
+      } catch {
+        return null
+      }
+    })()
+  }
+  return _logoBase64Promise
+}
 
 function formatPrix(prix) {
   if (prix == null) return '—'
@@ -12,11 +34,12 @@ function formatPrix(prix) {
 
   const DASHES = '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
 
-function construireHtmlTicket(ticket, qrDataUrl) {
+function construireHtmlTicket(ticket, qrDataUrl, logoBase64) {
   const isScanned = ticket.statut === 'utilise'
   const organisateur = 'SENGUICHET'
   const dateStr = formatDateTicket(ticket.eventDate)
   const scannedStr = ticket.dateScan ? formatDatetimeLong(ticket.dateScan) : null
+  const logoSrc = logoBase64 ? `data:image/jpeg;base64,${logoBase64}` : null
 
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -187,7 +210,7 @@ function construireHtmlTicket(ticket, qrDataUrl) {
   <!-- Bloc haut : en-tête, infos, référence -->
   <div class="top-block">
     <div class="header">
-      <div class="logo-circle">🎫</div>
+      <div class="logo-circle">${logoSrc ? `<img src="${logoSrc}" alt="SENGUICHET" style="width:18pt;height:18pt;border-radius:4pt;display:block" />` : '🎫'}</div>
       <div class="org-name">${organisateur}</div>
     </div>
     <div class="dash">${DASHES}</div>
@@ -230,7 +253,8 @@ function construireHtmlTicket(ticket, qrDataUrl) {
 
 // Génère un fichier PDF du ticket et ouvre le menu de partage/impression
 export async function genererTicketPDF(ticket, qrDataUrl) {
-  const html = construireHtmlTicket(ticket, qrDataUrl)
+  const logoB64 = await getLogoBase64()
+  const html = construireHtmlTicket(ticket, qrDataUrl, logoB64)
 
   const nomEvent = (ticket.eventNom || 'billet')
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')

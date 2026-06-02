@@ -43,9 +43,13 @@
       "expo-camera",
       "expo-local-authentication",
       "expo-web-browser",
-      ["@react-native-google-signin/google-signin", {
-        "iosUrlScheme": "com.googleusercontent.apps.114575452982-lv7fugvppu5p551llnq93gef4o2cba7k"
-      }]
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.114575452982-lv7fugvppu5p551llnq93gef4o2cba7k"
+        }
+      ],
+      "expo-asset"
     ],
     "extra": {
       "eas": {
