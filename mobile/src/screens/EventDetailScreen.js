@@ -173,45 +173,41 @@ export default function EventDetailScreen({ route, navigation }) {
         showsVerticalScrollIndicator={false}
       >
 
-        {/* Header immersif — titre + infos clés */}
+        {/* Header invitation — titre hero + meta élégante */}
         <View style={styles.headerSection}>
+          <View style={[styles.headerAccentLine, { backgroundColor: catColor }]} />
           <Text style={styles.headerCategory}>{event.category || 'ÉVÉNEMENT'}</Text>
           <Text style={styles.headerTitle}>{event.title}</Text>
-          <View style={styles.headerMeta}>
-            <View style={styles.headerMetaItem}>
-              <View style={styles.metaIconWrap}>
-                <Feather name="calendar" size={10} color="#fff" />
-              </View>
-              <Text style={styles.headerMetaText}>{formaterDateLisible(event.date)}</Text>
+
+          {event.date && (
+            <View style={styles.headerMetaBlock}>
+              <Feather name="calendar" size={13} color={catColor} />
+              <Text style={styles.headerMetaPrimary}>
+                {event.date ? formaterDateLisible(event.date).toUpperCase() : ''}
+              </Text>
             </View>
+          )}
+
+          <View style={styles.headerMetaSecondary}>
             {!!event.time && (
-              <Text style={styles.headerMetaSep}>·</Text>
-            )}
-            {!!event.time && (
-              <View style={styles.headerMetaItem}>
-                <View style={styles.metaIconWrap}>
-                  <Feather name="clock" size={10} color="#fff" />
-                </View>
-                <Text style={styles.headerMetaText}>{event.time}</Text>
+              <View style={styles.headerMetaChip}>
+                <Feather name="clock" size={10} color="rgba(255,255,255,0.5)" />
+                <Text style={styles.headerMetaChipText}>{event.time}</Text>
               </View>
             )}
             {!!event.location && (
-              <Text style={styles.headerMetaSep}>·</Text>
-            )}
-            {!!event.location && (
-              <View style={styles.headerMetaItem}>
-                <View style={styles.metaIconWrap}>
-                  <Feather name="map-pin" size={10} color="#fff" />
-                </View>
-                <Text style={styles.headerMetaText}>{event.location}</Text>
+              <View style={styles.headerMetaChip}>
+                <Feather name="map-pin" size={10} color="rgba(255,255,255,0.5)" />
+                <Text style={styles.headerMetaChipText}>{event.location}</Text>
               </View>
             )}
           </View>
         </View>
 
-        {/* Description — carte glass plus large */}
+        {/* Description — carte premium avec accented border */}
         {!!event.desc && (
           <GlassContainer style={styles.descCard}>
+            <View style={[styles.descAccent, { backgroundColor: catColor }]} />
             <Text style={styles.descText}>{event.desc}</Text>
           </GlassContainer>
         )}
@@ -498,10 +494,17 @@ const styles = StyleSheet.create({
     zIndex: 10,
     overflow: 'hidden',
   },
-  // Section header immersif — plus d'espace, titre plus grand
+  // Section header — style invitation premium
   headerSection: {
-    paddingVertical: 24,
+    paddingVertical: 28,
     paddingHorizontal: spacing.xs,
+  },
+  headerAccentLine: {
+    width: 32,
+    height: 3,
+    borderRadius: 2,
+    // couleur définie en runtime via inline style
+    marginBottom: spacing.md,
   },
   headerCategory: {
     fontSize: 11,
@@ -513,52 +516,65 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: fonts.outfit.extraBold,
-    fontSize: 32,
+    fontSize: 36,
     color: '#fff',
-    letterSpacing: -0.5,
-    lineHeight: 38,
+    letterSpacing: -1,
+    lineHeight: 42,
     ...textShadow,
-    marginBottom: 14,
+    marginBottom: 20,
   },
-  headerMeta: {
+  headerMetaBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  headerMetaPrimary: {
+    fontSize: 14,
+    fontFamily: fonts.jakarta.semiBold,
+    color: 'rgba(255,255,255,0.8)',
+    letterSpacing: 1.5,
+  },
+  headerMetaSecondary: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
-  headerMetaItem: {
+  headerMetaChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
-  metaIconWrap: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerMetaSep: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.2)',
-    fontFamily: fonts.jakarta.regular,
-  },
-  headerMetaText: {
-    fontSize: 12,
+  headerMetaChipText: {
+    fontSize: 11,
     fontFamily: fonts.jakarta.medium,
     color: 'rgba(255,255,255,0.6)',
   },
-  // Carte description — plus mise en avant
+  // Carte description — premium avec bordure latérale
   descCard: {
     padding: spacing.lg,
+    paddingLeft: spacing.lg + 4,
     marginBottom: spacing.xl,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  descAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 12,
+    bottom: 12,
+    width: 3,
+    borderRadius: 2,
   },
   descText: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.85)',
     fontFamily: fonts.jakarta.regular,
-    lineHeight: 22,
+    lineHeight: 24,
   },
   // Sections
   sectionHeader: {
@@ -566,26 +582,27 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 16,
+    fontSize: 14,
     color: '#fff',
-    letterSpacing: -0.2,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   sectionSub: {
     fontSize: 11,
     fontFamily: fonts.jakarta.regular,
     color: 'rgba(255,255,255,0.4)',
-    marginTop: 2,
+    marginTop: 3,
   },
   // Sélecteur de catégorie premium
   categorySelector: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: spacing.md,
+    padding: spacing.lg,
     marginBottom: spacing.xl,
   },
   categorySelectorLeft: {
-    gap: 4,
+    gap: 6,
   },
   categorySelectorLabel: {
     fontFamily: fonts.outfit.semiBold,
@@ -594,9 +611,9 @@ const styles = StyleSheet.create({
   },
   categorySelectorPrice: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 20,
+    fontSize: 22,
     color: '#fff',
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
   },
   categorySelectorRight: {
     flexDirection: 'row',
@@ -606,8 +623,8 @@ const styles = StyleSheet.create({
   priceChip: {
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
   },
   priceChipText: {
     fontSize: 10,
@@ -696,17 +713,20 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginTop: 4,
     marginBottom: spacing.xl,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   phoneRowActive: {
     borderColor: '#1AB3E5',
   },
   countryCode: {
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     backgroundColor: 'rgba(255,255,255,0.08)',
   },
   codeText: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: fonts.jakarta.semiBold,
     color: '#fff',
   },
@@ -716,7 +736,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.jakarta.semiBold,
     color: '#fff',
     padding: 0,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     outlineStyle: 'none',
   },
   // Barre d'achat en bas — premium
@@ -724,12 +744,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: spacing.md,
-    paddingBottom: Platform.OS === 'ios' ? spacing.xl : spacing.md,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: spacing.lg,
+    paddingBottom: Platform.OS === 'ios' ? 34 : spacing.lg,
+    backgroundColor: 'rgba(15,15,42,0.92)',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: 'rgba(255,255,255,0.08)',
-    gap: 12,
+    gap: 16,
   },
   bottomBarTotal: {
     gap: 2,
@@ -739,13 +759,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.jakarta.regular,
     color: 'rgba(255,255,255,0.4)',
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
   bottomBarTotalPrice: {
-    fontSize: 18,
+    fontSize: 22,
     fontFamily: fonts.outfit.bold,
     color: '#fff',
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
   },
   buyBtnWrap: {
     flex: 1,
@@ -759,11 +779,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 16,
+    gap: 10,
+    paddingVertical: 18,
   },
   buyBtnText: {
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: fonts.outfit.semiBold,
     color: '#fff',
     letterSpacing: -0.2,
