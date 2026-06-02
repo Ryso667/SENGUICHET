@@ -64,9 +64,9 @@ export const categoryGradients = {
 
 // Ombre portée pour lisibilité du texte blanc sur fond clair/glass
 export const textShadow = {
-  textShadowColor: 'rgba(0,0,0,0.4)',
-  textShadowOffset: { width: 0, height: 1 },
-  textShadowRadius: 4,
+  textShadowColor: 'rgba(0,0,0,0.6)',
+  textShadowOffset: { width: 0, height: 2 },
+  textShadowRadius: 6,
 }
 
 // Espacements cohérents dans toute l'app

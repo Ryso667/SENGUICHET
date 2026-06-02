@@ -4,7 +4,7 @@ import { useRef } from 'react'
 import { TouchableOpacity, Text, Animated, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
-import { glass, fonts, borderRadius, spacing } from '../constants/theme'
+import { glass, fonts, borderRadius, spacing, textShadow } from '../constants/theme'
 
 // Bouton glass large avec icône et animation scalePress
 // title : string du texte
@@ -69,5 +69,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.outfit.semiBold,
     color: '#fff',
     letterSpacing: -0.2,
+    ...textShadow,
   },
 })

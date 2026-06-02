@@ -313,7 +313,7 @@ export default function EventDetailScreen({ route, navigation }) {
                       <Text style={styles.sheetItemDesc}>{t.desc || 'Accès standard'}</Text>
                     </View>
                     <View style={styles.sheetItemRight}>
-                      <Text style={[styles.sheetItemPrice, { color: catColor }]}>{t.price.toLocaleString()} FCFA</Text>
+                      <Text style={styles.sheetItemPrice}>{t.price.toLocaleString()} FCFA</Text>
                       <Text style={styles.sheetItemPlaces}>Places limitées</Text>
                     {selectedTicket.name === t.name && (
                       <View style={[styles.sheetCheck, { backgroundColor: catColor }]}>
@@ -644,6 +644,7 @@ const styles = StyleSheet.create({
   sheetItemPrice: {
     fontFamily: fonts.outfit.bold,
     fontSize: 14,
+    color: '#fff',
     ...textShadow,
   },
   sheetItemPlaces: {
@@ -765,7 +766,7 @@ const styles = StyleSheet.create({
   payTicketPrice: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: 14,
-    color: '#1AB3E5',
+    color: '#fff',
     ...textShadow,
   },
   payPhoneRow: {
