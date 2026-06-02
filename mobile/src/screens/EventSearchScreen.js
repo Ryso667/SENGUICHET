@@ -39,7 +39,7 @@ export default function EventSearchScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <BlurBackground category={activeCat === 'Tout' ? null : activeCat} intensityOverlay />
+      <BlurBackground category={activeCat === 'Tout' ? null : activeCat} />
       <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.sm }]} showsVerticalScrollIndicator={false}>
         {/* Barre de recherche */}
         <GlassContainer style={styles.searchBar} blurType="light" intensity={60}>

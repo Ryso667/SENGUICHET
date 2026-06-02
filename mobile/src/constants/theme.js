@@ -47,6 +47,21 @@ export const gradients = {
   hero: ['rgba(0,200,255,0.04)', 'rgba(0,119,255,0.04)'],
 }
 
+// Dégradés doux par catégorie d'événement — style Apple Music
+// Couleurs très atténuées pour fond immersif sans agressivité
+export const categoryGradients = {
+  Concert: ['rgba(109,29,217,0.3)', 'rgba(109,29,217,0.08)'],
+  Festival: ['rgba(5,150,105,0.3)', 'rgba(5,150,105,0.08)'],
+  Theatre: ['rgba(185,28,28,0.3)', 'rgba(185,28,28,0.08)'],
+  Sport: ['rgba(37,99,235,0.3)', 'rgba(37,99,235,0.08)'],
+  Conference: ['rgba(30,41,59,0.35)', 'rgba(30,41,59,0.1)'],
+  Atelier: ['rgba(217,119,6,0.3)', 'rgba(217,119,6,0.08)'],
+  Exposition: ['rgba(124,58,237,0.3)', 'rgba(124,58,237,0.08)'],
+  'Club / Soirée': ['rgba(219,39,119,0.3)', 'rgba(219,39,119,0.08)'],
+  Gala: ['rgba(202,138,4,0.3)', 'rgba(202,138,4,0.08)'],
+  default: ['rgba(99,102,241,0.25)', 'rgba(236,72,153,0.1)'],
+}
+
 // Ombre portée pour lisibilité du texte blanc sur fond clair/glass
 export const textShadow = {
   textShadowColor: 'rgba(0,0,0,0.4)',

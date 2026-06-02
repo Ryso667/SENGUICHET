@@ -29,7 +29,7 @@ export default function TicketScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <BlurBackground category={ticket?.categorie} showBlur={true} />
+      <BlurBackground category={ticket?.categorie} />
 
       {/* Bouton retour */}
       <TouchableOpacity style={[styles.backBtn, { top: insets.top + 8 }]} onPress={() => navigation.goBack()} activeOpacity={0.7}>

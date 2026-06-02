@@ -1,58 +1,32 @@
-// Fond d'écran plein écran avec image Unsplash + overlay dégradé
-// Utilisé comme arrière-plan sur tous les écrans acheteur
-// Props : category (pour Unsplash), showBlur, intensityOverlay
-import { useState } from 'react'
-import { View, Image, StyleSheet } from 'react-native'
+// Fond d'écran plein écran avec gradient doux par catégorie (style Apple Music)
+// Affiche un dégradé de couleurs atténuées correspondant à la catégorie d'événement
+// Props : category, posterUrl (optionnel, pour effet Apple Music avec image), intensityOverlay
+import { StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
-import useUnsplashImage from '../hooks/useUnsplashImage'
-import { colors } from '../constants/theme'
+import { categoryGradients, glass } from '../constants/theme'
 
-// Fond immersif avec image Unsplash + overlay dégradé
-// category : catégorie d'événement pour la recherche Unsplash
-// showBlur : booléen, floute l'image (défaut false)
-// intensityOverlay : booléen, force un overlay foncé pour la lisibilité (défaut true)
-export default function BlurBackground({ category, showBlur = false, intensityOverlay = true }) {
-  const { url } = useUnsplashImage(category)
-  const [loaded, setLoaded] = useState(false)
+// Fond immersif avec gradient doux par catégorie
+// category : catégorie d'événement (Concert, Festival, etc.) — définit les couleurs du fond
+// intensityOverlay : booléen, overlay sombre pour lisibilité (défaut true)
+export default function BlurBackground({ category, intensityOverlay = true }) {
+  const gradient = categoryGradients[category] || categoryGradients.default
 
   return (
-    <View style={StyleSheet.absoluteFill}>
-      {url ? (
-        <Image
-          source={{ uri: url }}
-          style={styles.image}
-          onLoad={() => setLoaded(true)}
-        />
-      ) : (
-        <LinearGradient
-          colors={['#6366F1', '#EC4899']}
-          style={StyleSheet.absoluteFill}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        />
-      )}
-
-      {loaded && showBlur && (
-        <BlurView tint="dark" intensity={10} style={StyleSheet.absoluteFill} />
-      )}
-
+    <LinearGradient
+      colors={gradient}
+      style={StyleSheet.absoluteFill}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      pointerEvents="none"
+    >
       {intensityOverlay && (
         <LinearGradient
-          colors={['rgba(15,23,42,0.3)', 'rgba(15,23,42,0.1)', 'rgba(15,23,42,0.1)', 'rgba(15,23,42,0.4)']}
+          colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.35)']}
           locations={[0, 0.25, 0.6, 1]}
           style={StyleSheet.absoluteFill}
           pointerEvents="none"
         />
       )}
-    </View>
+    </LinearGradient>
   )
 }
-
-const styles = StyleSheet.create({
-  image: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: '100%',
-  },
-})
