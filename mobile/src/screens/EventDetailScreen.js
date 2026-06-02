@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import {
   View, Text, ScrollView,
   TouchableOpacity, StyleSheet, Alert, Modal,
-  Platform, Image,
+  Platform, Image, KeyboardAvoidingView,
   Animated, ActivityIndicator, Easing, TextInput,
 } from 'react-native'
 import { Feather } from '@expo/vector-icons'
@@ -173,35 +173,36 @@ export default function EventDetailScreen({ route, navigation }) {
         showsVerticalScrollIndicator={false}
       >
 
-        {/* Hero invitation — titre XXL + date */}
+        {/* Hero invitation — titre XXL + date mise en avant */}
         <View style={styles.heroSection}>
           <Text style={[styles.heroCategory, { color: catColor }]}>{event.category || 'ÉVÉNEMENT'}</Text>
           <Text style={styles.heroTitle}>{event.title}</Text>
 
           <View style={[styles.heroDivider, { backgroundColor: catColor }]} />
 
-          <View style={styles.heroMeta}>
-            {event.date && (
-              <View style={styles.heroDateRow}>
-                <Feather name="calendar" size={14} color="#fff" />
-                <Text style={styles.heroDateText}>
+          {event.date && (
+            <GlassContainer style={styles.heroDateCard}>
+              <Feather name="calendar" size={18} color={catColor} />
+              <View>
+                <Text style={styles.heroDateDay}>
                   {formaterDateLisible(event.date).toUpperCase()}
                 </Text>
+                {!!event.time && (
+                  <View style={styles.heroTimeRow}>
+                    <Feather name="clock" size={11} color="rgba(255,255,255,0.5)" />
+                    <Text style={styles.heroTimeText}>{event.time}</Text>
+                  </View>
+                )}
               </View>
-            )}
-            {!!event.time && (
-              <View style={styles.heroMetaLine}>
-                <Feather name="clock" size={12} color="rgba(255,255,255,0.5)" />
-                <Text style={styles.heroMetaText}>{event.time}</Text>
-              </View>
-            )}
-            {!!event.location && (
-              <View style={styles.heroMetaLine}>
-                <Feather name="map-pin" size={12} color="rgba(255,255,255,0.5)" />
-                <Text style={styles.heroMetaText}>{event.location}</Text>
-              </View>
-            )}
-          </View>
+            </GlassContainer>
+          )}
+
+          {!!event.location && (
+            <View style={styles.heroLocationRow}>
+              <Feather name="map-pin" size={13} color="rgba(255,255,255,0.5)" />
+              <Text style={styles.heroLocationText}>{event.location}</Text>
+            </View>
+          )}
         </View>
 
         {/* Description — carte large */}
@@ -323,7 +324,7 @@ export default function EventDetailScreen({ route, navigation }) {
         </View>
       </Modal>
 
-      {/* Modal de paiement Wave */}
+      {/* Modal de paiement Wave — avec gestion clavier */}
       <Modal
         visible={showPaymentSheet}
         transparent
@@ -341,6 +342,11 @@ export default function EventDetailScreen({ route, navigation }) {
             style={styles.paySheetOverlayContent}
             activeOpacity={1}
             onPress={() => paymentEtape === 'confirm' && setShowPaymentSheet(false)}
+          >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ width: '100%' }}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
           >
           <GlassContainer style={styles.paySheetContainer}>
             {/* Bouton de fermeture */}
@@ -443,6 +449,7 @@ export default function EventDetailScreen({ route, navigation }) {
               </View>
             )}
           </GlassContainer>
+          </KeyboardAvoidingView>
         </TouchableOpacity>
         </View>
       </Modal>
@@ -492,7 +499,7 @@ const styles = StyleSheet.create({
   heroSection: {
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.xs,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   heroCategory: {
     fontSize: 12,
@@ -514,26 +521,40 @@ const styles = StyleSheet.create({
     borderRadius: 1,
     marginVertical: 20,
   },
-  heroMeta: {
-    gap: 10,
-  },
-  heroDateRow: {
+  // Carte date mise en avant
+  heroDateCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: spacing.sm,
   },
-  heroDateText: {
-    fontSize: 15,
-    fontFamily: fonts.jakarta.semiBold,
+  heroDateDay: {
+    fontSize: 16,
+    fontFamily: fonts.outfit.bold,
     color: '#fff',
-    letterSpacing: 2,
+    letterSpacing: 1,
   },
-  heroMetaLine: {
+  heroTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 4,
+  },
+  heroTimeText: {
+    fontSize: 12,
+    fontFamily: fonts.jakarta.regular,
+    color: 'rgba(255,255,255,0.5)',
+  },
+  // Localisation
+  heroLocationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    paddingLeft: 4,
   },
-  heroMetaText: {
+  heroLocationText: {
     fontSize: 13,
     fontFamily: fonts.jakarta.regular,
     color: 'rgba(255,255,255,0.6)',
