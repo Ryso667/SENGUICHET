@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useFocusEffect } from '@react-navigation/native'
-import { fonts, colors, spacing, borderRadius, glass } from '../constants/theme'
+import { fonts, colors, spacing, borderRadius, glass, textShadow } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import EmptyState from '../components/EmptyState'
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm,
   },
-  title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.5 },
+  title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.5, ...textShadow },
   countBadge: { paddingHorizontal: 10, paddingVertical: 3 },
   countText: { fontSize: 12, fontFamily: fonts.jakarta.semiBold, color: '#fff' },
   list: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.xl, gap: 10 },
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     flex: 1, alignItems: 'center', justifyContent: 'center',
   },
   ticketInfo: { flex: 1 },
-  ticketTitle: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff', letterSpacing: -0.1 },
+  ticketTitle: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff', letterSpacing: -0.1, ...textShadow },
   ticketMeta: { fontSize: 11, color: 'rgba(255,255,255,0.6)', fontFamily: fonts.jakarta.regular, marginTop: 2 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: borderRadius.sm },
   statusText: { fontSize: 10, fontFamily: fonts.jakarta.semiBold },

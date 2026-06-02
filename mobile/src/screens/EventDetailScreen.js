@@ -10,7 +10,7 @@ import {
 } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { fonts, colors, spacing, borderRadius, glass } from '../constants/theme'
+import { fonts, colors, spacing, borderRadius, glass, textShadow } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassButton from '../components/GlassButton'
@@ -18,10 +18,12 @@ import { fetchEvenementDetailPublic } from '../services/eventService'
 import { acheterBillet } from '../services/billetService'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { useAuth } from '../context/AuthContext'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 export default function EventDetailScreen({ route, navigation }) {
   const { eventId } = route.params
   const { definirTelephone, numeroTel } = useAuth()
+  const insets = useSafeAreaInsets()
   const [event, setEvent] = useState(null)
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [showCategorySheet, setShowCategorySheet] = useState(false)
@@ -158,12 +160,12 @@ export default function EventDetailScreen({ route, navigation }) {
       <BlurBackground category={event?.category} />
 
       {/* Bouton retour flottant avec cercle glass */}
-      <TouchableOpacity style={styles.floatingBack} onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={[styles.floatingBack, { top: insets.top + 8 }]} onPress={() => navigation.goBack()}>
         <Feather name="arrow-left" size={20} color="#fff" />
       </TouchableOpacity>
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView style={styles.flex} bounces={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContent}>
+          <ScrollView style={styles.flex} bounces={false} keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 60 }]}>
 
           {/* Emoji hero centré */}
           <View style={styles.hero}>
@@ -423,7 +425,6 @@ const styles = StyleSheet.create({
   },
   flex: { flex: 1 },
   scrollContent: {
-    paddingTop: 100,
     paddingHorizontal: spacing.lg,
     paddingBottom: 120,
   },
@@ -440,10 +441,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
   },
-  // Bouton retour flottant avec cercle glass
+  // Bouton retour flottant avec cercle glass — top défini avec useSafeAreaInsets
   floatingBack: {
     position: 'absolute',
-    top: 54,
     left: spacing.lg,
     width: 40,
     height: 40,
@@ -475,6 +475,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginBottom: spacing.sm,
     letterSpacing: -0.3,
+    ...textShadow,
   },
   tags: {
     flexDirection: 'row',

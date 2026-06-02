@@ -5,7 +5,8 @@ import { useRef, useEffect } from 'react'
 import { View, Text, Animated, TouchableOpacity, Alert, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import QRCode from 'react-native-qrcode-svg'
-import { fonts, spacing, borderRadius, glass } from '../constants/theme'
+import { fonts, spacing, borderRadius, glass, textShadow } from '../constants/theme'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
@@ -13,6 +14,7 @@ import { formaterDateLisible } from '../utils/dateUtils'
 
 export default function TicketScreen({ route, navigation }) {
   const { ticket } = route.params || {}
+  const insets = useSafeAreaInsets()
   const pulseAnim = useRef(new Animated.Value(1)).current
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function TicketScreen({ route, navigation }) {
       <BlurBackground category={ticket?.categorie} showBlur={true} />
 
       {/* Bouton retour */}
-      <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+      <TouchableOpacity style={[styles.backBtn, { top: insets.top + 8 }]} onPress={() => navigation.goBack()} activeOpacity={0.7}>
         <Feather name="chevron-left" size={22} color="#fff" />
       </TouchableOpacity>
 
@@ -67,7 +69,7 @@ export default function TicketScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   backBtn: {
-    position: 'absolute', top: 50, left: 24, zIndex: 10,
+    position: 'absolute', left: 24, zIndex: 10,
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center', justifyContent: 'center',
@@ -87,6 +89,7 @@ const styles = StyleSheet.create({
   ticketInfo: { alignItems: 'center' },
   eventName: {
     fontSize: 18, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.3,
+    ...textShadow,
   },
   eventMeta: {
     fontSize: 13, fontFamily: fonts.jakarta.regular,

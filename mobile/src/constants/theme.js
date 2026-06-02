@@ -47,6 +47,13 @@ export const gradients = {
   hero: ['rgba(0,200,255,0.04)', 'rgba(0,119,255,0.04)'],
 }
 
+// Ombre portée pour lisibilité du texte blanc sur fond clair/glass
+export const textShadow = {
+  textShadowColor: 'rgba(0,0,0,0.4)',
+  textShadowOffset: { width: 0, height: 1 },
+  textShadowRadius: 4,
+}
+
 // Espacements cohérents dans toute l'app
 export const spacing = {
   xs: 4,

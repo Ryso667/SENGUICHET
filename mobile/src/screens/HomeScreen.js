@@ -7,7 +7,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Animated, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { fonts, colors, spacing, borderRadius, glass, animations } from '../constants/theme'
+import { fonts, colors, spacing, borderRadius, glass, animations, textShadow } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
@@ -202,6 +202,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.3,
+    ...textShadow,
   },
   voirTout: {
     fontSize: 12, fontFamily: fonts.jakarta.semiBold,

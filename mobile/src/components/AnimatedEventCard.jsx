@@ -13,7 +13,7 @@ import useSpringAnimation from '../hooks/useSpringAnimation'
 // event : objet { title, month, day, bg, emoji, category, location, time, priceLabel }
 // onPress : fonction callback
 // index : nombre pour le délai stagger (défaut 0)
-export default function AnimatedEventCard({ event, onPress, index = 0 }) {
+export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle }) {
   const spring = useRef(new Animated.Value(0)).current
   const { value: scale, scalePressIn, scalePressOut } = useSpringAnimation(1)
   const def = event.category ? getDefaultImage(event.category) : null
@@ -47,7 +47,7 @@ export default function AnimatedEventCard({ event, onPress, index = 0 }) {
   }
 
   return (
-    <Animated.View style={[styles.wrapper, animatedStyle]}>
+    <Animated.View style={[styles.wrapper, cardStyle, animatedStyle]}>
       <TouchableOpacity
         onPress={onPress}
         onPressIn={handlePressIn}

@@ -73,6 +73,7 @@ export default function EventSearchScreen({ navigation }) {
               <AnimatedEventCard
                 event={event}
                 index={i}
+                cardStyle={{ width: '100%', marginRight: 0 }}
                 onPress={() => navigation.navigate('EventDetail', { eventId: event.id, event })}
               />
             </View>

@@ -4,13 +4,13 @@
 import { useState, useEffect, useCallback } from 'react'
 
 const CATEGORY_MAP = {
-  Concert: 'concert crowd music',
-  Festival: 'festival celebration',
-  Theatre: 'theater stage',
-  Sport: 'sport stadium',
-  Conference: 'conference speaker',
-  Art: 'art exhibition gallery',
-  Soiree: 'party dance nightclub',
+  Concert: 'concert crowd music senegal dakar africa',
+  Festival: 'festival celebration dance africa senegal',
+  Theatre: 'theatre stage culture africa',
+  Sport: 'stadium football competition africa senegal',
+  Conference: 'conference hall speaker africa seminar',
+  Art: 'african art exhibition gallery contemporary',
+  Soiree: 'party nightlife celebration africa music',
 }
 
 const ACCESS_KEY = process.env.EXPO_PUBLIC_UNSPLASH_ACCESS_KEY
@@ -26,7 +26,7 @@ export default function useUnsplashImage(category) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const query = CATEGORY_MAP[category] || 'event party'
+  const query = CATEGORY_MAP[category] || 'event celebration senegal africa'
 
   const fetchImage = useCallback(async () => {
     if (!ACCESS_KEY) {
