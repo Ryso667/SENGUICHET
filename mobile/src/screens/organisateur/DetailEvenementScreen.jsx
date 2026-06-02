@@ -1,17 +1,20 @@
 // Détail d'un événement (lecture seule)
-// Affiche toutes les informations + liste des catégories de billets
+// Design glass (Apple Invites)
 import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
-import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
 import { fetchEvenementDetailAPI } from '../../services/eventService'
 import Skeleton from '../../components/Skeleton'
+import BlurBackground from '../../components/BlurBackground'
+import GlassContainer from '../../components/GlassContainer'
 
 const STATUT_CONFIG = {
-  actif: { label: 'Actif', color: '#00E5A0', bg: '#D1FAE5' },
-  en_attente: { label: 'En attente', color: '#F97316', bg: '#FEF3C7' },
-  refuse: { label: 'Refusé', color: '#EF4444', bg: '#FEE2E2' },
-  suspendu: { label: 'Suspendu', color: '#F59E0B', bg: '#FEF3C7' },
-  annule: { label: 'Annulé', color: '#6B7280', bg: '#F3F4F6' },
+  actif: { label: 'Actif', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
+  en_attente: { label: 'En attente', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
+  refuse: { label: 'Refusé', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
+  suspendu: { label: 'Suspendu', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
+  annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
 }
 
 function formaterDate(dateStr) {
@@ -21,6 +24,7 @@ function formaterDate(dateStr) {
 }
 
 export default function DetailEvenementScreen({ route, navigation }) {
+  const insets = useSafeAreaInsets()
   const { eventId } = route.params || {}
   const [evenement, setEvenement] = useState(null)
   const [tickets, setTickets] = useState([])
@@ -36,16 +40,15 @@ export default function DetailEvenementScreen({ route, navigation }) {
       const data = await fetchEvenementDetailAPI(eventId)
       setEvenement(data.evenement || data)
       setTickets(data.tickets || [])
-    } catch {
-      // Backend requis
-    }
+    } catch {}
     setLoading(false)
   }
 
   if (loading) {
     return (
       <View style={s.container}>
-        <View style={{ padding: spacing.lg }}>
+        <BlurBackground category="Conference" />
+        <View style={{ padding: spacing.lg, paddingTop: insets.top }}>
           <Skeleton type="card" count={4} />
         </View>
       </View>
@@ -55,6 +58,7 @@ export default function DetailEvenementScreen({ route, navigation }) {
   if (!evenement) {
     return (
       <View style={s.center}>
+        <BlurBackground category="Conference" />
         <Text style={s.errorText}>Événement introuvable</Text>
       </View>
     )
@@ -65,105 +69,107 @@ export default function DetailEvenementScreen({ route, navigation }) {
     ? Math.round(((evenement.remplis || 0) / evenement.capacite) * 100) : 0
 
   return (
-    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
-      <View style={s.header}>
-        <Text style={s.title}>{evenement.nom}</Text>
-        <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
-          <Text style={[s.statusText, { color: cfg.color }]}>{cfg.label}</Text>
-        </View>
-      </View>
-
-      <View style={s.infoGrid}>
-        <View style={s.infoCard}>
-          <Text style={s.infoLabel}>Date</Text>
-          <Text style={s.infoValue}>{formaterDate(evenement.date)}</Text>
-        </View>
-        <View style={s.infoCard}>
-          <Text style={s.infoLabel}>Lieu</Text>
-          <Text style={s.infoValue}>{evenement.lieu || 'Non spécifié'}</Text>
-        </View>
-        <View style={s.infoCard}>
-          <Text style={s.infoLabel}>Capacité</Text>
-          <Text style={s.infoValue}>{evenement.capacite || 0} places</Text>
-        </View>
-        <View style={s.infoCard}>
-          <Text style={s.infoLabel}>Code</Text>
-          <Text style={s.infoValue}>{evenement.code || '-'}</Text>
-        </View>
-      </View>
-
-      <View style={s.fillSection}>
-        <Text style={s.fillTitle}>Remplissage</Text>
-        <View style={s.barRow}>
-          <View style={s.barBg}>
-            <View style={[s.barFill, { width: `${pct}%` }]} />
+    <View style={s.container}>
+      <BlurBackground category="Conference" />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: insets.top }}>
+        <GlassContainer style={s.header} intensity={35}>
+          <Text style={s.title}>{evenement.nom}</Text>
+          <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
+            <Text style={[s.statusText, { color: cfg.color }]}>{cfg.label}</Text>
           </View>
-          <Text style={s.barCount}>{evenement.remplis || 0}/{evenement.capacite || 0}</Text>
-        </View>
-        <Text style={s.fillPct}>{pct}%</Text>
-      </View>
+        </GlassContainer>
 
-      {evenement.description ? (
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Description</Text>
-          <Text style={s.description}>{evenement.description}</Text>
+        <View style={s.infoGrid}>
+          <GlassContainer style={s.infoCard} intensity={30}>
+            <Text style={s.infoLabel}>Date</Text>
+            <Text style={s.infoValue}>{formaterDate(evenement.date)}</Text>
+          </GlassContainer>
+          <GlassContainer style={s.infoCard} intensity={30}>
+            <Text style={s.infoLabel}>Lieu</Text>
+            <Text style={s.infoValue}>{evenement.lieu || 'Non spécifié'}</Text>
+          </GlassContainer>
+          <GlassContainer style={s.infoCard} intensity={30}>
+            <Text style={s.infoLabel}>Capacité</Text>
+            <Text style={s.infoValue}>{evenement.capacite || 0} places</Text>
+          </GlassContainer>
+          <GlassContainer style={s.infoCard} intensity={30}>
+            <Text style={s.infoLabel}>Code</Text>
+            <Text style={s.infoValue}>{evenement.code || '-'}</Text>
+          </GlassContainer>
         </View>
-      ) : null}
 
-      <View style={s.section}>
-        <Text style={s.sectionTitle}>Billets ({tickets.length})</Text>
-        {tickets.length === 0 ? (
-          <Text style={s.empty}>Aucun billet vendu</Text>
-        ) : (
-          tickets.map(t => (
-            <View key={t.id} style={s.ticketRow}>
-              <Text style={s.ticketCategorie}>{t.categorie || t.nom}</Text>
-              <Text style={s.ticketPrix}>{t.prix || 0} FCFA</Text>
-              <Text style={s.ticketStatut}>{t.statut || 'valide'}</Text>
+        <GlassContainer style={s.fillSection} intensity={35}>
+          <Text style={s.fillTitle}>Remplissage</Text>
+          <View style={s.barRow}>
+            <View style={s.barBg}>
+              <View style={[s.barFill, { width: `${pct}%` }]} />
             </View>
-          ))
-        )}
-      </View>
+            <Text style={s.barCount}>{evenement.remplis || 0}/{evenement.capacite || 0}</Text>
+          </View>
+          <Text style={s.fillPct}>{pct}%</Text>
+        </GlassContainer>
 
-      <View style={{ height: 40 }} />
-    </ScrollView>
+        {evenement.description ? (
+          <GlassContainer style={s.section} intensity={30}>
+            <Text style={s.sectionTitle}>Description</Text>
+            <Text style={s.description}>{evenement.description}</Text>
+          </GlassContainer>
+        ) : null}
+
+        <GlassContainer style={s.section} intensity={30}>
+          <Text style={s.sectionTitle}>Billets ({tickets.length})</Text>
+          {tickets.length === 0 ? (
+            <Text style={s.empty}>Aucun billet vendu</Text>
+          ) : (
+            tickets.map(t => (
+              <View key={t.id} style={s.ticketRow}>
+                <Text style={s.ticketCategorie}>{t.categorie || t.nom}</Text>
+                <Text style={s.ticketPrix}>{t.prix || 0} FCFA</Text>
+                <Text style={s.ticketStatut}>{t.statut || 'valide'}</Text>
+              </View>
+            ))
+          )}
+        </GlassContainer>
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </View>
   )
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  errorText: { fontSize: 16, fontFamily: fonts.jakarta.regular, color: colors.mid },
+  errorText: { fontSize: 16, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    padding: spacing.lg, paddingTop: spacing.md,
+    margin: spacing.lg, padding: spacing.md,
   },
-  title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.slate, flex: 1, marginRight: spacing.sm },
+  title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', flex: 1, marginRight: spacing.sm, ...textShadow },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 },
   statusText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.3 },
   infoGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.lg, gap: spacing.sm },
   infoCard: {
-    width: '47%', backgroundColor: '#fff', borderRadius: borderRadius.lg, padding: spacing.md,
-    elevation: 2, shadowColor: '#00C8FF', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8,
+    width: '47%', padding: spacing.md,
   },
-  infoLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.mid, textTransform: 'uppercase', letterSpacing: 0.5 },
-  infoValue: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.slate, marginTop: 4 },
-  fillSection: { padding: spacing.lg },
-  fillTitle: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.slate, marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
+  infoLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 0.5 },
+  infoValue: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#fff', marginTop: 4 },
+  fillSection: { margin: spacing.lg, padding: spacing.md },
+  fillTitle: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)', marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  barBg: { flex: 1, height: 10, backgroundColor: '#E0F7FF', borderRadius: 5, overflow: 'hidden' },
+  barBg: { flex: 1, height: 10, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 5, overflow: 'hidden' },
   barFill: { height: 10, borderRadius: 5, backgroundColor: '#00C8FF' },
-  barCount: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.slate },
-  fillPct: { fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.accent, marginTop: spacing.sm },
-  section: { paddingHorizontal: spacing.lg, marginBottom: spacing.lg },
-  sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: colors.slate, marginBottom: spacing.sm },
-  description: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.mid, lineHeight: 22 },
-  empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.mid, textAlign: 'center', paddingVertical: spacing.lg },
+  barCount: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)' },
+  fillPct: { fontSize: 28, fontFamily: fonts.outfit.bold, color: '#fff', marginTop: spacing.sm, ...textShadow },
+  section: { marginHorizontal: spacing.lg, marginBottom: spacing.lg, padding: spacing.md },
+  sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff', marginBottom: spacing.sm },
+  description: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', lineHeight: 22 },
+  empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textAlign: 'center', paddingVertical: spacing.lg },
   ticketRow: {
     flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm,
-    borderBottomWidth: 1, borderBottomColor: colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.15)',
   },
-  ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.slate, flex: 1 },
-  ticketPrix: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent },
-  ticketStatut: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.mid, marginLeft: spacing.sm, textTransform: 'capitalize' },
+  ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#fff', flex: 1 },
+  ticketPrix: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  ticketStatut: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginLeft: spacing.sm, textTransform: 'capitalize' },
 })

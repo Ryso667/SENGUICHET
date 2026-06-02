@@ -4,15 +4,17 @@
 // Apple  : utilise expo-apple-authentication (iOS uniquement)
 import { useState } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
-import { fonts, colors, spacing, borderRadius, shadows } from '../../constants/theme'
+import { fonts, colors, spacing, textShadow } from '../../constants/theme'
 import { useAuth } from '../../context/AuthContext'
+import BlurBackground from '../components/BlurBackground'
 
 export default function SocialAuthScreen({ navigation }) {
   const { connecterAcheteurSocial } = useAuth()
   const [loading, setLoading] = useState(null)
+  const insets = useSafeAreaInsets()
 
   // Déclenche la connexion Google native
   const handleGooglePress = async () => {
@@ -77,10 +79,12 @@ export default function SocialAuthScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
+    <View style={{ flex: 1 }}>
+      <BlurBackground />
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        {/* Bouton retour verre dépoli */}
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.navigate('AccueilChoix')}>
-          <Ionicons name="arrow-back" size={20} color={colors.slate} />
+          <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
 
         <View style={styles.header}>
@@ -95,7 +99,7 @@ export default function SocialAuthScreen({ navigation }) {
 
         <View style={styles.buttons}>
           <TouchableOpacity
-            style={[styles.socialBtn, styles.googleBtn]}
+            style={styles.socialBtn}
             onPress={handleGooglePress}
             disabled={!!loading}
             activeOpacity={0.8}
@@ -112,7 +116,7 @@ export default function SocialAuthScreen({ navigation }) {
 
           {Platform.OS === 'ios' && (
             <TouchableOpacity
-              style={[styles.socialBtn, styles.appleBtn]}
+              style={styles.socialBtn}
               onPress={handleApple}
               disabled={!!loading}
               activeOpacity={0.8}
@@ -129,19 +133,19 @@ export default function SocialAuthScreen({ navigation }) {
           )}
         </View>
 
+        {/* Pied de page sécurisé */}
         <View style={styles.footer}>
-          <Ionicons name="shield-checkmark-outline" size={14} color={colors.muted} />
+          <Ionicons name="shield-checkmark-outline" size={14} color="rgba(255,255,255,0.6)" />
           <Text style={styles.footerText}>
             Connexion sécurisée via Google ou Apple
           </Text>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
   container: {
     flex: 1,
     paddingHorizontal: spacing.xl,
@@ -153,12 +157,11 @@ const styles = StyleSheet.create({
     left: spacing.xl,
     width: 36,
     height: 36,
-    borderRadius: borderRadius.sm,
-    backgroundColor: colors.white,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
-    ...shadows.sm,
   },
   header: {
     alignItems: 'center',
@@ -175,13 +178,14 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: fonts.outfit.bold,
     fontSize: 22,
-    color: colors.slate,
+    color: '#fff',
     marginBottom: spacing.sm,
+    ...textShadow,
   },
   subtitle: {
     fontFamily: fonts.jakarta.regular,
     fontSize: 14,
-    color: colors.mid,
+    color: 'rgba(255,255,255,0.6)',
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: spacing.lg,
@@ -193,11 +197,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 10,
     paddingVertical: 16,
-    borderRadius: borderRadius.md,
-    ...shadows.md,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
-  googleBtn: { backgroundColor: '#4285F4' },
-  appleBtn: { backgroundColor: '#000' },
   socialBtnText: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: 15,
@@ -212,7 +216,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 11,
-    color: colors.muted,
+    color: 'rgba(255,255,255,0.6)',
     fontFamily: fonts.jakarta.regular,
   },
 })
