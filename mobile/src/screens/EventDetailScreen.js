@@ -173,46 +173,48 @@ export default function EventDetailScreen({ route, navigation }) {
         showsVerticalScrollIndicator={false}
       >
 
-        {/* Header titre immersif */}
+        {/* Header immersif — titre + infos clés */}
         <View style={styles.headerSection}>
-          <Text style={styles.headerCategory}>{event.category || 'Événement'}</Text>
+          <Text style={styles.headerCategory}>{event.category || 'ÉVÉNEMENT'}</Text>
           <Text style={styles.headerTitle}>{event.title}</Text>
           <View style={styles.headerMeta}>
             <View style={styles.headerMetaItem}>
-              <Feather name="calendar" size={11} color="rgba(255,255,255,0.6)" />
+              <View style={styles.metaIconWrap}>
+                <Feather name="calendar" size={10} color="#fff" />
+              </View>
               <Text style={styles.headerMetaText}>{formaterDateLisible(event.date)}</Text>
             </View>
-            {!!event.location && (
-              <View style={styles.headerMetaItem}>
-                <Feather name="map-pin" size={11} color="rgba(255,255,255,0.6)" />
-                <Text style={styles.headerMetaText}>{event.location}</Text>
-              </View>
+            {!!event.time && (
+              <Text style={styles.headerMetaSep}>·</Text>
             )}
             {!!event.time && (
               <View style={styles.headerMetaItem}>
-                <Feather name="clock" size={11} color="rgba(255,255,255,0.6)" />
+                <View style={styles.metaIconWrap}>
+                  <Feather name="clock" size={10} color="#fff" />
+                </View>
                 <Text style={styles.headerMetaText}>{event.time}</Text>
+              </View>
+            )}
+            {!!event.location && (
+              <Text style={styles.headerMetaSep}>·</Text>
+            )}
+            {!!event.location && (
+              <View style={styles.headerMetaItem}>
+                <View style={styles.metaIconWrap}>
+                  <Feather name="map-pin" size={10} color="#fff" />
+                </View>
+                <Text style={styles.headerMetaText}>{event.location}</Text>
               </View>
             )}
           </View>
         </View>
 
-        {/* Carte description */}
+        {/* Description — carte glass plus large */}
         {!!event.desc && (
           <GlassContainer style={styles.descCard}>
             <Text style={styles.descText}>{event.desc}</Text>
           </GlassContainer>
         )}
-
-        {/* Carte info achat */}
-        <GlassContainer style={styles.infoCard}>
-          <View style={styles.infoRow}>
-            <Feather name="zap" size={14} color="#fff" />
-            <Text style={styles.infoText}>
-              <Text style={styles.infoStrong}>Connexion rapide.</Text> Ton téléphone sera demandé au paiement.
-            </Text>
-          </View>
-        </GlassContainer>
 
         {/* Section catégorie de billet */}
         <View style={styles.sectionHeader}>
@@ -496,9 +498,9 @@ const styles = StyleSheet.create({
     zIndex: 10,
     overflow: 'hidden',
   },
-  // Section header immersif (sans emoji)
+  // Section header immersif — plus d'espace, titre plus grand
   headerSection: {
-    paddingVertical: spacing.lg,
+    paddingVertical: 24,
     paddingHorizontal: spacing.xs,
   },
   headerCategory: {
@@ -511,59 +513,52 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: fonts.outfit.extraBold,
-    fontSize: 28,
+    fontSize: 32,
     color: '#fff',
     letterSpacing: -0.5,
-    lineHeight: 34,
+    lineHeight: 38,
     ...textShadow,
-    marginBottom: spacing.sm,
+    marginBottom: 14,
   },
   headerMeta: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    alignItems: 'center',
+    gap: 6,
   },
   headerMetaItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
   },
+  metaIconWrap: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerMetaSep: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.2)',
+    fontFamily: fonts.jakarta.regular,
+  },
   headerMetaText: {
     fontSize: 12,
-    fontFamily: fonts.jakarta.regular,
+    fontFamily: fonts.jakarta.medium,
     color: 'rgba(255,255,255,0.6)',
   },
-  // Carte description
+  // Carte description — plus mise en avant
   descCard: {
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
-  descText: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.75)',
-    fontFamily: fonts.jakarta.regular,
-    lineHeight: 20,
-  },
-  // Carte info achat
-  infoCard: {
-    padding: spacing.md,
+    padding: spacing.lg,
     marginBottom: spacing.xl,
   },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  infoText: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.7)',
+  descText: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
     fontFamily: fonts.jakarta.regular,
-    flex: 1,
-    lineHeight: 17,
-  },
-  infoStrong: {
-    fontFamily: fonts.jakarta.semiBold,
-    color: '#fff',
+    lineHeight: 22,
   },
   // Sections
   sectionHeader: {
