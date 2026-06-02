@@ -1,8 +1,8 @@
 // Carousel horizontal Apple-style pour les événements
-// Carte principale centrée (80% largeur), rotation oblique sur côtés
-// Fond : image Unsplash par catégorie, overlay dégradé, badge glass, avatars
-import { useRef, useEffect, useState, useMemo, useCallback } from 'react'
-import { View, Text, TouchableOpacity, Animated, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
+// Carte principale centrée (72% largeur), rotation oblique sur côtés
+// Fond : image fête Unsplash directe (sans API key), overlay dégradé, badge glass
+import { useRef, useMemo, useCallback } from 'react'
+import { View, Text, TouchableOpacity, Animated, Image, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { fonts, spacing, textShadow, borderRadius } from '../constants/theme'
@@ -14,73 +14,39 @@ const CARD_RADIUS = 28
 const SCALE_INACTIVE = 0.90
 const ROTATE_INACTIVE = 3
 
-// Toutes les catégories utilisent des images de fête/ambiance
-const CATEGORY_QUERIES = {
-  Concert: 'party celebration music crowd dancing night senegal dakar',
-  Festival: 'festival celebration party dance crowd africa senegal',
-  Theatre: 'party celebration festive crowd event senegal dakar',
-  Sport: 'celebration party victory festive crowd senegal africa',
-  Conference: 'celebration party event festive gathering senegal dakar',
-  Atelier: 'creative celebration party community event senegal africa',
-  Exposition: 'party celebration art festive event gallery opening',
-  'Club / Soirée': 'nightclub party celebration dance crowd music senegal',
-  Gala: 'celebration party elegant festive event evening senegal',
+// Images directes Unsplash (URLs sans API key) — photos de fête
+const CATEGORY_IMAGES = {
+  Concert: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=800&q=80',
+  Festival: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=800&q=80',
+  Theatre: 'https://images.unsplash.com/photo-1503095396548-64d3e381df58?auto=format&fit=crop&w=800&q=80',
+  Sport: 'https://images.unsplash.com/photo-1461896836934-bd45ba8fcf9b?auto=format&fit=crop&w=800&q=80',
+  Conference: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80',
+  Atelier: 'https://images.unsplash.com/photo-1519742765956-3d6e8a8e0c0f?auto=format&fit=crop&w=800&q=80',
+  Exposition: 'https://images.unsplash.com/photo-1531913764164-f85c35d4b3f4?auto=format&fit=crop&w=800&q=80',
+  'Club / Soirée': 'https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?auto=format&fit=crop&w=800&q=80',
+  Gala: 'https://images.unsplash.com/photo-1511795404834-ef07a831a7ad?auto=format&fit=crop&w=800&q=80',
 }
 
-const ACCESS_KEY = process.env.EXPO_PUBLIC_UNSPLASH_ACCESS_KEY
-const imageCache = new Map()
+// Fallback si la catégorie n'est pas dans la map
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80'
 
 function EventCarousel({ events, onPress }) {
   const { width: screenWidth } = useWindowDimensions()
   const scrollX = useRef(new Animated.Value(0)).current
-  const [images, setImages] = useState({})
 
   const cardWidth = screenWidth * CARD_WIDTH_RATIO
   const sideVisible = screenWidth * SIDE_VISIBLE_RATIO
   const itemWidth = cardWidth + sideVisible
   const paddingLeft = (screenWidth - cardWidth) / 2
 
-  // Charge les images Unsplash par catégorie au montage avec fallback couleur
-  useEffect(() => {
-    const loadImages = async () => {
-      if (!ACCESS_KEY) return
-      const cats = [...new Set(events.map(e => e.category).filter(Boolean))]
-      const newImages = { ...images }
-      for (const cat of cats) {
-        if (imageCache.has(cat)) {
-          newImages[cat] = imageCache.get(cat)
-          continue
-        }
-        try {
-          const query = CATEGORY_QUERIES[cat] || 'event celebration senegal africa'
-          const res = await fetch(
-            `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape&fit=crop&w=800`,
-            { headers: { Authorization: `Client-ID ${ACCESS_KEY}` } }
-          )
-          if (res.ok) {
-            const data = await res.json()
-            const url = data.urls?.regular || null
-            if (url) {
-              imageCache.set(cat, url)
-              newImages[cat] = url
-            }
-          }
-        } catch {}
-      }
-      setImages(newImages)
-    }
-    loadImages()
-  }, [events])
-
-  // Noms stables pour les avatars (basés sur l'index, pas sur random)
+  // Noms stables pour les avatars (basés sur l'index)
   const avatarCounts = useMemo(
     () => events.map(() => Math.floor(Math.random() * 40) + 10),
-    [] // stable à vie
+    []
   )
 
   const renderCard = useCallback((item, index) => {
-    const catColor = '#6366F1'
-    const imageUrl = images[item.category] || null
+    const imageUrl = CATEGORY_IMAGES[item.category] || FALLBACK_IMAGE
 
     const scale = scrollX.interpolate({
       inputRange: [
@@ -112,7 +78,7 @@ function EventCarousel({ events, onPress }) {
       extrapolate: 'clamp',
     })
 
-    // Rotation oblique Apple Invites : côté gauche penché +4deg, centre 0, côté droit -4deg
+    // Rotation oblique Apple Invites
     const rotateZ = scrollX.interpolate({
       inputRange: [
         (index - 1) * itemWidth,
@@ -142,16 +108,12 @@ function EventCarousel({ events, onPress }) {
           style={styles.cardTouch}
         >
           <View style={[styles.card, { borderRadius: CARD_RADIUS }]}>
-            {imageUrl ? (
-              <Animated.Image
-                source={{ uri: imageUrl }}
-                style={[styles.cardImage, { transform: [{ translateX: parallax }] }]}
-              />
-            ) : (
-              <View style={[styles.cardFallback, { backgroundColor: catColor }]}>
-                <Text style={styles.fallbackEmoji}>{item.emoji || '🎉'}</Text>
-              </View>
-            )}
+            <Image
+              source={{ uri: imageUrl }}
+              style={styles.cardImage}
+            />
+
+            <View style={styles.overlay} pointerEvents="none" />
 
             <LinearGradient
               colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.15)', 'rgba(0,0,0,0.8)']}
@@ -212,7 +174,7 @@ function EventCarousel({ events, onPress }) {
         </TouchableOpacity>
       </Animated.View>
     )
-  }, [scrollX, cardWidth, sideVisible, itemWidth, images, onPress, avatarCounts])
+  }, [scrollX, cardWidth, sideVisible, itemWidth, onPress, avatarCounts])
 
   if (!events || events.length === 0) return null
 
@@ -263,16 +225,14 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
   },
-  cardFallback: {
+  overlay: {
     ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fallbackEmoji: {
-    fontSize: 48,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    zIndex: 1,
   },
   gradient: {
     ...StyleSheet.absoluteFillObject,
+    zIndex: 2,
   },
   badge: {
     position: 'absolute',
@@ -303,6 +263,7 @@ const styles = StyleSheet.create({
     right: 0,
     padding: spacing.md,
     gap: 4,
+    zIndex: 10,
   },
   title: {
     fontSize: 20,
