@@ -28,15 +28,15 @@ export const colors = {
 
 // === GLASS (verre dépoli) ===
 export const glass = {
-  bg: 'rgba(255,255,255,0.15)',
-  bgLight: 'rgba(255,255,255,0.25)',
-  bgHeavy: 'rgba(255,255,255,0.35)',
-  border: 'rgba(255,255,255,0.25)',
-  borderLight: 'rgba(255,255,255,0.12)',
+  bg: 'rgba(255,255,255,0.2)',
+  bgLight: 'rgba(255,255,255,0.3)',
+  bgHeavy: 'rgba(255,255,255,0.45)',
+  border: 'rgba(255,255,255,0.3)',
+  borderLight: 'rgba(255,255,255,0.15)',
   blur: 20,
   radius: 20,
-  darkBg: 'rgba(0,0,0,0.2)',
-  darkBgHeavy: 'rgba(0,0,0,0.4)',
+  darkBg: 'rgba(0,0,0,0.3)',
+  darkBgHeavy: 'rgba(0,0,0,0.55)',
 }
 
 // Dégradés par rôle - Cyan → Bleu
@@ -47,19 +47,19 @@ export const gradients = {
   hero: ['rgba(0,200,255,0.04)', 'rgba(0,119,255,0.04)'],
 }
 
-// Dégradés doux par catégorie d'événement — style Apple Music
-// Couleurs très atténuées pour fond immersif sans agressivité
+// Dégradés par catégorie d'événement — style Apple Music
+// Couleurs saturées pour fond immersif premium avec lisibilité
 export const categoryGradients = {
-  Concert: ['rgba(109,29,217,0.3)', 'rgba(109,29,217,0.08)'],
-  Festival: ['rgba(5,150,105,0.3)', 'rgba(5,150,105,0.08)'],
-  Theatre: ['rgba(185,28,28,0.3)', 'rgba(185,28,28,0.08)'],
-  Sport: ['rgba(37,99,235,0.3)', 'rgba(37,99,235,0.08)'],
-  Conference: ['rgba(30,41,59,0.35)', 'rgba(30,41,59,0.1)'],
-  Atelier: ['rgba(217,119,6,0.3)', 'rgba(217,119,6,0.08)'],
-  Exposition: ['rgba(124,58,237,0.3)', 'rgba(124,58,237,0.08)'],
-  'Club / Soirée': ['rgba(219,39,119,0.3)', 'rgba(219,39,119,0.08)'],
-  Gala: ['rgba(202,138,4,0.3)', 'rgba(202,138,4,0.08)'],
-  default: ['rgba(99,102,241,0.25)', 'rgba(236,72,153,0.1)'],
+  Concert: ['rgba(109,29,217,0.55)', 'rgba(109,29,217,0.15)'],
+  Festival: ['rgba(5,150,105,0.55)', 'rgba(5,150,105,0.15)'],
+  Theatre: ['rgba(185,28,28,0.55)', 'rgba(185,28,28,0.15)'],
+  Sport: ['rgba(37,99,235,0.55)', 'rgba(37,99,235,0.15)'],
+  Conference: ['rgba(30,41,59,0.6)', 'rgba(30,41,59,0.2)'],
+  Atelier: ['rgba(217,119,6,0.55)', 'rgba(217,119,6,0.15)'],
+  Exposition: ['rgba(124,58,237,0.55)', 'rgba(124,58,237,0.15)'],
+  'Club / Soirée': ['rgba(219,39,119,0.55)', 'rgba(219,39,119,0.15)'],
+  Gala: ['rgba(202,138,4,0.55)', 'rgba(202,138,4,0.15)'],
+  default: ['rgba(99,102,241,0.5)', 'rgba(236,72,153,0.2)'],
 }
 
 // Ombre portée pour lisibilité du texte blanc sur fond clair/glass

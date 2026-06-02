@@ -8,7 +8,7 @@ import { glass, borderRadius } from '../constants/theme'
 // Wrapper glass avec blur natif, bordure translucide, et fond semi-transparent
 // blurType : 'light' | 'dark' | 'extraLight' (défaut 'light')
 // intensity : 0-100 (défaut 60)
-export default function GlassContainer({ children, style, blurType = 'light', intensity = 60 }) {
+export default function GlassContainer({ children, style, blurType = 'dark', intensity = 70 }) {
   return (
     <BlurView tint={blurType} intensity={intensity} style={[styles.container, style]}>
       {children}
@@ -18,11 +18,10 @@ export default function GlassContainer({ children, style, blurType = 'light', in
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: glass.bg,
+    backgroundColor: glass.darkBg,
     borderRadius: borderRadius.xl,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: glass.border,
-    // overflow hidden avec borderRadius peut crée des bords tranchés sur certains Android
     overflow: 'hidden',
   },
 })
