@@ -95,7 +95,7 @@ export default function EventSearchScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: '#0f0f2a' },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: spacing.lg },
   searchBar: {

@@ -421,7 +421,7 @@ export default function EventDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: '#0f0f2a',
   },
   flex: { flex: 1 },
   scrollContent: {

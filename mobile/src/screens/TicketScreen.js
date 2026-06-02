@@ -67,7 +67,7 @@ export default function TicketScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: '#0f0f2a' },
   backBtn: {
     position: 'absolute', left: 24, zIndex: 10,
     width: 40, height: 40, borderRadius: 20,

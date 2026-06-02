@@ -110,7 +110,7 @@ export default function MesTicketsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: '#0f0f2a' },
   content: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
@@ -133,5 +133,5 @@ const styles = StyleSheet.create({
   ticketTitle: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff', letterSpacing: -0.1, ...textShadow },
   ticketMeta: { fontSize: 11, color: 'rgba(255,255,255,0.6)', fontFamily: fonts.jakarta.regular, marginTop: 2 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: borderRadius.sm },
-  statusText: { fontSize: 10, fontFamily: fonts.jakarta.semiBold },
+  statusText: { fontSize: 10, fontFamily: fonts.jakarta.semiBold, ...textShadow },
 })

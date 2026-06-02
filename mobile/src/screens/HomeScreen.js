@@ -169,7 +169,7 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: '#0f0f2a' },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: spacing.lg },
   headerWrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
@@ -234,6 +234,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 10, fontFamily: fonts.jakarta.semiBold,
+    ...textShadow,
   },
   ctaWrap: { paddingHorizontal: spacing.lg, marginTop: 24 },
   footer: {

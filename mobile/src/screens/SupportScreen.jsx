@@ -75,7 +75,7 @@ export default function SupportScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: '#0f0f2a' },
   scroll: { flex: 1 },
   scrollContent: { padding: spacing.lg, paddingBottom: spacing.xl, gap: spacing.md },
   headerCard: { padding: spacing.md, alignItems: 'center' },
