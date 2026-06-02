@@ -13,7 +13,7 @@ import { useAuth } from '../context/AuthContext'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassButton from '../components/GlassButton'
-import AnimatedEventCard from '../components/AnimatedEventCard'
+import EventCarousel from '../components/EventCarousel'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { formaterPourEventCard } from '../utils/eventUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
@@ -95,25 +95,13 @@ export default function HomeScreen({ navigation }) {
           </GlassContainer>
         </Animated.View>
 
-        {/* Section événements */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>À découvrir</Text>
-        </View>
-
-        {evenements.length === 0 && (
-          <Text style={styles.emptyText}>Aucun événement dispo pour le moment</Text>
+        {/* Section événements — carousel Apple-style */}
+        {evenements.length > 0 && (
+          <EventCarousel
+            events={evenements}
+            onPress={(event) => navigation.navigate('EventDetail', { eventId: event.id, event })}
+          />
         )}
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.eventsRow}>
-          {evenements.map((event, i) => (
-            <AnimatedEventCard
-              key={event.id}
-              event={event}
-              index={i}
-              onPress={() => navigation.navigate('EventDetail', { eventId: event.id, event })}
-            />
-          ))}
-        </ScrollView>
 
         {/* Section mes tickets */}
         {tickets.length > 0 && (
