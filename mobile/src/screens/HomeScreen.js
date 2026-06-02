@@ -97,10 +97,15 @@ export default function HomeScreen({ navigation }) {
 
         {/* Section événements — carousel Apple-style */}
         {evenements.length > 0 && (
-          <EventCarousel
-            events={evenements}
-            onPress={(event) => navigation.navigate('EventDetail', { eventId: event.id, event })}
-          />
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>À découvrir</Text>
+            </View>
+            <EventCarousel
+              events={evenements}
+              onPress={(event) => navigation.navigate('EventDetail', { eventId: event.id, event })}
+            />
+          </>
         )}
 
         {/* Section mes tickets */}

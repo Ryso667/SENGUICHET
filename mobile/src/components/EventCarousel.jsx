@@ -1,5 +1,5 @@
 // Carousel horizontal Apple-style pour les événements
-// Carte principale centrée (80% largeur), cartes adjacentes visibles
+// Carte principale centrée (80% largeur), rotation oblique sur côtés
 // Fond : image Unsplash par catégorie, overlay dégradé, badge glass, avatars
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react'
 import { View, Text, TouchableOpacity, Animated, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
@@ -8,21 +8,23 @@ import { Feather } from '@expo/vector-icons'
 import { fonts, spacing, textShadow, borderRadius } from '../constants/theme'
 import { formaterDateLisible } from '../utils/dateUtils'
 
-const CARD_WIDTH_RATIO = 0.8
-const SIDE_VISIBLE_RATIO = 0.12
+const CARD_WIDTH_RATIO = 0.80
+const SIDE_VISIBLE_RATIO = 0.14
 const CARD_RADIUS = 28
-const SCALE_INACTIVE = 0.92
+const SCALE_INACTIVE = 0.90
+const ROTATE_INACTIVE = 4
 
+// Requêtes Unsplash contextualisées Sénégal/Afrique pour chaque catégorie
 const CATEGORY_QUERIES = {
-  Concert: 'concert crowd music senegal dakar',
-  Festival: 'festival celebration dance africa',
-  Theatre: 'theatre stage performance africa',
-  Sport: 'stadium football competition africa',
-  Conference: 'conference hall seminar africa',
-  Atelier: 'workshop creative craft africa',
-  Exposition: 'african art gallery exhibition',
-  'Club / Soirée': 'nightclub party celebration africa',
-  Gala: 'gala event ceremony africa',
+  Concert: 'concert live audience stage lighting senegal dakar band night',
+  Festival: 'traditional festival celebration dance senegal africa music crowd',
+  Theatre: 'theatre stage play dramatic performance dimly lit audience',
+  Sport: 'sports stadium football match senegal competition running energy',
+  Conference: 'conference speaker stage technology audience senegal presentation',
+  Atelier: 'craft workshop creative artisan hands painting studio senegal',
+  Exposition: 'contemporary art gallery exhibition installation african artist museum',
+  'Club / Soirée': 'nightclub party neon lights dj celebration dance senegal',
+  Gala: 'luxury gala red carpet elegant evening event ceremony dinner',
 }
 
 const ACCESS_KEY = process.env.EXPO_PUBLIC_UNSPLASH_ACCESS_KEY
@@ -38,7 +40,7 @@ function EventCarousel({ events, onPress }) {
   const itemWidth = cardWidth + sideVisible
   const paddingLeft = (screenWidth - cardWidth) / 2
 
-  // Charge les images Unsplash par catégorie au montage
+  // Charge les images Unsplash par catégorie au montage avec fallback couleur
   useEffect(() => {
     const loadImages = async () => {
       if (!ACCESS_KEY) return
@@ -50,9 +52,9 @@ function EventCarousel({ events, onPress }) {
           continue
         }
         try {
-          const query = CATEGORY_QUERIES[cat] || 'event celebration senegal'
+          const query = CATEGORY_QUERIES[cat] || 'event celebration senegal africa'
           const res = await fetch(
-            `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape&w=800`,
+            `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape&fit=crop&w=800`,
             { headers: { Authorization: `Client-ID ${ACCESS_KEY}` } }
           )
           if (res.ok) {
@@ -70,8 +72,11 @@ function EventCarousel({ events, onPress }) {
     loadImages()
   }, [events])
 
-  // Évite les recalculs si les événements n'ont pas changé
-  const eventIds = events.map(e => e.id).join(',')
+  // Noms stables pour les avatars (basés sur l'index, pas sur random)
+  const avatarCounts = useMemo(
+    () => events.map(() => Math.floor(Math.random() * 40) + 10),
+    [] // stable à vie
+  )
 
   const renderCard = useCallback((item, index) => {
     const catColor = '#6366F1'
@@ -93,7 +98,7 @@ function EventCarousel({ events, onPress }) {
         index * itemWidth,
         (index + 1) * itemWidth,
       ],
-      outputRange: [0.5, 1, 0.5],
+      outputRange: [0.4, 1, 0.4],
       extrapolate: 'clamp',
     })
 
@@ -107,12 +112,28 @@ function EventCarousel({ events, onPress }) {
       extrapolate: 'clamp',
     })
 
+    // Rotation oblique Apple Invites : côté gauche penché +4deg, centre 0, côté droit -4deg
+    const rotateZ = scrollX.interpolate({
+      inputRange: [
+        (index - 1) * itemWidth,
+        index * itemWidth,
+        (index + 1) * itemWidth,
+      ],
+      outputRange: [`${ROTATE_INACTIVE}deg`, '0deg', `-${ROTATE_INACTIVE}deg`],
+      extrapolate: 'clamp',
+    })
+
     return (
       <Animated.View
         key={item.id || index}
         style={[
           styles.cardOuter,
-          { width: cardWidth, marginRight: sideVisible, transform: [{ scale }], opacity },
+          {
+            width: cardWidth,
+            marginRight: sideVisible,
+            transform: [{ scale }, { rotateZ }],
+            opacity,
+          },
         ]}
       >
         <TouchableOpacity
@@ -133,8 +154,8 @@ function EventCarousel({ events, onPress }) {
             )}
 
             <LinearGradient
-              colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.75)']}
-              locations={[0, 0.4, 1]}
+              colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.15)', 'rgba(0,0,0,0.8)']}
+              locations={[0, 0.35, 1]}
               style={styles.gradient}
               pointerEvents="none"
             />
@@ -183,7 +204,7 @@ function EventCarousel({ events, onPress }) {
                   <Feather name="user" size={10} color="#fff" />
                 </View>
                 <Text style={styles.avatarCount}>
-                  +{Math.floor(Math.random() * 40) + 10}
+                  +{avatarCounts[index] ?? 12}
                 </Text>
               </View>
             </View>
@@ -191,7 +212,7 @@ function EventCarousel({ events, onPress }) {
         </TouchableOpacity>
       </Animated.View>
     )
-  }, [scrollX, cardWidth, sideVisible, itemWidth, images, onPress])
+  }, [scrollX, cardWidth, sideVisible, itemWidth, images, onPress, avatarCounts])
 
   if (!events || events.length === 0) return null
 
@@ -221,7 +242,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   cardOuter: {
-    height: 420,
+    height: 400,
     paddingVertical: spacing.md,
   },
   cardTouch: {
@@ -231,10 +252,10 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.35,
+    shadowRadius: 24,
+    elevation: 12,
   },
   cardImage: {
     ...StyleSheet.absoluteFillObject,
