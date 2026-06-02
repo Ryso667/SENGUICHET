@@ -7,7 +7,7 @@ import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows, gradients } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
-import EventCard from '../components/EventCard'
+import AnimatedEventCard from '../components/AnimatedEventCard'
 import BuyerLayout from '../components/BuyerLayout'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { formaterPourEventCard } from '../utils/eventUtils'
@@ -100,10 +100,11 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.emptyEvents}>Aucun événement dispo pour le moment</Text>
           )}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.eventsRow}>
-            {evenements.map((event) => (
-              <EventCard
+            {evenements.map((event, index) => (
+              <AnimatedEventCard
                 key={event.id}
                 event={event}
+                index={index}
                 onPress={() => navigation.navigate('EventDetail', { eventId: event.id, event })}
               />
             ))}
