@@ -2,7 +2,7 @@
 // Design ticket classique avec habillage glass (fond gradient + carte glass)
 // QR rafraîchi toutes les 30s avec nouveau HMAC (sécurité anti-rejeu)
 import { useRef, useEffect, useState } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import QRCode from 'react-native-qrcode-svg'
 import * as Crypto from 'expo-crypto'
@@ -12,6 +12,7 @@ import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
 import { formaterDateLisible } from '../utils/dateUtils'
+import { genererTicketPDF } from '../services/ticketPdfService'
 
 const QR_REFRESH_INTERVAL = 30
 const CLE_SECRETE_QR = 'senguichet-cle-secrete-hmac'
@@ -57,6 +58,17 @@ export default function TicketScreen({ route, navigation }) {
     return () => clearInterval(interval)
   }, [ticket])
 
+  // Capture le QR en base64 pour l'inclure dans le PDF
+  async function getQRDataURL() {
+    return new Promise((resolve) => {
+      if (qrRef.current?.toDataURL) {
+        qrRef.current.toDataURL((b64) => resolve(`data:image/png;base64,${b64}`))
+      } else {
+        resolve(null)
+      }
+    })
+  }
+
   const isScanned = ticket?.statut === 'utilise'
   const organisateurNom = 'SENGUICHET'
   const eventNom = ticket?.eventNom || ticket?.evenement || 'ÉVÉNEMENT'
@@ -71,7 +83,10 @@ export default function TicketScreen({ route, navigation }) {
     if (exporting) return
     setExporting(true)
     try {
-      Alert.alert('Export PDF', 'Bientôt disponible')
+      const qrDataUrl = await getQRDataURL()
+      await genererTicketPDF(ticket, qrDataUrl)
+    } catch (err) {
+      Alert.alert('Erreur', 'Impossible de générer le PDF. Réessayez.')
     } finally {
       setExporting(false)
     }
@@ -93,11 +108,13 @@ export default function TicketScreen({ route, navigation }) {
         {/* Carte ticket glass */}
         <GlassContainer style={styles.ticketCard} blurType="light" intensity={60}>
 
-          {/* 1. En-tête organisateur centré */}
+          {/* 1. En-tête organisateur centré avec logo */}
           <View style={styles.headerCentered}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoText}>S</Text>
-            </View>
+            <Image
+              source={require('../../assets/logo_mobile.jpeg')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
             <Text style={styles.organisateurText}>{organisateurNom}</Text>
           </View>
           <DashLine />
@@ -157,8 +174,7 @@ export default function TicketScreen({ route, navigation }) {
 
         {/* Actions */}
         <View style={styles.actions}>
-          <GlassChip label="Partager" icon="share" onPress={() => Alert.alert('Bientôt disponible', 'Le partage de ticket arrive bientôt')} />
-          <GlassChip label="Exporter PDF" icon="file-text" onPress={handleExport} />
+          <GlassChip label={exporting ? 'Génération...' : 'Exporter PDF'} icon="file-text" onPress={handleExport} />
         </View>
       </ScrollView>
     </View>
@@ -195,18 +211,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.sm,
   },
-  logoCircle: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center', justifyContent: 'center',
+  logoImage: {
+    width: 40, height: 40, borderRadius: 8,
     marginBottom: 4,
-    borderWidth: 1,
-    borderColor: glass.border,
-  },
-  logoText: {
-    fontFamily: fonts.outfit.black,
-    fontSize: 20,
-    color: '#fff',
   },
   organisateurText: {
     fontFamily: fonts.outfit.bold,
