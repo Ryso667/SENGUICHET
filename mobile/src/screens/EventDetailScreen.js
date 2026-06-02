@@ -7,6 +7,7 @@ import {
   TouchableOpacity, StyleSheet, Alert, Modal,
   Platform, Image, KeyboardAvoidingView,
   Animated, ActivityIndicator, Easing, TextInput,
+  useWindowDimensions,
 } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -25,6 +26,7 @@ export default function EventDetailScreen({ route, navigation }) {
   const { eventId } = route.params
   const { definirTelephone, numeroTel } = useAuth()
   const insets = useSafeAreaInsets()
+  const { height: screenHeight } = useWindowDimensions()
   const [event, setEvent] = useState(null)
   const catColor = event?.category ? getDefaultImage(event.category).bg : colors.accent
   const [selectedTicket, setSelectedTicket] = useState(null)
@@ -32,7 +34,6 @@ export default function EventDetailScreen({ route, navigation }) {
   const [error, setError] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
   const [telephone, setTelephone] = useState(numeroTel || '')
-  const [email, setEmail] = useState('')
   const [showPaymentSheet, setShowPaymentSheet] = useState(false)
   const [paymentEtape, setPaymentEtape] = useState('confirm') // confirm | pending | success | failed
   const [paymentError, setPaymentError] = useState('')
@@ -92,10 +93,9 @@ export default function EventDetailScreen({ route, navigation }) {
     try {
       const telPropre = telephone.replace(/[^\d]/g, '')
       const telComplet = telPropre.startsWith('221') ? `+${telPropre}` : `+221${telPropre}`
-      const emailValue = email.trim() || null
       const resultat = await acheterBillet(
         event.id, selectedTicket.id,
-        telPropre ? telComplet : null, emailValue, 'WAVE'
+        telPropre ? telComplet : null, null, 'WAVE'
       )
 
       if (!resultat || !resultat.billet) {
@@ -160,7 +160,10 @@ export default function EventDetailScreen({ route, navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       {/* Fond immersif plein écran */}
       <BlurBackground category={event?.category} />
 
@@ -202,8 +205,8 @@ export default function EventDetailScreen({ route, navigation }) {
 
           {!!event.location && (
             <View style={styles.heroLocationRow}>
-              <Feather name="map-pin" size={13} color="rgba(255,255,255,0.5)" />
-              <Text style={styles.heroLocationText}>{event.location}</Text>
+              <Feather name="map-pin" size={14} color="rgba(255,255,255,0.6)" />
+              <Text style={styles.heroLocationText} numberOfLines={2}>{event.location}</Text>
             </View>
           )}
         </View>
@@ -239,7 +242,20 @@ export default function EventDetailScreen({ route, navigation }) {
           </GlassContainer>
         </TouchableOpacity>
 
-
+        {/* Téléphone — après le choix de la catégorie */}
+        <Text style={styles.formLabel}>Téléphone</Text>
+        <GlassContainer style={styles.formPhoneRow}>
+          <Feather name="smartphone" size={16} color="rgba(255,255,255,0.4)" />
+          <Text style={styles.formCodeText}>+221</Text>
+          <TextInput
+            style={styles.formPhoneInput}
+            value={telephone}
+            onChangeText={setTelephone}
+            keyboardType="phone-pad"
+            placeholder="77 XXX XX XX"
+            placeholderTextColor="rgba(255,255,255,0.25)"
+          />
+        </GlassContainer>
 
         </ScrollView>
 
@@ -362,51 +378,11 @@ export default function EventDetailScreen({ route, navigation }) {
             {/* Étape : confirmation */}
             {paymentEtape === 'confirm' && (
               <>
-                {/* Badge Connexion rapide — premium */}
-                <View style={[styles.payBadge, { backgroundColor: `${catColor}22` }]}>
-                  <Feather name="zap" size={14} color={catColor} />
-                  <Text style={[styles.payBadgeText, { color: catColor }]}>Connexion rapide</Text>
-                </View>
-
-                {/* Résumé visuel du billet sélectionné */}
-                <GlassContainer style={styles.payTicketHero}>
-                  <View style={[styles.payTicketHeroAccent, { backgroundColor: catColor }]} />
-                  <Text style={styles.payTicketHeroName}>{selectedTicket.name}</Text>
-                  <Text style={[styles.payTicketHeroPrice, { color: catColor }]}>
-                    {selectedTicket.price.toLocaleString()} FCFA
-                  </Text>
-                  <View style={styles.payTicketHeroEventRow}>
-                    <Feather name="calendar" size={10} color={catColor} />
-                    <Text style={[styles.payTicketHeroEvent, { color: catColor }]}>{event.title}</Text>
-                  </View>
-                </GlassContainer>
-
-                {/* Infos optionnelles — email + téléphone en petit */}
-                <Text style={styles.payOptionalLabel}>Informations (optionnel)</Text>
-                <View style={styles.payOptionalRow}>
-                  <Feather name="mail" size={12} color="rgba(255,255,255,0.3)" />
-                  <TextInput
-                    style={styles.payOptionalInput}
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    placeholder="email@exemple.com"
-                    placeholderTextColor="rgba(255,255,255,0.2)"
-                    autoCapitalize="none"
-                  />
-                </View>
-                <View style={styles.payOptionalRow}>
-                  <Feather name="smartphone" size={12} color="rgba(255,255,255,0.3)" />
-                  <Text style={styles.payCodeText}>+221</Text>
-                  <TextInput
-                    style={[styles.payOptionalInput, { marginLeft: 0 }]}
-                    value={telephone}
-                    onChangeText={setTelephone}
-                    keyboardType="phone-pad"
-                    placeholder="77 XXX XX XX"
-                    placeholderTextColor="rgba(255,255,255,0.2)"
-                  />
-                </View>
+                {/* Montant uniquement */}
+                <Text style={styles.payAmountLabel}>{selectedTicket.name}</Text>
+                <Text style={[styles.payAmountValue, { color: catColor }]}>
+                  {selectedTicket.price.toLocaleString()} FCFA
+                </Text>
 
                 {/* Bouton de paiement Wave */}
                 <TouchableOpacity
@@ -477,7 +453,7 @@ export default function EventDetailScreen({ route, navigation }) {
         </TouchableOpacity>
         </View>
       </Modal>
-    </View>
+    </KeyboardAvoidingView>
   )
 }
 
@@ -581,7 +557,8 @@ const styles = StyleSheet.create({
   heroLocationText: {
     fontSize: 13,
     fontFamily: fonts.jakarta.regular,
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.7)',
+    flex: 1,
   },
   // Carte description — épurée, généreuse
   descCard: {
@@ -725,6 +702,51 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
+  // Champ téléphone sur la page principale — après sélection catégorie
+  formLabel: {
+    fontFamily: fonts.jakarta.semiBold,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.4)',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginBottom: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  formPhoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 4,
+  },
+  formCodeText: {
+    fontFamily: fonts.jakarta.semiBold,
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.6)',
+  },
+  formPhoneInput: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: fonts.jakarta.semiBold,
+    color: '#fff',
+    paddingVertical: 10,
+  },
+  // Montant dans le modal de paiement
+  payAmountLabel: {
+    fontFamily: fonts.outfit.semiBold,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.5)',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: spacing.xs,
+  },
+  payAmountValue: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 40,
+    letterSpacing: -1.5,
+    marginBottom: spacing.xl,
+    ...textShadow,
+  },
   // Barre d'achat en bas — premium
   bottomBar: {
     flexDirection: 'row',
@@ -802,96 +824,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 1,
   },
-  // Badge Connexion rapide
-  payBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginBottom: spacing.md,
-  },
-  payBadgeText: {
-    fontFamily: fonts.outfit.semiBold,
-    fontSize: 12,
-    letterSpacing: 0.5,
-  },
-  // Carte héros du billet sélectionné
-  payTicketHero: {
-    width: '100%',
-    padding: spacing.xl,
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-    overflow: 'hidden',
-  },
-  payTicketHeroAccent: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 3,
-  },
-  payTicketHeroName: {
-    fontFamily: fonts.outfit.semiBold,
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    marginBottom: spacing.sm,
-  },
-  payTicketHeroPrice: {
-    fontFamily: fonts.outfit.bold,
-    fontSize: 34,
-    letterSpacing: -1,
-    marginBottom: spacing.xs,
-    ...textShadow,
-  },
-  payTicketHeroEventRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  payTicketHeroEvent: {
-    fontFamily: fonts.jakarta.regular,
-    fontSize: 11,
-    letterSpacing: 0.5,
-    opacity: 0.7,
-  },
-  // Informations optionnelles
-  payOptionalLabel: {
-    fontFamily: fonts.jakarta.semiBold,
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.3)',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    alignSelf: 'flex-start',
-    marginBottom: spacing.sm,
-  },
-  payOptionalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: spacing.sm,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 2,
-    width: '100%',
-  },
-  payOptionalInput: {
-    flex: 1,
-    fontSize: 13,
-    fontFamily: fonts.jakarta.regular,
-    color: '#fff',
-    padding: 8,
-    outlineStyle: 'none',
-  },
-  payCodeText: {
-    fontFamily: fonts.jakarta.semiBold,
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.5)',
-  },
   confirmPayBtn: {
     width: '100%',
     borderRadius: borderRadius.md,
@@ -905,8 +837,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   confirmBtnLogo: {
-    width: 20,
-    height: 20,
+    width: 28,
+    height: 28,
   },
   confirmPayText: {
     fontFamily: fonts.outfit.bold,
