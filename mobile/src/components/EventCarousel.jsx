@@ -1,34 +1,33 @@
-// Carousel horizontal Apple-style pour les événements
-// Carte principale centrée (72% largeur), rotation oblique sur côtés
-// Fond : image fête Unsplash directe (sans API key), overlay dégradé, badge glass
+// Carousel horizontal Apple Invites pour la page d'accueil
+// Carte principale centrée (80%), adjacentes visibles avec rotation oblique
+// Fond: image Unsplash par catégorie, overlay dégradé, badge glass, avatars
 import { useRef, useMemo, useCallback } from 'react'
-import { View, Text, TouchableOpacity, Animated, Image, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
+import { View, Text, TouchableOpacity, Animated, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
-import { fonts, spacing, textShadow, borderRadius } from '../constants/theme'
+import { fonts, spacing, textShadow } from '../constants/theme'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { getCategoryImageUrl } from '../config/images'
 
-const CARD_WIDTH_RATIO = 0.72
-const SIDE_VISIBLE_RATIO = 0.06
+const CARD_WIDTH_RATIO = 0.8
+const SIDE_PEEK = 0.04
 const CARD_RADIUS = 28
-const SCALE_INACTIVE = 0.90
-const ROTATE_INACTIVE = 3
+const SCALE_INACTIVE = 0.92
+const TILT_ANGLE = 3
+
+const AVATAR_COLORS = ['#6366F1', '#EC4899', '#00E5A0', '#F59E0B']
+
+function seededCount(index) {
+  return ((index * 7 + 13) % 35) + 10
+}
 
 function EventCarousel({ events, onPress }) {
   const { width: screenWidth } = useWindowDimensions()
   const scrollX = useRef(new Animated.Value(0)).current
 
   const cardWidth = screenWidth * CARD_WIDTH_RATIO
-  const sideVisible = screenWidth * SIDE_VISIBLE_RATIO
-  const itemWidth = cardWidth + sideVisible
+  const itemWidth = cardWidth + screenWidth * SIDE_PEEK
   const paddingLeft = (screenWidth - cardWidth) / 2
-
-  // Noms stables pour les avatars (basés sur l'index)
-  const avatarCounts = useMemo(
-    () => events.map(() => Math.floor(Math.random() * 40) + 10),
-    []
-  )
 
   const renderCard = useCallback((item, index) => {
     const imageUrl = getCategoryImageUrl(item.category)
@@ -49,7 +48,7 @@ function EventCarousel({ events, onPress }) {
         index * itemWidth,
         (index + 1) * itemWidth,
       ],
-      outputRange: [0.4, 1, 0.4],
+      outputRange: [0.5, 1, 0.5],
       extrapolate: 'clamp',
     })
 
@@ -63,16 +62,17 @@ function EventCarousel({ events, onPress }) {
       extrapolate: 'clamp',
     })
 
-    // Rotation oblique Apple Invites
-    const rotateZ = scrollX.interpolate({
+    const rotate = scrollX.interpolate({
       inputRange: [
         (index - 1) * itemWidth,
         index * itemWidth,
         (index + 1) * itemWidth,
       ],
-      outputRange: [`${ROTATE_INACTIVE}deg`, '0deg', `-${ROTATE_INACTIVE}deg`],
+      outputRange: [`-${TILT_ANGLE}deg`, '0deg', `${TILT_ANGLE}deg`],
       extrapolate: 'clamp',
     })
+
+    const avatarCount = seededCount(index)
 
     return (
       <Animated.View
@@ -81,8 +81,8 @@ function EventCarousel({ events, onPress }) {
           styles.cardOuter,
           {
             width: cardWidth,
-            marginRight: sideVisible,
-            transform: [{ scale }, { rotateZ }],
+            marginRight: screenWidth * SIDE_PEEK,
+            transform: [{ scale }, { rotateZ: rotate }, { perspective: 1000 }],
             opacity,
           },
         ]}
@@ -93,16 +93,14 @@ function EventCarousel({ events, onPress }) {
           style={styles.cardTouch}
         >
           <View style={[styles.card, { borderRadius: CARD_RADIUS }]}>
-            <Image
+            <Animated.Image
               source={{ uri: imageUrl }}
-              style={styles.cardImage}
+              style={[styles.cardImage, { transform: [{ translateX: parallax }] }]}
             />
 
-            <View style={styles.overlay} pointerEvents="none" />
-
             <LinearGradient
-              colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.15)', 'rgba(0,0,0,0.8)']}
-              locations={[0, 0.35, 1]}
+              colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.75)']}
+              locations={[0, 0.4, 1]}
               style={styles.gradient}
               pointerEvents="none"
             />
@@ -141,17 +139,19 @@ function EventCarousel({ events, onPress }) {
               )}
 
               <View style={styles.avatars}>
-                <View style={[styles.avatar, { backgroundColor: '#6366F1', zIndex: 3 }]}>
-                  <Feather name="user" size={10} color="#fff" />
-                </View>
-                <View style={[styles.avatar, styles.avatar2, { backgroundColor: '#EC4899', zIndex: 2 }]}>
-                  <Feather name="user" size={10} color="#fff" />
-                </View>
-                <View style={[styles.avatar, styles.avatar3, { backgroundColor: '#00E5A0', zIndex: 1 }]}>
-                  <Feather name="user" size={10} color="#fff" />
-                </View>
+                {AVATAR_COLORS.slice(0, 3).map((color, i) => (
+                  <View
+                    key={i}
+                    style={[
+                      styles.avatar,
+                      { backgroundColor: color, zIndex: 3 - i, marginLeft: i > 0 ? -8 : 0 },
+                    ]}
+                  >
+                    <Feather name="user" size={10} color="#fff" />
+                  </View>
+                ))}
                 <Text style={styles.avatarCount}>
-                  +{avatarCounts[index] ?? 12}
+                  +{avatarCount}
                 </Text>
               </View>
             </View>
@@ -159,7 +159,7 @@ function EventCarousel({ events, onPress }) {
         </TouchableOpacity>
       </Animated.View>
     )
-  }, [scrollX, cardWidth, sideVisible, itemWidth, onPress, avatarCounts])
+  }, [scrollX, cardWidth, itemWidth, screenWidth, onPress])
 
   if (!events || events.length === 0) return null
 
@@ -168,7 +168,7 @@ function EventCarousel({ events, onPress }) {
       <Animated.ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        decelerationRate="normal"
+        decelerationRate="fast"
         snapToInterval={itemWidth}
         snapToAlignment="start"
         contentContainerStyle={{ paddingHorizontal: paddingLeft }}
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   cardOuter: {
-    height: 380,
+    height: 420,
     paddingVertical: spacing.md,
   },
   cardTouch: {
@@ -199,10 +199,10 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.35,
-    shadowRadius: 24,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
   },
   cardImage: {
     ...StyleSheet.absoluteFillObject,
@@ -210,14 +210,8 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    zIndex: 1,
-  },
   gradient: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 2,
   },
   badge: {
     position: 'absolute',
@@ -248,7 +242,6 @@ const styles = StyleSheet.create({
     right: 0,
     padding: spacing.md,
     gap: 4,
-    zIndex: 10,
   },
   title: {
     fontSize: 20,
@@ -293,12 +286,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1.5,
     borderColor: '#fff',
-  },
-  avatar2: {
-    marginLeft: -8,
-  },
-  avatar3: {
-    marginLeft: -8,
   },
   avatarCount: {
     fontSize: 11,

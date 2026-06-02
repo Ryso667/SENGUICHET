@@ -4,20 +4,22 @@
 // Sera remplacé par une API de gestion d'images
 import { colors } from '../constants/theme'
 
-// Images de fête Unsplash en URLs directes (sans API key)
+// Images de fête Unsplash en URLs directes — atmosphère chaleureuse, nuit, fête africaine
 const CATEGORY_IMAGES = {
-  Concert: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=800&q=80',
-  Festival: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=800&q=80',
-  Théâtre: 'https://images.unsplash.com/photo-1503095396548-64d3e381df58?auto=format&fit=crop&w=800&q=80',
-  Theatre: 'https://images.unsplash.com/photo-1503095396548-64d3e381df58?auto=format&fit=crop&w=800&q=80',
-  Sport: 'https://images.unsplash.com/photo-1461896836934-bd45ba8fcf9b?auto=format&fit=crop&w=800&q=80',
-  Conference: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80',
-  Conférence: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80',
-  Atelier: 'https://images.unsplash.com/photo-1519742765956-3d6e8a8e0c0f?auto=format&fit=crop&w=800&q=80',
-  Exposition: 'https://images.unsplash.com/photo-1531913764164-f85c35d4b3f4?auto=format&fit=crop&w=800&q=80',
-  'Club / Soirée': 'https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?auto=format&fit=crop&w=800&q=80',
-  Gala: 'https://images.unsplash.com/photo-1511795404834-ef07a831a7ad?auto=format&fit=crop&w=800&q=80',
+  Concert: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=800&q=80',
+  Festival: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=800&q=80',
+  Théâtre: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
+  Theatre: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
+  Sport: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80',
+  Conference: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80',
+  Conférence: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80',
+  Atelier: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80',
+  Exposition: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=800&q=80',
+  'Club / Soirée': 'https://images.unsplash.com/photo-1566737236500-c8ac43014a67?auto=format&fit=crop&w=800&q=80',
+  Gala: 'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80',
 }
+
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80'
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80'
 
