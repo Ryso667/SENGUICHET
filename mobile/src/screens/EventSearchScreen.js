@@ -1,211 +1,116 @@
-// Écran de recherche d'événements avec barre de recherche et filtrage
-// Les événements sont chargés depuis l'API via fetchEvenementsPublics
-import { useState, useMemo, useEffect } from 'react'
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+// Écran de recherche d'événements — version Apple Invites
+// Fond : images Unsplash en mosaïque
+// Barre de recherche glass, chips catégories, grille 2 colonnes
+import { useState, useEffect } from 'react'
+import { View, Text, TextInput, ScrollView, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
-import { formaterDateLisible } from '../utils/dateUtils'
-import { formaterPourEventCard } from '../utils/eventUtils'
+import { fonts, spacing, borderRadius, glass } from '../constants/theme'
+import BlurBackground from '../components/BlurBackground'
+import GlassContainer from '../components/GlassContainer'
+import GlassChip from '../components/GlassChip'
+import EmptyState from '../components/EmptyState'
+import AnimatedEventCard from '../components/AnimatedEventCard'
 import { fetchEvenementsPublics } from '../services/eventService'
-import BuyerLayout from '../components/BuyerLayout'
+import { formaterPourEventCard } from '../utils/eventUtils'
+
+const CATEGORIES = ['Tout', 'Concert', 'Festival', 'Sport', 'Theatre', 'Conference']
 
 export default function EventSearchScreen({ navigation }) {
-  const [allEvents, setAllEvents] = useState([])
-  const [query, setQuery] = useState('')
+  const [search, setSearch] = useState('')
+  const [activeCat, setActiveCat] = useState('Tout')
+  const [events, setEvents] = useState([])
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', async () => {
-      const events = await fetchEvenementsPublics()
-      setAllEvents(events.map(formaterPourEventCard))
-    })
-    return unsubscribe
-  }, [navigation])
+    const load = async () => {
+      const data = await fetchEvenementsPublics()
+      setEvents(data.map(formaterPourEventCard))
+    }
+    load()
+  }, [])
 
-  // Filtre les événements par titre, lieu ou catégorie (insensible à la casse)
-  const results = useMemo(() => {
-    if (!query.trim()) return allEvents
-    const q = query.toLowerCase()
-    return allEvents.filter(e =>
-      e.title.toLowerCase().includes(q) ||
-      e.location.toLowerCase().includes(q) ||
-      e.category.toLowerCase().includes(q)
-    )
-  }, [query, allEvents])
+  const filtered = events.filter((e) => {
+    const matchCat = activeCat === 'Tout' || e.category === activeCat
+    const matchSearch = !search || e.title?.toLowerCase().includes(search.toLowerCase())
+    return matchCat && matchSearch
+  })
 
   return (
-    <BuyerLayout>
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.topBar}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Feather name="arrow-left" size={18} color={colors.slate} />
-          </TouchableOpacity>
-          <View style={styles.searchWrap}>
-            <Feather name="search" size={15} color={colors.muted} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Rechercher un événement..."
-              placeholderTextColor={colors.muted}
-              value={query}
-              onChangeText={setQuery}
-              autoFocus
+    <View style={styles.container}>
+      <BlurBackground category={activeCat === 'Tout' ? null : activeCat} intensityOverlay />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Barre de recherche */}
+        <GlassContainer style={styles.searchBar} blurType="light" intensity={60}>
+          <Feather name="search" size={16} color="rgba(255,255,255,0.6)" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Concert à Dakar..."
+            placeholderTextColor="rgba(255,255,255,0.5)"
+            value={search}
+            onChangeText={setSearch}
+          />
+          {search.length > 0 && (
+            <Feather name="x" size={16} color="rgba(255,255,255,0.6)" onPress={() => setSearch('')} />
+          )}
+        </GlassContainer>
+
+        {/* Chips catégories */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow} contentContainerStyle={styles.chipsContent}>
+          {CATEGORIES.map((cat) => (
+            <GlassChip
+              key={cat}
+              label={cat}
+              active={activeCat === cat}
+              onPress={() => setActiveCat(cat)}
             />
-            {query.length > 0 && (
-              <TouchableOpacity onPress={() => setQuery('')}>
-                <Feather name="x" size={15} color={colors.muted} />
-              </TouchableOpacity>
-            )}
-          </View>
+          ))}
+        </ScrollView>
+
+        {/* Grille résultats */}
+        <View style={styles.grid}>
+          {filtered.map((event, i) => (
+            <View key={event.id} style={styles.gridItem}>
+              <AnimatedEventCard
+                event={event}
+                index={i}
+                onPress={() => navigation.navigate('EventDetail', { eventId: event.id, event })}
+              />
+            </View>
+          ))}
         </View>
 
-        <ScrollView style={styles.flex} contentContainerStyle={styles.list} keyboardShouldPersistTaps="handled">
-          {results.length === 0 ? (
-            <View style={styles.empty}>
-              <Feather name="search" size={28} color={colors.border} />
-              <Text style={styles.emptyText}>Aucun événement trouvé</Text>
-            </View>
-          ) : (
-            results.map((event) => (
-              <TouchableOpacity
-                key={event.id}
-                style={styles.card}
-                onPress={() => navigation.navigate('EventDetail', { eventId: event.id, event })}
-                activeOpacity={0.7}
-              >
-                <View style={[styles.cardBanner, { backgroundColor: event.bg }]}>
-                  <Text style={styles.cardEmoji}>{event.emoji}</Text>
-                </View>
-                <View style={styles.cardBody}>
-                  <Text style={styles.cardTitle}>{event.title}</Text>
-                  <View style={styles.metaRow}>
-                    <Feather name="calendar" size={9} color={colors.mid} />
-                    <Text style={styles.metaText}>{formaterDateLisible(event.date)}</Text>
-                  </View>
-                  <View style={styles.metaRow}>
-                    <Feather name="map-pin" size={9} color={colors.mid} />
-                    <Text style={styles.metaText}>{event.location}</Text>
-                  </View>
-                  <View style={styles.metaRow}>
-                    <Feather name="clock" size={9} color={colors.mid} />
-                    <Text style={styles.metaText}>{event.time}</Text>
-                  </View>
-                  <View style={styles.metaRow}>
-                    <Feather name="tag" size={9} color={colors.accent} />
-                    <Text style={styles.price}>{event.priceLabel}</Text>
-                  </View>
-                </View>
-                <Feather name="chevron-right" size={15} color={colors.muted} style={styles.chevron} />
-              </TouchableOpacity>
-            ))
-          )}
-        </ScrollView>
-      </SafeAreaView>
-    </BuyerLayout>
+        {filtered.length === 0 && (
+          <EmptyState
+            icon="search"
+            title="Aucun résultat"
+            subtitle="Essaie un autre mot-clé ou catégorie"
+          />
+        )}
+      </ScrollView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  flex: { flex: 1 },
-
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    gap: 10,
-    backgroundColor: colors.white,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: borderRadius.sm,
-    backgroundColor: colors.bg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  searchWrap: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.bg,
-    borderRadius: borderRadius.sm,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    gap: 8,
+  container: { flex: 1 },
+  scroll: { flex: 1 },
+  scrollContent: { paddingBottom: spacing.lg },
+  searchBar: {
+    flexDirection: 'row', alignItems: 'center',
+    marginHorizontal: spacing.lg, marginTop: spacing.md,
+    paddingHorizontal: spacing.md, paddingVertical: 12, gap: 10,
   },
   searchInput: {
-    flex: 1,
-    fontSize: 14,
-    fontFamily: fonts.jakarta.regular,
-    color: colors.slate,
+    flex: 1, fontSize: 14, fontFamily: fonts.jakarta.regular, color: '#fff',
     padding: 0,
-    outlineStyle: 'none',
   },
-
-  list: {
-    padding: spacing.md,
-    gap: 10,
+  chipsRow: { marginTop: spacing.md, marginBottom: spacing.sm },
+  chipsContent: { paddingHorizontal: spacing.lg, gap: 8 },
+  grid: {
+    flexDirection: 'row', flexWrap: 'wrap',
+    paddingHorizontal: spacing.lg, gap: 12,
+    marginTop: spacing.sm,
   },
-
-  card: {
-    flexDirection: 'row',
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.md,
-    overflow: 'hidden',
-    alignItems: 'center',
-    ...shadows.sm,
-  },
-  cardBanner: {
-    width: 80,
-    height: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardEmoji: { fontSize: 28 },
-  cardBody: {
-    flex: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 3,
-  },
-  cardTitle: {
-    fontFamily: fonts.outfit.semiBold,
-    fontSize: 13,
-    color: colors.slate,
-    marginBottom: 3,
-    letterSpacing: -0.1,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  metaText: {
-    fontSize: 10,
-    color: colors.mid,
-    fontFamily: fonts.jakarta.regular,
-  },
-  price: {
-    fontSize: 10,
-    fontFamily: fonts.jakarta.semiBold,
-    color: colors.accent,
-  },
-  chevron: {
-    paddingRight: 14,
-  },
-
-  empty: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    gap: 8,
-  },
-  emptyText: {
-    fontSize: 12,
-    color: colors.muted,
-    fontFamily: fonts.jakarta.regular,
+  gridItem: {
+    width: '47%',
   },
 })
