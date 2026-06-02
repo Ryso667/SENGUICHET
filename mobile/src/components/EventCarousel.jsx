@@ -8,11 +8,11 @@ import { Feather } from '@expo/vector-icons'
 import { fonts, spacing, textShadow, borderRadius } from '../constants/theme'
 import { formaterDateLisible } from '../utils/dateUtils'
 
-const CARD_WIDTH_RATIO = 0.80
-const SIDE_VISIBLE_RATIO = 0.14
+const CARD_WIDTH_RATIO = 0.72
+const SIDE_VISIBLE_RATIO = 0.06
 const CARD_RADIUS = 28
 const SCALE_INACTIVE = 0.90
-const ROTATE_INACTIVE = 4
+const ROTATE_INACTIVE = 3
 
 // Requêtes Unsplash contextualisées Sénégal/Afrique pour chaque catégorie
 const CATEGORY_QUERIES = {
@@ -221,7 +221,7 @@ function EventCarousel({ events, onPress }) {
       <Animated.ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        decelerationRate="fast"
+        decelerationRate="normal"
         snapToInterval={itemWidth}
         snapToAlignment="start"
         contentContainerStyle={{ paddingHorizontal: paddingLeft }}
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   cardOuter: {
-    height: 400,
+    height: 380,
     paddingVertical: spacing.md,
   },
   cardTouch: {
