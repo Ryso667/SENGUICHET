@@ -260,12 +260,24 @@ export default function EventDetailScreen({ route, navigation }) {
 
         {/* Barre d'achat fixe en bas */}
         <View style={styles.bottomBar}>
-          <GlassButton
-            title={`Payer ${selectedTicket?.price?.toLocaleString() || '0'} FCFA`}
-            icon="shopping-cart"
+          <TouchableOpacity
             onPress={handleBuy}
+            activeOpacity={0.9}
+            disabled={!isValidPhone}
             style={!isValidPhone && styles.buyBtnDisabled}
-          />
+          >
+            <LinearGradient
+              colors={[catColor, `${catColor}88`]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.buyBtnGradient}
+            >
+              <Feather name="shopping-cart" size={18} color="#fff" style={{ marginRight: 8 }} />
+              <Text style={styles.buyBtnText}>
+                Payer {selectedTicket?.price?.toLocaleString() || '0'} FCFA
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
 
       {/* Modal de sélection de catégorie */}
@@ -700,6 +712,20 @@ const styles = StyleSheet.create({
   },
   buyBtnDisabled: {
     opacity: 0.5,
+  },
+  buyBtnGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: borderRadius.lg,
+  },
+  buyBtnText: {
+    fontSize: 16,
+    fontFamily: fonts.outfit.semiBold,
+    color: '#fff',
+    letterSpacing: -0.2,
+    ...textShadow,
   },
   // Modal paiement
   paySheetOverlay: {
