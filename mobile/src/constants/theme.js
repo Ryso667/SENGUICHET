@@ -19,15 +19,24 @@ export const colors = {
   cyan: '#00C8FF',
   violet: '#6366F1',
   orange: '#F97316',
+  glassWhite: 'rgba(255,255,255,0.15)',
+  glassBorder: 'rgba(255,255,255,0.25)',
+  glassDark: 'rgba(0,0,0,0.2)',
+  textWhite: 'rgba(255,255,255,0.9)',
+  textWhiteMuted: 'rgba(255,255,255,0.5)',
 }
 
-// Verre (glassmorphism)
+// === GLASS (verre dépoli) ===
 export const glass = {
-  bg: 'rgba(255,255,255,0.7)',
-  darkBg: 'rgba(0,200,255,0.05)',
-  border: 'rgba(0,200,255,0.15)',
+  bg: 'rgba(255,255,255,0.15)',
+  bgLight: 'rgba(255,255,255,0.25)',
+  bgHeavy: 'rgba(255,255,255,0.35)',
+  border: 'rgba(255,255,255,0.25)',
+  borderLight: 'rgba(255,255,255,0.12)',
   blur: 20,
   radius: 20,
+  darkBg: 'rgba(0,0,0,0.2)',
+  darkBgHeavy: 'rgba(0,0,0,0.4)',
 }
 
 // Dégradés par rôle - Cyan → Bleu
@@ -95,5 +104,27 @@ export const fonts = {
     semiBold: 'PlusJakartaSans_600SemiBold',
     medium: 'PlusJakartaSans_500Medium',
     regular: 'PlusJakartaSans_400Regular',
+  },
+}
+
+// === ANIMATIONS (Animated API) ===
+export const animations = {
+  spring: {
+    friction: 6,
+    tension: 80,
+  },
+  timing: {
+    duration: 300,
+  },
+  stagger: 80,
+  pulse: {
+    duration: 2000,
+    minScale: 1,
+    maxScale: 1.02,
+  },
+  scalePress: {
+    toValue: 0.96,
+    friction: 8,
+    tension: 100,
   },
 }
