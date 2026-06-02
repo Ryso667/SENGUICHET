@@ -5,6 +5,7 @@ import { useState, useCallback } from 'react'
 import { View, Text, TextInput, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, spacing, glass } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
@@ -17,6 +18,7 @@ import { formaterPourEventCard } from '../utils/eventUtils'
 const CATEGORIES = ['Tout', 'Concert', 'Festival', 'Sport', 'Theatre', 'Conference']
 
 export default function EventSearchScreen({ navigation }) {
+  const insets = useSafeAreaInsets()
   const [search, setSearch] = useState('')
   const [activeCat, setActiveCat] = useState('Tout')
   const [events, setEvents] = useState([])
@@ -38,7 +40,7 @@ export default function EventSearchScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <BlurBackground category={activeCat === 'Tout' ? null : activeCat} intensityOverlay />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.sm }]} showsVerticalScrollIndicator={false}>
         {/* Barre de recherche */}
         <GlassContainer style={styles.searchBar} blurType="light" intensity={60}>
           <Feather name="search" size={16} color="rgba(255,255,255,0.6)" />

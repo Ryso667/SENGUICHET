@@ -7,6 +7,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Animated, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, colors, spacing, borderRadius, glass, animations, textShadow } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
 import BlurBackground from '../components/BlurBackground'
@@ -26,6 +27,7 @@ const STATUTS = {
 }
 
 export default function HomeScreen({ navigation }) {
+  const insets = useSafeAreaInsets()
   const [evenements, setEvenements] = useState([])
   const [tickets, setTickets] = useState([])
   const [category, setCategory] = useState(null)
@@ -66,7 +68,7 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <BlurBackground category={category} />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.sm }]} showsVerticalScrollIndicator={false}>
         {/* Header Bonjour */}
         <Animated.View style={[styles.headerWrap, headerStyle]}>
           <GlassContainer style={styles.headerCard}>

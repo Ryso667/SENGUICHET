@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useFocusEffect } from '@react-navigation/native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, colors, spacing, borderRadius, glass, textShadow } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
@@ -20,6 +21,7 @@ const STATUTS = {
 }
 
 export default function MesTicketsScreen({ navigation }) {
+  const insets = useSafeAreaInsets()
   const [tickets, setTickets] = useState([])
   const [refreshing, setRefreshing] = useState(false)
   const { numeroTel, profil } = useAuth()
@@ -75,7 +77,7 @@ export default function MesTicketsScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <BlurBackground category={categoryForBg} />
-      <View style={styles.content}>
+      <View style={[styles.content, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <Text style={styles.title}>Mes tickets</Text>
           {tickets.length > 0 && (
