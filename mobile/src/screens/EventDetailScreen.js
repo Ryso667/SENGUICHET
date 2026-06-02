@@ -5,15 +5,16 @@ import { useState, useEffect, useRef } from 'react'
 import {
   View, Text, ScrollView, TextInput,
   TouchableOpacity, StyleSheet, Alert, Modal,
-  KeyboardAvoidingView, Platform, Image,
+  Platform, Image,
   Animated, ActivityIndicator, Easing,
 } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { fonts, colors, spacing, borderRadius, glass, textShadow } from '../constants/theme'
+import { fonts, colors, spacing, borderRadius, glass, categoryGradients, textShadow } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassButton from '../components/GlassButton'
+import { getDefaultImage } from '../config/images'
 import { fetchEvenementDetailPublic } from '../services/eventService'
 import { acheterBillet } from '../services/billetService'
 import { formaterDateLisible } from '../utils/dateUtils'
@@ -25,6 +26,7 @@ export default function EventDetailScreen({ route, navigation }) {
   const { definirTelephone, numeroTel } = useAuth()
   const insets = useSafeAreaInsets()
   const [event, setEvent] = useState(null)
+  const catColor = event?.category ? getDefaultImage(event.category).bg : colors.accent
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [showCategorySheet, setShowCategorySheet] = useState(false)
   const [error, setError] = useState(null)
@@ -164,8 +166,12 @@ export default function EventDetailScreen({ route, navigation }) {
         <Feather name="arrow-left" size={20} color="#fff" />
       </TouchableOpacity>
 
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <ScrollView style={styles.flex} bounces={false} keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 60 }]}>
+      <ScrollView
+        style={styles.flex}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 60 }]}
+        showsVerticalScrollIndicator={false}
+      >
 
           {/* Emoji hero centré */}
           <View style={styles.hero}>
@@ -261,7 +267,6 @@ export default function EventDetailScreen({ route, navigation }) {
             style={!isValidPhone && styles.buyBtnDisabled}
           />
         </View>
-      </KeyboardAvoidingView>
 
       {/* Modal de sélection de catégorie */}
       <Modal
@@ -270,47 +275,58 @@ export default function EventDetailScreen({ route, navigation }) {
         animationType="slide"
         onRequestClose={() => setShowCategorySheet(false)}
       >
-        <TouchableOpacity
-          style={styles.sheetOverlay}
-          activeOpacity={1}
-          onPress={() => setShowCategorySheet(false)}
-        >
-          <GlassContainer style={styles.sheetContainer}>
-            <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>Choisir une catégorie</Text>
-            {event.tickets.map((t) => (
-              <TouchableOpacity
-                key={t.name}
-                onPress={() => {
-                  setSelectedTicket(t)
-                  setShowCategorySheet(false)
-                }}
-                activeOpacity={0.7}
-              >
-                <GlassContainer
-                  style={[
-                    styles.sheetItem,
-                    selectedTicket.name === t.name && styles.sheetItemSelected,
-                  ]}
+        <View style={styles.sheetOverlay}>
+          <LinearGradient
+            colors={categoryGradients[event?.category] || categoryGradients.default}
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          />
+          <TouchableOpacity
+            style={styles.sheetOverlayContent}
+            activeOpacity={1}
+            onPress={() => setShowCategorySheet(false)}
+          >
+            <GlassContainer style={styles.sheetContainer}>
+              <View style={styles.sheetHandle} />
+              <Text style={styles.sheetTitle}>Choisir une catégorie</Text>
+              {event.tickets.map((t) => (
+                <TouchableOpacity
+                  key={t.name}
+                  onPress={() => {
+                    setSelectedTicket(t)
+                    setShowCategorySheet(false)
+                  }}
+                  activeOpacity={0.7}
                 >
-                  <View style={styles.sheetItemLeft}>
-                    <Text style={styles.sheetItemName}>{t.name}</Text>
-                    <Text style={styles.sheetItemDesc}>{t.desc || 'Accès standard'}</Text>
-                  </View>
-                  <View style={styles.sheetItemRight}>
-                    <Text style={styles.sheetItemPrice}>{t.price.toLocaleString()} FCFA</Text>
-                    <Text style={styles.sheetItemPlaces}>Places limitées</Text>
+                  <GlassContainer
+                    style={[
+                      styles.sheetItem,
+                      selectedTicket.name === t.name && {
+                        backgroundColor: `${catColor}33`,
+                        borderColor: catColor,
+                      },
+                    ]}
+                  >
+                    <View style={styles.sheetItemLeft}>
+                      <Text style={styles.sheetItemName}>{t.name}</Text>
+                      <Text style={styles.sheetItemDesc}>{t.desc || 'Accès standard'}</Text>
+                    </View>
+                    <View style={styles.sheetItemRight}>
+                      <Text style={[styles.sheetItemPrice, { color: catColor }]}>{t.price.toLocaleString()} FCFA</Text>
+                      <Text style={styles.sheetItemPlaces}>Places limitées</Text>
                     {selectedTicket.name === t.name && (
-                      <View style={styles.sheetCheck}>
+                      <View style={[styles.sheetCheck, { backgroundColor: catColor }]}>
                         <Feather name="check" size={12} color="#fff" />
                       </View>
                     )}
-                  </View>
-                </GlassContainer>
-              </TouchableOpacity>
-            ))}
-          </GlassContainer>
-        </TouchableOpacity>
+                    </View>
+                  </GlassContainer>
+                </TouchableOpacity>
+              ))}
+            </GlassContainer>
+          </TouchableOpacity>
+        </View>
       </Modal>
 
       {/* Modal de paiement Wave */}
@@ -320,11 +336,18 @@ export default function EventDetailScreen({ route, navigation }) {
         animationType="slide"
         onRequestClose={() => setShowPaymentSheet(false)}
       >
-        <TouchableOpacity
-          style={styles.paySheetOverlay}
-          activeOpacity={1}
-          onPress={() => paymentEtape === 'confirm' && setShowPaymentSheet(false)}
-        >
+        <View style={styles.paySheetOverlay}>
+          <LinearGradient
+            colors={categoryGradients[event?.category] || categoryGradients.default}
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          />
+          <TouchableOpacity
+            style={styles.paySheetOverlayContent}
+            activeOpacity={1}
+            onPress={() => paymentEtape === 'confirm' && setShowPaymentSheet(false)}
+          >
           <GlassContainer style={styles.paySheetContainer}>
             {/* Bouton de fermeture */}
             {paymentEtape === 'confirm' && (
@@ -413,6 +436,7 @@ export default function EventDetailScreen({ route, navigation }) {
             )}
           </GlassContainer>
         </TouchableOpacity>
+        </View>
       </Modal>
     </View>
   )
@@ -565,8 +589,10 @@ const styles = StyleSheet.create({
   // Overlay et conteneur sheet
   sheetOverlay: {
     flex: 1,
+  },
+  sheetOverlayContent: {
+    flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   sheetContainer: {
     paddingHorizontal: spacing.lg,
@@ -597,10 +623,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     marginBottom: spacing.sm,
   },
-  sheetItemSelected: {
-    backgroundColor: 'rgba(0,200,255,0.2)',
-    borderColor: colors.accent,
-  },
   sheetItemLeft: {},
   sheetItemName: {
     fontFamily: fonts.jakarta.semiBold,
@@ -620,7 +642,6 @@ const styles = StyleSheet.create({
   sheetItemPrice: {
     fontFamily: fonts.outfit.bold,
     fontSize: 14,
-    color: colors.accent,
   },
   sheetItemPlaces: {
     fontSize: 9,
@@ -631,7 +652,6 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 4,
@@ -679,8 +699,10 @@ const styles = StyleSheet.create({
   // Modal paiement
   paySheetOverlay: {
     flex: 1,
+  },
+  paySheetOverlayContent: {
+    flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   paySheetContainer: {
     paddingHorizontal: spacing.lg,
