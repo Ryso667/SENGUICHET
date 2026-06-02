@@ -1,12 +1,13 @@
 // Écran ticket — affichage mobile + export PDF imprimable
 // Layout ticket classique : en-tête organisateur, QR, infos, prix
 import React, { useState, useEffect, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Alert, ActivityIndicator } from 'react-native'
+import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Alert, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import QRCode from 'react-native-qrcode-svg'
 import * as Crypto from 'expo-crypto'
 import { colors, shadows, spacing, borderRadius, fonts } from '../constants/theme'
+import { formatDateTicket, formatDatetimeLong } from '../utils/dateUtils'
 import { genererTicketPDF } from '../services/ticketPdfService'
 import BuyerLayout from '../components/BuyerLayout'
 
@@ -16,37 +17,6 @@ const QR_REFRESH_INTERVAL = 30
 const CLE_SECRETE_QR = 'senguichet-cle-secrete-hmac'
 
 const DASHES = '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
-
-function formatDateTicket(dateStr) {
-  if (!dateStr) return ''
-  if (dateStr.includes('/')) {
-    const [j, m, a] = dateStr.split('/')
-    return `${j.padStart(2, '0')}-${m.padStart(2, '0')}-${a}`
-  }
-  if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
-    const d = new Date(dateStr)
-    if (!isNaN(d.getTime())) {
-      return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`
-    }
-  }
-  return dateStr
-}
-
-function formatDatetimeLong(dateStr) {
-  if (!dateStr) return ''
-  if (dateStr.includes('T')) {
-    const d = new Date(dateStr)
-    if (!isNaN(d.getTime())) {
-      const jj = String(d.getDate()).padStart(2, '0')
-      const mm = String(d.getMonth() + 1).padStart(2, '0')
-      const hh = String(d.getHours()).padStart(2, '0')
-      const min = String(d.getMinutes()).padStart(2, '0')
-      const sec = String(d.getSeconds()).padStart(2, '0')
-      return `${jj}-${mm}-${d.getFullYear()} ${hh}:${min}:${sec}`
-    }
-  }
-  return dateStr
-}
 
 async function genererQRPayload(ticket) {
   const now = new Date().toISOString()
@@ -128,7 +98,11 @@ export default function TicketScreen({ route, navigation }) {
             {/* 1. En-tête organisateur centré */}
             <View style={s.headerCentered}>
               <View style={s.logoCircle}>
-                <Text style={s.logoEmoji}>🎫</Text>
+                <Image
+                  source={require('../../assets/logo_mobile.jpeg')}
+                  style={s.logoImage}
+                  resizeMode="contain"
+                />
               </View>
               <Text style={s.organisateurText}>{organisateurNom.toUpperCase()}</Text>
             </View>
@@ -261,15 +235,18 @@ const s = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   logoCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.accentLight,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
   },
-  logoEmoji: { fontSize: 15 },
+  logoImage: { width: 28, height: 28 },
   organisateurText: {
     fontFamily: fonts.outfit.bold,
     fontSize: 11,

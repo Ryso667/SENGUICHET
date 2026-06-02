@@ -1,31 +1,33 @@
 // Contexte global d'authentification
-// Gère 3 rôles : acheteur (OTP), controleur (code 4 chiffres), organisateur (email+mdp)
+// Gère 3 rôles : acheteur (social Google/Apple), controleur (code 4 chiffres), organisateur (email+mdp)
 import { createContext, useContext, useState, useEffect } from 'react'
 import { Alert } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as LocalAuthentication from 'expo-local-authentication'
 import { nettoyerDonneesLegacy } from '../utils/cleanupLegacyData'
+import { connecterAcheteurSocial as connecterAcheteurSocialAPI } from '../services/authService'
+
 const AuthContext = createContext(null)
 
-// Clés de stockage permanent (AsyncStorage)
-const STORAGE_KEY_ROLE   = '@senguichet_role'       // rôle actif
-const STORAGE_KEY_JWT    = '@senguichet_jwt'         // token JWT
-const STORAGE_KEY_NUMERO = '@senguichet_telephone'   // téléphone acheteur
-const STORAGE_KEY_EMAIL  = '@senguichet_orga_email'  // email organisateur (déprécié, conservé pour compat)
-const STORAGE_KEY_USER   = '@senguichet_orga_user'   // objet user organisateur { id, nom, email, role, statut }
-const STORAGE_KEY_BIOMETRIC_EMAIL = '@senguichet_biometric_email' // email pour reconnexion biométrique
+const STORAGE_KEY_ROLE   = '@senguichet_role'
+const STORAGE_KEY_JWT    = '@senguichet_jwt'
+const STORAGE_KEY_NUMERO = '@senguichet_telephone'
+const STORAGE_KEY_EMAIL  = '@senguichet_orga_email'
+const STORAGE_KEY_USER   = '@senguichet_orga_user'
+const STORAGE_KEY_PROFIL = '@senguichet_profil'
+const STORAGE_KEY_BIOMETRIC_EMAIL = '@senguichet_biometric_email'
 
 export function AuthProvider({ children }) {
   const [role, setRole] = useState(null)
   const [numeroTel, setNumeroTel] = useState(null)
   const [jwt, setJwt] = useState(null)
   const [email, setEmail] = useState(null)
-  const [user, setUser] = useState(null) // { id, nom, email, telephone, role, statut }
+  const [user, setUser] = useState(null)
+  const [profil, setProfil] = useState(null)
   const [chargement, setChargement] = useState(true)
   const [hasSavedSession, setHasSavedSession] = useState(false)
   const [sessionEmail, setSessionEmail] = useState(null)
 
-  // Au démarrage : nettoie les données legacy et restaure la session
   useEffect(() => {
     nettoyerDonneesLegacy()
     restaurerSession()
@@ -37,10 +39,12 @@ export function AuthProvider({ children }) {
 
       if (roleStocke === 'acheteur') {
         const tel = await AsyncStorage.getItem(STORAGE_KEY_NUMERO)
-        if (tel) {
-          setNumeroTel(tel)
-          setRole('acheteur')
-        }
+        const token = await AsyncStorage.getItem(STORAGE_KEY_JWT)
+        const profilData = await AsyncStorage.getItem(STORAGE_KEY_PROFIL)
+        if (token) setJwt(token)
+        if (tel) setNumeroTel(tel)
+        if (profilData) setProfil(JSON.parse(profilData))
+        setRole('acheteur')
       } else if (roleStocke === 'controleur') {
         const token = await AsyncStorage.getItem(STORAGE_KEY_JWT)
         if (token) {
@@ -58,20 +62,32 @@ export function AuthProvider({ children }) {
           setRole('organisateur')
         }
       }
-      // Vérifie si l'utilisateur a déjà une session organisateur sauvegardée (pour la biométrie)
+
       const bioEmail = await AsyncStorage.getItem(STORAGE_KEY_BIOMETRIC_EMAIL)
       if (bioEmail) {
         setHasSavedSession(true)
         setSessionEmail(bioEmail)
       }
     } catch {
-      // Pas de session valide → reste déconnecté
     } finally {
       setChargement(false)
     }
   }
 
-  // Connexion acheteur (après validation OTP)
+  // Connexion sociale acheteur (Google/Apple)
+  // Appelle le backend avec le firebaseToken, stocke le JWT et le profil
+  const connecterAcheteurSocial = async (firebaseToken) => {
+    const data = await connecterAcheteurSocialAPI(firebaseToken)
+    const { token, user: profilUtilisateur } = data
+    await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'acheteur')
+    await AsyncStorage.setItem(STORAGE_KEY_JWT, token)
+    await AsyncStorage.setItem(STORAGE_KEY_PROFIL, JSON.stringify(profilUtilisateur))
+    setJwt(token)
+    setProfil(profilUtilisateur)
+    setRole('acheteur')
+  }
+
+  // Connexion acheteur (ancien flow OTP, conservé pour compatibilité)
   const connecterAcheteur = async (tel) => {
     await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'acheteur')
     await AsyncStorage.setItem(STORAGE_KEY_NUMERO, tel)
@@ -79,7 +95,12 @@ export function AuthProvider({ children }) {
     setRole('acheteur')
   }
 
-  // Connexion contrôleur (après validation code 4 chiffres)
+  // Stocke le téléphone après un achat (utilisé par le flow social)
+  const definirTelephone = async (tel) => {
+    await AsyncStorage.setItem(STORAGE_KEY_NUMERO, tel)
+    setNumeroTel(tel)
+  }
+
   const connecterControleur = async (token) => {
     await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'controleur')
     await AsyncStorage.setItem(STORAGE_KEY_JWT, token)
@@ -87,8 +108,6 @@ export function AuthProvider({ children }) {
     setRole('controleur')
   }
 
-  // Connexion organisateur (email + mot de passe)
-  // userData : { id, nom, email, telephone, role, statut } venant du backend
   const connecterOrganisateur = async (token, userData) => {
     await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'organisateur')
     await AsyncStorage.setItem(STORAGE_KEY_JWT, token)
@@ -103,7 +122,6 @@ export function AuthProvider({ children }) {
     setSessionEmail(userData.email)
   }
 
-  // Connexion rapide via biométrie (empreinte) pour les organisateurs
   const tenterBiometrie = async () => {
     try {
       const compatible = await LocalAuthentication.hasHardwareAsync()
@@ -118,11 +136,9 @@ export function AuthProvider({ children }) {
         }
       }
     } catch {
-      // Biométrie indisponible ou échec
     }
   }
 
-  // Déconnexion : efface tout et retourne à l'accueil
   const deconnecter = async () => {
     await AsyncStorage.multiRemove([
       STORAGE_KEY_ROLE,
@@ -130,12 +146,14 @@ export function AuthProvider({ children }) {
       STORAGE_KEY_JWT,
       STORAGE_KEY_EMAIL,
       STORAGE_KEY_USER,
+      STORAGE_KEY_PROFIL,
     ])
     setRole(null)
     setNumeroTel(null)
     setJwt(null)
     setEmail(null)
     setUser(null)
+    setProfil(null)
   }
 
   return (
@@ -146,8 +164,11 @@ export function AuthProvider({ children }) {
         jwt,
         email,
         user,
+        profil,
         chargement,
         connecterAcheteur,
+        connecterAcheteurSocial,
+        definirTelephone,
         connecterControleur,
         connecterOrganisateur,
         deconnecter,
@@ -162,5 +183,4 @@ export function AuthProvider({ children }) {
   )
 }
 
-// Hook utilisable depuis n'importe quel écran
 export const useAuth = () => useContext(AuthContext)

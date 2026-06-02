@@ -1,42 +1,37 @@
 // Écran détail d'un événement avec sélection de catégorie et paiement
-// Inclut : bannière, infos, sélection ticket, saisie téléphone, double confirmation paiement
-import { useState, useEffect } from 'react'
+// Le téléphone et la confirmation de paiement sont intégrés sur cette page
+import { useState, useEffect, useRef } from 'react'
 import {
   View, Text, ScrollView, TextInput,
   TouchableOpacity, StyleSheet, Alert, Modal,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform, Image,
+  Animated, ActivityIndicator, Easing,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import { fetchEvenementDetailPublic } from '../services/eventService'
-import { ActivityIndicator } from 'react-native'
-import { useAuth } from '../context/AuthContext'
+import { acheterBillet } from '../services/billetService'
 import { formaterDateLisible } from '../utils/dateUtils'
 import BuyerLayout from '../components/BuyerLayout'
-
-// Formate le numéro stocké (+22177XXXXXX → 77 XXX XX XX) pour l'affichage
-function formaterTelStocke(telComplet) {
-  if (!telComplet) return ''
-  const chiffres = telComplet.replace(/\D/g, '').slice(-9)
-  let resultat = ''
-  for (let i = 0; i < chiffres.length; i++) {
-    if (i === 2 || i === 5 || i === 7) resultat += ' '
-    resultat += chiffres[i]
-  }
-  return resultat
-}
+import { useAuth } from '../context/AuthContext'
 
 export default function EventDetailScreen({ route, navigation }) {
   const { eventId } = route.params
-  const { numeroTel } = useAuth()
+  const { definirTelephone, numeroTel } = useAuth()
   const [event, setEvent] = useState(null)
   const [selectedTicket, setSelectedTicket] = useState(null)
-  const [phone, setPhone] = useState(() => formaterTelStocke(numeroTel))
   const [showCategorySheet, setShowCategorySheet] = useState(false)
   const [error, setError] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
+  const [telephone, setTelephone] = useState(numeroTel || '')
+  const [showPaymentSheet, setShowPaymentSheet] = useState(false)
+  const [paymentEtape, setPaymentEtape] = useState('confirm') // confirm | pending | success | failed
+  const [paymentError, setPaymentError] = useState('')
+  const [paymentResult, setPaymentResult] = useState(null)
+  const spinAnim = useRef(new Animated.Value(0)).current
+  const scaleAnim = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
     (async () => {
@@ -58,14 +53,66 @@ export default function EventDetailScreen({ route, navigation }) {
   }, [eventId, retryCount])
 
   const handleBuy = () => {
-    const tel = `+221${phone.replace(/\s/g, '')}`
-    navigation.navigate('Paiement', {
-      eventId: event.id,
-      eventTitle: event.title,
-      ticket: selectedTicket,
-      telephone: tel,
-    })
+    setShowPaymentSheet(true)
+    setPaymentEtape('confirm')
   }
+
+  const isValidPhone = telephone.replace(/[^\d]/g, '').length >= 6
+
+  const confirmerPaiement = async () => {
+    setPaymentEtape('pending')
+    Animated.loop(
+      Animated.timing(spinAnim, {
+        toValue: 1,
+        duration: 1000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start()
+
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 6,
+      useNativeDriver: true,
+    }).start()
+
+    try {
+      const telPropre = telephone.replace(/[^\d]/g, '')
+      const telComplet = telPropre.startsWith('221') ? `+${telPropre}` : `+221${telPropre}`
+      const resultat = await acheterBillet(event.id, selectedTicket.id, telComplet, null, 'WAVE')
+
+      if (!resultat || !resultat.billet) {
+        throw new Error('Réponse invalide du serveur')
+      }
+
+      await definirTelephone(telComplet)
+
+      if (resultat.paiement?.redirectUrl) {
+        setShowPaymentSheet(false)
+        navigation.replace('WebViewWave', {
+          redirectUrl: resultat.paiement.redirectUrl,
+          transactionReference: resultat.paiement.reference,
+          eventId: event.id,
+          ticket: { ...resultat.billet, eventId: event.id },
+        })
+      } else {
+        setPaymentResult({ ...resultat.billet, eventId: event.id })
+        setPaymentEtape('success')
+        setTimeout(() => {
+          setShowPaymentSheet(false)
+          navigation.replace('Ticket', { ticket: { ...resultat.billet, eventId: event.id } })
+        }, 2000)
+      }
+    } catch (err) {
+      setPaymentEtape('failed')
+      setPaymentError(err.message || 'Erreur de connexion au serveur')
+    }
+  }
+
+  const spin = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  })
 
   if (error) {
     return (
@@ -139,7 +186,7 @@ export default function EventDetailScreen({ route, navigation }) {
               <LinearGradient colors={['#E0F7FF', '#FDF2F8']} style={styles.noAccount}>
                 <Feather name="zap" size={14} color={colors.accent} />
                 <Text style={styles.noAccountText}>
-                  <Text style={styles.noAccountStrong}>Aucune inscription requise.</Text> Saisis ton numéro Wave ou Orange Money.
+                  <Text style={styles.noAccountStrong}>Connexion rapide.</Text> Ton téléphone sera demandé au paiement.
                 </Text>
               </LinearGradient>
 
@@ -204,41 +251,143 @@ export default function EventDetailScreen({ route, navigation }) {
                 </TouchableOpacity>
               </Modal>
 
+              {/* 2. Saisie téléphone Wave */}
               <Text style={[styles.sectionLabel, { marginTop: spacing.md }]}>
-                <Feather name="smartphone" size={12} color={colors.slate} />                 2. Votre téléphone
+                <Feather name="smartphone" size={12} color={colors.slate} />                 2. Ton numéro Wave
               </Text>
 
-              <View style={styles.phoneRow}>
+              <View style={[styles.phoneRow, telephone.replace(/[^\d]/g, '').length >= 6 && styles.phoneRowActive]}>
                 <View style={styles.countryCode}>
-                  <Text style={styles.flag}>🇸🇳</Text>
                   <Text style={styles.codeText}>+221</Text>
                 </View>
                 <TextInput
                   style={styles.phoneInput}
-                  value={phone}
-                  onChangeText={setPhone}
+                  value={telephone}
+                  onChangeText={setTelephone}
                   keyboardType="phone-pad"
                   placeholder="77 XXX XX XX"
                   placeholderTextColor={colors.muted}
                 />
               </View>
-
-              <View style={styles.paymentRow}>
-                <Feather name="credit-card" size={11} color={colors.accent} />
-                <Text style={styles.paymentText}>Wave <Text style={styles.paymentSep}>·</Text> Orange Money</Text>
-              </View>
             </View>
           </ScrollView>
 
           <View style={styles.bottomBar}>
-            <TouchableOpacity style={styles.buyBtn} onPress={handleBuy} activeOpacity={0.9}>
-              <LinearGradient colors={['#00C8FF', '#0077FF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.buyGradient}>
+            <TouchableOpacity
+              style={[styles.buyBtn, !isValidPhone && styles.buyBtnDisabled]}
+              onPress={handleBuy}
+              activeOpacity={0.9}
+              disabled={!isValidPhone}
+            >
+              <LinearGradient
+                colors={['#00C8FF', '#0077FF']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.buyGradient}
+              >
                 <Feather name="shopping-cart" size={15} color="#fff" />
                 <Text style={styles.buyBtnText}>Payer {selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
+
+        {/* Modal de confirmation paiement Wave */}
+        <Modal
+          visible={showPaymentSheet}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowPaymentSheet(false)}
+        >
+          <TouchableOpacity
+            style={styles.paySheetOverlay}
+            activeOpacity={1}
+            onPress={() => paymentEtape === 'confirm' && setShowPaymentSheet(false)}
+          >
+            <View style={styles.paySheetContainer}>
+              {/* Bouton fermeture (croix) */}
+              {paymentEtape === 'confirm' && (
+                <TouchableOpacity style={styles.payCloseBtn} onPress={() => setShowPaymentSheet(false)}>
+                  <Feather name="x" size={20} color={colors.mid} />
+                </TouchableOpacity>
+              )}
+
+              {/* Étape : confirmation */}
+              {paymentEtape === 'confirm' && (
+                <>
+                  <Image source={require('../../assets/wave_logo.png')} style={styles.waveLogo} resizeMode="contain" />
+                  <Text style={styles.paySheetTitle}>Confirmer le paiement</Text>
+
+                  <View style={styles.payInfoCard}>
+                    <Text style={styles.payEventTitle}>{event.title}</Text>
+                    <View style={styles.payTicketRow}>
+                      <Text style={styles.payTicketName}>{selectedTicket.name}</Text>
+                      <Text style={styles.payTicketPrice}>{selectedTicket.price.toLocaleString()} FCFA</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.payPhoneRow}>
+                    <Feather name="smartphone" size={14} color={colors.mid} />
+                    <Text style={styles.payPhoneText}>+221 {telephone}</Text>
+                  </View>
+
+                  <TouchableOpacity style={styles.confirmPayBtn} onPress={confirmerPaiement} activeOpacity={0.9}>
+                    <LinearGradient
+                      colors={['#1AB3E5', '#0D8ABC']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.confirmPayGradient}
+                    >
+                      <Image source={require('../../assets/wave_logo.png')} style={styles.confirmBtnLogo} resizeMode="contain" />
+                      <Text style={styles.confirmPayText}>Payer {selectedTicket.price.toLocaleString()} FCFA</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {/* Étape : paiement en cours */}
+              {paymentEtape === 'pending' && (
+                <View style={styles.payCenter}>
+                  <Animated.View style={{ transform: [{ rotate: spin }] }}>
+                    <Feather name="loader" size={44} color="#1AB3E5" />
+                  </Animated.View>
+                  <Text style={styles.payStatusTitle}>Paiement en cours</Text>
+                  <Text style={styles.payStatusSub}>Confirmation Wave...</Text>
+                </View>
+              )}
+
+              {/* Étape : succès */}
+              {paymentEtape === 'success' && (
+                <View style={styles.payCenter}>
+                  <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                    <LinearGradient colors={['#1AB3E5', '#0D8ABC']} style={styles.payCheckCircle}>
+                      <Feather name="check" size={44} color="#fff" />
+                    </LinearGradient>
+                  </Animated.View>
+                  <Text style={styles.paySuccessTitle}>Paiement confirmé !</Text>
+                  <Text style={styles.payStatusSub}>Redirection vers votre ticket...</Text>
+                </View>
+              )}
+
+              {/* Étape : échec */}
+              {paymentEtape === 'failed' && (
+                <View style={styles.payCenter}>
+                  <View style={styles.payErrorCircle}>
+                    <Feather name="x" size={44} color="#fff" />
+                  </View>
+                  <Text style={styles.payErrorTitle}>Paiement échoué</Text>
+                  <Text style={styles.payErrorDetail}>{paymentError}</Text>
+                  <TouchableOpacity style={styles.payRetryBtn} onPress={() => setPaymentEtape('confirm')} activeOpacity={0.8}>
+                    <LinearGradient colors={['#1AB3E5', '#0D8ABC']} style={styles.payRetryGradient}>
+                      <Feather name="refresh-cw" size={14} color="#fff" />
+                      <Text style={styles.payRetryText}>Réessayer</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </SafeAreaView>
     </BuyerLayout>
   )
@@ -485,28 +634,33 @@ const styles = StyleSheet.create({
   },
   radioInner: { width: 6, height: 6, borderRadius: 50, backgroundColor: colors.white },
 
+  // Styles input téléphone
   phoneRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.bg,
+    backgroundColor: colors.white,
     borderRadius: borderRadius.md,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
     overflow: 'hidden',
+    marginTop: 4,
+  },
+  phoneRowActive: {
+    borderColor: '#1AB3E5',
   },
   countryCode: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
     paddingHorizontal: 14,
-    paddingVertical: 13,
+    paddingVertical: 14,
     backgroundColor: colors.border,
   },
-  flag: { fontSize: 13 },
-  codeText: { fontSize: 12, fontFamily: fonts.jakarta.semiBold, color: colors.slate },
+  codeText: {
+    fontSize: 13,
+    fontFamily: fonts.jakarta.semiBold,
+    color: colors.slate,
+  },
   phoneInput: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: fonts.jakarta.semiBold,
     color: colors.slate,
     padding: 0,
@@ -514,15 +668,173 @@ const styles = StyleSheet.create({
     outlineStyle: 'none',
   },
 
-  paymentRow: {
-    flexDirection: 'row',
+  // Styles modal paiement Wave
+  paySheetOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  paySheetContainer: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
+    paddingTop: spacing.xl,
+    alignItems: 'center',
+  },
+  payCloseBtn: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.bg,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 5,
-    marginTop: 12,
+    zIndex: 1,
   },
-  paymentText: { fontSize: 10, color: colors.mid, fontFamily: fonts.jakarta.regular },
-  paymentSep: { color: colors.muted },
+  waveLogo: {
+    width: 90,
+    height: 28,
+    marginBottom: spacing.md,
+  },
+  paySheetTitle: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 18,
+    color: colors.slate,
+    marginBottom: spacing.md,
+  },
+  payInfoCard: {
+    width: '100%',
+    backgroundColor: colors.bg,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  payEventTitle: {
+    fontFamily: fonts.outfit.semiBold,
+    fontSize: 14,
+    color: colors.slate,
+    marginBottom: 6,
+  },
+  payTicketRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  payTicketName: {
+    fontFamily: fonts.jakarta.regular,
+    fontSize: 13,
+    color: colors.mid,
+  },
+  payTicketPrice: {
+    fontFamily: fonts.outfit.semiBold,
+    fontSize: 14,
+    color: '#1AB3E5',
+  },
+  payPhoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: spacing.lg,
+  },
+  payPhoneText: {
+    fontFamily: fonts.jakarta.medium,
+    fontSize: 14,
+    color: colors.slate,
+  },
+  confirmPayBtn: {
+    width: '100%',
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+    ...shadows.md,
+  },
+  confirmPayGradient: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  confirmBtnLogo: {
+    width: 20,
+    height: 20,
+  },
+  confirmPayText: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 16,
+    color: '#fff',
+  },
+  payCenter: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 14,
+    paddingVertical: spacing.xl,
+    minHeight: 260,
+  },
+  payStatusTitle: {
+    fontFamily: fonts.outfit.semiBold,
+    fontSize: 16,
+    color: colors.slate,
+    marginTop: spacing.sm,
+  },
+  payStatusSub: {
+    fontFamily: fonts.jakarta.regular,
+    fontSize: 13,
+    color: colors.mid,
+    textAlign: 'center',
+  },
+  payCheckCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  paySuccessTitle: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 20,
+    color: '#1AB3E5',
+  },
+  payErrorCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.red,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  payErrorTitle: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 20,
+    color: colors.red,
+  },
+  payErrorDetail: {
+    fontFamily: fonts.jakarta.regular,
+    fontSize: 12,
+    color: colors.mid,
+    textAlign: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  payRetryBtn: {
+    marginTop: 8,
+    borderRadius: 100,
+    overflow: 'hidden',
+  },
+  payRetryGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+  },
+  payRetryText: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 14,
+    color: '#fff',
+  },
 
   bottomBar: {
     padding: spacing.md,

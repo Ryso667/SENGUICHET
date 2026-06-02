@@ -2,15 +2,19 @@
 // ProviderFactory instancie le bon provider selon le type
 
 const ProviderSimulation = require('./providers/ProviderSimulation');
+const ProviderWave = require('./providers/ProviderWave');
 
 class PaymentService {
   static getProvider(type) {
     switch (type) {
       case 'SIMULATION':
         return new ProviderSimulation();
-      // case 'ORANGE_MONEY': return new ProviderOrangeMoney();
-      // case 'WAVE': return new ProviderWave();
-      // case 'FREE_MONEY': return new ProviderFreeMoney();
+      case 'WAVE':
+        if (!process.env.WAVE_API_KEY) {
+          console.warn('PaymentService: WAVE_API_KEY non configurée, fallback vers SIMULATION');
+          return new ProviderSimulation();
+        }
+        return new ProviderWave();
       default:
         throw new Error(`Provider ${type} non supporté`);
     }
