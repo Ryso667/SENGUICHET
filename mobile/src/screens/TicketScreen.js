@@ -1,9 +1,11 @@
 // Écran ticket — affichage complet : logo, QR, infos, prix, perforations
 // Design ticket classique avec habillage glass (fond gradient + carte glass)
+// QR rafraîchi toutes les 30s avec nouveau HMAC (sécurité anti-rejeu)
 import { useRef, useEffect, useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import QRCode from 'react-native-qrcode-svg'
+import * as Crypto from 'expo-crypto'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, spacing, borderRadius, glass, textShadow } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
@@ -12,6 +14,25 @@ import GlassChip from '../components/GlassChip'
 import { formaterDateLisible } from '../utils/dateUtils'
 
 const QR_REFRESH_INTERVAL = 30
+const CLE_SECRETE_QR = 'senguichet-cle-secrete-hmac'
+
+// Génère le payload JSON du QR avec HMAC-SHA256 (uuid, ref, timestamp, event_id, category)
+async function genererQRPayload(ticket) {
+  const now = new Date().toISOString()
+  const payload = `${ticket.id}|${ticket.numero}|${now}|${ticket.eventId}|${ticket.categorie}`
+  const signature = await Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    payload + CLE_SECRETE_QR
+  )
+  return JSON.stringify({
+    uuid: ticket.id,
+    hmac: signature,
+    event_id: ticket.eventId,
+    category: ticket.categorie,
+    timestamp: now,
+    transaction_ref: ticket.numero,
+  })
+}
 
 // Ligne de perforation décorative (tirets)
 function DashLine() {
@@ -21,8 +42,20 @@ function DashLine() {
 export default function TicketScreen({ route, navigation }) {
   const { ticket } = route.params || {}
   const insets = useSafeAreaInsets()
+  const [qrValue, setQrValue] = useState(null)
+  const [qrReady, setQrReady] = useState(false)
   const [exporting, setExporting] = useState(false)
   const qrRef = useRef(null)
+
+  // Génère le QR payload à l'ouverture et le rafraîchit toutes les 30s
+  useEffect(() => {
+    genererQRPayload(ticket).then((v) => { setQrValue(v); setQrReady(true) })
+    const interval = setInterval(async () => {
+      const nouveau = await genererQRPayload(ticket)
+      setQrValue(nouveau)
+    }, QR_REFRESH_INTERVAL * 1000)
+    return () => clearInterval(interval)
+  }, [ticket])
 
   const isScanned = ticket?.statut === 'utilise'
   const organisateurNom = 'SENGUICHET'
@@ -81,18 +114,24 @@ export default function TicketScreen({ route, navigation }) {
           {/* 4. Référence */}
           <Text style={styles.refText}>REF : {refStr}</Text>
 
-          {/* 5. QR Code */}
+          {/* 5. QR Code avec HMAC (rafraîchi toutes les 30s) */}
           <View style={styles.qrSection}>
             <View style={styles.qrWrapper}>
-              <QRCode
-                value={ticket?.hmac || ticket?.numero || 'senguichet-ticket'}
-                size={200}
-                backgroundColor="rgba(255,255,255,0.1)"
-                color="#fff"
-                ecl="H"
-                quietZone={8}
-                getRef={(c) => { qrRef.current = c }}
-              />
+              {qrReady ? (
+                <QRCode
+                  value={qrValue}
+                  size={200}
+                  backgroundColor="rgba(255,255,255,0.1)"
+                  color="#fff"
+                  ecl="H"
+                  quietZone={8}
+                  getRef={(c) => { qrRef.current = c }}
+                />
+              ) : (
+                <View style={styles.qrPlaceholder}>
+                  <ActivityIndicator size="small" color="#fff" />
+                </View>
+              )}
               {isScanned && (
                 <View style={styles.scannedOverlay}>
                   <View style={styles.redCircle}>
@@ -231,6 +270,10 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: borderRadius.sm,
+  },
+  qrPlaceholder: {
+    width: 200, height: 200,
+    alignItems: 'center', justifyContent: 'center',
   },
   scannedOverlay: {
     position: 'absolute',
