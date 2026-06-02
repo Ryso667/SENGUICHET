@@ -67,7 +67,7 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <BlurBackground category={category} />
+      <BlurBackground category={category} showImage={false} />
       <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.sm }]} showsVerticalScrollIndicator={false}>
         {/* Header Bonjour */}
         <Animated.View style={[styles.headerWrap, headerStyle]}>
