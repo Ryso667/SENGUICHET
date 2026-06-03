@@ -4,8 +4,12 @@ import { useState, useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { CameraView, useCameraPermissions } from 'expo-camera'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { verifierBillet, telechargerTickets, getStats } from '../../services/scanService'
 import { useAuth } from '../../context/AuthContext'
+import BlurBackground from '../../components/BlurBackground'
+import GlassButton from '../../components/GlassButton'
+import { textShadow } from '../../constants/theme'
 
 // Couleurs d'affichage selon le résultat du scan (5 statuts possibles)
 const COULEURS = {
@@ -22,6 +26,7 @@ export default function ScannerScreen({ navigation, route }) {
   const [pret, setPret] = useState(false)
   const { numeroTel } = useAuth()
   const animation = useRef(new Animated.Value(0)).current
+  const insets = useSafeAreaInsets()
 
   const eventId = route?.params?.eventId || 1
   const zone = route?.params?.zone || 'STANDARD'
@@ -71,15 +76,16 @@ export default function ScannerScreen({ navigation, route }) {
   // Sera remplacé par une UI plus riche avec explication du besoin
   if (!permission || !permission.granted) {
     return (
-      <View style={styles.centre}>
-        <Text style={styles.textePermission}>
-          {!permission ? "Demande d'accès..." : 'Accès caméra refusé'}
-        </Text>
-        {permission && !permission.granted && (
-          <TouchableOpacity style={styles.bouton} onPress={requestPermission}>
-            <Text style={styles.boutonTexte}>Autoriser</Text>
-          </TouchableOpacity>
-        )}
+      <View style={{flex: 1}}>
+        <BlurBackground category="Concert" />
+        <View style={styles.centre}>
+          <Text style={styles.textePermission}>
+            {!permission ? "Demande d'accès..." : 'Accès caméra refusé'}
+          </Text>
+          {permission && !permission.granted && (
+            <GlassButton title="Autoriser" icon="camera" onPress={requestPermission} />
+          )}
+        </View>
       </View>
     )
   }
@@ -94,8 +100,8 @@ export default function ScannerScreen({ navigation, route }) {
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
       />
       {/* Overlay positionné en absolu : masque semi-transparent avec cadre de scan central */}
-      <View style={styles.overlay} pointerEvents="none">
-        <View style={styles.masqueHaut}>
+        <View style={styles.overlay} pointerEvents="none">
+        <View style={[styles.masqueHaut, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.titre}>Scanner un billet</Text>
           <Text style={styles.info}>{zone} — Événement #{eventId}</Text>
         </View>
@@ -120,12 +126,12 @@ export default function ScannerScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   conteneur: { flex: 1 },
-  centre: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8f9fc', padding: 24 },
-  textePermission: { fontFamily: 'Outfit_500Medium', fontSize: 16, color: '#64748b', textAlign: 'center', marginBottom: 16 },
+  centre: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  textePermission: { fontFamily: 'Outfit_500Medium', fontSize: 16, color: '#FFFFFF', textAlign: 'center', marginBottom: 16 },
   camera: { flex: 1 },
   overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
-  masqueHaut: { backgroundColor: 'rgba(0,0,0,0.6)', paddingTop: 60, paddingBottom: 20, alignItems: 'center' },
-  titre: { fontFamily: 'Outfit_700Bold', fontSize: 22, color: '#FFFFFF' },
+  masqueHaut: { backgroundColor: 'rgba(0,0,0,0.6)', paddingBottom: 20, alignItems: 'center' },
+  titre: { fontFamily: 'Outfit_700Bold', fontSize: 22, color: '#FFFFFF', ...textShadow },
   info: { fontFamily: 'Outfit_400Regular', fontSize: 13, color: '#94a3b8', marginTop: 4 },
   zoneCadre: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   cadre: { width: 250, height: 250, borderWidth: 2, borderColor: '#22c55e', borderRadius: 16, opacity: 0.8 },

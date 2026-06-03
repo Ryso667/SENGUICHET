@@ -2,20 +2,23 @@
 // En mode démo, n'importe quel email/mdp fonctionne
 import { useState } from 'react'
 import {
-  View, Text, TextInput, TouchableOpacity,
+  View, Text, TextInput, ActivityIndicator,
   KeyboardAvoidingView, Platform, ScrollView, StyleSheet,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { connecterOrganisateur } from '../../services/authService'
 import { useAuth } from '../../context/AuthContext'
-import BoutonPrincipal from '../../components/BoutonPrincipal'
-import { colors } from '../../constants/theme'
+import GlassButton from '../../components/GlassButton'
+import { colors, spacing, textShadow } from '../../constants/theme'
+import BlurBackground from '../../components/BlurBackground'
+import GlassContainer from '../../components/GlassContainer'
 
 export default function ConnexionOrganisateurScreen({ navigation }) {
   const [email, setEmail] = useState('')
   const [mdp, setMdp] = useState('')
   const [chargement, setChargement] = useState(false)
   const { connecterOrganisateur: connecter } = useAuth()
+  const insets = useSafeAreaInsets()
 
   // Authentifie l'organisateur et stocke la session
   // En mode démo, n'importe quel email/mdp fonctionne (cf. authService.connecterOrganisateur)
@@ -33,19 +36,23 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <View style={{ flex: 1 }}>
+      <BlurBackground />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.conteneur}
+          contentContainerStyle={[styles.conteneur, { paddingTop: insets.top + spacing.lg }]}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Bouton retour */}
-          <Text style={styles.retour} onPress={() => navigation.goBack()}>
-            ← Retour
-          </Text>
+          {/* Bouton retour verre dépoli */}
+          <GlassButton
+            title="Retour"
+            icon="arrow-left"
+            onPress={() => navigation.goBack()}
+            style={styles.retour}
+          />
 
           <Text style={styles.titre}>Espace organisateur</Text>
           <Text style={styles.sousTitre}>
@@ -54,53 +61,60 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
 
           {/* Champ email */}
           <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            placeholder="exemple@email.com"
-            placeholderTextColor={colors.muted}
-          />
+          <GlassContainer style={styles.inputWrap}>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              placeholder="exemple@email.com"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+            />
+          </GlassContainer>
 
           {/* Champ mot de passe */}
           <Text style={styles.label}>Mot de passe</Text>
-          <TextInput
-            style={styles.input}
-            value={mdp}
-            onChangeText={setMdp}
-            secureTextEntry
-            placeholder="••••••••"
-            placeholderTextColor={colors.muted}
-          />
+          <GlassContainer style={styles.inputWrap}>
+            <TextInput
+              style={styles.input}
+              value={mdp}
+              onChangeText={setMdp}
+              secureTextEntry
+              placeholder="••••••••"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+            />
+          </GlassContainer>
 
           <View style={{ height: 24 }} />
-          <BoutonPrincipal
-            titre="Se connecter"
-            chargement={chargement}
-            desactive={!email || !mdp}
-            onPress={handleConnexion}
-          />
+          {chargement ? (
+            <View style={styles.glassLoadingBtn}>
+              <ActivityIndicator size="small" color="#fff" />
+            </View>
+          ) : (
+            <GlassButton
+              title="Se connecter"
+              onPress={!email || !mdp ? undefined : handleConnexion}
+              style={!email || !mdp ? { opacity: 0.5 } : undefined}
+            />
+          )}
 
           {/* Lien vers l'inscription organisateur */}
           <View style={styles.inscriptionRow}>
             <Text style={styles.inscriptionText}>Pas encore de compte ?{' '}</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('InscriptionOrganisateur')}>
-              <Text style={styles.inscriptionLink}>S'inscrire</Text>
-            </TouchableOpacity>
+            <GlassButton
+              title="S'inscrire"
+              onPress={() => navigation.navigate('InscriptionOrganisateur')}
+              style={styles.inscriptionLink}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
   flex: {
     flex: 1,
   },
@@ -110,27 +124,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   retour: {
-    fontFamily: 'Outfit_500Medium',
-    fontSize: 15,
-    color: colors.accent,
     marginBottom: 24,
+    alignSelf: 'flex-start',
   },
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: colors.slate,
+    color: '#fff',
     marginBottom: 8,
+    ...textShadow,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: colors.mid,
+    color: 'rgba(255,255,255,0.6)',
     marginBottom: 32,
   },
   label: {
     fontFamily: 'Outfit_500Medium',
     fontSize: 14,
-    color: colors.slate,
+    color: 'rgba(255,255,255,0.8)',
     marginBottom: 6,
   },
   inscriptionRow: {
@@ -142,23 +155,26 @@ const styles = StyleSheet.create({
   inscriptionText: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 13,
-    color: colors.mid,
+    color: 'rgba(255,255,255,0.6)',
   },
   inscriptionLink: {
-    fontFamily: 'Outfit_600SemiBold',
-    fontSize: 13,
-    color: colors.accent,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    minWidth: undefined,
   },
+  inputWrap: { marginBottom: 16, borderRadius: 14, height: 56, justifyContent: 'center', paddingHorizontal: 16 },
   input: {
-    backgroundColor: colors.white,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 16,
-    height: 56,
     fontFamily: 'Outfit_400Regular',
     fontSize: 16,
-    color: colors.slate,
-    marginBottom: 16,
+    color: '#fff',
+  },
+  glassLoadingBtn: {
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
 })

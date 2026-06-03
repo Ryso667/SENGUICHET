@@ -1,10 +1,12 @@
 // Écran de confirmation après inscription organisateur
 // Informe l'utilisateur que son compte est en cours de validation
 import { View, Text, ScrollView, StyleSheet } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
-import BoutonPrincipal from '../../components/BoutonPrincipal'
-import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
+import GlassButton from '../../components/GlassButton'
+import GlassContainer from '../../components/GlassContainer'
+import { colors, spacing, fonts, textShadow } from '../../constants/theme'
+import BlurBackground from '../../components/BlurBackground'
 
 // Composant de la barre de progression à 3 étapes
 const Stepper = ({ etapeCourante }) => {
@@ -22,7 +24,7 @@ const Stepper = ({ etapeCourante }) => {
               <View
                 style={[
                   stepperStyles.ligne,
-                  { backgroundColor: estComplete ? colors.green : colors.border },
+                  { backgroundColor: estComplete ? colors.green : 'rgba(255,255,255,0.2)' },
                 ]}
               />
             )}
@@ -82,7 +84,7 @@ const stepperStyles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.border,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -95,7 +97,7 @@ const stepperStyles = StyleSheet.create({
   cercleTexte: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: 14,
-    color: colors.mid,
+    color: 'rgba(255,255,255,0.6)',
   },
   cercleTexteClair: {
     color: colors.white,
@@ -103,7 +105,7 @@ const stepperStyles = StyleSheet.create({
   label: {
     fontFamily: fonts.outfit.regular,
     fontSize: 12,
-    color: colors.muted,
+    color: 'rgba(255,255,255,0.6)',
     textAlign: 'center',
     position: 'absolute',
     top: 44,
@@ -111,15 +113,18 @@ const stepperStyles = StyleSheet.create({
   },
   labelForte: {
     fontFamily: fonts.outfit.semiBold,
-    color: colors.slate,
+    color: '#fff',
   },
 })
 
 export default function EnAttenteValidationScreen({ navigation }) {
+  const insets = useSafeAreaInsets()
+
   return (
-    <SafeAreaView style={styles.safe}>
+    <View style={{ flex: 1 }}>
+      <BlurBackground />
       <ScrollView
-        contentContainerStyle={styles.conteneur}
+        contentContainerStyle={[styles.conteneur, { paddingTop: insets.top }]}
         keyboardShouldPersistTaps="handled"
       >
         {/* Icône de confirmation */}
@@ -134,8 +139,8 @@ export default function EnAttenteValidationScreen({ navigation }) {
         {/* Barre de progression des étapes */}
         <Stepper etapeCourante={1} />
 
-        {/* Carte d'information */}
-        <View style={styles.carte}>
+        {/* Carte d'information verre dépoli */}
+        <GlassContainer style={styles.carte}>
           <Text style={styles.carteTexte}>
             Un administrateur va valider ton compte sous 24 à 48 heures.
           </Text>
@@ -145,23 +150,19 @@ export default function EnAttenteValidationScreen({ navigation }) {
           <Text style={styles.carteTexte}>
             Tu pourras ensuite te connecter avec ton email et mot de passe.
           </Text>
-        </View>
+        </GlassContainer>
 
         <View style={{ height: 24 }} />
-        <BoutonPrincipal
-          titre="Retour à l'accueil"
+        <GlassButton
+          title="Retour à l'accueil"
           onPress={() => navigation.navigate('AccueilChoix')}
         />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
   conteneur: {
     flexGrow: 1,
     paddingHorizontal: 24,
@@ -173,20 +174,19 @@ const styles = StyleSheet.create({
   titre: {
     fontFamily: fonts.outfit.bold,
     fontSize: 24,
-    color: colors.slate,
+    color: '#fff',
     marginBottom: spacing.sm,
     textAlign: 'center',
+    ...textShadow,
   },
   sousTitre: {
     fontFamily: fonts.outfit.regular,
     fontSize: 15,
-    color: colors.mid,
+    color: 'rgba(255,255,255,0.6)',
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
   carte: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
     padding: spacing.lg,
     width: '100%',
     gap: spacing.md,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   carteTexte: {
     fontFamily: fonts.outfit.regular,
     fontSize: 14,
-    color: colors.slate,
+    color: '#fff',
     lineHeight: 20,
   },
 })

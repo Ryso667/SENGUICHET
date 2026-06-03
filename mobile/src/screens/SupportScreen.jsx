@@ -1,132 +1,106 @@
-// Écran de support et contact utilisateur
-// Affiche les coordonnées de contact (email, téléphone, WhatsApp, FAQ)
-import React from 'react'
-import { View, Text, TouchableOpacity, Linking, StyleSheet, ScrollView } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+// Écran Support — version glass
+// Fond : image Unsplash abstraite
+// Contacts et FAQ en cartes glass
+import { useState } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, Linking, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
-import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
-import BuyerLayout from '../components/BuyerLayout'
+import { fonts, spacing, borderRadius, glass } from '../constants/theme'
+import BlurBackground from '../components/BlurBackground'
+import GlassContainer from '../components/GlassContainer'
+import GlassChip from '../components/GlassChip'
 
-const SUPPORT_ITEMS = [
-  { icon: 'mail', label: 'Email', value: 'support@senguichet.sn', action: 'mailto:support@senguichet.sn' },
-  { icon: 'phone', label: 'Téléphone', value: '+221 XX XXX XX XX', action: null },
-  { icon: 'message-circle', label: 'WhatsApp', value: '+221 XX XXX XX XX', action: null },
-  { icon: 'help-circle', label: 'FAQ', value: 'Bientôt disponible', action: null },
+const FAQ = [
+  { q: 'Comment acheter un ticket ?', r: 'Choisis un événement, sélectionne ta catégorie de ticket, paie via Wave ou Orange Money.' },
+  { q: 'Puis-je être remboursé ?', r: 'Les remboursements sont gérés par l\'organisateur. Contacte le support si besoin.' },
+  { q: 'Mon QR ne fonctionne pas', r: 'Assure-toi d\'avoir une bonne connexion. Le QR se régénère toutes les 30s.' },
 ]
 
-// Sera remplacé par API : récupération des coordonnées depuis le serveur
 export default function SupportScreen() {
+  const [openIndex, setOpenIndex] = useState(null)
+
+  const handleCall = () => { Linking.openURL('tel:+221771234567') }
+  const handleWhatsApp = () => { Linking.openURL('https://wa.me/221771234567') }
+
   return (
-    <BuyerLayout>
-      <SafeAreaView style={s.safe}>
-        <ScrollView contentContainerStyle={s.scroll}>
-          {/* En-tête avec icône et titre */}
-          <View style={s.header}>
-            <LinearGradient colors={['rgba(99,102,241,0.1)', 'rgba(236,72,153,0.05)']} style={s.headerGlow}>
-              <View style={s.iconWrap}>
-                <Feather name="headphones" size={32} color={colors.accent} />
-              </View>
-              <Text style={s.title}>Support</Text>
-              <Text style={s.sub}>Une question ? Un problème ? Contactez-nous.</Text>
-            </LinearGradient>
-          </View>
+    <View style={styles.container}>
+      <BlurBackground category="Conference" />
 
-          {SUPPORT_ITEMS.map((item, i) => (
-            <TouchableOpacity
-              key={i}
-              style={s.card}
-              onPress={() => item.action && Linking.openURL(item.action)}
-              activeOpacity={0.7}
-              disabled={!item.action}
-            >
-              <LinearGradient colors={['#E0F7FF', '#FDF2F8']} style={s.iconBox}>
-                <Feather name={item.icon} size={18} color={colors.accent} />
-              </LinearGradient>
-              <View style={s.cardText}>
-                <Text style={s.cardLabel}>{item.label}</Text>
-                <Text style={s.cardValue}>{item.value}</Text>
-              </View>
-              {item.action ? (
-                <View style={s.chevronBtn}>
-                  <Feather name="chevron-right" size={16} color={colors.accent} />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <GlassContainer style={styles.headerCard} intensity={50}>
+          <Text style={styles.title}>Support</Text>
+          <Text style={styles.subtitle}>Comment pouvons-nous t'aider ?</Text>
+        </GlassContainer>
+
+        {/* Contacts */}
+        <GlassContainer style={styles.contactsCard} intensity={40}>
+          <View style={styles.contactRow}>
+            <Feather name="mail" size={16} color="#00C8FF" />
+            <Text style={styles.contactText}>support@senguichet.sn</Text>
+            <GlassChip label="Copier" onPress={() => {}} />
+          </View>
+          <View style={styles.divider} />
+          <TouchableOpacity style={styles.contactRow} onPress={handleCall}>
+            <Feather name="phone" size={16} color="#00E5A0" />
+            <Text style={styles.contactText}>+221 77 123 45 67</Text>
+            <GlassChip label="Appeler" onPress={handleCall} />
+          </TouchableOpacity>
+          <View style={styles.divider} />
+          <TouchableOpacity style={styles.contactRow} onPress={handleWhatsApp}>
+            <Feather name="message-circle" size={16} color="#25D366" />
+            <Text style={styles.contactText}>WhatsApp</Text>
+            <GlassChip label="Écrire" onPress={handleWhatsApp} />
+          </TouchableOpacity>
+        </GlassContainer>
+
+        {/* FAQ */}
+        <Text style={styles.faqTitle}>Questions fréquentes</Text>
+        {FAQ.map((item, i) => {
+          const open = openIndex === i
+          return (
+            <TouchableOpacity key={i} onPress={() => setOpenIndex(open ? null : i)} activeOpacity={0.7}>
+              <GlassContainer style={styles.faqItem} intensity={40}>
+                <View style={styles.faqHeader}>
+                  <Text style={styles.faqQuestion}>{item.q}</Text>
+                  <Feather name={open ? 'chevron-up' : 'chevron-down'} size={16} color="rgba(255,255,255,0.6)" />
                 </View>
-              ) : (
-                <Text style={s.bientot}>Bientôt</Text>
-              )}
+                {open && <Text style={styles.faqAnswer}>{item.r}</Text>}
+              </GlassContainer>
             </TouchableOpacity>
-          ))}
-
-          {/* Pied de page */}
-          <View style={s.footer}>
-            <Text style={s.footerTitle}>Senguichet</Text>
-            <Text style={s.footerSub}>Billets & Événements · Sénégal</Text>
-            <Text style={s.footerVersion}>Version 1.0.0</Text>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </BuyerLayout>
+          )
+        })}
+      </ScrollView>
+    </View>
   )
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1 },
-  scroll: { padding: spacing.lg, paddingBottom: spacing.xl * 2 },
-  header: { marginTop: spacing.lg, marginBottom: spacing.lg },
-  headerGlow: {
-    alignItems: 'center',
-    borderRadius: borderRadius.xl,
-    padding: spacing.xl,
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#0f0f2a' },
+  scroll: { flex: 1 },
+  scrollContent: { padding: spacing.lg, paddingBottom: spacing.xl, gap: spacing.md },
+  headerCard: { padding: spacing.md, alignItems: 'center' },
+  title: { fontSize: 22, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.5 },
+  subtitle: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', marginTop: 4 },
+  contactsCard: { padding: spacing.md },
+  contactRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10,
   },
-  iconWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadows.md,
+  contactText: {
+    flex: 1, fontSize: 13, fontFamily: fonts.jakarta.regular, color: '#fff',
   },
-  title: {
-    fontSize: 22,
-    fontFamily: fonts.outfit.bold,
-    color: colors.slate,
-    marginTop: spacing.md,
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: glass.borderLight },
+  faqTitle: {
+    fontSize: 16, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.3, marginTop: 8,
   },
-  sub: {
-    fontSize: 13,
-    fontFamily: fonts.jakarta.regular,
-    color: colors.mid,
-    marginTop: spacing.xs,
-    textAlign: 'center',
-    lineHeight: 18,
+  faqItem: { padding: spacing.md },
+  faqHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  card: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.white, borderRadius: borderRadius.lg,
-    padding: spacing.lg, marginBottom: spacing.sm,
-    ...shadows.sm,
+  faqQuestion: {
+    flex: 1, fontSize: 13, fontFamily: fonts.jakarta.semiBold, color: '#fff', marginRight: spacing.sm,
   },
-  iconBox: {
-    width: 44, height: 44, borderRadius: 14,
-    alignItems: 'center', justifyContent: 'center',
-    marginRight: spacing.md,
+  faqAnswer: {
+    fontSize: 12, fontFamily: fonts.jakarta.regular,
+    color: 'rgba(255,255,255,0.7)', marginTop: spacing.sm, lineHeight: 18,
   },
-  cardText: { flex: 1 },
-  cardLabel: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.slate },
-  cardValue: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: 2 },
-  chevronBtn: {
-    width: 28, height: 28, borderRadius: 14,
-    backgroundColor: colors.accentLight,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  bientot: {
-    fontSize: 10, fontFamily: fonts.jakarta.semiBold,
-    color: colors.muted, backgroundColor: colors.bg,
-    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6,
-  },
-  footer: { alignItems: 'center', marginTop: spacing.xl * 2 },
-  footerTitle: { fontSize: 16, fontFamily: fonts.outfit.black, color: colors.slate, letterSpacing: -0.5 },
-  footerSub: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.muted, marginTop: 2 },
-  footerVersion: { fontSize: 10, fontFamily: fonts.jakarta.regular, color: colors.muted, marginTop: spacing.sm },
 })

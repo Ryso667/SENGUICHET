@@ -1,10 +1,13 @@
 // Paramètres organisateur (lecture seule)
-// Profil, sécurité, notifications
+// Design glass (Apple Invites)
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, ScrollView, Switch } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
+import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
 import { useAuth } from '../../context/AuthContext'
+import BlurBackground from '../../components/BlurBackground'
+import GlassContainer from '../../components/GlassContainer'
 
 const NOTIF_KEYS = {
   smsVente: '@senguichet_notif_sms_vente',
@@ -13,6 +16,7 @@ const NOTIF_KEYS = {
 }
 
 export default function ParametresScreen() {
+  const insets = useSafeAreaInsets()
   const { user } = useAuth()
   const [notifications, setNotifications] = useState({
     smsVente: true,
@@ -27,10 +31,11 @@ export default function ParametresScreen() {
   }
 
   return (
-    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
-      <View style={s.section}>
-        <Text style={s.sectionTitle}>Mon profil</Text>
-        <View style={s.card}>
+    <View style={s.container}>
+      <BlurBackground category="Conference" />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: insets.top }}>
+        <GlassContainer style={s.section} intensity={35}>
+          <Text style={s.sectionTitle}>Mon profil</Text>
           <View style={s.row}>
             <Text style={s.label}>Nom</Text>
             <Text style={s.value}>{user?.nom || '-'}</Text>
@@ -45,28 +50,24 @@ export default function ParametresScreen() {
             <Text style={s.label}>Téléphone</Text>
             <Text style={s.value}>{user?.telephone || '-'}</Text>
           </View>
-        </View>
-      </View>
+        </GlassContainer>
 
-      <View style={s.section}>
-        <Text style={s.sectionTitle}>Sécurité</Text>
-        <View style={s.card}>
+        <GlassContainer style={s.section} intensity={35}>
+          <Text style={s.sectionTitle}>Sécurité</Text>
           <Text style={s.infoText}>
             Pour modifier ton mot de passe, connecte-toi à la version web.
           </Text>
-        </View>
-      </View>
+        </GlassContainer>
 
-      <View style={s.section}>
-        <Text style={s.sectionTitle}>Notifications</Text>
-        <View style={s.card}>
+        <GlassContainer style={s.section} intensity={35}>
+          <Text style={s.sectionTitle}>Notifications</Text>
           <View style={s.row}>
             <Text style={s.label}>SMS à chaque vente</Text>
             <Switch
               value={notifications.smsVente}
               onValueChange={() => toggleNotif('smsVente')}
-              trackColor={{ true: '#00C8FF', false: colors.border }}
-              thumbColor={notifications.smsVente ? colors.accent : colors.muted}
+              trackColor={{ true: 'rgba(0,200,255,0.6)', false: 'rgba(255,255,255,0.2)' }}
+              thumbColor={notifications.smsVente ? '#00C8FF' : 'rgba(255,255,255,0.5)'}
             />
           </View>
           <View style={s.divider} />
@@ -75,8 +76,8 @@ export default function ParametresScreen() {
             <Switch
               value={notifications.emailRecap}
               onValueChange={() => toggleNotif('emailRecap')}
-              trackColor={{ true: '#00C8FF', false: colors.border }}
-              thumbColor={notifications.emailRecap ? colors.accent : colors.muted}
+              trackColor={{ true: 'rgba(0,200,255,0.6)', false: 'rgba(255,255,255,0.2)' }}
+              thumbColor={notifications.emailRecap ? '#00C8FF' : 'rgba(255,255,255,0.5)'}
             />
           </View>
           <View style={s.divider} />
@@ -85,25 +86,24 @@ export default function ParametresScreen() {
             <Switch
               value={notifications.stockFaible}
               onValueChange={() => toggleNotif('stockFaible')}
-              trackColor={{ true: '#00C8FF', false: colors.border }}
-              thumbColor={notifications.stockFaible ? colors.accent : colors.muted}
+              trackColor={{ true: 'rgba(0,200,255,0.6)', false: 'rgba(255,255,255,0.2)' }}
+              thumbColor={notifications.stockFaible ? '#00C8FF' : 'rgba(255,255,255,0.5)'}
             />
           </View>
-        </View>
-      </View>
-      <View style={{ height: 40 }} />
-    </ScrollView>
+        </GlassContainer>
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </View>
   )
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  section: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
-  sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: colors.slate, marginBottom: spacing.sm },
-  card: { backgroundColor: '#fff', borderRadius: borderRadius.lg, padding: spacing.md, elevation: 2, shadowColor: '#00C8FF', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8 },
+  container: { flex: 1 },
+  section: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
+  sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff', marginBottom: spacing.sm, ...textShadow },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.sm },
-  label: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.slate },
-  value: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.slate, textAlign: 'right', flex: 1, marginLeft: spacing.md },
-  divider: { height: 1, backgroundColor: colors.border },
-  infoText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.mid, lineHeight: 20 },
+  label: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: '#fff' },
+  value: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)', textAlign: 'right', flex: 1, marginLeft: spacing.md },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.15)' },
+  infoText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', lineHeight: 20 },
 })

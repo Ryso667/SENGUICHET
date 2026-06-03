@@ -2,13 +2,15 @@
 // Permet de créer un compte organisateur — en mode mock, retourne un statut "en_attente"
 import { useState, useMemo } from 'react'
 import {
-  View, Text, TextInput,
+  View, Text, TextInput, ActivityIndicator,
   KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Alert,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { inscrireOrganisateur } from '../../services/authService'
-import BoutonPrincipal from '../../components/BoutonPrincipal'
-import { colors } from '../../constants/theme'
+import GlassButton from '../../components/GlassButton'
+import { colors, spacing, textShadow } from '../../constants/theme'
+import BlurBackground from '../../components/BlurBackground'
+import GlassContainer from '../../components/GlassContainer'
 
 // Calcule le niveau de force du mot de passe (0-4)
 // Retourne { score, label, couleur }
@@ -50,6 +52,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
   const [mdp, setMdp] = useState('')
   const [confirmMdp, setConfirmMdp] = useState('')
   const [chargement, setChargement] = useState(false)
+  const insets = useSafeAreaInsets()
 
   const forceMdp = useMemo(() => evaluerForceMotDePasse(mdp), [mdp])
   const mdpNeCorrespondPas = confirmMdp.length > 0 && mdp !== confirmMdp
@@ -107,19 +110,23 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <View style={{ flex: 1 }}>
+      <BlurBackground />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.conteneur}
+          contentContainerStyle={[styles.conteneur, { paddingTop: insets.top + spacing.lg }]}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Bouton retour */}
-          <Text style={styles.retour} onPress={() => navigation.goBack()}>
-            ← Retour
-          </Text>
+          {/* Bouton retour verre dépoli */}
+          <GlassButton
+            title="Retour"
+            icon="arrow-left"
+            onPress={() => navigation.goBack()}
+            style={styles.retour}
+          />
 
           <Text style={styles.titre}>Créer un compte organisateur</Text>
           <Text style={styles.sousTitre}>
@@ -128,48 +135,56 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
 
           {/* Champ Nom */}
           <Text style={styles.label}>Nom</Text>
-          <TextInput
-            style={styles.input}
-            value={nom}
-            onChangeText={setNom}
-            placeholder="Ton nom"
-            placeholderTextColor={colors.muted}
-            autoCapitalize="words"
-          />
+          <GlassContainer style={styles.inputWrap}>
+            <TextInput
+              style={styles.input}
+              value={nom}
+              onChangeText={setNom}
+              placeholder="Ton nom"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              autoCapitalize="words"
+            />
+          </GlassContainer>
 
           {/* Champ Téléphone */}
           <Text style={styles.label}>Téléphone</Text>
-          <TextInput
-            style={styles.input}
-            value={telephone}
-            onChangeText={(t) => setTelephone(formatterTelephone(t))}
-            keyboardType="phone-pad"
-            placeholder="+221 XX XXX XX XX"
-            placeholderTextColor={colors.muted}
-          />
+          <GlassContainer style={styles.inputWrap}>
+            <TextInput
+              style={styles.input}
+              value={telephone}
+              onChangeText={(t) => setTelephone(formatterTelephone(t))}
+              keyboardType="phone-pad"
+              placeholder="+221 XX XXX XX XX"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+            />
+          </GlassContainer>
 
           {/* Champ Email */}
           <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            placeholder="exemple@email.com"
-            placeholderTextColor={colors.muted}
-          />
+          <GlassContainer style={styles.inputWrap}>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              placeholder="exemple@email.com"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+            />
+          </GlassContainer>
 
           {/* Champ Mot de passe */}
           <Text style={styles.label}>Mot de passe</Text>
-          <TextInput
-            style={styles.input}
-            value={mdp}
-            onChangeText={setMdp}
-            secureTextEntry
-            placeholder="Minimum 6 caractères"
-            placeholderTextColor={colors.muted}
-          />
+          <GlassContainer style={styles.inputWrap}>
+            <TextInput
+              style={styles.input}
+              value={mdp}
+              onChangeText={setMdp}
+              secureTextEntry
+              placeholder="Minimum 6 caractères"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+            />
+          </GlassContainer>
 
           {/* Indicateur de force du mot de passe */}
           {mdp.length > 0 && (
@@ -180,7 +195,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
                     key={n}
                     style={[
                       styles.barreForce,
-                      { backgroundColor: n <= forceMdp.score ? forceMdp.couleur : colors.border },
+                      { backgroundColor: n <= forceMdp.score ? forceMdp.couleur : 'rgba(255,255,255,0.2)' },
                     ]}
                   />
                 ))}
@@ -199,7 +214,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
             onChangeText={setConfirmMdp}
             secureTextEntry
             placeholder="Retaper le mot de passe"
-            placeholderTextColor={colors.muted}
+            placeholderTextColor="rgba(255,255,255,0.5)"
           />
 
           {/* Message d'erreur si les mots de passe ne correspondent pas */}
@@ -208,34 +223,36 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
           )}
 
           <View style={{ height: 24 }} />
-          <BoutonPrincipal
-            titre="S'inscrire"
-            chargement={chargement}
-            desactive={!formulaireValide}
-            onPress={handleInscription}
-          />
+          {chargement ? (
+            <View style={styles.glassLoadingBtn}>
+              <ActivityIndicator size="small" color="#fff" />
+            </View>
+          ) : (
+            <GlassButton
+              title="S'inscrire"
+              onPress={!formulaireValide ? undefined : handleInscription}
+              style={!formulaireValide ? { opacity: 0.5 } : undefined}
+            />
+          )}
 
           {/* Lien vers la connexion */}
-          <Text style={styles.lienConnexion}>
-            Déjà un compte ?{' '}
-            <Text
-              style={styles.lienConnexionAccent}
-              onPress={() => navigation.navigate('ConnexionOrganisateur')}
-            >
-              Se connecter
+          <View style={styles.lienConnexion}>
+            <Text style={styles.lienConnexionText}>
+              Déjà un compte ?{' '}
             </Text>
-          </Text>
+            <GlassButton
+              title="Se connecter"
+              onPress={() => navigation.navigate('ConnexionOrganisateur')}
+              style={styles.lienConnexionBtn}
+            />
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
   flex: {
     flex: 1,
   },
@@ -246,40 +263,33 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   retour: {
-    fontFamily: 'Outfit_500Medium',
-    fontSize: 15,
-    color: colors.accent,
     marginBottom: 24,
+    alignSelf: 'flex-start',
   },
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: colors.slate,
+    color: '#fff',
     marginBottom: 8,
+    ...textShadow,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: colors.mid,
+    color: 'rgba(255,255,255,0.6)',
     marginBottom: 32,
   },
   label: {
     fontFamily: 'Outfit_500Medium',
     fontSize: 14,
-    color: colors.slate,
+    color: 'rgba(255,255,255,0.8)',
     marginBottom: 6,
   },
+  inputWrap: { marginBottom: 16, borderRadius: 14, height: 56, justifyContent: 'center', paddingHorizontal: 16 },
   input: {
-    backgroundColor: colors.white,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 16,
-    height: 56,
     fontFamily: 'Outfit_400Regular',
     fontSize: 16,
-    color: colors.slate,
-    marginBottom: 16,
+    color: '#fff',
   },
   forceConteneur: {
     flexDirection: 'row',
@@ -312,14 +322,28 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   lienConnexion: {
-    fontFamily: 'Outfit_400Regular',
-    fontSize: 14,
-    color: colors.mid,
-    textAlign: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 24,
   },
-  lienConnexionAccent: {
-    fontFamily: 'Outfit_600SemiBold',
-    color: colors.accent,
+  lienConnexionText: {
+    fontFamily: 'Outfit_400Regular',
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.6)',
+  },
+  lienConnexionBtn: {
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    minWidth: undefined,
+  },
+  glassLoadingBtn: {
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
 })

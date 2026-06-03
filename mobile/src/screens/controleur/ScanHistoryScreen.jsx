@@ -1,11 +1,15 @@
 // Historique des scans effectués par le contrôleur
 // Statistiques par statut, liste chronologique avec détails événement, synchro offline
 import { useState, useEffect, useCallback } from 'react'
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl } from 'react-native'
 import { Feather } from '@expo/vector-icons'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { formaterDateHeure } from '../../utils/dateUtils'
 import { getHistorique, synchroniser, getStats, reinitialiser } from '../../services/scanService'
-import { colors } from '../../constants/theme'
+import { textShadow } from '../../constants/theme'
+import BlurBackground from '../../components/BlurBackground'
+import GlassContainer from '../../components/GlassContainer'
+import GlassButton from '../../components/GlassButton'
 import EmptyState from '../../components/EmptyState'
 
 // Couleurs par résultat de scan (fond pastel, texte, icône)
@@ -25,6 +29,7 @@ export default function ScanHistoryScreen() {
   const [stats, setStats] = useState({ ticketsLocaux: 0 })
   const [sync, setSync] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
+  const insets = useSafeAreaInsets()
 
   useEffect(() => {
     charger()
@@ -59,12 +64,13 @@ export default function ScanHistoryScreen() {
   const evenementsUniques = [...new Set(scans.filter(s => s.event_id).map(s => s.event_id))]
 
   return (
-    <View style={styles.conteneur}>
-      <ScrollView contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00C8FF']} />}
+    <View style={{flex: 1}}>
+      <BlurBackground category="Concert" />
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 16 }]}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" colors={['#fff']} />}
       >
         {/* Bandeau des stats : tickets locaux + chaque statut de scan */}
-        <View style={styles.statsBanner}>
+        <GlassContainer style={styles.statsBanner}>
           <View style={styles.statTicket}>
             <Text style={styles.statTicketNombre}>{stats.ticketsLocaux || 0}</Text>
             <Text style={styles.statTicketLabel}>Tickets locaux</Text>
@@ -76,18 +82,18 @@ export default function ScanHistoryScreen() {
               return (
                 <View key={cle} style={styles.statMini}>
                   <View style={[styles.statMiniDot, { backgroundColor: p.dot }]} />
-                  <Text style={[styles.statMiniNombre, { color: p.text }]}>{stats[cle] || 0}</Text>
+                  <Text style={styles.statMiniNombre}>{stats[cle] || 0}</Text>
                   <Text style={styles.statMiniLabel}>{p.label}</Text>
                 </View>
               )
             })}
           </View>
-        </View>
+        </GlassContainer>
 
         {/* Barre d'actions */}
         <View style={styles.actions}>
           <TouchableOpacity
-            style={[styles.actionBtn, styles.actionSync]}
+            style={[styles.actionBtn, sync && { opacity: 0.6 }]}
             onPress={handleSync}
             disabled={sync}
           >
@@ -101,16 +107,7 @@ export default function ScanHistoryScreen() {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionReset]}
-            onPress={() => {
-              reinitialiser()
-              charger()
-            }}
-          >
-            <Feather name="trash-2" size={16} color="#FFFFFF" />
-            <Text style={styles.actionTexte}>Vider</Text>
-          </TouchableOpacity>
+          <GlassButton title="Vider" icon="trash-2" onPress={() => { reinitialiser(); charger() }} style={{flex: 1}} />
         </View>
 
         {/* Résumé des événements scannés */}
@@ -122,12 +119,12 @@ export default function ScanHistoryScreen() {
 
         {/* Liste des scans */}
         {scans.length === 0 ? (
-          <EmptyState icon={<Feather name="clipboard" size={48} color={colors.mid} />} title="Aucun scan" subtitle="Les scans apparaîtront ici" />
+          <EmptyState icon={<Feather name="clipboard" size={48} color="rgba(255,255,255,0.5)" />} title="Aucun scan" subtitle="Les scans apparaîtront ici" />
         ) : (
           scans.map((item) => {
             const p = PROFIL[item.resultat] || PROFIL.INCONNU
             return (
-              <View key={item.id} style={[styles.carte, { backgroundColor: p.bg }]}>
+              <GlassContainer key={item.id} style={styles.carte}>
                 <View style={styles.carteGauche}>
                   <Feather name={p.icon} size={18} color={p.dot} />
                 </View>
@@ -139,15 +136,15 @@ export default function ScanHistoryScreen() {
                   <Text style={styles.carteUuid}>#{item.uuid_billet?.slice(0, 8)}</Text>
                 </View>
                 <View style={styles.carteDroite}>
-                  <Text style={[styles.carteStatut, { color: p.text }]}>{p.label}</Text>
+                  <Text style={styles.carteStatut}>{p.label}</Text>
                   {item.synced === 0 && (
                     <View style={styles.badge}>
-                      <Feather name="wifi-off" size={10} color="#f97316" />
+                      <Feather name="wifi-off" size={10} color="#fff" />
                       <Text style={styles.badgeTexte}>OFFLINE</Text>
                     </View>
                   )}
                 </View>
-              </View>
+              </GlassContainer>
             )
           })
         )}
@@ -157,59 +154,55 @@ export default function ScanHistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  conteneur: { flex: 1, backgroundColor: '#f8f9fc' },
   scroll: { paddingBottom: 40 },
 
   // Bandeau stats
   statsBanner: {
-    backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
     marginTop: 16,
-    borderRadius: 16,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
   },
   statTicket: { alignItems: 'center', paddingRight: 16, minWidth: 80 },
-  statTicketNombre: { fontFamily: 'Outfit_700Bold', fontSize: 28, color: '#00C8FF' },
-  statTicketLabel: { fontFamily: 'Outfit_400Regular', fontSize: 11, color: '#94a3b8', marginTop: 2 },
-  statDivider: { width: 1, height: 60, backgroundColor: '#edf0f5', marginRight: 12 },
+  statTicketNombre: { fontFamily: 'Outfit_700Bold', fontSize: 28, color: '#FFFFFF', ...textShadow },
+  statTicketLabel: { fontFamily: 'Outfit_400Regular', fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+  statDivider: { width: 1, height: 60, backgroundColor: 'rgba(255,255,255,0.2)', marginRight: 12 },
   statGrille: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   statMini: { flexDirection: 'row', alignItems: 'center', gap: 4, width: '45%' },
   statMiniDot: { width: 8, height: 8, borderRadius: 4 },
-  statMiniNombre: { fontFamily: 'Outfit_700Bold', fontSize: 14, minWidth: 20 },
-  statMiniLabel: { fontFamily: 'Outfit_400Regular', fontSize: 10, color: '#64748b' },
+  statMiniNombre: { fontFamily: 'Outfit_700Bold', fontSize: 14, color: '#FFFFFF', minWidth: 20 },
+  statMiniLabel: { fontFamily: 'Outfit_400Regular', fontSize: 10, color: 'rgba(255,255,255,0.6)' },
 
   // Actions
   actions: { flexDirection: 'row', paddingHorizontal: 16, paddingTop: 12, gap: 8 },
-  actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 12 },
-  actionSync: { backgroundColor: '#00C8FF' },
-  actionReset: { backgroundColor: '#FF4D6D' },
+  actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.25)' },
   actionTexte: { fontFamily: 'Outfit_600SemiBold', fontSize: 13, color: '#FFFFFF' },
 
   // Section
   sectionTitre: {
-    fontFamily: 'Outfit_600SemiBold', fontSize: 13, color: '#64748b',
+    fontFamily: 'Outfit_600SemiBold', fontSize: 13, color: '#FFFFFF',
     paddingHorizontal: 16, paddingTop: 20, paddingBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5,
+    ...textShadow,
   },
 
   // Liste des scans
   vide: { alignItems: 'center', paddingTop: 60 },
-  videTexte: { fontFamily: 'Outfit_500Medium', fontSize: 15, color: '#94a3b8', marginTop: 12 },
-  videSous: { fontFamily: 'Outfit_400Regular', fontSize: 13, color: '#cbd5e1', marginTop: 4 },
+  videTexte: { fontFamily: 'Outfit_500Medium', fontSize: 15, color: '#fff', marginTop: 12 },
+  videSous: { fontFamily: 'Outfit_400Regular', fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4 },
 
   carte: {
     flexDirection: 'row', alignItems: 'center',
     marginHorizontal: 16, marginBottom: 6,
-    borderRadius: 12, padding: 12,
+    padding: 12,
   },
   carteGauche: { width: 36, alignItems: 'center' },
   carteCentre: { flex: 1 },
-  carteEvenement: { fontFamily: 'Outfit_600SemiBold', fontSize: 13, color: '#0f172a' },
-  carteDate: { fontFamily: 'Outfit_400Regular', fontSize: 12, color: '#64748b', marginTop: 1 },
-  carteUuid: { fontFamily: 'Outfit_400Regular', fontSize: 10, color: '#94a3b8', marginTop: 1 },
+  carteEvenement: { fontFamily: 'Outfit_600SemiBold', fontSize: 13, color: '#FFFFFF' },
+  carteDate: { fontFamily: 'Outfit_400Regular', fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 1 },
+  carteUuid: { fontFamily: 'Outfit_400Regular', fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 1 },
   carteDroite: { alignItems: 'flex-end', gap: 4 },
-  carteStatut: { fontFamily: 'Outfit_700Bold', fontSize: 12 },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#fff7ed', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
-  badgeTexte: { fontFamily: 'Outfit_700Bold', fontSize: 9, color: '#f97316' },
+  carteStatut: { fontFamily: 'Outfit_700Bold', fontSize: 12, color: '#FFFFFF' },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  badgeTexte: { fontFamily: 'Outfit_700Bold', fontSize: 9, color: '#FFFFFF' },
 })

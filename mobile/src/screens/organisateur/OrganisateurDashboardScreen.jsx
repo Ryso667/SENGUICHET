@@ -1,26 +1,32 @@
-// Tableau de bord organisateur - mode lecture seule
-// Bannière info + stats 2x2 + activités récentes (données mockées)
-import React from 'react'
-import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native'
-import { Feather } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
-import StatCard from '../../components/StatCard'
-import SectionHeader from '../../components/SectionHeader'
+// Tableau de bord organisateur : stats, événements récents, actions rapides
+// Design glass (Apple Invites) — fond dégradé par catégorie, conteneurs verre dépoli
+import React, { useState, useEffect } from 'react'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert } from 'react-native'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { colors, glass, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
+import { fetchEvenementsAPI } from '../../services/eventService'
+import { useAuth } from '../../context/AuthContext'
+import { formaterDateLisible } from '../../utils/dateUtils'
+import BlurBackground from '../../components/BlurBackground'
+import GlassContainer from '../../components/GlassContainer'
+import GlassButton from '../../components/GlassButton'
 
-const MOCK_STATS = {
-  billetsVendus: 12580,
-  revenus: 45250000,
-  evenementsActifs: 3,
-  prochainEvent: { date: '15 Juin 2026', nom: "Concert N'Dakaru" },
+const STATUT_CONFIG = {
+  actif: { label: 'Actif', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
+  en_attente: { label: 'En attente', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
+  refuse: { label: 'Refusé', color: '#FF4D6D', bg: 'rgba(255,77,109,0.2)' },
+  termine: { label: 'Terminé', color: '#A0B4C8', bg: 'rgba(160,180,200,0.2)' },
+  annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
 }
 
-const MOCK_VENTES = [
-  { id: '1', evenement: 'Festival Jazz St-Louis', date: '28 Mai 2026', montant: '25 000 FCFA' },
-  { id: '2', evenement: "Concert N'Dakaru", date: '27 Mai 2026', montant: '15 000 FCFA' },
-  { id: '3', evenement: 'Festival Jazz St-Louis', date: '26 Mai 2026', montant: '25 000 FCFA' },
-  { id: '4', evenement: 'Expo Art Dakar', date: '25 Mai 2026', montant: '10 000 FCFA' },
-  { id: '5', evenement: "Concert N'Dakaru", date: '24 Mai 2026', montant: '15 000 FCFA' },
-]
+export default function OrganisateurDashboardScreen({ navigation }) {
+  const insets = useSafeAreaInsets()
+  const { user, deconnecter } = useAuth()
+  const [events, setEvents] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [navCourant, setNavCourant] = useState(null)
 
 function fmt(n) {
   return n.toLocaleString('fr-FR')
@@ -31,47 +37,202 @@ export default function OrganisateurDashboardScreen({ navigation }) {
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true)
-    setTimeout(() => setRefreshing(false), 1000)
-  }, [])
+    await loadData()
+    setRefreshing(false)
+  }
+
+  const actifs = events.filter(e => e.statut === 'actif').length
+  const totalVendus = events.reduce((s, e) => s + (e.remplis || 0), 0)
+  const totalCapacite = events.reduce((s, e) => s + (e.capacite || 0), 0)
+  const totalRevenus = events.reduce((s, e) => {
+    if (!e.revenus) return s
+    return s + (parseInt(String(e.revenus).replace(/\D/g, '')) || 0)
+  }, 0)
+  const tauxRemplissage = totalCapacite > 0 ? Math.round((totalVendus / totalCapacite) * 100) : 0
+  const recents = events.slice(0, 3)
+
+  const fmt = (n) => n.toLocaleString('fr-FR')
+
+  const stats = [
+    { icon: 'calendar-check', label: 'Événements actifs', value: String(actifs), color: '#00C8FF' },
+    { icon: 'ticket-outline', label: 'Billets vendus', value: fmt(totalVendus), color: '#00E5A0' },
+    { icon: 'cash', label: 'Revenus total', value: `${fmt(totalRevenus)} FCFA`, color: '#0077FF' },
+    { icon: 'account-group', label: 'Taux de remplissage', value: `${tauxRemplissage}%`, color: '#F97316' },
+  ]
+
+  const navItems = [
+    { icon: 'plus-circle-outline', label: 'Créer', route: 'CreerEvenement' },
+    { icon: 'chart-box-outline', label: 'Stats', route: 'Statistiques' },
+    { icon: 'cog-outline', label: 'Gérer', route: 'GestionEvenements' },
+  ]
+
+  const naviguer = (route) => {
+    setNavCourant(route)
+    navigation.navigate(route)
+  }
+
+  const totalEvents = events.length
+  const enAttente = events.filter(e => e.statut === 'en_attente').length
+
+  const stylesAction = (route) => {
+    const map = {
+      CreerEvenement: { accent: colors.accent },
+      Statistiques: { accent: '#00C8FF' },
+      GestionEvenements: { accent: '#6B7280' },
+    }
+    return map[route] || { accent: '#6B7280' }
+  }
 
   return (
-    <View style={styles.container}>
+    <View style={s.container}>
+      <BlurBackground category="Conference" />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00C8FF" />}
+        contentContainerStyle={{ paddingTop: insets.top }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor="#fff" />}
       >
-        <View style={styles.banner}>
-          <View style={styles.bannerBorder} />
-          <View style={styles.bannerContent}>
-            <Feather name="info" size={16} color="#00C8FF" />
-            <Text style={styles.bannerText}>
-              Votre espace est en lecture seule. Pour toute modification, utilisez la section Mes demandes.
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.statsGrid}>
-          <StatCard icon="ticket" value={fmt(MOCK_STATS.billetsVendus)} label="Billets vendus" />
-          <StatCard icon="dollar-sign" value={`${fmt(MOCK_STATS.revenus)} FCFA`} label="Revenus" />
-          <StatCard icon="calendar" value={String(MOCK_STATS.evenementsActifs)} label="Événements actifs" />
-          <StatCard icon="clock" value={MOCK_STATS.prochainEvent.date} label={MOCK_STATS.prochainEvent.nom} />
-        </View>
-
-        <View style={styles.ventes}>
-          <SectionHeader title="Dernières ventes" />
-          {MOCK_VENTES.map((v) => (
-            <View key={v.id} style={styles.venteItem}>
-              <View style={styles.venteIcon}>
-                <Feather name="ticket" size={16} color="#00C8FF" />
-              </View>
-              <View style={styles.venteInfo}>
-                <Text style={styles.venteNom}>{v.evenement}</Text>
-                <Text style={styles.venteDate}>{v.date}</Text>
-              </View>
-              <Text style={styles.venteMontant}>{v.montant}</Text>
+        {/* Greeting */}
+        <GlassContainer style={s.greeting}>
+          <View style={s.headerRow}>
+            <View style={s.avatarCircle}>
+              <MaterialCommunityIcons name="account-tie" size={22} color="#fff" />
             </View>
-          ))}
-        </View>
+            <View style={s.headerText}>
+              <Text style={s.bonjour}>Bonjour, {user?.nom || 'Organisateur'}</Text>
+              <Text style={s.sousTitre}>
+                {totalEvents > 0
+                  ? `${totalEvents} événement${totalEvents > 1 ? 's' : ''}`
+                  : enAttente > 0 ? `${enAttente} en attente`
+                  : 'Aucun événement'}
+              </Text>
+            </View>
+          </View>
+          {totalEvents > 0 && (
+            <View style={s.statsPills}>
+              {actifs > 0 && (
+                <View style={[s.statPill, { backgroundColor: 'rgba(0,229,160,0.15)' }]}>
+                  <Text style={[s.statPillText, { color: '#00E5A0' }]}>{actifs} actif{actifs > 1 ? 's' : ''}</Text>
+                </View>
+              )}
+              {enAttente > 0 && (
+                <View style={[s.statPill, { backgroundColor: 'rgba(249,115,22,0.15)' }]}>
+                  <Text style={[s.statPillText, { color: '#F97316' }]}>{enAttente} en attente</Text>
+                </View>
+              )}
+            </View>
+          )}
+        </GlassContainer>
+
+        <Text style={s.refreshHint}>↓ Tirez vers le bas pour actualiser</Text>
+
+        {loading ? (
+          <Text style={s.loading}>Chargement...</Text>
+        ) : (
+          <>
+            <View style={s.statsRow}>
+              {stats.map((st, i) => (
+                <GlassContainer key={st.label} style={[s.statCard, { borderLeftColor: st.color, borderLeftWidth: 3 }]} intensity={40}>
+                  <View style={s.statTop}>
+                    <MaterialCommunityIcons name={st.icon} size={22} color={st.color} />
+                    <Text style={s.statValue}>{st.value}</Text>
+                  </View>
+                  <Text style={s.statLabel}>{st.label}</Text>
+                </GlassContainer>
+              ))}
+            </View>
+
+            {/* Actions rapides — 3 cards horizontales */}
+            <View style={s.quickSection}>
+              <Text style={s.quickTitle}>Actions rapides</Text>
+              <View style={s.quickRow}>
+                {navItems.map(item => {
+                  const style = stylesAction(item.route)
+                  return (
+                    <GlassContainer key={item.route} style={s.quickCard} intensity={35}>
+                      <TouchableOpacity
+                        style={s.quickTouchable}
+                        activeOpacity={0.8}
+                        onPress={() => naviguer(item.route)}
+                      >
+                        <MaterialCommunityIcons name={item.icon} size={24} color={style.accent} />
+                        <Text style={[s.quickLabel, { color: style.accent }]}>{item.label}</Text>
+                      </TouchableOpacity>
+                    </GlassContainer>
+                  )
+                })}
+              </View>
+            </View>
+
+            {/* Recent events */}
+            <View style={s.sectionHeader}>
+              <Text style={s.sectionTitle}>Mes événements récents</Text>
+              {events.length > 3 && (
+                <TouchableOpacity onPress={() => navigation.navigate('GestionEvenements')}>
+                  <Text style={s.voirTout}>Voir tout</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {recents.length === 0 ? (
+              <GlassContainer style={s.empty} intensity={30}>
+                <MaterialCommunityIcons name="tent" size={48} color="rgba(255,255,255,0.6)" />
+                <Text style={s.emptyTitle}>Aucun événement</Text>
+                <Text style={s.emptySub}>Crée ton premier événement</Text>
+              </GlassContainer>
+            ) : (
+              recents.map((ev, i) => {
+                const cfg = STATUT_CONFIG[ev.statut] || STATUT_CONFIG.en_attente
+                return (
+                  <GlassContainer key={ev.id} style={s.eventCard} intensity={40}>
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={() => navigation.navigate('DetailEvenement', { eventId: ev.id })}
+                    >
+                      <View style={s.eventTop}>
+                        <View style={s.eventHeader}>
+                          <View style={[s.eventBadge, { backgroundColor: cfg.color }]}>
+                            <Text style={s.eventBadgeText}>{ev.nom?.charAt(0)}</Text>
+                          </View>
+                          <View style={s.eventInfo}>
+                            <Text style={s.eventName} numberOfLines={1}>{ev.nom}</Text>
+                            <Text style={s.eventMeta} numberOfLines={1}>
+                              {formaterDateLisible(ev.date)} · {ev.lieu || 'Non spécifié'}
+                            </Text>
+                          </View>
+                          <View style={[s.pill, { backgroundColor: cfg.bg }]}>
+                            <Text style={[s.pillText, { color: cfg.color }]}>{cfg.label}</Text>
+                          </View>
+                        </View>
+                      </View>
+
+                      <View style={s.barRow}>
+                        <View style={s.barBg}>
+                          <View style={[s.barFill, { width: `${(ev.capacite || 1) > 0 ? ((ev.remplis || 0) / ev.capacite) * 100 : 0}%` }]} />
+                        </View>
+                        <Text style={s.barCount}>{fmt(ev.remplis || 0)} / {fmt(ev.capacite || 0)}</Text>
+                      </View>
+
+                      <View style={s.eventBottom}>
+                        <Text style={s.revenu}>{ev.revenus || '0 FCFA'}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  </GlassContainer>
+                )
+              })
+            )}
+
+            {/* Déconnexion */}
+            <GlassButton
+              title="Se déconnecter"
+              icon="log-out"
+              onPress={() => Alert.alert('Déconnexion', 'Veux-tu te déconnecter ?', [
+                { text: 'Annuler', style: 'cancel' },
+                { text: 'Se déconnecter', style: 'destructive', onPress: deconnecter },
+              ])}
+              style={s.logoutBtn}
+            />
+          </>
+        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -79,30 +240,33 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0D1B2A',
+const s = StyleSheet.create({
+  container: { flex: 1 },
+  quickSection: { paddingHorizontal: spacing.lg, marginTop: spacing.md },
+  quickTitle: {
+    fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff',
+    marginBottom: spacing.sm, ...textShadow,
   },
-  banner: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(0,200,255,0.08)',
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 16,
-    overflow: 'hidden',
+  quickRow: { flexDirection: 'row', gap: spacing.sm },
+  quickCard: { flex: 1, overflow: 'hidden' },
+  quickTouchable: { paddingVertical: 20, alignItems: 'center', gap: 8 },
+  quickLabel: { fontSize: 13, fontFamily: fonts.outfit.semiBold },
+  mainContent: { flex: 1 },
+  greeting: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    padding: spacing.lg,
   },
-  bannerBorder: {
-    width: 4,
-    backgroundColor: '#00C8FF',
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  avatarCircle: {
+    width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  bannerContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    padding: 14,
+  headerText: { flex: 1 },
+  bonjour: { fontSize: 22, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
+  sousTitre: {
+    fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)',
+    marginTop: 2,
   },
   bannerText: {
     flex: 1,
@@ -121,30 +285,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginTop: 8,
   },
-  venteItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#152232',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
+  refreshHint: {
+    textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: 11, fontFamily: fonts.jakarta.regular,
+    paddingTop: spacing.sm, paddingBottom: 0, letterSpacing: 0.3,
   },
-  venteIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(0,200,255,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
+  loading: { textAlign: 'center', color: 'rgba(255,255,255,0.7)', fontSize: 14, fontFamily: fonts.jakarta.regular, marginTop: 60 },
+  statsRow: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.lg, gap: spacing.sm, marginTop: spacing.lg, marginBottom: spacing.md },
+  statCard: {
+    flex: 1, minWidth: '45%',
+    padding: spacing.md,
   },
-  venteInfo: {
-    flex: 1,
+  statTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  statValue: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
+  statLabel: { fontSize: 10, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
+  sectionHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline',
+    paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm,
   },
-  venteNom: {
-    fontSize: 13,
-    fontFamily: 'Outfit_600SemiBold',
-    color: '#FFFFFF',
+  sectionTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
+  voirTout: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)' },
+  empty: { alignItems: 'center', paddingVertical: 60, marginHorizontal: spacing.lg, marginVertical: spacing.sm },
+  emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', marginTop: spacing.sm, ...textShadow },
+  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: spacing.xs },
+  eventCard: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+    padding: spacing.md,
   },
   venteDate: {
     fontSize: 11,
@@ -152,9 +318,20 @@ const styles = StyleSheet.create({
     color: '#A0B4C8',
     marginTop: 2,
   },
-  venteMontant: {
-    fontSize: 13,
-    fontFamily: 'Outfit_700Bold',
-    color: '#00C8FF',
+  eventBadgeText: { fontSize: 20, fontFamily: fonts.outfit.bold, color: '#fff' },
+  eventInfo: { flex: 1 },
+  eventName: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff' },
+  eventMeta: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+  pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, marginLeft: spacing.sm },
+  pillText: { fontSize: 10, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.4 },
+  barRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, marginBottom: spacing.sm },
+  barBg: { flex: 1, height: 8, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 4, overflow: 'hidden' },
+  barFill: { height: 8, borderRadius: 4, backgroundColor: '#00C8FF' },
+  barCount: { width: 70, textAlign: 'right', fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.7)', marginLeft: spacing.sm },
+  eventBottom: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.15)', paddingTop: spacing.sm,
   },
+  revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  logoutBtn: { marginHorizontal: spacing.lg, marginTop: spacing.lg },
 })
