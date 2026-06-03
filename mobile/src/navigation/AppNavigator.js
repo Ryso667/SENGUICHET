@@ -11,8 +11,7 @@ import { useAuth } from '../context/AuthContext'
 
 // Écrans auth (aucun rôle)
 import AccueilChoixScreen from '../screens/AccueilChoixScreen'
-import EntrerNumeroScreen from '../screens/auth/EntrerNumeroScreen'
-import EntrerOTPScreen from '../screens/auth/EntrerOTPScreen'
+import SocialAuthScreen from '../screens/auth/SocialAuthScreen'
 import ConnexionControleurScreen from '../screens/auth/ConnexionControleurScreen'
 import ConnexionOrganisateurScreen from '../screens/auth/ConnexionOrganisateurScreen'
 import InscriptionOrganisateurScreen from '../screens/auth/InscriptionOrganisateurScreen'
@@ -24,8 +23,8 @@ import EventSearchScreen from '../screens/EventSearchScreen'
 import EventDetailScreen from '../screens/EventDetailScreen'
 import TicketScreen from '../screens/TicketScreen'
 import MesTicketsScreen from '../screens/MesTicketsScreen'
-import PaiementScreen from '../screens/PaiementScreen'
 import SupportScreen from '../screens/SupportScreen'
+import WebViewWaveScreen from '../screens/WebViewWaveScreen'
 
 // Écrans contrôleur
 import ScannerScreen from '../screens/controleur/ScannerScreen'
@@ -245,11 +244,9 @@ function ControleurTabs() {
 }
 
 // Point d'entrée de la navigation
-// Affiche les piles en fonction du rôle stocké dans AuthContext
 export default function AppNavigator() {
   const { role, chargement } = useAuth()
 
-  // Écran de chargement pendant la restauration de session
   if (chargement) {
     return (
       <View style={styles.chargement}>
@@ -266,8 +263,7 @@ export default function AppNavigator() {
         {!role && (
           <>
             <Stack.Screen name="AccueilChoix" component={AccueilChoixScreen} />
-            <Stack.Screen name="EntrerNumero" component={EntrerNumeroScreen} />
-            <Stack.Screen name="EntrerOTP" component={EntrerOTPScreen} />
+            <Stack.Screen name="SocialAuth" component={SocialAuthScreen} />
             <Stack.Screen name="ConnexionControleur" component={ConnexionControleurScreen} />
             <Stack.Screen name="ConnexionOrganisateur" component={ConnexionOrganisateurScreen} />
             <Stack.Screen name="InscriptionOrganisateur" component={InscriptionOrganisateurScreen} />
@@ -275,7 +271,7 @@ export default function AppNavigator() {
           </>
         )}
 
-        {/* Acheteur connecté : écrans stack (pas de tabs) */}
+        {/* Acheteur connecté */}
         {role === 'acheteur' && (
           <>
             <Stack.Screen name="Home" component={HomeScreen} />
@@ -283,12 +279,11 @@ export default function AppNavigator() {
             <Stack.Screen name="EventDetail" component={EventDetailScreen} />
             <Stack.Screen name="Ticket" component={TicketScreen} />
             <Stack.Screen name="MesTickets" component={MesTicketsScreen} />
-            <Stack.Screen name="Paiement" component={PaiementScreen} />
             <Stack.Screen name="Support" component={SupportScreen} />
-          </>
-        )}
+            <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
+          </>)}
 
-        {/* Contrôleur connecté : onglets Scanner + Historique */}
+        {/* Contrôleur connecté */}
         {role === 'controleur' && (
           <Stack.Screen name="ControleurTabs" component={ControleurTabs} />
         )}

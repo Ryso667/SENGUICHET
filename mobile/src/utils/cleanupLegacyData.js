@@ -26,10 +26,15 @@ export async function nettoyerDonneesLegacy() {
       await AsyncStorage.multiRemove(clefsMigration)
     }
 
-    // Nettoyer SQLite buyer_tickets
-    const db = await SQLite.openDatabaseAsync('senguichet.db')
-    await db.execAsync('DROP TABLE IF EXISTS buyer_tickets;')
-    await db.closeAsync()
+    // Nettoyer SQLite buyer_tickets (ne fait rien si la table n'existe pas)
+    try {
+      const db = await SQLite.openDatabaseAsync('senguichet.db')
+      const tables = await db.getAllAsync("SELECT name FROM sqlite_master WHERE type='table' AND name='buyer_tickets'")
+      if (tables.length > 0) {
+        await db.execAsync('DROP TABLE IF EXISTS buyer_tickets;')
+      }
+      await db.closeAsync()
+    } catch {} // Ignorer si la DB n'existe pas
 
     await AsyncStorage.setItem(CLEANUP_KEY, '1')
     console.log('✅ Nettoyage données legacy effectué')

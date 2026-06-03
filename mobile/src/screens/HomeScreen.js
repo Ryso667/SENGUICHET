@@ -1,16 +1,16 @@
 // Écran d'accueil acheteur avec événements et tickets récents
 // Affiche les événements à venir, les tickets actifs et un accès rapide à l'achat
 import { useEffect, useState } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native'
+import { View, Text, Image, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
+import { fonts, colors, spacing, borderRadius, shadows, gradients } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
 import EventCard from '../components/EventCard'
 import BuyerLayout from '../components/BuyerLayout'
-import { getDefaultImage } from '../config/images'
-import { formaterBadgeDate, formaterDateLisible } from '../utils/dateUtils'
+import { formaterDateLisible } from '../utils/dateUtils'
+import { formaterPourEventCard } from '../utils/eventUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
 import { mesBillets } from '../services/billetService'
 
@@ -21,51 +21,42 @@ const STATUTS = {
   rembourse: { label: 'REMBOURSÉ', color: '#dc2626', dot: '#dc2626' },
 }
 
-function formaterPourEventCard(e) {
-  const def = getDefaultImage(e.category)
-  const { day, month } = formaterBadgeDate(e.date)
-  const time = e.date ? new Date(e.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
-  const priceLabel = e.priceMin > 0
-    ? `${e.priceMin.toLocaleString()}F${e.priceMax > e.priceMin ? ` – ${e.priceMax.toLocaleString()}F` : ''}`
-    : '—'
-  return {
-    ...e,
-    month, day, bg: def.bg, emoji: def.emoji, time, priceLabel,
-  }
-}
-
 export default function HomeScreen({ navigation }) {
   const [evenements, setEvenements] = useState([])
   const [tickets, setTickets] = useState([])
-  const { deconnecter, numeroTel } = useAuth()
+  const { deconnecter, numeroTel, profil } = useAuth()
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
-      if (numeroTel) {
-        const data = await mesBillets(numeroTel)
+      // Support OTP (numeroTel) et social auth (profil.email)
+      const identifiant = numeroTel || profil?.email
+      if (identifiant) {
+        const data = await mesBillets(identifiant)
         setTickets(data || [])
       }
       const events = await fetchEvenementsPublics()
       setEvenements(events.map(formaterPourEventCard))
     })
     return unsubscribe
-  }, [navigation, numeroTel])
+  }, [navigation, numeroTel, profil])
 
   return (
     <BuyerLayout>
       <SafeAreaView style={styles.safe}>
         <ScrollView style={styles.flex} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          {/* En-tête avec logo et déconnexion */}
+          {/* En-tête avec titre et déconnexion */}
           <View style={styles.header}>
-            <View>
-              <LinearGradient colors={['#00C8FF', '#0077FF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.logoGradient}>
-                <Text style={styles.logoText}>SENGUICHET</Text>
+            <View style={styles.headerLeft}>
+              <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.titleBadge}>
+                <Text style={styles.homeTitle}>Senguichet</Text>
               </LinearGradient>
-              <Text style={styles.welcome}>
-                {tickets.length > 0
-                  ? `${tickets.length} ticket${tickets.length > 1 ? 's' : ''} actif${tickets.length > 1 ? 's' : ''}`
-                  : 'Aucun ticket actif'}
-              </Text>
+              <View style={styles.welcomeBadge}>
+                <Text style={styles.welcome}>
+                  {tickets.length > 0
+                    ? `${tickets.length} ticket${tickets.length > 1 ? 's' : ''} actif${tickets.length > 1 ? 's' : ''}`
+                    : 'Aucun ticket actif'}
+                </Text>
+              </View>
             </View>
             <TouchableOpacity
               onPress={() => Alert.alert(
@@ -185,22 +176,26 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
   },
-  logoGradient: {
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+  headerLeft: { alignItems: 'center' },
+  titleBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 14,
+    overflow: 'hidden',
   },
-  logoText: {
-    fontFamily: fonts.outfit.black,
-    fontSize: 18,
-    color: '#FFFFFF',
-    letterSpacing: 1,
+  homeTitle: { fontSize: 16, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: 1 },
+  welcomeBadge: {
+    backgroundColor: colors.greenLight,
+    paddingHorizontal: 12,
+    paddingVertical: 3,
+    borderRadius: 10,
+    marginTop: 6,
   },
   welcome: {
-    fontSize: 13,
-    color: colors.mid,
-    fontFamily: fonts.jakarta.regular,
-    marginTop: 6,
+    fontSize: 12,
+    color: '#16a34a',
+    fontFamily: fonts.jakarta.semiBold,
+    textAlign: 'center',
   },
   logoutBtn: {
     width: 36,

@@ -5,24 +5,10 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
-import { getDefaultImage } from '../config/images'
-import { formaterBadgeDate, formaterDateLisible } from '../utils/dateUtils'
+import { formaterDateLisible } from '../utils/dateUtils'
+import { formaterPourEventCard } from '../utils/eventUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
 import BuyerLayout from '../components/BuyerLayout'
-
-// Formate un événement de l'API au format attendu par les cartes de l'écran
-function formaterPourEventCard(e) {
-  const def = getDefaultImage(e.category)
-  const { day, month } = formaterBadgeDate(e.date)
-  const time = e.date ? new Date(e.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
-  const priceLabel = e.priceMin > 0
-    ? `${e.priceMin.toLocaleString()}F${e.priceMax > e.priceMin ? ` – ${e.priceMax.toLocaleString()}F` : ''}`
-    : '—'
-  return {
-    ...e,
-    month, day, bg: def.bg, emoji: def.emoji, time, priceLabel,
-  }
-}
 
 export default function EventSearchScreen({ navigation }) {
   const [allEvents, setAllEvents] = useState([])

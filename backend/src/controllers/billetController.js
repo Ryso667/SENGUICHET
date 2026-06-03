@@ -11,7 +11,7 @@ const HMAC_SECRET = process.env.HMAC_SECRET || 'senguichet-cle-secrete-hmac';
 
 const acheter = async (req, res) => {
   try {
-    const { evenementId, categorieTicketId, telephone, quantite = 1, provider = 'SIMULATION' } = req.body;
+    const { evenementId, categorieTicketId, telephone, quantite = 1, provider = 'WAVE', email } = req.body;
 
     if (!evenementId || !categorieTicketId || !telephone) {
       return res.status(400).json({ message: "Champs obligatoires manquants" });
@@ -38,13 +38,22 @@ const acheter = async (req, res) => {
 
     const montantTotal = cat.prix * quantite;
 
+    // Si l'email n'est pas fourni, essayer de le trouver via le téléphone
+    let ticketEmail = email;
+    if (!ticketEmail && telephone) {
+      try {
+        const [acheteurs] = await pool.query("SELECT email FROM acheteur WHERE telephone = ? LIMIT 1", [telephone]);
+        if (acheteurs.length > 0) ticketEmail = acheteurs[0].email;
+      } catch {}
+    }
+
     // Anti-doublon : si le mobile appelle 2× (StrictMode, retry...), on ne crée pas 2 billets
     const [recent] = await pool.query(
       `SELECT b.id, b.uuid, b.numero, b.prix_paye AS prix, e.titre AS evenement, ct.nom AS categorie, b.date_creation AS dateAchat, b.payload_signature
        FROM billet b
        JOIN evenement e ON e.id = b.evenement_id
        JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
-       WHERE b.evenement_id = ? AND b.categorie_ticket_id = ? AND b.telephone_acheteur = ? AND b.statut = 'ACTIF' AND b.date_creation > DATE_SUB(NOW(), INTERVAL 5 SECOND)
+       WHERE b.evenement_id = ? AND b.categorie_ticket_id = ? AND b.telephone_acheteur = ? AND b.statut IN ('ACTIF', 'EN_ATTENTE') AND b.date_creation > DATE_SUB(NOW(), INTERVAL 5 SECOND)
        LIMIT 1`,
       [evenementId, categorieTicketId, telephone]
     );
@@ -80,7 +89,7 @@ const acheter = async (req, res) => {
 
       const [billetResult] = await conn.query(
         `INSERT INTO billet (uuid, numero, evenement_id, categorie_ticket_id, telephone_acheteur, payload_signature, prix_paye, statut)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIF')`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'EN_ATTENTE')`,
         [uuid, numero, evenementId, categorieTicketId, telephone, payload_signature, montantTotal]
       );
 
@@ -96,7 +105,7 @@ const acheter = async (req, res) => {
       const reference = 'PAI-' + uuidv4().slice(0, 12).toUpperCase();
       await conn.query(
         `INSERT INTO transaction (reference, billet_id, montant, frais, devise, statut, moyen_paiement, telephone_payeur)
-         VALUES (?, ?, ?, 0, 'FCFA', 'SUCCESS', ?, ?)`,
+         VALUES (?, ?, ?, 0, 'FCFA', 'PENDING', ?, ?)`,
         [reference, billetId, montantTotal, provider, telephone]
       );
 
@@ -112,9 +121,10 @@ const acheter = async (req, res) => {
       try {
         paymentResult = await paymentProvider.initierPaiement({
           montant: montantTotal,
-          devise: 'FCFA',
+          devise: 'XOF',
           reference,
           callbackUrl: `/api/paiements/notifier/${reference}`,
+          metadata: { reference },
         });
 
         // Mettre à jour la référence opérateur
@@ -122,6 +132,19 @@ const acheter = async (req, res) => {
           await pool.query(
             "UPDATE transaction SET reference_operateur = ? WHERE reference = ?",
             [paymentResult.referenceOperateur, reference]
+          );
+        }
+
+        // Si pas de redirectUrl (mode simulation/sync), confirmer immédiatement
+        // Évite que le billet reste bloqué en EN_ATTENTE sans réponse asynchrone
+        if (!paymentResult.redirectUrl) {
+          await pool.query(
+            "UPDATE transaction SET statut = 'SUCCESS', date_mise_a_jour = NOW() WHERE reference = ?",
+            [reference]
+          );
+          await pool.query(
+            "UPDATE billet SET statut = 'ACTIF' WHERE id = ?",
+            [billetId]
           );
         }
       } catch (paymentError) {
@@ -138,6 +161,22 @@ const acheter = async (req, res) => {
         timestamp,
         transaction_ref: reference,
       });
+
+      // Envoyer email de confirmation en arrière-plan
+      if (ticketEmail) {
+        const { envoyerEmailBillet } = require("../services/emailService");
+        setImmediate(() => {
+          envoyerEmailBillet(ticketEmail, {
+            uuid,
+            numero,
+            evenement: events[0].titre,
+            categorie: cat.nom,
+            prix: montantTotal,
+            dateAchat: timestamp,
+            qrPayload,
+          }).catch(err => console.error("Email error:", err));
+        });
+      }
 
       res.status(201).json({
         billet: {
@@ -171,20 +210,39 @@ const acheter = async (req, res) => {
 
 const mesBillets = async (req, res) => {
   try {
-    const { telephone } = req.query;
-    if (!telephone) return res.status(400).json({ message: "Paramètre téléphone requis" });
+    const { telephone, email } = req.query;
+    if (!telephone && !email) return res.status(400).json({ message: "Téléphone ou email requis" });
 
-    const [rows] = await pool.query(
-      `SELECT b.id, b.uuid, b.numero, b.prix_paye, b.statut, b.payload_signature, b.date_creation, b.telephone_acheteur,
-        e.titre AS evenement_titre, e.lieu AS evenement_lieu, e.date_debut,
-        ct.nom AS categorie_nom, ct.prix AS categorie_prix
-      FROM billet b
-      JOIN evenement e ON e.id = b.evenement_id
-      JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
-      WHERE b.telephone_acheteur = ?
-      ORDER BY b.date_creation DESC`,
-      [telephone]
-    );
+    let rows;
+    if (telephone) {
+      [rows] = await pool.query(
+        `SELECT b.id, b.uuid, b.numero, b.prix_paye, b.statut, b.payload_signature, b.date_creation, b.telephone_acheteur,
+          e.titre AS evenement_titre, e.lieu AS evenement_lieu, e.date_debut,
+          ct.nom AS categorie_nom, ct.prix AS categorie_prix
+        FROM billet b
+        JOIN evenement e ON e.id = b.evenement_id
+        JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+        WHERE b.telephone_acheteur = ?
+        ORDER BY b.date_creation DESC`,
+        [telephone]
+      );
+    } else {
+      // Recherche par email de l'acheteur social
+      [rows] = await pool.query(
+        `SELECT b.id, b.uuid, b.numero, b.prix_paye, b.statut, b.payload_signature, b.date_creation, b.telephone_acheteur,
+          e.titre AS evenement_titre, e.lieu AS evenement_lieu, e.date_debut,
+          ct.nom AS categorie_nom, ct.prix AS categorie_prix
+        FROM billet b
+        JOIN evenement e ON e.id = b.evenement_id
+        JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+        LEFT JOIN acheteur a ON a.telephone = b.telephone_acheteur
+        WHERE a.email = ? OR b.telephone_acheteur IN (
+          SELECT telephone FROM acheteur WHERE email = ?
+        )
+        ORDER BY b.date_creation DESC`,
+        [email, email]
+      );
+    }
 
     res.json(rows.map(r => ({ ...r, statut: r.statut.toLowerCase() })));
   } catch (err) {
