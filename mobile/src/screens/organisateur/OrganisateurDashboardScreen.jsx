@@ -28,22 +28,14 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false)
   const [navCourant, setNavCourant] = useState(null)
 
-  useEffect(() => {
-    loadData()
-    const unsub = navigation.addListener('focus', loadData)
-    return unsub
-  }, [navigation])
+function fmt(n) {
+  return n.toLocaleString('fr-FR')
+}
 
-  async function loadData() {
-    setLoading(true)
-    try {
-      const evts = await fetchEvenementsAPI()
-      setEvents(evts)
-    } catch {}
-    setLoading(false)
-  }
+export default function OrganisateurDashboardScreen({ navigation }) {
+  const [refreshing, setRefreshing] = React.useState(false)
 
-  const onRefresh = async () => {
+  const onRefresh = React.useCallback(async () => {
     setRefreshing(true)
     await loadData()
     setRefreshing(false)
@@ -95,7 +87,6 @@ export default function OrganisateurDashboardScreen({ navigation }) {
     <View style={s.container}>
       <BlurBackground category="Conference" />
       <ScrollView
-        style={s.mainContent}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: insets.top }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor="#fff" />}
@@ -277,15 +268,22 @@ const s = StyleSheet.create({
     fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)',
     marginTop: 2,
   },
-  statsPills: {
-    flexDirection: 'row', gap: spacing.sm,
-    paddingTop: spacing.sm, paddingLeft: 60,
+  bannerText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: 'Outfit_400Regular',
+    color: '#A0B4C8',
+    lineHeight: 18,
   },
-  statPill: {
-    paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12,
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
   },
-  statPillText: {
-    fontSize: 11, fontFamily: fonts.outfit.semiBold,
+  ventes: {
+    paddingHorizontal: 16,
+    marginTop: 8,
   },
   refreshHint: {
     textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: 11, fontFamily: fonts.jakarta.regular,
@@ -314,11 +312,11 @@ const s = StyleSheet.create({
     marginBottom: spacing.sm,
     padding: spacing.md,
   },
-  eventTop: { marginBottom: spacing.sm },
-  eventHeader: { flexDirection: 'row', alignItems: 'center' },
-  eventBadge: {
-    width: 44, height: 44, borderRadius: 14, alignItems: 'center',
-    justifyContent: 'center', marginRight: spacing.md,
+  venteDate: {
+    fontSize: 11,
+    fontFamily: 'Outfit_400Regular',
+    color: '#A0B4C8',
+    marginTop: 2,
   },
   eventBadgeText: { fontSize: 20, fontFamily: fonts.outfit.bold, color: '#fff' },
   eventInfo: { flex: 1 },

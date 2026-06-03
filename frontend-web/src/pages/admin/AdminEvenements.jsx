@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import { adminListerEvenements, adminDetailEvenement, adminAccepterEvenement, adminRefuserEvenement, adminSuspendreEvenement } from "../../services/eventService";
+import { Check, X } from "../../components/Icons";
 
 const statutConfig = {
   en_attente: { cls: "badge-pending", label: "En attente" },
@@ -152,12 +153,12 @@ const AdminEvenements = () => {
                               <button onClick={() => { if (pendingConfirm && confirmAction === "accepter") handleAction(e.id, "accepter"); else { setConfirmId(e.id); setConfirmAction("accepter"); } }}
                                 className="px-3 py-1.5 rounded-lg text-xs transition-all"
                                 style={{ background: pendingConfirm && confirmAction === "accepter" ? "rgba(0,229,160,0.15)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(0,229,160,0.3)", color: "var(--success)" }}>
-                                {pendingConfirm && confirmAction === "accepter" ? "✓ Confirmer" : "Accepter"}
+                                {pendingConfirm && confirmAction === "accepter" ? <><Check size={16} /> Confirmer</> : "Accepter"}
                               </button>
                               <button onClick={() => { if (pendingConfirm && confirmAction === "refuser") handleAction(e.id, "refuser"); else { setConfirmId(e.id); setConfirmAction("refuser"); } }}
                                 className="px-3 py-1.5 rounded-lg text-xs transition-all"
                                 style={{ background: pendingConfirm && confirmAction === "refuser" ? "rgba(255,77,109,0.15)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(255,77,109,0.3)", color: "var(--error)" }}>
-                                {pendingConfirm && confirmAction === "refuser" ? "✓ Confirmer" : "Refuser"}
+                                {pendingConfirm && confirmAction === "refuser" ? <><Check size={16} /> Confirmer</> : "Refuser"}
                               </button>
                             </>
                           )}
@@ -165,14 +166,14 @@ const AdminEvenements = () => {
                             <button onClick={() => { if (pendingConfirm && confirmAction === "suspendre") handleAction(e.id, "suspendre"); else { setConfirmId(e.id); setConfirmAction("suspendre"); } }}
                               className="px-3 py-1.5 rounded-lg text-xs transition-all"
                               style={{ background: pendingConfirm && confirmAction === "suspendre" ? "rgba(255,77,109,0.15)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(255,77,109,0.3)", color: "var(--error)" }}>
-                              {pendingConfirm && confirmAction === "suspendre" ? "✓ Confirmer" : "Suspendre"}
+                              {pendingConfirm && confirmAction === "suspendre" ? <><Check size={16} /> Confirmer</> : "Suspendre"}
                             </button>
                           )}
                           {e.statut === "suspendu" && (
                             <button onClick={() => { if (pendingConfirm && confirmAction === "reactiver") handleAction(e.id, "reactiver"); else { setConfirmId(e.id); setConfirmAction("reactiver"); } }}
                               className="px-3 py-1.5 rounded-lg text-xs transition-all"
                               style={{ background: pendingConfirm && confirmAction === "reactiver" ? "rgba(0,229,160,0.15)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(0,229,160,0.3)", color: "var(--success)" }}>
-                              {pendingConfirm && confirmAction === "reactiver" ? "✓ Confirmer" : "Réactiver"}
+                              {pendingConfirm && confirmAction === "reactiver" ? <><Check size={16} /> Confirmer</> : "Réactiver"}
                             </button>
                           )}
                         </div>
@@ -202,8 +203,8 @@ const AdminEvenements = () => {
             <button onClick={closeModal} style={{
               position: "absolute", top: "1rem", right: "1rem",
               background: "none", border: "none", color: "var(--text-secondary)",
-              fontSize: "1.25rem", cursor: "pointer",
-            }}>✕</button>
+              cursor: "pointer",
+            }}><X size={18} /></button>
 
             {/* Titre + statut */}
             <h2 className="text-xl font-bold mb-1" style={{ fontFamily: "Outfit, sans-serif", color: "#F1F5F9" }}>

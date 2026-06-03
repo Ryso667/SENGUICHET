@@ -99,6 +99,7 @@ export default function StatistiquesScreen() {
     )
   }
 
+export default function StatistiquesScreen() {
   return (
     <View style={s.container}>
       <BlurBackground category="Conference" />

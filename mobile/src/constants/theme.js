@@ -1,16 +1,12 @@
-// Couleurs de l'application (charte graphique : thème Cyan/Bleu)
-// Fond : #F8F9FC (blanc soyeux)
-// Surface : #FFFFFF (blanc pur)
-// Texte : #0F172A (ardoise foncé)
-// Primaire : #00C8FF (Cyan vif)
-// Accent : #0077FF (Bleu profond)
+// Thème sombre du dashboard organisateur
+// Fond : #0D1B2A (bleu nuit), Accent : #00C8FF (cyan vif)
 export const colors = {
-  bg: '#f8f9fc',
+  bg: '#0D1B2A',
+  surface: '#152232',
+  border: 'rgba(0, 200, 255, 0.15)',
   white: '#FFFFFF',
-  slate: '#0f172a',
-  mid: '#A0B4C8',
-  muted: '#94a3b8',
-  border: '#edf0f5',
+  text: '#FFFFFF',
+  textSecondary: '#A0B4C8',
   accent: '#00C8FF',
   accentLight: '#E0F7FF',
   green: '#00E5A0',
@@ -39,12 +35,11 @@ export const glass = {
   darkBgHeavy: 'rgba(0,0,0,0.55)',
 }
 
-// Dégradés par rôle - Cyan → Bleu
 export const gradients = {
   primary: ['#00C8FF', '#0077FF'],
-  controleur: ['#0077FF', '#00C8FF'],
-  organisateur: ['#00C8FF', '#00E5A0'],
-  hero: ['rgba(0,200,255,0.04)', 'rgba(0,119,255,0.04)'],
+  organisateur: ['#00C8FF', '#0077FF'],
+  success: ['#00E5A0', '#00C8FF'],
+  error: ['#FF4D6D', '#FF6B8A'],
 }
 
 // Dégradés par catégorie d'événement — style Apple Music
@@ -79,41 +74,31 @@ export const spacing = {
   xxl: 40,
 }
 
-// Rayons de bordure (cartes = 16px, boutons = ovale avec 28px+)
 export const borderRadius = {
   sm: 6,
-  md: 10,
-  lg: 14,
-  xl: 20,
+  md: 8,
+  lg: 12,
+  xl: 16,
   full: 9999,
 }
 
-// Ombres teintées cyan (colored shadows)
 export const shadows = {
   sm: {
-    shadowColor: '#00C8FF',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   md: {
-    shadowColor: '#00C8FF',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 4,
-  },
-  lg: {
-    shadowColor: '#00C8FF',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 8,
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 5,
   },
 }
 
-// Polices : Outfit pour les titres, Plus Jakarta Sans pour les textes
 export const fonts = {
   outfit: {
     black: 'Outfit_900Black',

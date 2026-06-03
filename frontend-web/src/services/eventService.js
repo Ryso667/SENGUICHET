@@ -91,3 +91,60 @@ export const adminDetailEvenement = async (id) => {
   });
   return handleResponse(res);
 };
+
+// ─── Demandes d'événements (workflow Organisateur → Admin) ───
+
+export const soumettreDemandeEvenement = async (payload) => {
+  const res = await fetch(`${API_URL}/api/demandes`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res);
+};
+
+export const listerMesDemandes = async () => {
+  const res = await fetch(`${API_URL}/api/demandes`, {
+    headers: headers(),
+  });
+  return handleResponse(res);
+};
+
+export const detailDemande = async (id) => {
+  const res = await fetch(`${API_URL}/api/demandes/${id}`, {
+    headers: headers(),
+  });
+  return handleResponse(res);
+};
+
+export const adminListerDemandes = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const res = await fetch(`${API_URL}/api/demandes/admin/all${query ? `?${query}` : ""}`, {
+    headers: headers(),
+  });
+  return handleResponse(res);
+};
+
+export const adminDetailDemande = async (id) => {
+  const res = await fetch(`${API_URL}/api/demandes/admin/${id}`, {
+    headers: headers(),
+  });
+  return handleResponse(res);
+};
+
+export const adminTraiterDemande = async (id, action, commentaire = "") => {
+  const res = await fetch(`${API_URL}/api/demandes/admin/${id}/traiter`, {
+    method: "PUT",
+    headers: headers(),
+    body: JSON.stringify({ action, commentaire }),
+  });
+  return handleResponse(res);
+};
+
+export const adminCreerEvenementDepuisDemande = async (id) => {
+  const res = await fetch(`${API_URL}/api/demandes/admin/${id}/creer-evenement`, {
+    method: "POST",
+    headers: headers(),
+  });
+  return handleResponse(res);
+};

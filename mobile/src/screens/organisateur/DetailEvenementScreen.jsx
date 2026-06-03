@@ -17,11 +17,34 @@ const STATUT_CONFIG = {
   annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
 }
 
-function formaterDate(dateStr) {
-  if (!dateStr) return ''
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+const MOCK_EVENT = {
+  id: '1',
+  nom: 'Festival Jazz St-Louis',
+  statut: 'ACTIF',
+  lieu: 'Saint-Louis, Sénégal',
+  date: '15 Juin 2026',
+  capacite: 500,
+  remplis: 342,
+  categories: [
+    { nom: 'Standard', prix: 15000, vendus: 200, total: 250 },
+    { nom: 'VIP', prix: 35000, vendus: 100, total: 150 },
+    { nom: 'Gold', prix: 50000, vendus: 42, total: 100 },
+  ],
+  transactions: [
+    { id: 't1', nom: 'Ousmane S.', categorie: 'VIP', montant: 35000, date: '28 Mai 2026' },
+    { id: 't2', nom: 'Fatou D.', categorie: 'Standard', montant: 15000, date: '27 Mai 2026' },
+    { id: 't3', nom: 'Mamadou N.', categorie: 'Gold', montant: 50000, date: '26 Mai 2026' },
+    { id: 't4', nom: 'Aïcha B.', categorie: 'Standard', montant: 15000, date: '25 Mai 2026' },
+  ],
 }
+
+const TYPES_DEMANDE = [
+  'Modification de date',
+  'Modification de lieu',
+  'Modification de prix',
+  'Autre modification',
+  'Annulation',
+]
 
 export default function DetailEvenementScreen({ route, navigation }) {
   const insets = useSafeAreaInsets()
@@ -62,11 +85,8 @@ export default function DetailEvenementScreen({ route, navigation }) {
         <Text style={s.errorText}>Événement introuvable</Text>
       </View>
     )
+    setShowModal(false)
   }
-
-  const cfg = STATUT_CONFIG[evenement.statut] || STATUT_CONFIG.en_attente
-  const pct = (evenement.capacite || 0) > 0
-    ? Math.round(((evenement.remplis || 0) / evenement.capacite) * 100) : 0
 
   return (
     <View style={s.container}>

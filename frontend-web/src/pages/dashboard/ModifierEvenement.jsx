@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import { detailEvenement, modifierEvenement } from "../../services/eventService";
+import { Check, X } from "../../components/Icons";
 
 const CATEGORIES = ["Concert", "Festival", "Soirée", "Sport", "Conférence", "Théâtre", "Autre"];
 const VILLES = ["Dakar", "Thiès", "Saint-Louis", "Ziguinchor", "Autre"];
@@ -33,7 +34,7 @@ const Toast = ({ message, visible, onClose }) => {
       className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl"
       style={{ background: "rgba(0,229,160,0.12)", backdropFilter: "blur(20px)", border: "1px solid rgba(0,229,160,0.3)", color: "var(--success)", fontFamily: "'Plus Jakarta Sans', sans-serif", animation: "fadeInUp 0.3s ease", minWidth: "280px" }}
     >
-      <span className="text-lg">✓</span>
+      <Check size={20} style={{ color: "var(--success)" }} />
       <span className="text-sm font-medium" style={{ flex: 1 }}>{message}</span>
       <button onClick={onClose} className="text-lg leading-none" style={{ background: "none", border: "none", color: "rgba(0,229,160,0.5)", cursor: "pointer", padding: 0 }}>×</button>
     </div>
@@ -212,7 +213,7 @@ const ModifierEvenement = () => {
                 {form.affichePreview ? (
                   <>
                     <img src={form.affichePreview} alt="Aperçu" className="w-full h-full object-cover rounded-xl" style={{ maxHeight: "240px" }} />
-                    <button type="button" onClick={(e) => { e.stopPropagation(); setForm((p) => ({ ...p, affiche: null, affichePreview: null })); }} className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm" style={{ background: "rgba(0,0,0,0.6)", color: "var(--error)", border: "none", cursor: "pointer" }}>✕</button>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); setForm((p) => ({ ...p, affiche: null, affichePreview: null })); }} className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm" style={{ background: "rgba(0,0,0,0.6)", color: "var(--error)", border: "none", cursor: "pointer" }}><X size={14} /></button>
                   </>
                 ) : (
                   <>
@@ -234,7 +235,7 @@ const ModifierEvenement = () => {
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Billet #{idx + 1}</span>
                 {ticketTypes.length > 1 && (
-                  <button onClick={() => removeTicket(ticket.id)} className="btn-danger btn-sm" style={{ width: "auto", padding: "4px 12px", fontSize: "12px" }}>✕ Supprimer</button>
+                  <button onClick={() => removeTicket(ticket.id)} className="btn-danger btn-sm" style={{ width: "auto", padding: "4px 12px", fontSize: "12px" }}><X size={14} /> Supprimer</button>
                 )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">

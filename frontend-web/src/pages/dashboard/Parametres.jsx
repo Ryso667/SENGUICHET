@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import DashboardLayout from "../../components/DashboardLayout";
+import { Check } from "../../components/Icons";
 
 const sections = [
   { key: "profil", label: "Mon profil", icon: "👤" },
@@ -68,7 +69,7 @@ const Parametres = () => {
                         <input value={telephone} onChange={(e) => setTelephone(e.target.value)} className="input-premium" />
                       </div>
                       <button onClick={handleSave} className="btn-primary" style={{ width: "auto", paddingLeft: 28, paddingRight: 28 }}>
-                        {saved ? "✓ Sauvegardé" : "Sauvegarder"}
+                        {saved ? <><Check size={16} /> Sauvegardé</> : "Sauvegarder"}
                       </button>
                     </>
                   )}
@@ -115,7 +116,7 @@ const Parametres = () => {
 
         {saved && (
           <div className="glass-card px-4 py-3 text-sm text-center" style={{ color: "var(--success)", animation: "fadeInDown 0.3s ease" }}>
-            ✓ Paramètres mis à jour avec succès
+            <Check size={16} /> Paramètres mis à jour avec succès
           </div>
         )}
       </div>

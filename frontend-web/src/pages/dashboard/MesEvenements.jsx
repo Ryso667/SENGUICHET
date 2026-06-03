@@ -4,12 +4,12 @@ import DashboardLayout from "../../components/DashboardLayout";
 import { listerEvenements } from "../../services/eventService";
 
 const badgeConfig = {
-  active: { cls: "badge-active", label: "Actif" },
-  "sold-out": { cls: "badge-sold-out", label: "Complet" },
-  en_attente: { cls: "badge-pending", label: "En attente" },
-  refuse: { cls: "badge-sold-out", label: "Refusé" },
-  suspendu: { cls: "badge-sold-out", label: "Suspendu" },
-  annule: { cls: "badge-sold-out", label: "Annulé" },
+  active: { cls: "badge-active", label: "ACTIF" },
+  "sold-out": { cls: "badge-sold-out", label: "TERMINÉ" },
+  en_attente: { cls: "badge-pending", label: "EN_ATTENTE" },
+  refuse: { cls: "badge-cancelled", label: "ANNULÉ" },
+  suspendu: { cls: "badge-cancelled", label: "ANNULÉ" },
+  annule: { cls: "badge-cancelled", label: "ANNULÉ" },
 };
 
 const tabs = ["Tous", "Actifs", "En attente", "Terminés", "Annulés"];
@@ -41,7 +41,7 @@ const MesEvenements = () => {
   const filtered = events.filter((e) => {
     if (activeTab === "Actifs" && e.statut !== "active" && e.statut !== "sold-out") return false;
     if (activeTab === "En attente" && e.statut !== "en_attente") return false;
-    if (activeTab === "Annulés" && e.statut !== "annule") return false;
+    if (activeTab === "Terminés" && e.statut !== "sold-out" && e.statut !== "refuse" && e.statut !== "suspendu") return false;
     if (search && !e.nom.toLowerCase().includes(search.toLowerCase())) return false;
     if (catFilter && e.categorie !== catFilter) return false;
     return true;
@@ -63,10 +63,10 @@ const MesEvenements = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>Mes événements</h1>
           <button
-            onClick={() => navigate("/dashboard/evenements/creer")}
+            onClick={() => navigate("/dashboard/demandes")}
             className="btn-primary btn-md sm:w-auto w-full"
           >
-            ➕ Créer un événement
+            📋 Demander un nouvel événement
           </button>
         </div>
 
@@ -109,20 +109,19 @@ const MesEvenements = () => {
         {filtered.length === 0 ? (
           <div className="glass-card p-12 text-center">
             <div className="text-6xl mb-4">🎫</div>
-            <h2 className="text-lg font-bold mb-2" style={{ fontFamily: "Outfit, sans-serif", color: "white" }}>Vous n'avez pas encore créé d'événement</h2>
+            <h2 className="text-lg font-bold mb-2" style={{ fontFamily: "Outfit, sans-serif", color: "white" }}>Aucun événement trouvé</h2>
             <p className="text-sm mb-6" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Créez votre premier événement et commencez à vendre des billets.
+              Vous n'avez pas encore d'événement. Faites une demande à l'équipe SENGUICHET.
             </p>
-            <button onClick={() => navigate("/dashboard/evenements/creer")} className="btn-primary">Créer mon premier événement</button>
+            <button onClick={() => navigate("/dashboard/demandes")} className="btn-primary">Demander un événement</button>
           </div>
         ) : (
           <>
-            {/* Desktop table */}
             <div className="hidden md:block glass-card overflow-hidden">
               <table className="w-full text-sm" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
-                    {["Événement", "Date", "Lieu", "Billets", "Revenus", "Statut", "Actions"].map((h) => (
+                    {["Événement", "Date", "Lieu", "Billets", "Progression", "Statut", "Actions"].map((h) => (
                       <th key={h} className="text-left px-5 py-4 text-xs font-medium" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{h}</th>
                     ))}
                   </tr>
@@ -146,16 +145,14 @@ const MesEvenements = () => {
                       </td>
                       <td className="px-5 py-4 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>{e.date}</td>
                       <td className="px-5 py-4 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>{e.lieu}</td>
+                      <td className="px-5 py-4 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>{e.remplis}/{e.capacite}</td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-16 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.08)" }}>
+                          <div className="w-20 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.08)" }}>
                             <div className="h-1.5 rounded-full" style={{ width: `${(e.remplis / e.capacite) * 100}%`, background: "var(--gradient)" }} />
                           </div>
-                          <span className="text-xs" style={{ color: "var(--text-secondary)" }}>{e.remplis}/{e.capacite}</span>
+                          <span className="text-xs" style={{ color: "var(--text-secondary)" }}>{Math.round((e.remplis / e.capacite) * 100)}%</span>
                         </div>
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className="gradient-text font-semibold text-sm" style={{ fontFamily: "Outfit, sans-serif" }}>{e.revenus}</span>
                       </td>
                       <td className="px-5 py-4">
                         <span className={`badge ${(badgeConfig[e.statut] || badgeConfig.annule).cls}`}>
@@ -163,23 +160,19 @@ const MesEvenements = () => {
                         </span>
                       </td>
                       <td className="px-5 py-4">
-                        <div className="flex gap-1.5">
-                          {[
-                            { icon: "👁", label: "Voir", path: `/dashboard/evenements/${e.id}` },
-                            { icon: "✏️", label: "Modifier", path: `/dashboard/evenements/${e.id}/modifier` },
-                            { icon: "❌", label: "Annuler", path: `/dashboard/evenements/${e.id}/annuler` },
-                          ].map((a) => (
-                            <button
-                              key={a.label}
-                              onClick={() => navigate(a.path)}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center text-xs transition-all hover:scale-95"
-                              title={a.label}
-                              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.5)" }}
-                            >
-                              {a.icon}
-                            </button>
-                          ))}
-                        </div>
+                        <button
+                          onClick={() => navigate(`/dashboard/evenements/${e.id}`)}
+                          className="px-4 py-1.5 rounded-xl text-xs font-medium transition-all"
+                          style={{
+                            border: "1px solid rgba(0,200,255,0.3)",
+                            color: "var(--primary)",
+                            background: "transparent",
+                          }}
+                          onMouseEnter={(el) => { el.currentTarget.style.background = "rgba(0,200,255,0.1)"; }}
+                          onMouseLeave={(el) => { el.currentTarget.style.background = "transparent"; }}
+                        >
+                          Voir les détails
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -187,7 +180,6 @@ const MesEvenements = () => {
               </table>
             </div>
 
-            {/* Mobile cards */}
             <div className="md:hidden space-y-4">
               {filtered.map((e) => (
                 <div key={e.id} className="glass-card overflow-hidden">
@@ -210,8 +202,7 @@ const MesEvenements = () => {
                       <span className="gradient-text font-semibold" style={{ fontFamily: "Outfit, sans-serif" }}>{e.revenus}</span>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => navigate(`/dashboard/evenements/${e.id}`)} className="btn-primary btn-sm flex-1">Gérer</button>
-                      <button onClick={() => navigate("/dashboard/statistiques")} className="btn-ghost btn-sm flex-1">Stats</button>
+                      <button onClick={() => navigate(`/dashboard/evenements/${e.id}`)} className="btn-primary btn-sm flex-1">Voir les détails</button>
                     </div>
                   </div>
                 </div>

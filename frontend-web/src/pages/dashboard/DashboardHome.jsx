@@ -3,12 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/DashboardLayout";
 import { listerEvenements } from "../../services/eventService";
-
-const quickActions = [
-  { icon: "➕", label: "Créer un événement", path: "/dashboard/evenements/creer" },
-  { icon: "🎟", label: "Générer code contrôleur", path: "/dashboard/equipe" },
-  { icon: "📊", label: "Voir les statistiques", path: "/dashboard/statistiques" },
-];
+import { Ticket, Calendar, LayoutGrid } from "../../components/Icons";
 
 const DashboardHome = () => {
   const { user } = useAuth();
@@ -40,11 +35,15 @@ const DashboardHome = () => {
   }, 0);
   const tauxRemplissage = totalCapacite > 0 ? Math.round((totalVendus / totalCapacite) * 100) : 0;
 
+  const prochainEvent = events
+    .filter((e) => e.statut === "active")
+    .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+
   const stats = [
-    { icon: "📅", label: "Événements actifs", value: String(activeCount), trend: "", positive: true },
-    { icon: "🎟", label: "Billets vendus", value: String(totalVendus), trend: "", positive: true },
-    { icon: "💰", label: "Revenus total", value: `${totalRevenus.toLocaleString()} FCFA`, trend: "", positive: true },
-    { icon: "👥", label: "Taux de remplissage", value: `${tauxRemplissage}%`, trend: "", positive: true },
+    { icon: <Ticket size={20} />, label: "Total billets vendus", value: String(totalVendus) },
+    { icon: "⚘", label: "Revenus générés", value: `${totalRevenus.toLocaleString()} FCFA` },
+    { icon: <Calendar size={20} />, label: "Événements actifs", value: String(activeCount) },
+    { icon: <LayoutGrid size={20} />, label: "Prochain événement", value: prochainEvent?.nom || "—" },
   ];
 
   return (
@@ -52,10 +51,30 @@ const DashboardHome = () => {
       <div className="max-w-6xl">
 
         <div className="mb-8" style={{ animation: "fadeInUp 0.4s ease-out" }}>
-          <h1 className="text-2xl sm:text-[28px] font-bold text-white" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>
-            Bonjour, {user?.nom || "Organisateur"} 👋
+          <h1 className="text-2xl sm:text-[28px] font-bold text-white" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px" }}>
+            <LayoutGrid size={22} style={{ marginRight: 8 }} /> Bonjour, {user?.nom || "Organisateur"} —
           </h1>
           <p className="text-sm mt-1" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif", textTransform: "capitalize" }}>{today}</p>
+        </div>
+
+        <div
+          className="p-4 sm:p-5 rounded-xl mb-8 flex items-start gap-3"
+          style={{
+            background: "rgba(0, 200, 255, 0.08)",
+            borderLeft: "4px solid var(--primary)",
+            animation: "fadeInUp 0.4s ease-out 0.1s both",
+          }}
+        >
+          <Ticket size={20} style={{ marginTop: 2 }} />
+          <div>
+            <p className="text-sm font-medium text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              Votre espace est en lecture seule.
+            </p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              Pour toute modification, utilisez la section{" "}
+              <button onClick={() => navigate("/dashboard/demandes")} className="underline" style={{ color: "var(--primary)" }}>Mes demandes</button>.
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -63,14 +82,9 @@ const DashboardHome = () => {
             <div key={s.label} className="stat-card" style={{ animation: `fadeInUp 0.4s ease-out ${i * 0.1}s both` }}>
               <div className="flex items-center justify-between">
                 <span className="text-lg">{s.icon}</span>
-                <span className="stat-value">{s.value}</span>
+                <span className="stat-value text-lg" style={{ fontSize: "22px" }}>{s.value}</span>
               </div>
               <p className="stat-label">{s.label}</p>
-              {s.trend && (
-                <span className="text-xs flex items-center gap-1" style={{ color: s.positive ? "var(--success)" : "var(--error)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                  ↑ {s.trend} vs mois dernier
-                </span>
-              )}
             </div>
           ))}
         </div>
@@ -118,8 +132,7 @@ const DashboardHome = () => {
                     <div className="flex items-center justify-between">
                       <span className="gradient-text font-semibold" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 600 }}>{ev.revenus}</span>
                       <div className="flex gap-2">
-                        <button onClick={() => navigate(`/dashboard/evenements/${ev.id}`)} className="btn-primary btn-sm" style={{ padding: "6px 14px", fontSize: "11px" }}>Gérer</button>
-                        <button onClick={() => navigate("/dashboard/statistiques")} className="btn-ghost btn-sm" style={{ padding: "6px 14px", fontSize: "11px" }}>Stats</button>
+                        <button onClick={() => navigate(`/dashboard/evenements/${ev.id}`)} className="btn-primary btn-sm" style={{ padding: "6px 14px", fontSize: "11px" }}>Détails</button>
                       </div>
                     </div>
                   </div>
@@ -127,24 +140,6 @@ const DashboardHome = () => {
               ))}
             </div>
           )}
-
-        </div>
-
-        <div style={{ animation: "fadeInUp 0.5s ease-out 0.5s both" }}>
-          <h2 className="text-lg font-bold text-white mb-4" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 600 }}>Actions rapides</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {quickActions.map((a, i) => (
-              <button
-                key={a.label}
-                onClick={() => navigate(a.path)}
-                className="glass-card-hover p-5 text-left flex items-center gap-4"
-                style={{ animation: `fadeInUp 0.4s ease-out ${0.6 + i * 0.1}s both` }}
-              >
-                <span className="text-2xl">{a.icon}</span>
-                <span className="text-sm font-medium text-white" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 600 }}>{a.label}</span>
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     </DashboardLayout>

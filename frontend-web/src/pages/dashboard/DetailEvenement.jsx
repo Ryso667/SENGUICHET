@@ -2,12 +2,20 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import { detailEvenement } from "../../services/eventService";
+import { soumettreDemandeEvenement } from "../../services/eventService";
+import { Ticket, Calendar, Edit, X, Send, Loader, Check } from "../../components/Icons";
 
 const DetailEvenement = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [eventData, setEventData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState("MODIFICATION");
+  const [demandeMsg, setDemandeMsg] = useState("");
+  const [demandeSent, setDemandeSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetch = async () => {
@@ -23,11 +31,40 @@ const DetailEvenement = () => {
     fetch();
   }, [id, navigate]);
 
+  const openModal = (type) => {
+    setModalType(type);
+    setDemandeMsg("");
+    setDemandeSent(false);
+    setError("");
+    setModalOpen(true);
+  };
+
+  const handleSendDemande = async (e) => {
+    e.preventDefault();
+    setSending(true);
+    setError("");
+    try {
+      const ev = eventData?.evenement;
+      await soumettreDemandeEvenement({
+        type_action: modalType,
+        evenement_id: parseInt(id),
+        titre: ev?.titre || "",
+        description: demandeMsg,
+        payload: { message: demandeMsg },
+      });
+      setDemandeSent(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSending(false);
+    }
+  };
+
   if (loading) {
     return (
-      <DashboardLayout title="Détail de l'événement">
+      <DashboardLayout title={<span style={{display:"flex",alignItems:"center",gap:"8px"}}><Ticket size={20} /> Détail événement</span>}>
         <div className="flex items-center justify-center py-20">
-          <p style={{ color: "var(--text-secondary)" }}>Chargement...</p>
+          <p style={{ color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "6px" }}><Loader size={16} /> Chargement...</p>
         </div>
       </DashboardLayout>
     );
@@ -56,7 +93,7 @@ const DetailEvenement = () => {
               {ev.categorie && <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>{ev.categorie}</p>}
             </div>
             <span className={`badge ${ev.statut === "actif" ? "badge-active" : ev.statut === "en_attente" ? "badge-pending" : "badge-sold-out"}`}>
-              {ev.statut === "actif" ? "Actif" : ev.statut === "en_attente" ? "En attente" : ev.statut === "suspendu" ? "Suspendu" : ev.statut === "refuse" ? "Refusé" : "Annulé"}
+              {ev.statut === "actif" ? <><Calendar size={14} /> ACTIF</> : ev.statut === "en_attente" ? <><Ticket size={14} /> ATTENTE</> : ev.statut === "suspendu" ? <><X size={14} /> ANNULÉ</> : <><X size={14} /> TERMINÉ</>}
             </span>
           </div>
 
@@ -74,7 +111,7 @@ const DetailEvenement = () => {
               <p className="text-sm font-medium" style={{ color: "#F1F5F9" }}>{ev.capacite_totale} personnes</p>
             </div>
             <div className="p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.03)" }}>
-              <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>Scan Code</p>
+              <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>Code</p>
               <p className="text-sm font-medium" style={{ color: "#818CF8", fontFamily: "monospace", letterSpacing: "2px" }}>{ev.scan_code}</p>
             </div>
           </div>
@@ -92,27 +129,25 @@ const DetailEvenement = () => {
               <p className="text-lg font-bold gradient-text" style={{ fontFamily: "Outfit, sans-serif" }}>{placesVendues}/{totalPlaces}</p>
             </div>
             <div className="flex-1">
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>Taux de remplissage</p>
+              <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>Taux</p>
               <p className="text-lg font-bold gradient-text" style={{ fontFamily: "Outfit, sans-serif" }}>
                 {totalPlaces > 0 ? Math.round((placesVendues / totalPlaces) * 100) : 0}%
               </p>
             </div>
           </div>
 
-          <div className="flex gap-3">
-            <button onClick={() => navigate(`/dashboard/evenements/${id}/modifier`)} className="btn-primary btn-md">
-              ✏️ Modifier
+          <div className="flex gap-3 flex-wrap">
+            <button onClick={() => openModal("MODIFICATION")} className="btn-ghost btn-md">
+              <Edit size={16} /> Demander une modification
             </button>
-            {ev.statut === "actif" ? (
-              <button onClick={() => navigate(`/dashboard/evenements/${id}/annuler`)} className="btn-danger btn-md">
-                ❌ Annuler
-              </button>
-            ) : null}
+            <button onClick={() => openModal("SUPPRESSION")} className="btn-danger btn-md">
+              <X size={16} /> Demander la suppression
+            </button>
           </div>
         </div>
 
-        <div className="glass-card p-6 sm:p-8" style={{ animation: "fadeInUp 0.4s ease 0.1s both" }}>
-          <h2 className="text-lg font-bold mb-6" style={{ fontFamily: "Outfit, sans-serif", color: "#F1F5F9" }}>Types de billets</h2>
+        <div className="glass-card p-6 sm:p-8 mb-6" style={{ animation: "fadeInUp 0.4s ease 0.1s both" }}>
+          <h2 className="text-lg font-bold mb-6" style={{ fontFamily: "Outfit, sans-serif", color: "#F1F5F9", display:"flex", alignItems:"center", gap:"8px" }}><Calendar size={18} /> Catégories de tickets</h2>
           {tickets.length === 0 ? (
             <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Aucun billet configuré</p>
           ) : (
@@ -137,6 +172,55 @@ const DetailEvenement = () => {
           )}
         </div>
       </div>
+
+      {modalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setModalOpen(false); }}
+        >
+          <div className="w-full max-w-xl rounded-2xl p-6 sm:p-8" style={{ background: "#152232", border: "1px solid var(--border)", boxShadow: "0 24px 80px rgba(0,0,0,0.6)", maxHeight: "90vh", overflowY: "auto" }}>
+            {demandeSent ? (
+              <div className="text-center py-6">
+                <Check size={40} style={{ color: "var(--success)" }} />
+                <h3 className="text-lg font-bold text-white mb-2" style={{ fontFamily: "Outfit, sans-serif" }}>Demande envoyée</h3>
+                <p className="text-sm" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  L'équipe SenGuichet examinera votre demande et vous tiendra informé.
+                </p>
+                <button onClick={() => setModalOpen(false)} className="btn-primary mt-6">Fermer</button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-bold text-white" style={{ fontFamily: "Outfit, sans-serif" }}>
+                    {modalType === "SUPPRESSION" ? <><X size={16} /> Demander la suppression</> : <><Edit size={16} /> Demander une modification</>}
+                  </h3>
+                  <button onClick={() => setModalOpen(false)} style={{ color: "rgba(255,255,255,0.4)", background: "none", border: "none", cursor: "pointer" }}><X size={18} /></button>
+                </div>
+                {error && (
+                  <div className="mb-4 p-3 rounded-xl text-xs" style={{ background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.2)", color: "var(--error)" }}>{error}</div>
+                )}
+                <form onSubmit={handleSendDemande} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      Détails de la demande <span style={{ color: "var(--error)" }}>*</span>
+                    </label>
+                    <textarea
+                      required rows={5} value={demandeMsg} onChange={(e) => setDemandeMsg(e.target.value)}
+                      className="input-premium"
+                      placeholder={modalType === "SUPPRESSION" ? "Raison de la suppression..." : "Décrivez les modifications souhaitées..."}
+                      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", resize: "vertical" }}
+                    />
+                  </div>
+                  <button type="submit" disabled={sending} className="btn-primary w-full">
+                    {sending ? <><Loader size={16} /> Envoi...</> : <><Send size={16} /> Envoyer la demande</>}
+                  </button>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 };

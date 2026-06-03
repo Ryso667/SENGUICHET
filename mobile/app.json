@@ -42,24 +42,8 @@
       "expo-sqlite",
       "expo-camera",
       "expo-local-authentication",
-      "expo-web-browser",
-      [
-        "@react-native-google-signin/google-signin",
-        {
-          "iosUrlScheme": "com.googleusercontent.apps.114575452982-lv7fugvppu5p551llnq93gef4o2cba7k"
-        }
-      ],
-      "expo-asset"
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "2727117e-fc16-41c0-8d38-013602ca2c8b"
-      }
-    },
-    "owner": "ecole-superieure-polytechnique",
-    "runtimeVersion": "1.0.0",
-    "updates": {
-      "url": "https://u.expo.dev/2727117e-fc16-41c0-8d38-013602ca2c8b"
-    }
+      "@react-native-community/datetimepicker",
+      "expo-build-properties"
+    ]
   }
 }
