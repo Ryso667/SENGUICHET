@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/DashboardLayout";
 import { creerEvenement } from "../../services/eventService";
+import { Check, X } from "../../components/Icons";
 
 const CATEGORIES = ["Concert", "Festival", "Soirée", "Sport", "Conférence", "Théâtre", "Autre"];
 const VILLES = ["Dakar", "Thiès", "Saint-Louis", "Ziguinchor", "Autre"];
@@ -29,7 +30,7 @@ const Stepper = ({ current }) => (
               fontFamily: "Outfit, sans-serif",
             }}
           >
-            {done ? "✓" : s.num}
+            {done ? <Check size={14} /> : s.num}
           </div>
           <span
             className="hidden sm:inline text-sm"
@@ -93,7 +94,7 @@ const Toast = ({ message, visible, onClose }) => {
         minWidth: "280px",
       }}
     >
-      <span className="text-lg">✓</span>
+      <Check size={20} style={{ color: "var(--success)" }} />
       <span className="text-sm font-medium" style={{ flex: 1 }}>{message}</span>
       <button onClick={onClose} className="text-lg leading-none" style={{ background: "none", border: "none", color: "rgba(0,229,160,0.5)", cursor: "pointer", padding: 0 }}>×</button>
     </div>
@@ -319,7 +320,7 @@ const CreerEvenement = () => {
                       className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm"
                       style={{ background: "rgba(0,0,0,0.6)", color: "var(--error)", border: "none", cursor: "pointer" }}
                     >
-                      ✕
+                      <X size={14} />
                     </button>
                   </>
                 ) : (
@@ -355,7 +356,7 @@ const CreerEvenement = () => {
                   <span className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Billet #{idx + 1}</span>
                   {ticketTypes.length > 1 && (
                     <button onClick={() => removeTicket(ticket.id)} className="btn-danger btn-sm" style={{ width: "auto", padding: "4px 12px", fontSize: "12px" }}>
-                      ✕ Supprimer
+                      <X size={14} /> Supprimer
                     </button>
                   )}
                 </div>

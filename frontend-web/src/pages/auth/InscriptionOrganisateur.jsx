@@ -7,6 +7,7 @@ import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import AlertMessage from "../../components/AlertMessage";
 import logo from "../../assets/logo.jpg";
+import { Check } from "../../components/Icons";
 
 const strengthConfig = [
   { label: "Faible", color: "var(--error)", segments: 1 },
@@ -76,7 +77,7 @@ const InscriptionOrganisateur = () => {
           <p className="text-sm mb-8" style={{ color: "#A0B4C8", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Rejoignez la billetterie qui connecte les événements sénégalais.</p>
           <div className="space-y-3 text-left mx-auto max-w-[220px]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             {["Sécurisé", "Rapide", "Professionnel"].map((item, i) => (
-              <p key={item} className="text-white/60 text-sm flex items-center gap-3" style={{ animation: `slideInLeft 0.4s ease-out ${0.3 + i * 0.15}s both` }}><span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px]" style={{ background: "rgba(0,229,160,0.15)", color: "var(--success)" }}>✓</span> {item}</p>
+              <p key={item} className="text-white/60 text-sm flex items-center gap-3" style={{ animation: `slideInLeft 0.4s ease-out ${0.3 + i * 0.15}s both` }}><Check size={14} style={{ flexShrink: 0 }} /> {item}</p>
             ))}
           </div>
         </div>

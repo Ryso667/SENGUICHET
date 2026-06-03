@@ -1,8 +1,9 @@
 import React, { useState } from "react";
+import { Check, XCircle } from "../components/Icons";
 
 const icons = {
-  success: "✓",
-  error: "✗",
+  success: <Check size={16} />,
+  error: <XCircle size={16} />,
   warning: "⚡",
 };
 

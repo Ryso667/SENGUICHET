@@ -8,5 +8,7 @@ router.use("/auth", authRoutes);
 router.use("/evenements", evenementRoutes);
 router.use("/billets", require("./billets"));
 router.use("/paiements", require("./paiements"));
+router.use("/partenaires", require("./partenaires"));
+router.use("/demandes", require("./demandes"));
 
 module.exports = router;

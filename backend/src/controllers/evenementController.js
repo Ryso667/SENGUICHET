@@ -60,7 +60,7 @@ const lister = async (req, res) => {
       `SELECT e.*,
         COALESCE(SUM(ct.places_disponibles), 0) AS places_restantes,
         COALESCE(SUM(ct.capacite), 0) AS capacite_billets,
-        (SELECT COALESCE(SUM(b.prix_paye), 0) FROM billet b JOIN categorie_ticket ct2 ON b.categorie_ticket_id = ct2.id WHERE ct2.evenement_id = e.id AND b.statut = 'ACTIF') AS revenus
+        (SELECT COALESCE(SUM(b.prix_paye), 0) FROM billet b JOIN categorie_ticket ct2 ON b.categorie_ticket_id = ct2.id WHERE ct2.evenement_id = e.id AND b.est_utilise = 0) AS revenus
       FROM evenement e
       LEFT JOIN categorie_ticket ct ON ct.evenement_id = e.id
       WHERE e.organisateur_id = ? AND e.statut != 'annule'
@@ -112,7 +112,7 @@ const detail = async (req, res) => {
         COALESCE(SUM(b.prix_paye), 0) AS revenus
       FROM billet b
       JOIN categorie_ticket ct ON b.categorie_ticket_id = ct.id
-      WHERE ct.evenement_id = ? AND b.statut = 'ACTIF'`,
+      WHERE ct.evenement_id = ? AND b.est_utilise = 0`,
       [id]
     );
 

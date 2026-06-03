@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, Link } from "react-router-dom";
-import { connexionOrganisateur, connexionAdmin } from "../../services/authService";
+import { connexionOrganisateur, connexionAdmin, connexionPartenaire } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
 import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import AlertMessage from "../../components/AlertMessage";
 import logo from "../../assets/logo.jpg";
+import { Check } from "../../components/Icons";
 
 const ConnexionOrganisateur = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -34,11 +35,23 @@ const ConnexionOrganisateur = () => {
       if (result.token && result.user) {
         login(result.user, result.token);
         navigate("/dashboard");
-      } else if (result.message?.includes("EN_ATTENTE")) {
-        setAlert({ message: "Compte en attente de validation", type: "warning" });
-      } else {
-        setAlert({ message: "Email ou mot de passe incorrect", type: "error" });
+        return;
       }
+      if (result.message?.includes("EN_ATTENTE")) {
+        setAlert({ message: "Compte en attente de validation", type: "warning" });
+        setIsLoading(false);
+        return;
+      }
+    } catch (_) {}
+
+    try {
+      const result = await connexionPartenaire({ email: data.email, motDePasse: data.motDePasse });
+      if (result.token && result.user) {
+        login(result.user, result.token);
+        navigate("/dashboard");
+        return;
+      }
+      setAlert({ message: "Email ou mot de passe incorrect", type: "error" });
     } catch (err) {
       setAlert({ message: err.message || "Email ou mot de passe incorrect", type: "error" });
     } finally {
@@ -57,7 +70,7 @@ const ConnexionOrganisateur = () => {
           <p className="text-sm mb-8" style={{ color: "#A0B4C8", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Connectez-vous à votre espace SenGuichet.</p>
           <div className="space-y-3 text-left mx-auto max-w-[220px]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             {["Sécurisé", "Rapide", "Professionnel"].map((item, i) => (
-              <p key={item} className="text-white/60 text-sm flex items-center gap-3" style={{ animation: `slideInLeft 0.4s ease-out ${0.3 + i * 0.15}s both` }}><span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px]" style={{ background: "rgba(0,229,160,0.15)", color: "var(--success)" }}>✓</span> {item}</p>
+              <p key={item} className="text-white/60 text-sm flex items-center gap-3" style={{ animation: `slideInLeft 0.4s ease-out ${0.3 + i * 0.15}s both` }}><Check size={14} style={{ flexShrink: 0 }} /> {item}</p>
             ))}
           </div>
         </div>
