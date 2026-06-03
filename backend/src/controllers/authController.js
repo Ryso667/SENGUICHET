@@ -121,6 +121,44 @@ const connexionAdmin = async (req, res) => {
   }
 };
 
+const connexionPartenaire = async (req, res) => {
+  try {
+    const { email, motDePasse } = req.body;
+
+    if (!email || !motDePasse) {
+      return res.status(400).json({ message: "Email et mot de passe requis" });
+    }
+
+    const [rows] = await pool.query(
+      "SELECT id, nom_organisation, email, mot_de_passe, telephone, statut FROM partenaire WHERE email = ?",
+      [email]
+    );
+
+    if (!rows.length) {
+      return res.status(401).json({ message: "Email ou mot de passe incorrect" });
+    }
+
+    const partenaire = rows[0];
+    const valid = await bcrypt.compare(motDePasse, partenaire.mot_de_passe);
+    if (!valid) {
+      return res.status(401).json({ message: "Email ou mot de passe incorrect" });
+    }
+
+    if (partenaire.statut === "INACTIF") {
+      return res.status(403).json({ message: "Compte désactivé. Contactez l'administration." });
+    }
+
+    const token = generateToken({ id: partenaire.id, email: partenaire.email, nom: partenaire.nom_organisation }, "PARTENAIRE");
+    res.status(200).json({
+      token,
+      user: { id: partenaire.id, nom: partenaire.nom_organisation, email: partenaire.email, telephone: partenaire.telephone, role: "PARTENAIRE" },
+    });
+  } catch (err) {
+    console.error("Partenaire connexion error:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
 const adminListerOrganisateurs = async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -146,80 +184,28 @@ const adminListerOrganisateurs = async (req, res) => {
   }
 };
 
-// Connexion sociale via Firebase (Google/Apple)
-// Reçoit un token ID Firebase, le vérifie, crée ou lie l'acheteur
-const connexionSociale = async (req, res) => {
+const reinitialiserMotDePasseOrganisateur = async (req, res) => {
   try {
-    const { firebaseToken } = req.body;
-    if (!firebaseToken) {
-      return res.status(400).json({ message: "Token Firebase requis" });
+    const { id } = req.params;
+    const { nouveau_mot_de_passe } = req.body;
+
+    if (!nouveau_mot_de_passe || nouveau_mot_de_passe.length < 6) {
+      return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères" });
     }
 
-    const { verifierTokenFirebase } = require("../services/firebaseAdmin");
-    let profil;
-    try {
-      profil = await verifierTokenFirebase(firebaseToken);
-    } catch (err) {
-      return res.status(401).json({ message: "Token invalide ou expiré" });
+    const [rows] = await pool.query("SELECT id FROM organisateur WHERE id = ?", [id]);
+    if (!rows.length) {
+      return res.status(404).json({ message: "Organisateur introuvable" });
     }
 
-    if (!profil.email) {
-      return res.status(400).json({ message: "Email requis pour la connexion sociale" });
-    }
+    const hashedPassword = await bcrypt.hash(nouveau_mot_de_passe, 10);
+    await pool.query("UPDATE organisateur SET mot_de_passe = ? WHERE id = ?", [hashedPassword, id]);
 
-    // Chercher un acheteur existant par email ou provider_id
-    const [existants] = await pool.query(
-      `SELECT id, nom, email, telephone, photo_url, auth_provider, provider_id
-       FROM acheteur
-       WHERE email = ? OR (auth_provider = ? AND provider_id = ?)
-       LIMIT 1`,
-      [profil.email, profil.auth_provider, profil.uid]
-    );
-
-    let acheteur;
-    if (existants.length > 0) {
-      // Mettre à jour l'existant (photo, nom, provider)
-      acheteur = existants[0];
-      await pool.query(
-        `UPDATE acheteur
-         SET nom = COALESCE(?, nom),
-             photo_url = COALESCE(?, photo_url),
-             auth_provider = ?,
-             provider_id = ?,
-             dernier_acces = NOW()
-         WHERE id = ?`,
-        [profil.nom, profil.photo_url, profil.auth_provider, profil.uid, acheteur.id]
-      );
-    } else {
-      // Créer un nouvel acheteur
-      const [result] = await pool.query(
-        `INSERT INTO acheteur (nom, email, photo_url, auth_provider, provider_id, date_inscription, dernier_acces)
-         VALUES (?, ?, ?, ?, ?, NOW(), NOW())`,
-        [profil.nom, profil.email, profil.photo_url, profil.auth_provider, profil.uid]
-      );
-      acheteur = { id: result.insertId, nom: profil.nom, email: profil.email, photo_url: profil.photo_url, auth_provider: profil.auth_provider };
-    }
-
-    // Générer le JWT de session
-    const token = generateToken(
-      { id: acheteur.id, email: profil.email },
-      "ACHETEUR"
-    );
-
-    res.json({
-      token,
-      user: {
-        id: acheteur.id,
-        nom: profil.nom,
-        email: profil.email,
-        photo_url: profil.photo_url,
-        auth_provider: profil.auth_provider,
-      },
-    });
+    res.json({ message: "Mot de passe réinitialisé avec succès" });
   } catch (err) {
-    console.error("Connexion sociale error:", err);
-    res.status(500).json({ message: "Erreur lors de la connexion sociale" });
+    console.error("Réinitialisation mot de passe organisateur error:", err);
+    res.status(500).json({ message: "Erreur serveur" });
   }
 };
 
-module.exports = { inscription, connexionOrganisateur, connexionAdmin, adminListerOrganisateurs, connexionSociale };
+module.exports = { inscription, connexionOrganisateur, connexionAdmin, connexionPartenaire, adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur };

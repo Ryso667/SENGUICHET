@@ -1,0 +1,15 @@
+node_modules/
+**/node_modules/
+.expo/
+dist/
+web-build/
+.kotlin/
+ios/
+android/
+.git/
+*.log
+.DS_Store
+frontend-web/build/
+.playwright-mcp/
+node_modules_old/
+mobile/node_modules/

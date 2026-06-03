@@ -2,12 +2,13 @@ import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Sidebar from "./Sidebar";
+import { LayoutGrid, Calendar, BarChart, FileText, LogOut } from "../components/Icons";
 
 const bottomNav = [
-  { icon: "🏠", path: "/dashboard" },
-  { icon: "📅", path: "/dashboard/evenements" },
-  { icon: "➕", path: "/dashboard/evenements/creer" },
-  { icon: "⚙️", path: "/dashboard/parametres" },
+  { icon: <LayoutGrid size={18} />, path: "/dashboard" },
+  { icon: <Calendar size={18} />, path: "/dashboard/evenements" },
+  { icon: <BarChart size={18} />, path: "/dashboard/statistiques" },
+  { icon: <FileText size={18} />, path: "/dashboard/demandes" },
 ];
 
 const DashboardLayout = ({ children, title = "Dashboard" }) => {
@@ -29,7 +30,7 @@ const DashboardLayout = ({ children, title = "Dashboard" }) => {
             <h1 className="text-lg font-bold text-white" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>{title}</h1>
           </div>
           <button onClick={() => { logout(); navigate("/connexion"); }} className="lg:hidden px-3 py-1.5 rounded-xl text-xs" style={{ background: "rgba(255,77,109,0.12)", border: "1px solid rgba(255,77,109,0.3)", color: "var(--error)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Déconnexion
+            <LogOut size={18} /> Déconnexion
           </button>
         </header>
 
@@ -38,7 +39,7 @@ const DashboardLayout = ({ children, title = "Dashboard" }) => {
         </main>
 
         <nav
-          className="lg:hidden fixed bottom-0 left-0 right-0 z-20 px-2 py-2"
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-20 px-2 pt-2 pb-1"
           style={{ background: "rgba(6,7,16,0.95)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(255,255,255,0.06)" }}
         >
           <div className="flex justify-around">
@@ -56,6 +57,21 @@ const DashboardLayout = ({ children, title = "Dashboard" }) => {
                 <span className="text-lg">{item.icon}</span>
               </button>
             ))}
+          </div>
+          <div className="text-center">
+            <a
+              href="https://sendigitalpulse.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: "#374151",
+                fontSize: "9px",
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                textDecoration: "none",
+              }}
+            >
+              Propulsé par SDP
+            </a>
           </div>
         </nav>
       </div>

@@ -66,25 +66,31 @@ CREATE TABLE administrateur (
 -- ============================================================
 
 -- 2.1 DemandeEvenement (workflow de validation)
-CREATE TABLE demande_evenement (
+CREATE TABLE IF NOT EXISTS demande_evenement (
   id INT AUTO_INCREMENT PRIMARY KEY,
   organisateur_id INT NOT NULL,
-  titre VARCHAR(200) NOT NULL,
+  type_action ENUM('CREATION', 'MODIFICATION', 'SUPPRESSION') NOT NULL DEFAULT 'CREATION',
+  evenement_id INT DEFAULT NULL,
+  titre VARCHAR(200) DEFAULT NULL,
   description TEXT DEFAULT NULL,
-  lieu VARCHAR(200) NOT NULL,
-  date_debut DATETIME NOT NULL,
+  lieu VARCHAR(200) DEFAULT NULL,
+  date_debut DATETIME DEFAULT NULL,
   date_fin DATETIME DEFAULT NULL,
   capacite INT NOT NULL DEFAULT 0,
   affiche_url VARCHAR(500) DEFAULT NULL,
+  payload JSON DEFAULT NULL,
   statut ENUM('soumis', 'en_analyse', 'approuve', 'refuse') NOT NULL DEFAULT 'soumis',
   commentaire_admin TEXT DEFAULT NULL,
   administrateur_id INT DEFAULT NULL,
   date_soumission DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   date_traitement DATETIME DEFAULT NULL,
   FOREIGN KEY (organisateur_id) REFERENCES organisateur(id) ON DELETE CASCADE,
+  FOREIGN KEY (evenement_id) REFERENCES evenement(id) ON DELETE SET NULL,
   FOREIGN KEY (administrateur_id) REFERENCES administrateur(id) ON DELETE SET NULL,
   INDEX idx_demande_statut (statut),
-  INDEX idx_demande_organisateur (organisateur_id)
+  INDEX idx_demande_organisateur (organisateur_id),
+  INDEX idx_demande_type_action (type_action),
+  INDEX idx_demande_evenement (evenement_id)
 ) ENGINE=InnoDB;
 
 -- 2.2 Evenement
@@ -318,6 +324,54 @@ CREATE TABLE notification (
   INDEX idx_notification_destinataire (destinataire_type, destinataire_id),
   INDEX idx_notification_lu (est_lu),
   INDEX idx_notification_date (date_creation)
+) ENGINE=InnoDB;
+
+-- ============================================================
+-- 7. TABLE DEMANDES DE PARTENARIAT
+-- ============================================================
+
+-- 7.1 PartenaireDemande (formulaire public devenir partenaire)
+CREATE TABLE IF NOT EXISTS partenaire_demande (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nom VARCHAR(150) NOT NULL,
+  organisation VARCHAR(200) NOT NULL,
+  telephone VARCHAR(20) NOT NULL,
+  email VARCHAR(200) NOT NULL,
+  type_evenement VARCHAR(50) NOT NULL,
+  nb_evenements VARCHAR(20) DEFAULT NULL,
+  site_web VARCHAR(300) DEFAULT NULL,
+  description TEXT NOT NULL,
+  statut ENUM('EN_ATTENTE', 'EN_COURS', 'ACCEPTEE', 'REFUSEE') NOT NULL DEFAULT 'EN_ATTENTE',
+  note_admin TEXT DEFAULT NULL,
+  email_confirme TINYINT(1) NOT NULL DEFAULT 0,
+  administrateur_id INT DEFAULT NULL,
+  date_soumission DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  date_traitement DATETIME DEFAULT NULL,
+  FOREIGN KEY (administrateur_id) REFERENCES administrateur(id) ON DELETE SET NULL,
+  INDEX idx_partenaire_statut (statut),
+  INDEX idx_partenaire_date (date_soumission),
+  INDEX idx_partenaire_email (email)
+) ENGINE=InnoDB;
+
+-- ============================================================
+-- 8. TABLE COMPTES PARTENAIRES (identifiants de connexion)
+-- ============================================================
+
+-- 8.1 Partenaire (compte créé par l'admin après acceptation d'une demande)
+CREATE TABLE IF NOT EXISTS partenaire (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  demande_id INT UNIQUE,
+  nom_organisation VARCHAR(200) NOT NULL,
+  email VARCHAR(200) NOT NULL UNIQUE,
+  mot_de_passe VARCHAR(255) NOT NULL,
+  telephone VARCHAR(20) DEFAULT NULL,
+  site_web VARCHAR(300) DEFAULT NULL,
+  type_evenement VARCHAR(50) DEFAULT NULL,
+  statut ENUM('ACTIF', 'INACTIF') NOT NULL DEFAULT 'ACTIF',
+  date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  derniere_connexion DATETIME DEFAULT NULL,
+  FOREIGN KEY (demande_id) REFERENCES partenaire_demande(id) ON DELETE SET NULL,
+  INDEX idx_partenaire_email (email)
 ) ENGINE=InnoDB;
 
 -- ============================================================

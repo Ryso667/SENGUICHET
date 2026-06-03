@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
+import { Check, Clipboard } from "../../components/Icons";
 
 const mockControllers = [
   { telephone: "+221 77 123 45 01", scannes: 45, derniereActivite: "Il y a 2 min", statut: "ACTIF" },
@@ -71,7 +72,7 @@ const GestionEquipe = () => {
         </p>
         <div className="flex justify-center gap-3">
           <button onClick={handleCopy} className="btn-primary btn-sm" style={{ width: "auto", minWidth: 120 }}>
-            {copied ? "✓ Copié !" : "📋 Copier"}
+            {copied ? <><Check size={16} /> Copié !</> : <><Clipboard size={16} /> Copier</>}
           </button>
           <button onClick={() => setShowRegen(true)} className="btn-ghost btn-sm" style={{ width: "auto" }}>🔄 Régénérer</button>
         </div>

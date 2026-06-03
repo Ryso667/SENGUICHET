@@ -1,8 +1,9 @@
 // Navigation principale de l'application
 // 3 piles distinctes selon le rôle : acheteur / controleur / organisateur
 // Les écrans non-connectés (auth) sont affichés quand aucun rôle n'est actif
+import React from 'react'
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native'
-import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { Feather } from '@expo/vector-icons'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
@@ -29,18 +30,166 @@ import WebViewWaveScreen from '../screens/WebViewWaveScreen'
 import ScannerScreen from '../screens/controleur/ScannerScreen'
 import ScanHistoryScreen from '../screens/controleur/ScanHistoryScreen'
 
-// Écrans organisateur (tabs)
+// Écrans organisateur
 import OrganisateurDashboardScreen from '../screens/organisateur/OrganisateurDashboardScreen'
-import CreerEvenementScreen from '../screens/organisateur/CreerEvenementScreen'
-import VoirTicketsScreen from '../screens/organisateur/VoirTicketsScreen'
 import GestionEvenementsScreen from '../screens/organisateur/GestionEvenementsScreen'
-// Écrans organisateur (stack — poussés au-dessus des tabs)
 import DetailEvenementScreen from '../screens/organisateur/DetailEvenementScreen'
 import StatistiquesScreen from '../screens/organisateur/StatistiquesScreen'
+import MesDemandesScreen from '../screens/organisateur/MesDemandesScreen'
 import ParametresScreen from '../screens/organisateur/ParametresScreen'
 
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
+
+// Header réutilisable pour les tabs organisateur
+function OrganisateurHeader({ title, deconnecter, badgeCount }) {
+  return (
+    <View style={headerStyles.container}>
+      <TouchableOpacity onPress={deconnecter} style={headerStyles.left}>
+        <Feather name="log-out" size={20} color="#FF4D6D" />
+      </TouchableOpacity>
+      <Text style={headerStyles.title}>{title}</Text>
+      <View style={headerStyles.right}>
+        <View style={headerStyles.logoPlaceholder}>
+          <Text style={headerStyles.logoText}>S</Text>
+        </View>
+      </View>
+    </View>
+  )
+}
+
+const headerStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#0D1B2A',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,200,255,0.15)',
+  },
+  left: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,77,109,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 17,
+    fontFamily: 'Outfit_700Bold',
+    color: '#FFFFFF',
+  },
+  right: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,200,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoPlaceholder: {},
+  logoText: {
+    fontSize: 16,
+    fontFamily: 'Outfit_800ExtraBold',
+    color: '#00C8FF',
+  },
+})
+
+// Onglets organisateur : 4 tabs
+function OrganisateurTabs() {
+  const { deconnecter } = useAuth()
+  const [demandesCount] = React.useState(2)
+
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        header: () => null,
+        tabBarStyle: {
+          backgroundColor: '#0D1B2A',
+          borderTopColor: 'rgba(0,200,255,0.15)',
+          borderTopWidth: 1,
+          height: 64,
+          paddingBottom: 8,
+          paddingTop: 6,
+        },
+        tabBarActiveTintColor: '#00C8FF',
+        tabBarInactiveTintColor: '#A0B4C8',
+        tabBarLabelStyle: {
+          fontFamily: 'Outfit_600SemiBold',
+          fontSize: 11,
+        },
+      }}
+    >
+      <Tab.Screen
+        name="DashboardTab"
+        component={OrganisateurDashboardScreen}
+        options={{
+          tabBarLabel: 'Tableau de bord',
+          tabBarIcon: ({ color }) => <Feather name="home" size={20} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="MesEvenementsTab"
+        component={GestionEvenementsScreen}
+        options={{
+          tabBarLabel: 'Mes événements',
+          tabBarIcon: ({ color }) => <Feather name="calendar" size={20} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="StatistiquesTab"
+        component={StatistiquesScreen}
+        options={{
+          tabBarLabel: 'Statistiques',
+          tabBarIcon: ({ color }) => <Feather name="bar-chart-2" size={20} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="MesDemandesTab"
+        component={MesDemandesScreen}
+        options={{
+          tabBarLabel: 'Mes demandes',
+          tabBarIcon: ({ color }) => (
+            <View style={{ position: 'relative' }}>
+              <Feather name="bell" size={20} color={color} />
+              {demandesCount > 0 && (
+                <View style={{
+                  position: 'absolute',
+                  top: -4,
+                  right: -6,
+                  width: 16,
+                  height: 16,
+                  borderRadius: 8,
+                  backgroundColor: '#FF4D6D',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <Text style={{ color: '#FFFFFF', fontSize: 10, fontFamily: 'Outfit_700Bold' }}>
+                    {demandesCount}
+                  </Text>
+                </View>
+              )}
+            </View>
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  )
+}
+
+// Wrapper avec header personnalisé par dessus les tabs
+function OrganisateurLayout() {
+  const { deconnecter } = useAuth()
+  return (
+    <View style={{ flex: 1, backgroundColor: '#0D1B2A' }}>
+      <OrganisateurHeader title="SENGUICHET" deconnecter={deconnecter} />
+      <OrganisateurTabs />
+    </View>
+  )
+}
 
 // Onglets du contrôleur : Scanner + Historique
 function ControleurTabs() {
@@ -51,7 +200,6 @@ function ControleurTabs() {
         headerShown: true,
         headerStyle: { backgroundColor: '#FFFFFF' },
         headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#0f172a' },
-        // Bouton Quitter (déconnexion) dans le header de chaque tab
         headerRight: () => (
           <TouchableOpacity onPress={deconnecter} style={{ marginRight: 16 }}>
             <Text style={{ fontSize: 14, color: '#FF4D6D', fontFamily: 'Outfit_600SemiBold' }}>
@@ -78,7 +226,7 @@ function ControleurTabs() {
         component={ScannerScreen}
         options={{
           tabBarLabel: 'Scanner',
-          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="qrcode-scan" size={22} color={color} />,
+          tabBarIcon: ({ color }) => <Feather name="maximize" size={20} color={color} />,
           title: 'Scanner',
         }}
       />
@@ -87,7 +235,7 @@ function ControleurTabs() {
         component={ScanHistoryScreen}
         options={{
           tabBarLabel: 'Historique',
-          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="clipboard-text-outline" size={22} color={color} />,
+          tabBarIcon: ({ color }) => <Feather name="clock" size={20} color={color} />,
           title: 'Historique',
         }}
       />
@@ -140,40 +288,19 @@ export default function AppNavigator() {
           <Stack.Screen name="ControleurTabs" component={ControleurTabs} />
         )}
 
-        {/* Organisateur connecté */}
+        {/* Organisateur connecté : bottom tabs + stack screens */}
         {role === 'organisateur' && (
           <>
-            <Stack.Screen name="Dashboard" component={OrganisateurDashboardScreen} />
-            <Stack.Screen
-              name="CreerEvenement"
-              component={CreerEvenementScreen}
-              options={{ headerShown: true, headerTitle: 'Nouvel événement', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#FFFFFF' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#0f172a' }, headerTintColor: '#00C8FF' }}
-            />
-            <Stack.Screen
-              name="VoirTickets"
-              component={VoirTicketsScreen}
-              initialParams={{ eventId: null }}
-              options={{ headerShown: true, headerTitle: 'Tickets', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#FFFFFF' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#0f172a' }, headerTintColor: '#00C8FF' }}
-            />
-            <Stack.Screen
-              name="GestionEvenements"
-              component={GestionEvenementsScreen}
-              options={{ headerShown: true, headerTitle: 'Gestion', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#FFFFFF' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#0f172a' }, headerTintColor: '#00C8FF' }}
-            />
+            <Stack.Screen name="OrganisateurTabs" component={OrganisateurLayout} />
             <Stack.Screen
               name="DetailEvenement"
               component={DetailEvenementScreen}
-              options={{ headerShown: true, headerTitle: 'Détail', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#FFFFFF' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#0f172a' }, headerTintColor: '#00C8FF' }}
-            />
-            <Stack.Screen
-              name="Statistiques"
-              component={StatistiquesScreen}
-              options={{ headerShown: true, headerTitle: 'Statistiques', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#FFFFFF' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#0f172a' }, headerTintColor: '#00C8FF' }}
+              options={{ headerShown: true, headerTitle: 'Détail', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
             />
             <Stack.Screen
               name="Parametres"
               component={ParametresScreen}
-              options={{ headerShown: true, headerTitle: 'Paramètres', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#FFFFFF' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#0f172a' }, headerTintColor: '#00C8FF' }}
+              options={{ headerShown: true, headerTitle: 'Paramètres', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
             />
           </>
         )}
@@ -188,6 +315,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f8f9fc',
+    backgroundColor: '#0D1B2A',
   },
 })

@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../assets/logo.jpg";
+import { Menu, X } from "../components/Icons";
 
 const navLinks = [
   { label: "Accueil", to: "/" },
   { label: "Comment ça marche", to: "#how" },
-  { label: "Contact", to: "#contact" },
+  { label: "Nos avantages", to: "#avantages" },
 ];
 
 const Navbar = () => {
@@ -106,7 +107,7 @@ const Navbar = () => {
 
         <div className="hidden md:flex" style={{ alignItems: "center", gap: "12px" }}>
           <button
-            onClick={() => navigate("/inscription")}
+            onClick={() => handleNavClick("#devenir-partenaire")}
             style={{
               fontFamily: "'Plus Jakarta Sans', sans-serif",
               fontWeight: 600,
@@ -123,7 +124,7 @@ const Navbar = () => {
             onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(0,200,255,0.5)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,200,255,0.3)"; }}
           >
-            Créer mon compte
+            Devenir partenaire
           </button>
           <button
             onClick={() => navigate("/connexion")}
@@ -151,7 +152,7 @@ const Navbar = () => {
           onClick={() => setMobileOpen(!mobileOpen)}
           style={{ background: "none", border: "none", color: "#00C8FF", fontSize: "1.5rem", cursor: "pointer" }}
         >
-          {mobileOpen ? "✕" : "☰"}
+          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
@@ -166,7 +167,7 @@ const Navbar = () => {
           }}
         >
           <div style={{ display: "flex", flexDirection: "column" }}>
-            {navLinks.map((l) => {
+            {[...navLinks, { label: "Devenir partenaire", to: "#devenir-partenaire" }].map((l) => {
               const active = isActive(l.to);
               return (
                 <button
@@ -192,9 +193,9 @@ const Navbar = () => {
             })}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", padding: "16px" }}>
-            <button onClick={() => { navigate("/inscription"); setMobileOpen(false); }}
+            <button onClick={() => { handleNavClick("#devenir-partenaire"); }}
               style={{ width: "100%", padding: "12px 0", borderRadius: "9999px", background: "linear-gradient(135deg, #00C8FF, #0077FF)", color: "#FFFFFF", border: "none", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: "0.9rem", cursor: "pointer" }}>
-              Créer mon compte
+              Devenir partenaire
             </button>
             <button onClick={() => { navigate("/connexion"); setMobileOpen(false); }}
               style={{ width: "100%", padding: "12px 0", borderRadius: "9999px", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#A0B4C8", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: "0.9rem", cursor: "pointer" }}>

@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { Check, Circle } from "../components/Icons";
 
 const ClockSvg = () => (
   <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style={{ animation: "spin 4s linear infinite" }}>
@@ -12,9 +13,9 @@ const ClockSvg = () => (
 );
 
 const steps = [
-  { label: "Demande soumise", icon: "✓", done: true },
+  { label: "Demande soumise", icon: "check", done: true },
   { label: "En cours de validation", icon: "⏳", done: false, active: true },
-  { label: "Compte activé", icon: "○", done: false },
+  { label: "Compte activé", icon: "circle", done: false },
 ];
 
 const EnAttenteValidation = () => {
@@ -55,7 +56,7 @@ const EnAttenteValidation = () => {
                     color: s.done ? "var(--success)" : s.active ? "var(--primary)" : "rgba(255,255,255,0.3)",
                     animation: s.active ? "pulse 2s infinite" : "none",
                   }}>
-                    {s.icon}
+                    {s.done ? <Check size={16} /> : <Circle size={16} />}
                   </span>
                   <span className="text-xs max-w-[80px] text-center" style={{ color: s.done ? "rgba(255,255,255,0.6)" : s.active ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.3)" }}>
                     {s.label}
