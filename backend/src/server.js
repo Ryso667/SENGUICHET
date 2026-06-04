@@ -9,6 +9,11 @@ const pool = require("./config/db");
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+// En production Vercel, VERCEL_URL est fourni automatiquement
+if (!process.env.TICKET_URL && process.env.VERCEL_URL) {
+  process.env.TICKET_URL = `https://${process.env.VERCEL_URL}/api/billets`;
+}
+
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));

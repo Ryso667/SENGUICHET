@@ -1,14 +1,21 @@
 // Client HTTP centralisé pour les appels API backend
 // Gère l'URL de base, l'en-tête Authorization JWT et les erreurs réseau
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { API_BASE_URL, API_TIMEOUT } from '../config'
+import * as Securite from '../utils/secureStorage'
+
+const STORAGE_KEY_JWT = '@senguichet_jwt'
 
 // Effectue un appel API authentifié
 // endpoint : chemin après /api (ex: '/evenements/')
 // options : { method, body } — body est automatiquement JSON.stringify
 // Retourne les données JSON ou lance une erreur
 export async function appelAPI(endpoint, options = {}) {
-  const token = await AsyncStorage.getItem('@senguichet_jwt')
+  let token = null
+  try {
+    token = await Securite.GET(STORAGE_KEY_JWT)
+  } catch {
+    // SecureStore non disponible, appel sans token
+  }
   const headers = { 'Content-Type': 'application/json' }
   if (token) headers['Authorization'] = `Bearer ${token}`
 

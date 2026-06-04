@@ -1,188 +1,138 @@
-// Écran liste des tickets achetés (acheteur)
-// Charge depuis l'API backend uniquement — pas de fallback mock SQLite
-import { useEffect, useCallback, useState } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet, RefreshControl } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
+// Liste des tickets de l'acheteur — version glass
+// FlatList avec stagger animation, chaque item est une carte glass
+import { useState, useEffect, useCallback } from 'react'
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native'
+import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
-import { useAuth } from '../context/AuthContext'
-import { formaterDateLisible } from '../utils/dateUtils'
-import { mesBillets } from '../services/billetService'
-import BuyerLayout from '../components/BuyerLayout'
+import { useFocusEffect } from '@react-navigation/native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { fonts, colors, spacing, borderRadius, glass, textShadow } from '../constants/theme'
+import BlurBackground from '../components/BlurBackground'
+import GlassContainer from '../components/GlassContainer'
 import EmptyState from '../components/EmptyState'
+import { useAuth } from '../context/AuthContext'
+import { mesBillets } from '../services/billetService'
+import { formaterDateLisible } from '../utils/dateUtils'
 
 const STATUTS = {
-  valide: { label: 'VALIDE', color: '#059669', dot: '#059669' },
-  utilise: { label: 'UTILISÉ', color: '#64748b', dot: '#64748b' },
-  expire: { label: 'EXPIRÉ', color: '#dc2626', dot: '#dc2626' },
-  en_attente: { label: 'EN ATTENTE', color: '#f59e0b', dot: '#f59e0b' },
+  actif: { label: 'VALIDE', color: '#00E5A0', bg: '#00E5A015' },
+  en_attente: { label: 'EN ATTENTE', color: '#F97316', bg: '#F9731615' },
+  utilise: { label: 'UTILISÉ', color: '#94A3B8', bg: '#94A3B815' },
+  rembourse: { label: 'REMBOURSÉ', color: '#FF4D6D', bg: '#FF4D6D15' },
 }
 
 export default function MesTicketsScreen({ navigation }) {
-  const { deconnecter, numeroTel } = useAuth()
-
+  const insets = useSafeAreaInsets()
   const [tickets, setTickets] = useState([])
-  const [chargement, setChargement] = useState(true)
-  const [erreur, setErreur] = useState(null)
-
-  const charger = useCallback(async () => {
-    if (!numeroTel) return
-    setChargement(true)
-    setErreur(null)
-    try {
-      const data = await mesBillets(numeroTel)
-      setTickets(Array.isArray(data) ? data : [])
-    } catch (e) {
-      setErreur(e.message)
-      setTickets([])
-    } finally {
-      setChargement(false)
-    }
-  }, [numeroTel])
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', charger)
-    return unsubscribe
-  }, [navigation, charger])
-
   const [refreshing, setRefreshing] = useState(false)
-  const onRefresh = useCallback(async () => {
+  const { numeroTel, profil } = useAuth()
+  const categoryForBg = tickets[0]?.categorie || null
+
+  // Charge les tickets depuis le service billetService
+  const loadTickets = useCallback(async () => {
+    const identifiant = numeroTel || profil?.email
+    if (identifiant) {
+      const data = await mesBillets(identifiant)
+      setTickets(data || [])
+    }
+  }, [numeroTel, profil])
+
+  // Recharge les tickets à chaque focus de l'écran
+  useFocusEffect(useCallback(() => { loadTickets() }, [loadTickets]))
+
+  // Pull-to-refresh
+  const onRefresh = async () => {
     setRefreshing(true)
-    await charger()
+    await loadTickets()
     setRefreshing(false)
-  }, [charger])
+  }
+
+  // Affiche un ticket sous forme de carte glass
+  const renderItem = ({ item }) => {
+    const s = STATUTS[item.statut] || STATUTS.actif
+    return (
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Ticket', { ticket: item })}
+        activeOpacity={0.7}
+      >
+        <GlassContainer style={styles.ticketCard} intensity={40}>
+          <View style={styles.eventThumb}>
+            <LinearGradient colors={['#6366F1', '#EC4899']} style={styles.thumbGradient}>
+              <Feather name="tag" size={18} color="#fff" />
+            </LinearGradient>
+          </View>
+          <View style={styles.ticketInfo}>
+            <Text style={styles.ticketTitle} numberOfLines={1}>{item.eventNom || 'Événement'}</Text>
+            <Text style={styles.ticketMeta}>
+              {item.categorie} · {formaterDateLisible(item.eventDate)}
+            </Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
+            <Text style={[styles.statusText, { color: s.color }]}>{s.label}</Text>
+          </View>
+        </GlassContainer>
+      </TouchableOpacity>
+    )
+  }
 
   return (
-    <BuyerLayout>
-      <SafeAreaView style={s.safe}>
-        <View style={s.header}>
-          <View>
-            <LinearGradient colors={['#00C8FF', '#0077FF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.logoGradient}>
-              <Text style={s.logoText}>Mes tickets</Text>
-            </LinearGradient>
-            {tickets.length > 0 && (
-              <Text style={s.sub}>{tickets.length} ticket{tickets.length > 1 ? 's' : ''}</Text>
-            )}
-          </View>
-          <TouchableOpacity onPress={() => Alert.alert('Déconnexion', "Revenir à l'authentification ?", [
-            { text: 'Annuler', style: 'cancel' },
-            { text: 'OK', onPress: deconnecter },
-          ])}>
-            <View style={s.logoutBtn}>
-              <Feather name="log-out" size={16} color={colors.mid} />
-            </View>
-          </TouchableOpacity>
+    <View style={styles.container}>
+      <BlurBackground category={categoryForBg} />
+      <View style={[styles.content, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Mes tickets</Text>
+          {tickets.length > 0 && (
+            <GlassContainer style={styles.countBadge} intensity={50}>
+              <Text style={styles.countText}>{tickets.length}</Text>
+            </GlassContainer>
+          )}
         </View>
 
-        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00C8FF']} />}
-        >
-          {chargement && tickets.length === 0 && (
-            <View style={s.centre}><Text style={s.texteCentre}>Chargement...</Text></View>
-          )}
-
-          {erreur && tickets.length === 0 && (
-            <View style={s.centre}>
-              <Feather name="wifi-off" size={32} color={colors.muted} />
-              <Text style={s.texteErreur}>{erreur}</Text>
-              <TouchableOpacity style={s.retryBtn} onPress={charger}>
-                <Text style={s.retryText}>Réessayer</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {!chargement && tickets.length === 0 && !erreur && (
+        <FlatList
+          data={tickets}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.numero || item.id}
+          contentContainerStyle={styles.list}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          ListEmptyComponent={
             <EmptyState
-              icon={<MaterialCommunityIcons name="ticket-outline" size={48} color={colors.mid} />}
+              icon="ticket"
               title="Aucun ticket"
-              subtitle="Achète tes premiers billets"
+              subtitle="Explore les événements et achète ton premier ticket"
+              actionLabel="Explorer"
+              onAction={() => navigation.navigate('Home')}
             />
-          )}
-
-          {tickets.map((t) => {
-            const statut = (t.statut || 'en_attente').toLowerCase()
-            return (
-              <TouchableOpacity
-                key={t.id}
-                style={s.card}
-                onPress={() => navigation.navigate('Ticket', { ticket: t })}
-                activeOpacity={0.7}
-              >
-                <LinearGradient colors={['#E0FFF0', '#D1FAE5']} style={s.emojiBox}>
-                  <MaterialCommunityIcons name="ticket-outline" size={20} color="#16a34a" />
-                </LinearGradient>
-                <View style={s.info}>
-                  <Text style={s.eventNom}>{t.eventNom}</Text>
-                  <Text style={s.meta}>{t.categorie} · {formaterDateLisible(t.eventDate)}</Text>
-                  <Text style={s.num}>#{t.numero}</Text>
-                </View>
-                <View style={s.badge}>
-                  <View style={[s.dot, { backgroundColor: STATUTS[statut]?.dot || '#059669' }]} />
-                  <Text style={[s.badgeText, { color: STATUTS[statut]?.color || '#059669' }]}>
-                    {STATUTS[statut]?.label || 'VALIDE'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )
-          })}
-        </ScrollView>
-      </SafeAreaView>
-    </BuyerLayout>
+          }
+        />
+      </View>
+    </View>
   )
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1 },
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#0f0f2a' },
+  content: { flex: 1 },
   header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm,
   },
-  logoGradient: {
-    borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3,
+  title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.5, ...textShadow },
+  countBadge: { paddingHorizontal: 10, paddingVertical: 3 },
+  countText: { fontSize: 12, fontFamily: fonts.jakarta.semiBold, color: '#fff' },
+  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.xl, gap: 10 },
+  ticketCard: {
+    flexDirection: 'row', alignItems: 'center', padding: 12, gap: 12,
   },
-  logoText: {
-    fontSize: 18, fontFamily: fonts.outfit.black, color: '#FFFFFF', letterSpacing: 1,
+  eventThumb: {
+    width: 52, height: 52, borderRadius: borderRadius.md, overflow: 'hidden',
   },
-  sub: {
-    fontSize: 11, color: colors.mid, fontFamily: fonts.jakarta.regular, marginTop: 6,
+  thumbGradient: {
+    flex: 1, alignItems: 'center', justifyContent: 'center',
   },
-  logoutBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center',
-    ...shadows.sm,
-  },
-  scroll: { padding: spacing.lg, paddingTop: 0 },
-  centre: {
-    alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: 12,
-  },
-  texteCentre: {
-    fontSize: 13, color: colors.mid, fontFamily: fonts.jakarta.regular,
-  },
-  texteErreur: {
-    fontSize: 12, color: colors.red, fontFamily: fonts.jakarta.regular, textAlign: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  retryBtn: {
-    backgroundColor: colors.accent, paddingHorizontal: 24, paddingVertical: 10,
-    borderRadius: borderRadius.full,
-  },
-  retryText: {
-    fontSize: 12, fontFamily: fonts.outfit.semiBold, color: '#fff',
-  },
-  card: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.white,
-    borderRadius: borderRadius.md, padding: 14, marginBottom: spacing.sm, ...shadows.sm,
-  },
-  emojiBox: { width: 40, height: 40, borderRadius: borderRadius.sm, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
-  info: { flex: 1 },
-  eventNom: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.slate, letterSpacing: -0.1 },
-  meta: { fontSize: 11, color: colors.mid, fontFamily: fonts.jakarta.regular, marginTop: 2 },
-  num: { fontSize: 10, color: colors.muted, fontFamily: fonts.jakarta.regular, marginTop: 1 },
-  badge: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: colors.greenLight, paddingHorizontal: 10, paddingVertical: 5, borderRadius: borderRadius.sm,
-  },
-  dot: { width: 5, height: 5, borderRadius: 3 },
-  badgeText: { fontSize: 10, fontFamily: fonts.jakarta.semiBold, color: '#16a34a' },
+  ticketInfo: { flex: 1 },
+  ticketTitle: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff', letterSpacing: -0.1, ...textShadow },
+  ticketMeta: { fontSize: 11, color: 'rgba(255,255,255,0.6)', fontFamily: fonts.jakarta.regular, marginTop: 2 },
+  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: borderRadius.sm },
+  statusText: { fontSize: 10, fontFamily: fonts.jakarta.semiBold, ...textShadow },
 })

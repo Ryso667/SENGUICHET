@@ -1,12 +1,21 @@
-// Détail d'un événement - mode lecture seule
-// Informations + catégories tickets + transactions + boutons demande
-import React, { useState } from 'react'
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert,
-} from 'react-native'
-import { Feather } from '@expo/vector-icons'
-import StatusBadge from '../../components/StatusBadge'
-import ProgressBar from '../../components/ProgressBar'
+// Détail d'un événement (lecture seule)
+// Design glass (Apple Invites)
+import React, { useState, useEffect } from 'react'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
+import { fetchEvenementDetailAPI } from '../../services/eventService'
+import Skeleton from '../../components/Skeleton'
+import BlurBackground from '../../components/BlurBackground'
+import GlassContainer from '../../components/GlassContainer'
+
+const STATUT_CONFIG = {
+  actif: { label: 'Actif', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
+  en_attente: { label: 'En attente', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
+  refuse: { label: 'Refusé', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
+  suspendu: { label: 'Suspendu', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
+  annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
+}
 
 const MOCK_EVENT = {
   id: '1',
@@ -38,415 +47,149 @@ const TYPES_DEMANDE = [
 ]
 
 export default function DetailEvenementScreen({ route, navigation }) {
+  const insets = useSafeAreaInsets()
   const { eventId } = route.params || {}
-  const [showModal, setShowModal] = useState(false)
-  const [typeDemande, setTypeDemande] = useState('')
-  const [details, setDetails] = useState('')
-  const [typeAnnonce, setTypeAnnonce] = useState('modification')
+  const [evenement, setEvenement] = useState(null)
+  const [tickets, setTickets] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const evenement = MOCK_EVENT
+  useEffect(() => {
+    if (eventId) charger()
+  }, [eventId])
 
-  function ouvrirDemande(type) {
-    setTypeAnnonce(type)
-    setTypeDemande('')
-    setDetails('')
-    setShowModal(true)
+  async function charger() {
+    setLoading(true)
+    try {
+      const data = await fetchEvenementDetailAPI(eventId)
+      setEvenement(data.evenement || data)
+      setTickets(data.tickets || [])
+    } catch {}
+    setLoading(false)
   }
 
-  function soumettre() {
-    if (!details.trim()) {
-      Alert.alert('Champ requis', 'Veuillez décrire votre demande.')
-      return
-    }
-    Alert.alert(
-      'Demande envoyée',
-      'Notre équipe vous contacte sous 48h.'
+  if (loading) {
+    return (
+      <View style={s.container}>
+        <BlurBackground category="Conference" />
+        <View style={{ padding: spacing.lg, paddingTop: insets.top }}>
+          <Skeleton type="card" count={4} />
+        </View>
+      </View>
+    )
+  }
+
+  if (!evenement) {
+    return (
+      <View style={s.center}>
+        <BlurBackground category="Conference" />
+        <Text style={s.errorText}>Événement introuvable</Text>
+      </View>
     )
     setShowModal(false)
   }
 
   return (
-    <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.headerCard}>
-          <Text style={styles.titre}>{evenement.nom}</Text>
-          <StatusBadge status={evenement.statut} />
-        </View>
-
-        <View style={styles.infoGrid}>
-          <InfoItem icon="map-pin" label="Lieu" value={evenement.lieu} />
-          <InfoItem icon="calendar" label="Date" value={evenement.date} />
-          <InfoItem icon="users" label="Capacité" value={`${evenement.capacite} places`} />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Catégories de tickets</Text>
-          {evenement.categories.map((cat, i) => (
-            <View key={i} style={styles.catCard}>
-              <View style={styles.catHeader}>
-                <Text style={styles.catNom}>{cat.nom}</Text>
-                <Text style={styles.catPrix}>{cat.prix.toLocaleString()} FCFA</Text>
-              </View>
-              <ProgressBar value={cat.vendus} max={cat.total} />
-              <Text style={styles.catCount}>
-                {cat.vendus} / {cat.total} vendus
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Transactions récentes</Text>
-          {evenement.transactions.map((t) => (
-            <View key={t.id} style={styles.transaction}>
-              <View style={styles.transLeft}>
-                <Text style={styles.transNom}>{t.nom}</Text>
-                <Text style={styles.transMeta}>{t.categorie} · {t.date}</Text>
-              </View>
-              <Text style={styles.transMontant}>{t.montant.toLocaleString()} FCFA</Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={{ height: 120 }} />
-      </ScrollView>
-
-      <View style={styles.bottomBtns}>
-        <TouchableOpacity
-          style={[styles.actionBtn, styles.modifierBtn]}
-          onPress={() => ouvrirDemande('modification')}
-        >
-          <Text style={styles.modifierBtnText}>Demander une modification</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionBtn, styles.annulerBtn]}
-          onPress={() => ouvrirDemande('annulation')}
-        >
-          <Text style={styles.annulerBtnText}>Demander l'annulation</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Modal visible={showModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>
-              {typeAnnonce === 'annulation' ? "Demande d'annulation" : 'Demande de modification'}
-            </Text>
-
-            <Text style={styles.inputLabel}>Type de demande</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.typeScroll}>
-              <View style={styles.typeRow}>
-                {TYPES_DEMANDE.map((t) => (
-                  <TouchableOpacity
-                    key={t}
-                    style={[styles.typeChip, typeDemande === t && styles.typeChipActive]}
-                    onPress={() => setTypeDemande(t)}
-                  >
-                    <Text style={[styles.typeChipText, typeDemande === t && styles.typeChipTextActive]}>
-                      {t}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-
-            <Text style={styles.inputLabel}>Détails de la demande</Text>
-            <TextInput
-              style={styles.textarea}
-              multiline
-              numberOfLines={4}
-              placeholder="Décrivez votre demande..."
-              placeholderTextColor="#6B7280"
-              value={details}
-              onChangeText={setDetails}
-            />
-
-            <View style={styles.modalBtns}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowModal(false)}>
-                <Text style={styles.cancelBtnText}>Annuler</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.submitBtn} onPress={soumettre}>
-                <LinearGradient
-                  colors={['#00C8FF', '#0077FF']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.submitBtnGradient}
-                >
-                  <Text style={styles.submitBtnText}>Envoyer</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
+    <View style={s.container}>
+      <BlurBackground category="Conference" />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: insets.top }}>
+        <GlassContainer style={s.header} intensity={35}>
+          <Text style={s.title}>{evenement.nom}</Text>
+          <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
+            <Text style={[s.statusText, { color: cfg.color }]}>{cfg.label}</Text>
           </View>
+        </GlassContainer>
+
+        <View style={s.infoGrid}>
+          <GlassContainer style={s.infoCard} intensity={30}>
+            <Text style={s.infoLabel}>Date</Text>
+            <Text style={s.infoValue}>{formaterDate(evenement.date)}</Text>
+          </GlassContainer>
+          <GlassContainer style={s.infoCard} intensity={30}>
+            <Text style={s.infoLabel}>Lieu</Text>
+            <Text style={s.infoValue}>{evenement.lieu || 'Non spécifié'}</Text>
+          </GlassContainer>
+          <GlassContainer style={s.infoCard} intensity={30}>
+            <Text style={s.infoLabel}>Capacité</Text>
+            <Text style={s.infoValue}>{evenement.capacite || 0} places</Text>
+          </GlassContainer>
+          <GlassContainer style={s.infoCard} intensity={30}>
+            <Text style={s.infoLabel}>Code</Text>
+            <Text style={s.infoValue}>{evenement.code || '-'}</Text>
+          </GlassContainer>
         </View>
-      </Modal>
+
+        <GlassContainer style={s.fillSection} intensity={35}>
+          <Text style={s.fillTitle}>Remplissage</Text>
+          <View style={s.barRow}>
+            <View style={s.barBg}>
+              <View style={[s.barFill, { width: `${pct}%` }]} />
+            </View>
+            <Text style={s.barCount}>{evenement.remplis || 0}/{evenement.capacite || 0}</Text>
+          </View>
+          <Text style={s.fillPct}>{pct}%</Text>
+        </GlassContainer>
+
+        {evenement.description ? (
+          <GlassContainer style={s.section} intensity={30}>
+            <Text style={s.sectionTitle}>Description</Text>
+            <Text style={s.description}>{evenement.description}</Text>
+          </GlassContainer>
+        ) : null}
+
+        <GlassContainer style={s.section} intensity={30}>
+          <Text style={s.sectionTitle}>Billets ({tickets.length})</Text>
+          {tickets.length === 0 ? (
+            <Text style={s.empty}>Aucun billet vendu</Text>
+          ) : (
+            tickets.map(t => (
+              <View key={t.id} style={s.ticketRow}>
+                <Text style={s.ticketCategorie}>{t.categorie || t.nom}</Text>
+                <Text style={s.ticketPrix}>{t.prix || 0} FCFA</Text>
+                <Text style={s.ticketStatut}>{t.statut || 'valide'}</Text>
+              </View>
+            ))
+          )}
+        </GlassContainer>
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
     </View>
   )
 }
 
-function InfoItem({ icon, label, value }) {
-  return (
-    <View style={infoStyles.item}>
-      <Feather name={icon} size={14} color="#00C8FF" />
-      <Text style={infoStyles.label}>{label}</Text>
-      <Text style={infoStyles.value}>{value}</Text>
-    </View>
-  )
-}
-
-const infoStyles = StyleSheet.create({
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 8,
+const s = StyleSheet.create({
+  container: { flex: 1 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  errorText: { fontSize: 16, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
+  header: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    margin: spacing.lg, padding: spacing.md,
   },
-  label: {
-    fontSize: 13,
-    fontFamily: 'Outfit_400Regular',
-    color: '#A0B4C8',
-    width: 60,
+  title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', flex: 1, marginRight: spacing.sm, ...textShadow },
+  statusBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 },
+  statusText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.3 },
+  infoGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.lg, gap: spacing.sm },
+  infoCard: {
+    width: '47%', padding: spacing.md,
   },
-  value: {
-    fontSize: 13,
-    fontFamily: 'Outfit_600SemiBold',
-    color: '#FFFFFF',
-    flex: 1,
+  infoLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 0.5 },
+  infoValue: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#fff', marginTop: 4 },
+  fillSection: { margin: spacing.lg, padding: spacing.md },
+  fillTitle: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)', marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
+  barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  barBg: { flex: 1, height: 10, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 5, overflow: 'hidden' },
+  barFill: { height: 10, borderRadius: 5, backgroundColor: '#00C8FF' },
+  barCount: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)' },
+  fillPct: { fontSize: 28, fontFamily: fonts.outfit.bold, color: '#fff', marginTop: spacing.sm, ...textShadow },
+  section: { marginHorizontal: spacing.lg, marginBottom: spacing.lg, padding: spacing.md },
+  sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff', marginBottom: spacing.sm },
+  description: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', lineHeight: 22 },
+  empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textAlign: 'center', paddingVertical: spacing.lg },
+  ticketRow: {
+    flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.15)',
   },
-})
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0D1B2A',
-  },
-  headerCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    margin: 16,
-    marginBottom: 8,
-  },
-  titre: {
-    fontSize: 22,
-    fontFamily: 'Outfit_700Bold',
-    color: '#FFFFFF',
-    flex: 1,
-    marginRight: 8,
-  },
-  infoGrid: {
-    backgroundColor: '#152232',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0,200,255,0.15)',
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 16,
-  },
-  section: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontFamily: 'Outfit_700Bold',
-    color: '#FFFFFF',
-    marginBottom: 12,
-  },
-  catCard: {
-    backgroundColor: '#152232',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0,200,255,0.15)',
-    padding: 14,
-    marginBottom: 8,
-  },
-  catHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  catNom: {
-    fontSize: 14,
-    fontFamily: 'Outfit_600SemiBold',
-    color: '#FFFFFF',
-  },
-  catPrix: {
-    fontSize: 14,
-    fontFamily: 'Outfit_700Bold',
-    color: '#00C8FF',
-  },
-  catCount: {
-    fontSize: 11,
-    fontFamily: 'Outfit_400Regular',
-    color: '#A0B4C8',
-    marginTop: 4,
-  },
-  transaction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#152232',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 6,
-  },
-  transLeft: {
-    flex: 1,
-  },
-  transNom: {
-    fontSize: 13,
-    fontFamily: 'Outfit_600SemiBold',
-    color: '#FFFFFF',
-  },
-  transMeta: {
-    fontSize: 11,
-    fontFamily: 'Outfit_400Regular',
-    color: '#A0B4C8',
-    marginTop: 2,
-  },
-  transMontant: {
-    fontSize: 13,
-    fontFamily: 'Outfit_700Bold',
-    color: '#00C8FF',
-  },
-  bottomBtns: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    gap: 12,
-    padding: 16,
-    paddingBottom: 32,
-    backgroundColor: '#0D1B2A',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,200,255,0.15)',
-  },
-  actionBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  modifierBtn: {
-    borderWidth: 1,
-    borderColor: '#00C8FF',
-  },
-  modifierBtnText: {
-    fontSize: 13,
-    fontFamily: 'Outfit_600SemiBold',
-    color: '#00C8FF',
-  },
-  annulerBtn: {
-    borderWidth: 1,
-    borderColor: '#FF4D6D',
-  },
-  annulerBtnText: {
-    fontSize: 13,
-    fontFamily: 'Outfit_600SemiBold',
-    color: '#FF4D6D',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#152232',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
-    paddingBottom: 40,
-  },
-  modalHandle: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#6B7280',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontFamily: 'Outfit_700Bold',
-    color: '#FFFFFF',
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontFamily: 'Outfit_600SemiBold',
-    color: '#A0B4C8',
-    marginBottom: 8,
-  },
-  typeScroll: {
-    marginBottom: 16,
-  },
-  typeRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  typeChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(0,200,255,0.3)',
-  },
-  typeChipActive: {
-    backgroundColor: '#00C8FF',
-    borderColor: '#00C8FF',
-  },
-  typeChipText: {
-    fontSize: 12,
-    fontFamily: 'Outfit_500Medium',
-    color: '#A0B4C8',
-  },
-  typeChipTextActive: {
-    color: '#FFFFFF',
-  },
-  textarea: {
-    backgroundColor: '#0D1B2A',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(0,200,255,0.15)',
-    padding: 12,
-    height: 100,
-    textAlignVertical: 'top',
-    fontSize: 14,
-    fontFamily: 'Outfit_400Regular',
-    color: '#FFFFFF',
-    marginBottom: 20,
-  },
-  modalBtns: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  cancelBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-  },
-  cancelBtnText: {
-    fontSize: 14,
-    fontFamily: 'Outfit_600SemiBold',
-    color: '#A0B4C8',
-  },
-  submitBtn: {
-    flex: 2,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  submitBtnGradient: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  submitBtnText: {
-    fontSize: 14,
-    fontFamily: 'Outfit_700Bold',
-    color: '#FFFFFF',
-  },
+  ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#fff', flex: 1 },
+  ticketPrix: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  ticketStatut: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginLeft: spacing.sm, textTransform: 'capitalize' },
 })

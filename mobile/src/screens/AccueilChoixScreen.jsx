@@ -1,29 +1,27 @@
 // Écran de sélection du rôle (Acheteur / Contrôleur / Organisateur)
-// Affiche 3 cartes animées — point d'entrée avant redirection vers la pile de navigation adaptée
-import React, { useEffect, useRef } from 'react'
+// Design glass immersif (Apple Invites) : fond sombre + cartes glass avec accent par rôle
+import { useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Image } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
-import { useAuth } from '../context/AuthContext'
-import { colors, gradients, shadows, spacing, borderRadius, fonts } from '../constants/theme'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { fonts, spacing, borderRadius, glass, categoryGradients } from '../constants/theme'
+import GlassContainer from '../components/GlassContainer'
 
-// Définition des 3 rôles avec leur titre, icône, dégradé et écran de destination
-// Sera remplacé par une configuration dynamique venant d'une API
 const ROLES = [
   {
-          key: 'acheteur',
+    key: 'acheteur',
     title: 'Acheteur',
     subtitle: "Achète tes billets\nen un clic",
     icon: 'ticket-outline',
-    gradient: gradients.primary,
-    screen: null, // Désactivé : connexion immédiate via connecterAcheteur
+    accent: '#6366F1',
+    screen: null,
   },
   {
     key: 'controleur',
     title: 'Contrôleur',
     subtitle: "Scanne les billets\nà l'entrée",
     icon: 'qrcode-scan',
-    gradient: gradients.controleur,
+    accent: '#00C8FF',
     screen: 'ConnexionControleur',
   },
   {
@@ -31,91 +29,95 @@ const ROLES = [
     title: 'Organisateur',
     subtitle: 'Crée et gère\ntes événements',
     icon: 'calendar-star',
-    gradient: gradients.organisateur,
+    accent: '#00E5A0',
     screen: 'ConnexionOrganisateur',
   },
 ]
 
-// Écran d'accueil avec sélection du rôle utilisateur et animation d'entrée des cartes
 export default function AccueilChoixScreen({ navigation }) {
-  const { connecterAcheteur } = useAuth()
-  const animations = useRef(ROLES.map(() => new Animated.Value(0))).current
+  const insets = useSafeAreaInsets()
+  const anims = useRef(ROLES.map(() => new Animated.Value(0))).current
 
-  // Animation d'entrée : les 3 cartes apparaissent en décalé (stagger 120ms)
   useEffect(() => {
-    Animated.stagger(120, animations.map(a =>
+    Animated.stagger(120, anims.map(a =>
       Animated.timing(a, { toValue: 1, duration: 500, useNativeDriver: true })
     )).start()
   }, [])
 
   return (
-    <LinearGradient colors={gradients.hero} style={s.container}>
-      <StatusBar barStyle="dark-content" />
-      {/* Titre et logo de l'application */}
-      <View style={s.header}>
-        <Image
-          source={require('../../assets/logo_app.jpeg')}
-          style={s.logo}
-          resizeMode="contain"
-        />
-        <Text style={s.title}>Senguichet</Text>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar barStyle="light-content" />
+      {/* Fond dégradé doux catégorie par défaut */}
+      <View style={StyleSheet.absoluteFill}>
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0b0b20' }]} />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: categoryGradients.default[0] }]} />
       </View>
 
-      {/* 3 cartes de sélection de rôle avec animation d'entrée */}
-      <View style={s.cards}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Image
+          source={require('../../assets/logo_app.jpeg')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.title}>Senguichet</Text>
+      </View>
+
+      {/* Cartes glass */}
+      <View style={styles.cards}>
         {ROLES.map((role, i) => {
-          const scale = animations[i].interpolate({
-            inputRange: [0, 1], outputRange: [0.9, 1],
+          const scale = anims[i].interpolate({
+            inputRange: [0, 1], outputRange: [0.92, 1],
           })
-          const opacity = animations[i].interpolate({
+          const opacity = anims[i].interpolate({
             inputRange: [0, 1], outputRange: [0, 1],
           })
           return (
-            <Animated.View key={role.key} style={[s.cardWrap, { opacity, transform: [{ scale }] }]}>
+            <Animated.View key={role.key} style={[styles.cardWrap, { opacity, transform: [{ scale }] }]}>
               <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={() => {
-                  if (!role.screen) {
-                    // Mode test : bypass auth sociale
-                    connecterAcheteur('+221771234567')
-                  } else {
-                    navigation.navigate(role.screen)
-                  }
-                }}
+                activeOpacity={0.85}
+                  onPress={() => {
+                    if (!role.screen) {
+                      navigation.navigate('SocialAuth')
+                    } else {
+                      navigation.navigate(role.screen)
+                    }
+                  }}
               >
-                <LinearGradient
-                  colors={role.gradient}
-                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                  style={s.card}
-                >
-                  <MaterialCommunityIcons name={role.icon} size={36} color="#fff" />
-                  <Text style={s.cardTitle}>{role.title}</Text>
-                  <Text style={s.cardSubtitle}>{role.subtitle}</Text>
-                  <View style={s.arrow}>
-                    <Text style={s.arrowText}>→</Text>
+                <GlassContainer style={styles.card} blurType="light" intensity={60}>
+                  <View style={[styles.accentBar, { backgroundColor: role.accent }]} />
+                  <View style={styles.cardContent}>
+                    <MaterialCommunityIcons name={role.icon} size={32} color={role.accent} />
+                    <View style={styles.cardText}>
+                      <Text style={styles.cardTitle}>{role.title}</Text>
+                      <Text style={styles.cardSubtitle}>{role.subtitle}</Text>
+                    </View>
+                    <MaterialCommunityIcons name="chevron-right" size={20} color="rgba(255,255,255,0.4)" />
                   </View>
-                </LinearGradient>
+                </GlassContainer>
               </TouchableOpacity>
             </Animated.View>
           )
         })}
       </View>
-    </LinearGradient>
+    </View>
   )
 }
 
-const s = StyleSheet.create({
+const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { alignItems: 'center', paddingTop: 80, paddingBottom: spacing.xl },
-  logo: { width: 100, height: 100, marginBottom: spacing.sm, borderRadius: 20 },
-  title: { fontSize: 32, fontFamily: fonts.outfit.bold, color: '#0B2B4A', letterSpacing: 1 },
-  tagline: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: 4 },
-  cards: { flex: 1, justifyContent: 'center', gap: spacing.md, paddingHorizontal: spacing.xl },
-  cardWrap: { borderRadius: borderRadius.xl, ...shadows.lg },
-  card: { borderRadius: borderRadius.xl, padding: spacing.lg, minHeight: 140, justifyContent: 'center' },
-  cardIcon: { marginBottom: spacing.xs },
-  cardTitle: { fontSize: 22, fontFamily: fonts.outfit.bold, color: colors.white },
-  cardSubtitle: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
-  arrow: { position: 'absolute', right: spacing.lg, top: '50%', marginTop: -12 },
-  arrowText: { fontSize: 24, color: 'rgba(255,255,255,0.6)' },
+  header: { alignItems: 'center', paddingTop: 60, paddingBottom: spacing.xl },
+  logo: { width: 88, height: 88, marginBottom: spacing.sm, borderRadius: 20 },
+  title: { fontSize: 32, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: 1 },
+  cards: { flex: 1, justifyContent: 'center', gap: spacing.md, paddingHorizontal: spacing.xl, paddingBottom: 60 },
+  cardWrap: { borderRadius: borderRadius.xl },
+  card: { borderRadius: borderRadius.xl, flexDirection: 'row', overflow: 'hidden' },
+  accentBar: { width: 4, borderTopLeftRadius: borderRadius.xl, borderBottomLeftRadius: borderRadius.xl },
+  cardContent: {
+    flex: 1, flexDirection: 'row', alignItems: 'center',
+    padding: spacing.lg, gap: spacing.md,
+  },
+  cardText: { flex: 1 },
+  cardTitle: { fontSize: 20, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.3 },
+  cardSubtitle: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
 })

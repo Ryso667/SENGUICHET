@@ -1,31 +1,50 @@
 // Écran détail d'un événement avec sélection de catégorie et paiement
-// Le téléphone et la confirmation de paiement sont intégrés sur cette page
+// Design immersif : BlurBackground + GlassContainer pour tous les éléments
+// Conserve le flux de paiement Wave/Orange Money existant
 import { useState, useEffect, useRef } from 'react'
 import {
-  View, Text, ScrollView, TextInput,
+  View, Text, ScrollView,
   TouchableOpacity, StyleSheet, Alert, Modal,
-  KeyboardAvoidingView, Platform, Image,
-  Animated, ActivityIndicator, Easing,
+  Platform, Image, KeyboardAvoidingView,
+  Animated, ActivityIndicator, Easing, TextInput,
+  useWindowDimensions,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
+import { fonts, colors, spacing, borderRadius, glass, categoryGradients, textShadow } from '../constants/theme'
+import BlurBackground from '../components/BlurBackground'
+import GlassContainer from '../components/GlassContainer'
+import GlassButton from '../components/GlassButton'
+import { getDefaultImage } from '../config/images'
 import { fetchEvenementDetailPublic } from '../services/eventService'
 import { acheterBillet } from '../services/billetService'
 import { formaterDateLisible } from '../utils/dateUtils'
-import BuyerLayout from '../components/BuyerLayout'
 import { useAuth } from '../context/AuthContext'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 export default function EventDetailScreen({ route, navigation }) {
   const { eventId } = route.params
   const { definirTelephone, numeroTel } = useAuth()
+  const insets = useSafeAreaInsets()
+  const { height: screenHeight } = useWindowDimensions()
   const [event, setEvent] = useState(null)
+  const catColor = event?.category ? getDefaultImage(event.category).bg : colors.accent
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [showCategorySheet, setShowCategorySheet] = useState(false)
   const [error, setError] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
   const [telephone, setTelephone] = useState(numeroTel || '')
+
+  // Formate le numéro en groupes XX XXX XX XX, limité à 9 chiffres
+  const formaterTel = (texte) => {
+    const chiffres = texte.replace(/\D/g, '').slice(0, 9)
+    let formate = ''
+    for (let i = 0; i < chiffres.length; i++) {
+      if (i === 2 || i === 5 || i === 7) formate += ' '
+      formate += chiffres[i]
+    }
+    return formate
+  }
   const [showPaymentSheet, setShowPaymentSheet] = useState(false)
   const [paymentEtape, setPaymentEtape] = useState('confirm') // confirm | pending | success | failed
   const [paymentError, setPaymentError] = useState('')
@@ -33,6 +52,7 @@ export default function EventDetailScreen({ route, navigation }) {
   const spinAnim = useRef(new Animated.Value(0)).current
   const scaleAnim = useRef(new Animated.Value(0)).current
 
+  // Charge les détails de l'événement au montage ou lors d'un retry
   useEffect(() => {
     (async () => {
       try {
@@ -43,6 +63,7 @@ export default function EventDetailScreen({ route, navigation }) {
           return
         }
         setEvent(data)
+        // Sera remplacé par API : sélectionne par défaut la 2e catégorie ou la première
         if (data.tickets.length > 0) {
           setSelectedTicket(data.tickets[1] || data.tickets[0])
         }
@@ -52,15 +73,25 @@ export default function EventDetailScreen({ route, navigation }) {
     })()
   }, [eventId, retryCount])
 
+  // Ouvre le modal de paiement à l'étape de confirmation
   const handleBuy = () => {
+    if (!selectedTicket) return
     setShowPaymentSheet(true)
     setPaymentEtape('confirm')
   }
 
-  const isValidPhone = telephone.replace(/[^\d]/g, '').length >= 6
-
+  // Déclenche l'appel API d'achat et gère les étapes de paiement
   const confirmerPaiement = async () => {
+    const telPropre = telephone.replace(/[^\d]/g, '')
+    if (!telPropre || telPropre.length < 9) {
+      setPaymentError("Renseigne ton numéro pour confirmer le paiement")
+      setPaymentEtape('failed')
+      return
+    }
+
     setPaymentEtape('pending')
+
+    // Animation de rotation pour le loader
     Animated.loop(
       Animated.timing(spinAnim, {
         toValue: 1,
@@ -70,6 +101,7 @@ export default function EventDetailScreen({ route, navigation }) {
       })
     ).start()
 
+    // Animation d'échelle pour le check de succès
     Animated.spring(scaleAnim, {
       toValue: 1,
       friction: 6,
@@ -77,9 +109,11 @@ export default function EventDetailScreen({ route, navigation }) {
     }).start()
 
     try {
-      const telPropre = telephone.replace(/[^\d]/g, '')
       const telComplet = telPropre.startsWith('221') ? `+${telPropre}` : `+221${telPropre}`
-      const resultat = await acheterBillet(event.id, selectedTicket.id, telComplet, null, 'WAVE')
+      const resultat = await acheterBillet(
+        event.id, selectedTicket.id,
+        telPropre ? telComplet : null, null, 'WAVE'
+      )
 
       if (!resultat || !resultat.billet) {
         throw new Error('Réponse invalide du serveur')
@@ -87,6 +121,7 @@ export default function EventDetailScreen({ route, navigation }) {
 
       await definirTelephone(telComplet)
 
+      // Redirection vers Wave WebView ou succès direct selon réponse
       if (resultat.paiement?.redirectUrl) {
         setShowPaymentSheet(false)
         navigation.replace('WebViewWave', {
@@ -114,288 +149,341 @@ export default function EventDetailScreen({ route, navigation }) {
     outputRange: ['0deg', '360deg'],
   })
 
+  // État erreur
   if (error) {
     return (
-      <BuyerLayout>
-        <SafeAreaView style={styles.safe}>
-          <View style={styles.loadingContainer}>
-            <Feather name="alert-circle" size={32} color={colors.muted} />
-            <Text style={styles.loadingText}>{error}</Text>
-            <TouchableOpacity style={styles.retryBtn} onPress={() => setRetryCount(c => c + 1)}>
-              <Text style={styles.retryText}>Réessayer</Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </BuyerLayout>
+      <View style={styles.container}>
+        <BlurBackground category={event?.category} />
+        <View style={styles.loadingContainer}>
+          <Feather name="alert-circle" size={32} color={colors.textWhiteMuted} />
+          <Text style={styles.loadingText}>{error}</Text>
+          <GlassButton title="Réessayer" icon="refresh-cw" onPress={() => setRetryCount(c => c + 1)} />
+        </View>
+      </View>
     )
   }
 
+  // État chargement
   if (!event) {
     return (
-      <BuyerLayout>
-        <SafeAreaView style={styles.safe}>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.accent} />
-            <Text style={styles.loadingText}>Chargement...</Text>
-          </View>
-        </SafeAreaView>
-      </BuyerLayout>
+      <View style={styles.container}>
+        <BlurBackground />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#fff" />
+          <Text style={styles.loadingText}>Chargement...</Text>
+        </View>
+      </View>
     )
   }
 
   return (
-    <BuyerLayout>
-      <SafeAreaView style={styles.safe}>
-        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <ScrollView style={styles.flex} bounces={false} keyboardShouldPersistTaps="handled">
-            <View style={[styles.banner, { backgroundColor: event.bg }]}>
-              <Text style={styles.bannerEmoji}>{event.emoji}</Text>
-              <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-                <Feather name="arrow-left" size={17} color={colors.slate} />
-              </TouchableOpacity>
-            </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      {/* Fond immersif plein écran */}
+      <BlurBackground category={event?.category} />
 
-            <View style={styles.body}>
-              <View style={styles.head}>
-                <Text style={styles.title}>{event.title}</Text>
-                <View style={styles.tags}>
-                  <View style={styles.tag}>
-                    <Feather name="calendar" size={9} color="#f43f5e" />
-                    <Text style={styles.tagText}>{formaterDateLisible(event.date)}</Text>
-                  </View>
-                  {!!event.location && (
-                    <View style={styles.tag}>
-                      <Feather name="map-pin" size={9} color="#00C8FF" />
-                      <Text style={styles.tagText}>{event.location}</Text>
-                    </View>
-                  )}
-                  {!!event.time && (
-                    <View style={styles.tag}>
-                      <Feather name="clock" size={9} color={colors.green} />
-                      <Text style={styles.tagText}>{event.time}</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
+      {/* Bouton retour flottant avec cercle glass */}
+      <TouchableOpacity style={[styles.floatingBack, { top: insets.top + 8 }]} onPress={() => navigation.goBack()}>
+        <Feather name="arrow-left" size={20} color="#fff" />
+      </TouchableOpacity>
 
-              <View style={styles.descCard}>
-                <Feather name="info" size={11} color={colors.mid} />
-                <Text style={styles.descText}>{event.desc}</Text>
-              </View>
+      <ScrollView
+        style={styles.flex}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 60 }]}
+        showsVerticalScrollIndicator={false}
+      >
 
-              <LinearGradient colors={['#E0F7FF', '#FDF2F8']} style={styles.noAccount}>
-                <Feather name="zap" size={14} color={colors.accent} />
-                <Text style={styles.noAccountText}>
-                  <Text style={styles.noAccountStrong}>Connexion rapide.</Text> Ton téléphone sera demandé au paiement.
+        {/* Hero invitation — titre XXL + date mise en avant */}
+        <View style={styles.heroSection}>
+          <Text style={[styles.heroCategory, { color: catColor }]}>{event.category || 'ÉVÉNEMENT'}</Text>
+          <Text style={styles.heroTitle}>{event.title}</Text>
+
+          <View style={[styles.heroDivider, { backgroundColor: catColor }]} />
+
+          {event.date && (
+            <GlassContainer style={styles.heroDateCard}>
+              <Feather name="calendar" size={18} color={catColor} />
+              <View>
+                <Text style={styles.heroDateDay}>
+                  {formaterDateLisible(event.date).toUpperCase()}
                 </Text>
-              </LinearGradient>
-
-              <View style={styles.sectionLabel}>
-                <Feather name="package" size={12} color={colors.slate} />
-                <Text style={styles.sectionLabelText}>  1. Choisir la catégorie</Text>
-              </View>
-
-              <TouchableOpacity
-                style={styles.categorySelector}
-                onPress={() => setShowCategorySheet(true)}
-                activeOpacity={0.7}
-              >
-                <View>
-                  <Text style={styles.categorySelectorLabel}>{selectedTicket.name}</Text>
-                  <Text style={styles.categorySelectorPrice}>{selectedTicket.price.toLocaleString()} FCFA</Text>
-                </View>
-                <Feather name="chevron-up" size={18} color={colors.mid} />
-              </TouchableOpacity>
-
-              {/* Modal de sélection de catégorie */}
-              <Modal
-                visible={showCategorySheet}
-                transparent
-                animationType="slide"
-                onRequestClose={() => setShowCategorySheet(false)}
-              >
-                <TouchableOpacity
-                  style={styles.sheetOverlay}
-                  activeOpacity={1}
-                  onPress={() => setShowCategorySheet(false)}
-                >
-                  <View style={styles.sheetContainer}>
-                    <View style={styles.sheetHandle} />
-                    <Text style={styles.sheetTitle}>Choisir une catégorie</Text>
-                    {event.tickets.map((t) => (
-                      <TouchableOpacity
-                        key={t.name}
-                        style={[styles.sheetItem, selectedTicket.name === t.name && styles.sheetItemSelected]}
-                        onPress={() => {
-                          setSelectedTicket(t)
-                          setShowCategorySheet(false)
-                        }}
-                        activeOpacity={0.7}
-                      >
-                        <View style={styles.sheetItemLeft}>
-                          <Text style={styles.sheetItemName}>{t.name}</Text>
-                          <Text style={styles.sheetItemDesc}>{t.desc || 'Accès standard'}</Text>
-                        </View>
-                        <View style={styles.sheetItemRight}>
-                          <Text style={styles.sheetItemPrice}>{t.price.toLocaleString()} FCFA</Text>
-                          <Text style={styles.sheetItemPlaces}>Places limitées</Text>
-                          {selectedTicket.name === t.name && (
-                            <View style={styles.sheetCheck}>
-                              <Feather name="check" size={12} color="#FFFFFF" />
-                            </View>
-                          )}
-                        </View>
-                      </TouchableOpacity>
-                    ))}
+                {!!event.time && (
+                  <View style={styles.heroTimeRow}>
+                    <Feather name="clock" size={11} color="rgba(255,255,255,0.5)" />
+                    <Text style={styles.heroTimeText}>{event.time}</Text>
                   </View>
-                </TouchableOpacity>
-              </Modal>
-
-              {/* 2. Saisie téléphone Wave */}
-              <Text style={[styles.sectionLabel, { marginTop: spacing.md }]}>
-                <Feather name="smartphone" size={12} color={colors.slate} />                 2. Ton numéro Wave
-              </Text>
-
-              <View style={[styles.phoneRow, telephone.replace(/[^\d]/g, '').length >= 6 && styles.phoneRowActive]}>
-                <View style={styles.countryCode}>
-                  <Text style={styles.codeText}>+221</Text>
-                </View>
-                <TextInput
-                  style={styles.phoneInput}
-                  value={telephone}
-                  onChangeText={setTelephone}
-                  keyboardType="phone-pad"
-                  placeholder="77 XXX XX XX"
-                  placeholderTextColor={colors.muted}
-                />
+                )}
               </View>
+            </GlassContainer>
+          )}
+
+          {!!event.location && (
+            <View style={styles.heroLocationRow}>
+              <Feather name="map-pin" size={14} color="rgba(255,255,255,0.6)" />
+              <Text style={styles.heroLocationText} numberOfLines={2}>{event.location}</Text>
             </View>
-          </ScrollView>
+          )}
+        </View>
 
-          <View style={styles.bottomBar}>
-            <TouchableOpacity
-              style={[styles.buyBtn, !isValidPhone && styles.buyBtnDisabled]}
-              onPress={handleBuy}
-              activeOpacity={0.9}
-              disabled={!isValidPhone}
-            >
-              <LinearGradient
-                colors={['#00C8FF', '#0077FF']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.buyGradient}
-              >
-                <Feather name="shopping-cart" size={15} color="#fff" />
-                <Text style={styles.buyBtnText}>Payer {selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
+        {/* Description — carte large */}
+        {!!event.desc && (
+          <GlassContainer style={styles.descCard}>
+            <Text style={styles.descText}>{event.desc}</Text>
+          </GlassContainer>
+        )}
 
-        {/* Modal de confirmation paiement Wave */}
-        <Modal
-          visible={showPaymentSheet}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowPaymentSheet(false)}
+        {/* Section catégorie de billet */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Catégorie</Text>
+          <Text style={styles.sectionSub}>Sélectionne ton billet</Text>
+        </View>
+
+        <TouchableOpacity
+          onPress={() => setShowCategorySheet(true)}
+          activeOpacity={0.7}
         >
+          <GlassContainer style={styles.categorySelector}>
+            <View style={styles.categorySelectorLeft}>
+              <Text style={styles.categorySelectorLabel}>{selectedTicket.name}</Text>
+              <Text style={styles.categorySelectorPrice}>{selectedTicket.price.toLocaleString()} FCFA</Text>
+            </View>
+            <View style={styles.categorySelectorRight}>
+              <View style={styles.priceChip}>
+                <Text style={styles.priceChipText}>Places limitées</Text>
+              </View>
+              <Feather name="chevron-down" size={16} color="rgba(255,255,255,0.5)" />
+            </View>
+          </GlassContainer>
+        </TouchableOpacity>
+
+        {/* Téléphone — après le choix de la catégorie */}
+        <Text style={styles.formLabel}>Téléphone</Text>
+        <GlassContainer style={styles.formPhoneRow}>
+          <Feather name="smartphone" size={16} color="rgba(255,255,255,0.4)" />
+          <Text style={styles.formCodeText}>+221</Text>
+          <TextInput
+            style={styles.formPhoneInput}
+            value={telephone}
+            onChangeText={(t) => setTelephone(formaterTel(t))}
+            keyboardType="phone-pad"
+            placeholder="77 XXX XX XX"
+            placeholderTextColor="rgba(255,255,255,0.25)"
+          />
+        </GlassContainer>
+
+        </ScrollView>
+
+        {/* Barre d'achat fixe en bas */}
+        <View style={styles.bottomBar}>
+          <View style={styles.bottomBarTotal}>
+            <Text style={styles.bottomBarTotalLabel}>Total</Text>
+            <Text style={styles.bottomBarTotalPrice}>{selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
+          </View>
           <TouchableOpacity
-            style={styles.paySheetOverlay}
+            onPress={handleBuy}
+            activeOpacity={0.9}
+            style={styles.buyBtnWrap}
+          >
+            <LinearGradient
+              colors={[catColor, `${catColor}88`]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.buyBtnGradient}
+            >
+              <Text style={styles.buyBtnText}>Acheter</Text>
+              <Feather name="arrow-right" size={16} color="#fff" />
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+
+      {/* Modal de sélection de catégorie */}
+      <Modal
+        visible={showCategorySheet}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowCategorySheet(false)}
+      >
+        <View style={styles.sheetOverlay}>
+          <LinearGradient
+            colors={categoryGradients[event?.category] || categoryGradients.default}
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          />
+          <TouchableOpacity
+            style={styles.sheetOverlayContent}
+            activeOpacity={1}
+            onPress={() => setShowCategorySheet(false)}
+          >
+            <GlassContainer style={styles.sheetContainer}>
+              <View style={styles.sheetHandle} />
+              <Text style={styles.sheetTitle}>Choisir une catégorie</Text>
+              {event.tickets.map((t) => (
+                <TouchableOpacity
+                  key={t.name}
+                  onPress={() => {
+                    setSelectedTicket(t)
+                    setShowCategorySheet(false)
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <GlassContainer
+                    style={[
+                      styles.sheetItem,
+                      selectedTicket.name === t.name && {
+                        backgroundColor: `${catColor}33`,
+                        borderColor: catColor,
+                      },
+                    ]}
+                  >
+                    <View style={styles.sheetItemLeft}>
+                      <Text style={styles.sheetItemName}>{t.name}</Text>
+                      <Text style={styles.sheetItemDesc}>{t.desc || 'Accès standard'}</Text>
+                    </View>
+                    <View style={styles.sheetItemRight}>
+                      <Text style={styles.sheetItemPrice}>{t.price.toLocaleString()} FCFA</Text>
+                      <Text style={styles.sheetItemPlaces}>Places limitées</Text>
+                    {selectedTicket.name === t.name && (
+                      <View style={[styles.sheetCheck, { backgroundColor: catColor }]}>
+                        <Feather name="check" size={12} color="#fff" />
+                      </View>
+                    )}
+                    </View>
+                  </GlassContainer>
+                </TouchableOpacity>
+              ))}
+            </GlassContainer>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* Modal de paiement Wave — avec gestion clavier */}
+      <Modal
+        visible={showPaymentSheet}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowPaymentSheet(false)}
+      >
+        <View style={styles.paySheetOverlay}>
+          <LinearGradient
+            colors={categoryGradients[event?.category] || categoryGradients.default}
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          />
+          <TouchableOpacity
+            style={styles.paySheetOverlayContent}
             activeOpacity={1}
             onPress={() => paymentEtape === 'confirm' && setShowPaymentSheet(false)}
           >
-            <View style={styles.paySheetContainer}>
-              {/* Bouton fermeture (croix) */}
-              {paymentEtape === 'confirm' && (
-                <TouchableOpacity style={styles.payCloseBtn} onPress={() => setShowPaymentSheet(false)}>
-                  <Feather name="x" size={20} color={colors.mid} />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ width: '100%' }}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          >
+          <GlassContainer style={styles.paySheetContainer}>
+            {/* Bouton de fermeture */}
+            {paymentEtape === 'confirm' && (
+              <TouchableOpacity style={styles.payCloseBtn} onPress={() => setShowPaymentSheet(false)}>
+                <Feather name="x" size={20} color="#fff" />
+              </TouchableOpacity>
+            )}
+
+            {/* Étape : confirmation */}
+            {paymentEtape === 'confirm' && (
+              <>
+                {/* Montant uniquement */}
+                <Text style={styles.payAmountLabel}>{selectedTicket.name}</Text>
+                <Text style={[styles.payAmountValue, { color: catColor }]}>
+                  {selectedTicket.price.toLocaleString()} FCFA
+                </Text>
+
+                {/* Bouton de paiement Wave */}
+                <TouchableOpacity
+                  style={styles.confirmPayBtn}
+                  onPress={confirmerPaiement}
+                  activeOpacity={0.9}
+                >
+                  <LinearGradient
+                    // Couleurs officielles Wave — marque partenaire, ne pas remplacer par accent
+                    colors={['#1AB3E5', '#0D8ABC']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.confirmPayGradient}
+                  >
+                    <Image source={require('../../assets/wave_logo.png')} style={styles.confirmBtnLogo} resizeMode="contain" />
+                    <Text style={styles.confirmPayText}>Payer {selectedTicket.price.toLocaleString()} FCFA</Text>
+                  </LinearGradient>
                 </TouchableOpacity>
-              )}
+              </>
+            )}
 
-              {/* Étape : confirmation */}
-              {paymentEtape === 'confirm' && (
-                <>
-                  <Image source={require('../../assets/wave_logo.png')} style={styles.waveLogo} resizeMode="contain" />
-                  <Text style={styles.paySheetTitle}>Confirmer le paiement</Text>
+            {/* Étape : paiement en cours */}
+            {paymentEtape === 'pending' && (
+              <View style={styles.payCenter}>
+                <Animated.View style={{ transform: [{ rotate: spin }] }}>
+                  <Feather name="loader" size={44} color="#fff" />
+                </Animated.View>
+                <Text style={styles.payStatusTitle}>Paiement en cours</Text>
+                <Text style={styles.payStatusSub}>Confirmation Wave...</Text>
+              </View>
+            )}
 
-                  <View style={styles.payInfoCard}>
-                    <Text style={styles.payEventTitle}>{event.title}</Text>
-                    <View style={styles.payTicketRow}>
-                      <Text style={styles.payTicketName}>{selectedTicket.name}</Text>
-                      <Text style={styles.payTicketPrice}>{selectedTicket.price.toLocaleString()} FCFA</Text>
-                    </View>
-                  </View>
+            {/* Étape : succès */}
+            {paymentEtape === 'success' && (
+              <View style={styles.payCenter}>
+                <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                  <LinearGradient
+                    // Couleurs officielles Wave — marque partenaire
+                    colors={['#1AB3E5', '#0D8ABC']} style={styles.payCheckCircle}>
+                    <Feather name="check" size={44} color="#fff" />
+                  </LinearGradient>
+                </Animated.View>
+                <Text style={styles.paySuccessTitle}>Paiement confirmé !</Text>
+                <Text style={styles.payStatusSub}>Redirection vers votre ticket...</Text>
+              </View>
+            )}
 
-                  <View style={styles.payPhoneRow}>
-                    <Feather name="smartphone" size={14} color={colors.mid} />
-                    <Text style={styles.payPhoneText}>+221 {telephone}</Text>
-                  </View>
-
-                  <TouchableOpacity style={styles.confirmPayBtn} onPress={confirmerPaiement} activeOpacity={0.9}>
-                    <LinearGradient
-                      colors={['#1AB3E5', '#0D8ABC']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.confirmPayGradient}
-                    >
-                      <Image source={require('../../assets/wave_logo.png')} style={styles.confirmBtnLogo} resizeMode="contain" />
-                      <Text style={styles.confirmPayText}>Payer {selectedTicket.price.toLocaleString()} FCFA</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </>
-              )}
-
-              {/* Étape : paiement en cours */}
-              {paymentEtape === 'pending' && (
-                <View style={styles.payCenter}>
-                  <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                    <Feather name="loader" size={44} color="#1AB3E5" />
-                  </Animated.View>
-                  <Text style={styles.payStatusTitle}>Paiement en cours</Text>
-                  <Text style={styles.payStatusSub}>Confirmation Wave...</Text>
+            {/* Étape : échec */}
+            {paymentEtape === 'failed' && (
+              <View style={styles.payCenter}>
+                <View style={styles.payErrorCircle}>
+                  <Feather name="x" size={44} color="#fff" />
                 </View>
-              )}
-
-              {/* Étape : succès */}
-              {paymentEtape === 'success' && (
-                <View style={styles.payCenter}>
-                  <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-                    <LinearGradient colors={['#1AB3E5', '#0D8ABC']} style={styles.payCheckCircle}>
-                      <Feather name="check" size={44} color="#fff" />
-                    </LinearGradient>
-                  </Animated.View>
-                  <Text style={styles.paySuccessTitle}>Paiement confirmé !</Text>
-                  <Text style={styles.payStatusSub}>Redirection vers votre ticket...</Text>
-                </View>
-              )}
-
-              {/* Étape : échec */}
-              {paymentEtape === 'failed' && (
-                <View style={styles.payCenter}>
-                  <View style={styles.payErrorCircle}>
-                    <Feather name="x" size={44} color="#fff" />
-                  </View>
-                  <Text style={styles.payErrorTitle}>Paiement échoué</Text>
-                  <Text style={styles.payErrorDetail}>{paymentError}</Text>
-                  <TouchableOpacity style={styles.payRetryBtn} onPress={() => setPaymentEtape('confirm')} activeOpacity={0.8}>
-                    <LinearGradient colors={['#1AB3E5', '#0D8ABC']} style={styles.payRetryGradient}>
-                      <Feather name="refresh-cw" size={14} color="#fff" />
-                      <Text style={styles.payRetryText}>Réessayer</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          </TouchableOpacity>
-        </Modal>
-      </SafeAreaView>
-    </BuyerLayout>
+                <Text style={styles.payErrorTitle}>Paiement échoué</Text>
+                <Text style={styles.payErrorDetail}>{paymentError}</Text>
+                <TouchableOpacity style={styles.payRetryBtn} onPress={() => setPaymentEtape('confirm')} activeOpacity={0.8}>
+                  <LinearGradient
+                    // Couleurs officielles Wave — marque partenaire
+                    colors={['#1AB3E5', '#0D8ABC']} style={styles.payRetryGradient}>
+                    <Feather name="refresh-cw" size={14} color="#fff" />
+                    <Text style={styles.payRetryText}>Réessayer</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            )}
+          </GlassContainer>
+          </KeyboardAvoidingView>
+        </TouchableOpacity>
+        </View>
+      </Modal>
+    </KeyboardAvoidingView>
   )
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.white },
+  container: {
+    flex: 1,
+    backgroundColor: '#0f0f2a',
+  },
   flex: { flex: 1 },
+  scrollContent: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: 120,
+  },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
@@ -404,146 +492,184 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 13,
-    color: colors.mid,
+    color: colors.textWhiteMuted,
     fontFamily: fonts.jakarta.regular,
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
   },
-  retryBtn: {
-    marginTop: spacing.sm,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: colors.accent,
-    borderRadius: borderRadius.md,
-  },
-  retryText: {
-    fontSize: 12,
-    color: '#fff',
-    fontFamily: fonts.jakarta.semiBold,
-  },
-  banner: {
-    height: 130,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  bannerEmoji: { fontSize: 38 },
-  backBtn: {
+  // Bouton retour flottant avec cercle glass — top défini avec useSafeAreaInsets
+  floatingBack: {
     position: 'absolute',
-    top: 14,
-    left: 14,
-    width: 34,
-    height: 34,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    borderRadius: borderRadius.sm,
+    left: spacing.lg,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: glass.bg,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: glass.border,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 10,
+    overflow: 'hidden',
   },
-  body: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
-
-  head: { marginBottom: 14 },
-  title: {
-    fontFamily: fonts.outfit.extraBold,
-    fontSize: 19,
-    color: colors.slate,
+  // Hero section — invitation XXL
+  heroSection: {
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xs,
     marginBottom: spacing.sm,
-    letterSpacing: -0.3,
   },
-  tags: { flexDirection: 'row', gap: spacing.sm },
-  tag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    borderRadius: borderRadius.sm,
-    backgroundColor: colors.bg,
-  },
-  tagText: { fontSize: 10, fontFamily: fonts.jakarta.semiBold, color: '#475569' },
-
-  descCard: {
-    flexDirection: 'row',
-    gap: 7,
-    backgroundColor: colors.bg,
-    borderRadius: borderRadius.md,
-    padding: 12,
-    alignItems: 'flex-start',
-    marginBottom: 14,
-  },
-  descText: { fontSize: 11, color: colors.mid, fontFamily: fonts.jakarta.regular, flex: 1, lineHeight: 16 },
-
-  noAccount: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    borderRadius: borderRadius.md,
-    padding: 12,
-    marginBottom: 22,
-  },
-  noAccountText: { fontSize: 11, color: '#475569', fontFamily: fonts.jakarta.regular, flex: 1, lineHeight: 16 },
-  noAccountStrong: { fontFamily: fonts.jakarta.semiBold, color: colors.slate },
-
-  sectionLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 10,
-  },
-  sectionLabelText: {
-    fontFamily: fonts.outfit.bold,
+  heroCategory: {
     fontSize: 12,
-    color: colors.slate,
-    letterSpacing: -0.1,
+    fontFamily: fonts.jakarta.semiBold,
+    letterSpacing: 3,
+    marginBottom: spacing.sm,
   },
-
+  heroTitle: {
+    fontFamily: fonts.outfit.extraBold,
+    fontSize: 42,
+    color: '#fff',
+    letterSpacing: -1.5,
+    lineHeight: 48,
+    ...textShadow,
+  },
+  heroDivider: {
+    width: 48,
+    height: 2,
+    borderRadius: 1,
+    marginVertical: 20,
+  },
+  // Carte date mise en avant
+  heroDateCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: spacing.sm,
+  },
+  heroDateDay: {
+    fontSize: 16,
+    fontFamily: fonts.outfit.bold,
+    color: '#fff',
+    letterSpacing: 1,
+  },
+  heroTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 4,
+  },
+  heroTimeText: {
+    fontSize: 12,
+    fontFamily: fonts.jakarta.regular,
+    color: 'rgba(255,255,255,0.5)',
+  },
+  // Localisation
+  heroLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingLeft: 4,
+  },
+  heroLocationText: {
+    fontSize: 13,
+    fontFamily: fonts.jakarta.regular,
+    color: 'rgba(255,255,255,0.7)',
+    flex: 1,
+  },
+  // Carte description — épurée, généreuse
+  descCard: {
+    padding: spacing.xl,
+    marginBottom: spacing.xl,
+  },
+  descText: {
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.85)',
+    fontFamily: fonts.jakarta.regular,
+    lineHeight: 26,
+  },
+  // Sections
+  sectionHeader: {
+    marginBottom: spacing.sm,
+  },
+  sectionTitle: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 14,
+    color: '#fff',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  sectionSub: {
+    fontSize: 11,
+    fontFamily: fonts.jakarta.regular,
+    color: 'rgba(255,255,255,0.4)',
+    marginTop: 3,
+  },
+  // Sélecteur de catégorie premium
   categorySelector: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.accentLight,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.accent,
-    padding: 14,
-    marginBottom: spacing.md,
+    padding: spacing.lg,
+    marginBottom: spacing.xl,
+  },
+  categorySelectorLeft: {
+    gap: 6,
   },
   categorySelectorLabel: {
     fontFamily: fonts.outfit.semiBold,
-    fontSize: 14,
-    color: colors.slate,
+    fontSize: 16,
+    color: '#fff',
   },
   categorySelectorPrice: {
-    fontFamily: fonts.jakarta.regular,
-    fontSize: 11,
-    color: colors.mid,
-    marginTop: 2,
+    fontFamily: fonts.outfit.bold,
+    fontSize: 22,
+    color: '#fff',
+    letterSpacing: -0.5,
   },
-
+  categorySelectorRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  priceChip: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  priceChipText: {
+    fontSize: 10,
+    fontFamily: fonts.jakarta.semiBold,
+    color: 'rgba(255,255,255,0.5)',
+  },
+  // Overlay et conteneur sheet
   sheetOverlay: {
     flex: 1,
+  },
+  sheetOverlayContent: {
+    flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   sheetContainer: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xl,
     paddingTop: spacing.sm,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   sheetHandle: {
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: colors.border,
+    backgroundColor: 'rgba(255,255,255,0.3)',
     alignSelf: 'center',
     marginBottom: spacing.md,
   },
   sheetTitle: {
     fontFamily: fonts.outfit.bold,
     fontSize: 16,
-    color: colors.slate,
+    color: '#fff',
     marginBottom: spacing.md,
   },
   sheetItem: {
@@ -552,27 +678,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 14,
     paddingHorizontal: 14,
-    backgroundColor: colors.bg,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: spacing.sm,
-  },
-  sheetItemSelected: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accentLight,
   },
   sheetItemLeft: {},
   sheetItemName: {
     fontFamily: fonts.jakarta.semiBold,
     fontSize: 13,
-    color: colors.slate,
+    color: '#fff',
+    ...textShadow,
   },
   sheetItemDesc: {
     fontSize: 10,
-    color: colors.mid,
+    color: 'rgba(255,255,255,0.6)',
     fontFamily: fonts.jakarta.regular,
     marginTop: 2,
+    ...textShadow,
   },
   sheetItemRight: {
     alignItems: 'flex-end',
@@ -581,107 +701,133 @@ const styles = StyleSheet.create({
   sheetItemPrice: {
     fontFamily: fonts.outfit.bold,
     fontSize: 14,
-    color: colors.accent,
+    color: '#fff',
+    ...textShadow,
   },
   sheetItemPlaces: {
     fontSize: 9,
-    color: colors.muted,
+    color: 'rgba(255,255,255,0.5)',
     fontFamily: fonts.jakarta.regular,
+    ...textShadow,
   },
   sheetCheck: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 4,
   },
 
-  ttCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    backgroundColor: colors.bg,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+  // Champ téléphone sur la page principale — après sélection catégorie
+  formLabel: {
+    fontFamily: fonts.jakarta.semiBold,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.4)',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
     marginBottom: spacing.sm,
+    marginTop: spacing.sm,
   },
-  ttCardSelected: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accentLight,
-  },
-  ttLeft: {},
-  ttName: { fontFamily: fonts.jakarta.semiBold, fontSize: 13, color: colors.slate },
-  ttDesc: { fontSize: 10, color: colors.mid, fontFamily: fonts.jakarta.regular, marginTop: 2 },
-  ttRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  ttPrice: { fontFamily: fonts.outfit.bold, fontSize: 14, color: colors.accent },
-  radio: {
-    width: 18,
-    height: 18,
-    borderRadius: 50,
-    borderWidth: 2,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioChecked: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accent,
-  },
-  radioInner: { width: 6, height: 6, borderRadius: 50, backgroundColor: colors.white },
-
-  // Styles input téléphone
-  phoneRow: {
+  formPhoneRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.md,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    overflow: 'hidden',
-    marginTop: 4,
-  },
-  phoneRowActive: {
-    borderColor: '#1AB3E5',
-  },
-  countryCode: {
+    gap: 8,
     paddingHorizontal: 14,
-    paddingVertical: 14,
-    backgroundColor: colors.border,
+    paddingVertical: 4,
   },
-  codeText: {
-    fontSize: 13,
+  formCodeText: {
     fontFamily: fonts.jakarta.semiBold,
-    color: colors.slate,
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.6)',
   },
-  phoneInput: {
+  formPhoneInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: fonts.jakarta.semiBold,
-    color: colors.slate,
-    padding: 0,
-    paddingHorizontal: 14,
-    outlineStyle: 'none',
+    color: '#fff',
+    paddingVertical: 10,
   },
-
-  // Styles modal paiement Wave
+  // Montant dans le modal de paiement
+  payAmountLabel: {
+    fontFamily: fonts.outfit.semiBold,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.5)',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: spacing.xs,
+  },
+  payAmountValue: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 40,
+    letterSpacing: -1.5,
+    marginBottom: spacing.xl,
+    ...textShadow,
+  },
+  // Barre d'achat en bas — premium
+  bottomBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: spacing.lg,
+    paddingBottom: Platform.OS === 'ios' ? 34 : spacing.lg,
+    backgroundColor: 'rgba(15,15,42,0.92)',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+    gap: 16,
+  },
+  bottomBarTotal: {
+    gap: 2,
+  },
+  bottomBarTotalLabel: {
+    fontSize: 10,
+    fontFamily: fonts.jakarta.regular,
+    color: 'rgba(255,255,255,0.4)',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
+  bottomBarTotalPrice: {
+    fontSize: 22,
+    fontFamily: fonts.outfit.bold,
+    color: '#fff',
+    letterSpacing: -0.5,
+  },
+  buyBtnWrap: {
+    flex: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  buyBtnDisabled: {
+    opacity: 0.5,
+  },
+  buyBtnGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 18,
+  },
+  buyBtnText: {
+    fontSize: 16,
+    fontFamily: fonts.outfit.semiBold,
+    color: '#fff',
+    letterSpacing: -0.2,
+  },
+  // Modal paiement
   paySheetOverlay: {
     flex: 1,
+  },
+  paySheetOverlayContent: {
+    flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   paySheetContainer: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xl,
     paddingTop: spacing.xl,
     alignItems: 'center',
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   payCloseBtn: {
     position: 'absolute',
@@ -690,77 +836,27 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.bg,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
-  },
-  waveLogo: {
-    width: 90,
-    height: 28,
-    marginBottom: spacing.md,
-  },
-  paySheetTitle: {
-    fontFamily: fonts.outfit.bold,
-    fontSize: 18,
-    color: colors.slate,
-    marginBottom: spacing.md,
-  },
-  payInfoCard: {
-    width: '100%',
-    backgroundColor: colors.bg,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
-  payEventTitle: {
-    fontFamily: fonts.outfit.semiBold,
-    fontSize: 14,
-    color: colors.slate,
-    marginBottom: 6,
-  },
-  payTicketRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  payTicketName: {
-    fontFamily: fonts.jakarta.regular,
-    fontSize: 13,
-    color: colors.mid,
-  },
-  payTicketPrice: {
-    fontFamily: fonts.outfit.semiBold,
-    fontSize: 14,
-    color: '#1AB3E5',
-  },
-  payPhoneRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: spacing.lg,
-  },
-  payPhoneText: {
-    fontFamily: fonts.jakarta.medium,
-    fontSize: 14,
-    color: colors.slate,
   },
   confirmPayBtn: {
     width: '100%',
     borderRadius: borderRadius.md,
     overflow: 'hidden',
-    ...shadows.md,
   },
   confirmPayGradient: {
-    paddingVertical: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    gap: 10,
+    gap: 14,
   },
   confirmBtnLogo: {
-    width: 20,
-    height: 20,
+    width: 36,
+    height: 36,
   },
   confirmPayText: {
     fontFamily: fonts.outfit.bold,
@@ -777,13 +873,13 @@ const styles = StyleSheet.create({
   payStatusTitle: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: 16,
-    color: colors.slate,
+    color: '#fff',
     marginTop: spacing.sm,
   },
   payStatusSub: {
     fontFamily: fonts.jakarta.regular,
     fontSize: 13,
-    color: colors.mid,
+    color: 'rgba(255,255,255,0.6)',
     textAlign: 'center',
   },
   payCheckCircle: {
@@ -796,7 +892,7 @@ const styles = StyleSheet.create({
   paySuccessTitle: {
     fontFamily: fonts.outfit.bold,
     fontSize: 20,
-    color: '#1AB3E5',
+    color: '#fff',
   },
   payErrorCircle: {
     width: 80,
@@ -814,7 +910,7 @@ const styles = StyleSheet.create({
   payErrorDetail: {
     fontFamily: fonts.jakarta.regular,
     fontSize: 12,
-    color: colors.mid,
+    color: 'rgba(255,255,255,0.6)',
     textAlign: 'center',
     paddingHorizontal: spacing.xl,
   },
@@ -831,30 +927,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   payRetryText: {
-    fontFamily: fonts.outfit.bold,
-    fontSize: 14,
-    color: '#fff',
-  },
-
-  bottomBar: {
-    padding: spacing.md,
-    backgroundColor: colors.white,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
-  },
-  buyBtn: {
-    borderRadius: borderRadius.md,
-    overflow: 'hidden',
-    ...shadows.md,
-  },
-  buyGradient: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  },
-  buyBtnText: {
     fontFamily: fonts.outfit.bold,
     fontSize: 14,
     color: '#fff',

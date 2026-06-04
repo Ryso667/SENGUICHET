@@ -3,22 +3,26 @@
 // Déverrouille le mode scan une fois le code validé
 import { useState } from 'react'
 import {
-  View, Text, ScrollView,
+  View, Text, ScrollView, ActivityIndicator,
   KeyboardAvoidingView, Platform, StyleSheet,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { connecterControleur as apiConnecterControleur } from '../../services/authService'
 import InputOTP from '../../components/InputOTP'
-import BoutonPrincipal from '../../components/BoutonPrincipal'
+import GlassButton from '../../components/GlassButton'
 import { useAuth } from '../../context/AuthContext'
+import BlurBackground from '../../components/BlurBackground'
+import GlassContainer from '../../components/GlassContainer'
+import { spacing, textShadow } from '../../constants/theme'
 
 export default function ConnexionControleurScreen({ navigation }) {
   const { connecterControleur } = useAuth()
   const [codeAcces, setCodeAcces] = useState('')
   const [chargement, setChargement] = useState(false)
+  const insets = useSafeAreaInsets()
 
   // Valide le code 4 chiffres et stocke la session contrôleur
-  // En mode démo, le service accepte n'importe quel code (cf. authService.connecterControleur)
+  // Le code est vérifié contre un hash bcrypt stocké localement
   const handleConnecter = async () => {
     if (codeAcces.length !== 4) return
     setChargement(true)
@@ -33,19 +37,23 @@ export default function ConnexionControleurScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <View style={{ flex: 1 }}>
+      <BlurBackground />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.conteneur}
+          contentContainerStyle={[styles.conteneur, { paddingTop: insets.top + spacing.lg }]}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Retour vers l'écran d'accueil */}
-          <Text style={styles.retour} onPress={() => navigation.navigate('AccueilChoix')}>
-            ← Retour
-          </Text>
+          {/* Bouton retour verre dépoli */}
+          <GlassButton
+            title="Retour"
+            icon="arrow-left"
+            onPress={() => navigation.navigate('AccueilChoix')}
+            style={styles.retour}
+          />
 
           <Text style={styles.titre}>Accès Contrôleur</Text>
           <Text style={styles.sousTitre}>
@@ -57,23 +65,24 @@ export default function ConnexionControleurScreen({ navigation }) {
 
           <View style={styles.espace} />
 
-          <BoutonPrincipal
-            titre="Se connecter"
-            chargement={chargement}
-            desactive={codeAcces.length !== 4}
-            onPress={handleConnecter}
-          />
+          {chargement ? (
+            <View style={styles.glassLoadingBtn}>
+              <ActivityIndicator size="small" color="#fff" />
+            </View>
+          ) : (
+            <GlassButton
+              title="Se connecter"
+              onPress={codeAcces.length !== 4 ? undefined : handleConnecter}
+              style={codeAcces.length !== 4 ? { opacity: 0.5 } : undefined}
+            />
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#f8f9fc',
-  },
   flex: {
     flex: 1,
   },
@@ -83,24 +92,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   retour: {
-    fontFamily: 'Outfit_500Medium',
-    fontSize: 15,
-    color: '#00C8FF',
     marginBottom: 16,
+    alignSelf: 'flex-start',
   },
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: '#0f172a',
+    color: '#fff',
     marginBottom: 8,
+    ...textShadow,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: '#64748b',
+    color: 'rgba(255,255,255,0.6)',
     marginBottom: 32,
   },
   espace: {
     height: 24,
+  },
+  glassLoadingBtn: {
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
 })
