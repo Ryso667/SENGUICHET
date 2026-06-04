@@ -99,7 +99,6 @@ export default function StatistiquesScreen() {
     )
   }
 
-export default function StatistiquesScreen() {
   return (
     <View style={s.container}>
       <BlurBackground category="Conference" />
@@ -171,6 +170,7 @@ export default function StatistiquesScreen() {
   )
 }
 
+// Sera remplacé par API — composant de carte statistique
 function StatCard({ label, value, icon, color }) {
   return (
     <GlassContainer style={[s.card, { borderLeftColor: color, borderLeftWidth: 4 }]} intensity={40}>

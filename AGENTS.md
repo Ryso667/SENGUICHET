@@ -77,6 +77,9 @@ expo-camera, expo-sqlite, expo-crypto, @vercel/node, nodemailer
 - **bcrypt pour organisateur** : backend hash avec bcrypt work factor 10
 - **Authentification** : 3 rôles (Acheteur OTP email, Contrôleur code 4 chiffres, Organisateur email+bcrypt)
 - **API déployée** sur Vercel avec base Aiven — ne pas écraser les infos de connexion
+- **OTP store** : utilise la table `code_otp` en MySQL (plus de fichier JSON) — nécessaire pour Vercel serverless
+- **Billet** : colonne `numero` VARCHAR(20) NOT NULL ajoutée (absent du schema initial)
+- **Evenement** : les colonnes sont `affiche_url` (pas `image_url`), `titre` (pas `nom`), `capacite_totale` (pas `capacite`)
 
 ## Commentaires dans le code
 - TOUS les fichiers source doivent avoir des commentaires en français expliquant :
@@ -92,3 +95,5 @@ expo-camera, expo-sqlite, expo-crypto, @vercel/node, nodemailer
 - PR #14 : Notifications email+SMS, page billet publique, Vercel deploy
 - PR #15 : Fix connexionSociale + SSL Aiven
 - PR #16 : Fix EmailService casing Linux + fonctions email partenaires
+- PR #18 : Migration Aiven + SSL + OTP fichier→DB + table billet/acheteur fixes
+- PR #20 : Fix affiche_url + numero column schema.sql

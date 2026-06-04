@@ -8,9 +8,7 @@ const PORT = '8080'
 
 // URL de l'API backend (Vercel en production, localhost en développement)
 // Sera remplacé par une variable d'environnement à terme
-export const API_BASE_URL = Platform.OS === 'android'
-  ? 'https://backend-rust-sigma-64.vercel.app/api'
-  : 'https://backend-rust-sigma-64.vercel.app/api'
+export const API_BASE_URL = 'https://backend-rust-sigma-64.vercel.app/api'
 
 export const API_TIMEOUT = 10000 // 10 secondes avant abandon
 

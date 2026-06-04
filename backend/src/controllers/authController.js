@@ -222,7 +222,7 @@ const envoyerCodeOTP = async (req, res) => {
     await STOCKER_CODE(email, code);
 
     // Répond immédiatement — l'email part en arrière-plan
-    res.json({ message: "Code envoyé", simulé: true, code });
+    res.json({ message: "Code envoyé", code });
 
     const { envoyerCodeOTP: envoyerEmail } = require("../services/emailService");
     envoyerEmail(email, code).catch(err => console.error("Erreur SMTP:", err.message));

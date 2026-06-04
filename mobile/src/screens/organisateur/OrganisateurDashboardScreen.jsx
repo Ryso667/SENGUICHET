@@ -28,18 +28,11 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false)
   const [navCourant, setNavCourant] = useState(null)
 
-function fmt(n) {
-  return n.toLocaleString('fr-FR')
-}
-
-export default function OrganisateurDashboardScreen({ navigation }) {
-  const [refreshing, setRefreshing] = React.useState(false)
-
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true)
     await loadData()
     setRefreshing(false)
-  }
+  }, [])
 
   const actifs = events.filter(e => e.statut === 'actif').length
   const totalVendus = events.reduce((s, e) => s + (e.remplis || 0), 0)
@@ -334,4 +327,10 @@ const s = StyleSheet.create({
   },
   revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
   logoutBtn: { marginHorizontal: spacing.lg, marginTop: spacing.lg },
+  statsPills: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+  statPill: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 },
+  statPillText: { fontSize: 11, fontFamily: fonts.outfit.semiBold },
+  eventTop: {},
+  eventHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  eventBadge: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
 })
