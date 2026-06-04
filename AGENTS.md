@@ -8,38 +8,43 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before 
 - `feature/mouhtada` — branche de dev (Personne 3)
 - `main` — cible des PRs, ne pas toucher directement
 
-## Ce qui est implémenté (mobile/)
+## Ce qui est implémenté
 
-### Auth 3 rôles
-- Acheteur : OTP téléphone (+221 XX XXX XX XX), code test 123456
+### Auth 3 rôles (mobile/)
+- Acheteur : OTP email, code test 123456
 - Contrôleur : code accès 4 chiffres (mode mock accepte tout)
-- Organisateur : email + mot de passe
-- AuthContext : AsyncStorage, rôle persistant, déconnexion
+- Organisateur : email + mot de passe (bcrypt)
+- AuthContext : AsyncStorage, rôles persistants, suggestions email
 
 ### AccueilChoixScreen
 - 3 cartes : Acheter / Scanner / Organisateur
 
 ### Scan contrôleur (hors-ligne)
-- CameraView avec détection QR
-- SQLite locale (tickets + scans)
-- Vérification HMAC-SHA256, 5 statuts (VALIDE/DEJA_UTILISE/EXPIRE/INCONNU/FRAUDE)
-- Téléchargement tickets pour offline
-- Synchronisation batch au retour connexion
+- CameraView avec détection QR, SQLite locale, HMAC-SHA256
+- 5 statuts : VALIDE/DEJA_UTILISE/EXPIRE/INCONNU/FRAUDE
+- Téléchargement tickets offline, sync batch
 
 ### Organisateur
 - Dashboard, Créer événement, Voir tickets
 
 ### Navigation
-- 3 piles conditionnelles selon rôle
-- Bottom tabs par rôle
-- Bouton "Quitter" dans le header
+- 3 piles conditionnelles selon rôle, bottom tabs, bouton Quitter
 
-### Charte graphique
-- Iris & Pêche (#6366F1 Indigo, #EC4899 Rose)
-- Fond #F8F9FD, dégradé Indigo→Rose sur boutons
+### Notifications (backend/)
+- Email SMTP (Gmail) : confirmation billet, code OTP, partenariat
+- SMS Orange API (sandbox en attendant activation)
+- Page publique `GET /api/billets/:uuid` avec HTML responsive
+
+## Déploiement
+- **API** : Vercel — https://backend-rust-sigma-64.vercel.app
+- **Base de données** : Aiven MySQL (SSL requis)
+  - Host: `mysql-364674f7-muhamedndiaye00-1360.l.aivencloud.com:12444`
+  - DB: `defaultdb`, User: `avnadmin`
+- **Variables d'env Vercel** : DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, DB_SSL=true, SMTP_USER, SMTP_PASS, ORANGE_CLIENT_ID, ORANGE_CLIENT_SECRET, ORANGE_SANDBOX
+- `TICKET_URL` auto-détecté via `VERCEL_URL`
 
 ## Dépendances installées
-expo-camera, expo-sqlite, expo-crypto
+expo-camera, expo-sqlite, expo-crypto, @vercel/node, nodemailer
 
 ## Sécurité — OWASP
 - Skill chargé automatiquement pour toute tâche d'auth/sécurité : `owasp-security`
@@ -67,13 +72,11 @@ expo-camera, expo-sqlite, expo-crypto
 - Effacer données sensibles à la déconnexion
 - Ne pas logger mots de passe ou tokens
 
-## Contexte mémorisé (Mai 2026)
+## Contexte mémorisé (Juin 2026)
 - **Branche de travail** : `feature/mouhtada` — NE JAMAIS modifier `main`
-- **bcrypt pour organisateur** : doit être intégré côté mobile avec `bcryptjs` (pur JS)
-  - Inscription organisateur avec hash bcrypt stocké dans AsyncStorage
-  - Connexion avec vérification via bcrypt.compare()
-  - Backend existant dans `backend/` mais pas d'API — ne pas toucher
-- **Authentification** : 3 rôles (Acheteur OTP, Contrôleur code 4 chiffres, Organisateur email+bcrypt)
+- **bcrypt pour organisateur** : backend hash avec bcrypt work factor 10
+- **Authentification** : 3 rôles (Acheteur OTP email, Contrôleur code 4 chiffres, Organisateur email+bcrypt)
+- **API déployée** sur Vercel avec base Aiven — ne pas écraser les infos de connexion
 
 ## Commentaires dans le code
 - TOUS les fichiers source doivent avoir des commentaires en français expliquant :
@@ -84,5 +87,8 @@ expo-camera, expo-sqlite, expo-crypto
 - Les commentaires sont obligatoires pour tout nouveau fichier ou modification
 - Privilégier des commentaires concis (1-3 lignes) plutôt que des pavés
 
-## PR
-PR #3 ouverte : feature/mouhtada → main
+## PR mergées
+- PR #3 : Module auth + scan contrôleur + 3 rôles (merged)
+- PR #14 : Notifications email+SMS, page billet publique, Vercel deploy
+- PR #15 : Fix connexionSociale + SSL Aiven
+- PR #16 : Fix EmailService casing Linux + fonctions email partenaires
