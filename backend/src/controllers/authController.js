@@ -282,4 +282,42 @@ const verifierCodeOTP = async (req, res) => {
   }
 };
 
+// Connexion sociale (Google/Apple) pour l'acheteur
+// Crée un compte acheteur si inexistant, retourne un JWT
+const connexionSociale = async (req, res) => {
+  try {
+    const { email, nom, provider } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email requis" });
+    }
+
+    let acheteur;
+    try {
+      const [existants] = await pool.query(
+        "SELECT id, nom, email FROM acheteur WHERE email = ? LIMIT 1",
+        [email]
+      );
+      if (existants.length > 0) {
+        acheteur = existants[0];
+        await pool.query("UPDATE acheteur SET dernier_acces = NOW() WHERE id = ?", [acheteur.id]);
+      } else {
+        const [result] = await pool.query(
+          "INSERT INTO acheteur (nom, email, date_inscription, dernier_acces) VALUES (?, ?, NOW(), NOW())",
+          [nom || email.split("@")[0], email]
+        );
+        acheteur = { id: result.insertId, email };
+      }
+    } catch (dbErr) {
+      console.warn("DB indisponible, mode démo:", dbErr.message);
+      acheteur = { id: Date.now(), email };
+    }
+
+    const token = generateToken({ id: acheteur.id, email }, "ACHETEUR");
+    res.json({ token, user: { id: acheteur.id, email } });
+  } catch (err) {
+    console.error("Connexion sociale error:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
 module.exports = { inscription, connexionOrganisateur, connexionAdmin, connexionPartenaire, adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur, connexionSociale, envoyerCodeOTP, verifierCodeOTP };
