@@ -4,7 +4,7 @@
  * Types : CREATION, MODIFICATION, SUPPRESSION
  */
 const pool = require("../config/db");
-const { envoyerNotificationDemandeEvenement } = require("../services/EmailService");
+const { envoyerNotificationDemandeEvenement } = require("../services/emailService");
 
 const soumettreDemande = async (req, res) => {
   try {

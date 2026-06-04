@@ -151,4 +151,99 @@ const envoyerCodeOTP = async (destinataire, code) => {
   }
 };
 
-module.exports = { envoyerEmailBillet, envoyerCodeOTP };
+// Fonction utilitaire pour envoyer un email via le transporteur
+const envoyerEmail = async (destinataire, sujet, html) => {
+  const transporter = createTransporter();
+  if (!transporter) {
+    console.log(`[EMAIL SIMULÉ] À: ${destinataire} — ${sujet}`);
+    return { simulé: true, destinataire };
+  }
+  const info = await transporter.sendMail({
+    from: `"SENGUICHET" <${process.env.MAIL_FROM || process.env.SMTP_USER}>`,
+    to: destinataire,
+    subject: sujet,
+    html,
+  });
+  console.log(`Email envoyé à ${destinataire}: ${info.messageId}`);
+  return { success: true, messageId: info.messageId };
+};
+
+// Envoie un email de confirmation au demandeur après soumission d'une demande de partenariat
+const envoyerConfirmationDemandeur = async (demande) => {
+  const html = `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:30px;background:#f8f9fc;border-radius:16px;">
+      <h1 style="color:#6366F1;">SENGUICHET</h1>
+      <p>Bonjour <strong>${demande.nom}</strong>,</p>
+      <p>Nous avons bien reçu votre demande de partenariat pour <strong>${demande.organisation}</strong>.</p>
+      <p>Notre équipe l'examinera sous 48h. Vous recevrez un email dès qu'une décision sera prise.</p>
+      <p style="color:#94a3b8;font-size:12px;">SENGUICHET — Billeterie événementielle</p>
+    </div>`;
+  return envoyerEmail(demande.email, "Confirmation de votre demande de partenariat", html);
+};
+
+// Notifie l'admin d'une nouvelle demande de partenariat
+const envoyerNotificationAdmin = async (demande) => {
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
+  const html = `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:30px;background:#f8f9fc;border-radius:16px;">
+      <h2>Nouvelle demande de partenariat</h2>
+      <p><strong>Nom :</strong> ${demande.nom}</p>
+      <p><strong>Organisation :</strong> ${demande.organisation}</p>
+      <p><strong>Email :</strong> ${demande.email}</p>
+      <p><strong>Téléphone :</strong> ${demande.telephone || "Non renseigné"}</p>
+      <p><strong>Message :</strong> ${demande.message || "Aucun"}</p>
+    </div>`;
+  return envoyerEmail(adminEmail, "Nouvelle demande de partenariat — SENGUICHET", html);
+};
+
+// Notifie le demandeur du statut de sa demande de partenariat
+const envoyerStatutDemande = async (demandeur, statut, commentaire) => {
+  const sujet = statut === "VALIDE"
+    ? "Votre demande de partenariat a été acceptée"
+    : "Votre demande de partenariat a été refusée";
+  const html = `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:30px;background:#f8f9fc;border-radius:16px;">
+      <h1 style="color:#6366F1;">SENGUICHET</h1>
+      <p>Bonjour <strong>${demandeur.nom}</strong>,</p>
+      ${statut === "VALIDE"
+        ? `<p>Votre demande de partenariat pour <strong>${demandeur.organisation}</strong> a été approuvée !</p>
+           <p>Vous allez recevoir vos identifiants de connexion dans un email séparé.</p>`
+        : `<p>Votre demande de partenariat pour <strong>${demandeur.organisation}</strong> n'a pas été retenue.</p>
+           ${commentaire ? `<p>Motif : ${commentaire}</p>` : ""}`
+      }
+      <p style="color:#94a3b8;font-size:12px;">SENGUICHET — Billeterie événementielle</p>
+    </div>`;
+  return envoyerEmail(demandeur.email, sujet, html);
+};
+
+// Envoie les identifiants de connexion à un nouveau partenaire
+const envoyerIdentifiantsPartenaire = async (identifiants) => {
+  const html = `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:30px;background:#f8f9fc;border-radius:16px;">
+      <h1 style="color:#6366F1;">SENGUICHET</h1>
+      <p>Bonjour <strong>${identifiants.nom}</strong>,</p>
+      <p>Votre compte partenaire pour <strong>${identifiants.organisation}</strong> a été créé.</p>
+      <p><strong>Email :</strong> ${identifiants.email}</p>
+      <p><strong>Mot de passe :</strong> ${identifiants.motDePasse}</p>
+      <p style="color:#94a3b8;font-size:12px;">Connectez-vous sur l'application SENGUICHET.</p>
+    </div>`;
+  return envoyerEmail(identifiants.email, "Vos identifiants partenaire — SENGUICHET", html);
+};
+
+// Notifie l'admin d'une demande d'événement (création, modification, suppression)
+const envoyerNotificationDemandeEvenement = async (demande) => {
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
+  const action = demande.type_action === "CREATION" ? "Création"
+    : demande.type_action === "MODIFICATION" ? "Modification"
+    : "Suppression";
+  const html = `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:30px;background:#f8f9fc;border-radius:16px;">
+      <h2>Demande d'événement : ${action}</h2>
+      <p><strong>Organisateur :</strong> ${demande.nom} (${demande.email})</p>
+      <p><strong>Événement :</strong> ${demande.titre || "N/A"}</p>
+      ${demande.id ? `<p><strong>ID demande :</strong> ${demande.id}</p>` : ""}
+    </div>`;
+  return envoyerEmail(adminEmail, `Demande ${action.toLowerCase()} événement — SENGUICHET`, html);
+};
+
+module.exports = { envoyerEmailBillet, envoyerCodeOTP, envoyerConfirmationDemandeur, envoyerNotificationAdmin, envoyerStatutDemande, envoyerIdentifiantsPartenaire, envoyerNotificationDemandeEvenement };
