@@ -14,10 +14,11 @@ const handleResponse = async (res) => {
 };
 
 export const creerEvenement = async (payload) => {
+  const useFormData = payload instanceof FormData;
   const res = await fetch(`${API_URL}/api/evenements`, {
     method: "POST",
-    headers: headers(),
-    body: JSON.stringify(payload),
+    headers: useFormData ? { Authorization: `Bearer ${getToken()}` } : headers(),
+    body: useFormData ? payload : JSON.stringify(payload),
   });
   return handleResponse(res);
 };
@@ -37,10 +38,11 @@ export const detailEvenement = async (id) => {
 };
 
 export const modifierEvenement = async (id, payload) => {
+  const useFormData = payload instanceof FormData;
   const res = await fetch(`${API_URL}/api/evenements/${id}`, {
     method: "PUT",
-    headers: headers(),
-    body: JSON.stringify(payload),
+    headers: useFormData ? { Authorization: `Bearer ${getToken()}` } : headers(),
+    body: useFormData ? payload : JSON.stringify(payload),
   });
   return handleResponse(res);
 };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import { adminListerEvenements, adminDetailEvenement, adminAccepterEvenement, adminRefuserEvenement, adminSuspendreEvenement } from "../../services/eventService";
-import { Check, X } from "../../components/Icons";
+import { Check, X, Ticket } from "../../components/Icons";
 
 const statutConfig = {
   en_attente: { cls: "badge-pending", label: "En attente" },
@@ -19,7 +19,6 @@ const AdminEvenements = () => {
   const [modal, setModal] = useState(null);
   const [modalTickets, setModalTickets] = useState(null);
   const [refuseComment, setRefuseComment] = useState("");
-  const [showRefuseInput, setShowRefuseInput] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -41,7 +40,6 @@ const AdminEvenements = () => {
   };
 
   const openModal = async (ev) => {
-    setShowRefuseInput(false);
     setRefuseComment("");
     setModalTickets(null);
     setModal(null);
@@ -56,6 +54,7 @@ const AdminEvenements = () => {
         date: e.date_debut ? new Date(e.date_debut).toLocaleDateString("fr-FR") : "—",
         capacite: e.capacite_totale, statut: e.statut,
         commentaire_admin: e.commentaire_admin,
+        affiche_url: e.affiche_url,
       });
       setModalTickets(res.tickets);
     } catch (err) {
@@ -67,7 +66,6 @@ const AdminEvenements = () => {
   const closeModal = () => {
     setModal(null);
     setModalTickets(null);
-    setShowRefuseInput(false);
     setRefuseComment("");
   };
 
@@ -188,13 +186,12 @@ const AdminEvenements = () => {
         )}
       </div>
 
-      {/* Modal détail événement */}
+      {/* Modal détail événement (même style que le modal demande) */}
       {modal && (
         <div style={{
           position: "fixed", inset: 0, zIndex: 1000,
           display: "flex", alignItems: "center", justifyContent: "center",
-          background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)",
-          padding: "1rem",
+          background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)", padding: "1rem",
         }}>
           <div className="glass-card" style={{
             maxWidth: 640, width: "100%", maxHeight: "90vh", overflow: "auto",
@@ -203,10 +200,9 @@ const AdminEvenements = () => {
             <button onClick={closeModal} style={{
               position: "absolute", top: "1rem", right: "1rem",
               background: "none", border: "none", color: "var(--text-secondary)",
-              cursor: "pointer",
+              fontSize: "1.25rem", cursor: "pointer",
             }}><X size={18} /></button>
 
-            {/* Titre + statut */}
             <h2 className="text-xl font-bold mb-1" style={{ fontFamily: "Outfit, sans-serif", color: "#F1F5F9" }}>
               {modal.nom}
             </h2>
@@ -214,110 +210,82 @@ const AdminEvenements = () => {
               {(statutConfig[modal.statut] || statutConfig.annule).label}
             </span>
 
-            {/* Infos générales */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "1rem" }}>
               <InfoRow label="Organisateur" value={modal.organisateur} />
               <InfoRow label="Email" value={modal.email} />
+              {modal.telephone && <InfoRow label="Téléphone" value={modal.telephone} />}
               <InfoRow label="Catégorie" value={v(modal.categorie)} />
               <InfoRow label="Lieu" value={v(modal.lieu)} />
               <InfoRow label="Ville" value={v(modal.ville)} />
-              <InfoRow label="Date" value={modal.date} />
+              <InfoRow label="Date début" value={modal.date} />
               <InfoRow label="Capacité" value={modal.capacite != null ? `${modal.capacite} places` : "—"} />
-              {modal.statut === "refuse" && modal.commentaire_admin && (
-                <InfoRow label="Commentaire refus" value={modal.commentaire_admin} style={{ gridColumn: "1 / -1", color: "var(--error)" }} />
-              )}
             </div>
 
             {/* Description */}
-            <div style={{ marginBottom: "1rem" }}>
-              <p className="text-xs font-medium mb-1" style={{ color: "var(--text-secondary)" }}>Description</p>
-              <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.875rem", lineHeight: 1.5 }}>
-                {modal.description || "Aucune description."}
-              </p>
-            </div>
+            {modal.description && (
+              <div style={{ marginBottom: "1rem" }}>
+                <p className="text-xs font-medium mb-1" style={{ color: "var(--text-secondary)" }}>Description</p>
+                <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.875rem", lineHeight: 1.5 }}>{modal.description}</p>
+              </div>
+            )}
 
-            {/* Types de billets */}
+            {/* Catégories de tickets sous forme de tableau (comme le modal demande) */}
             {modalTickets && modalTickets.length > 0 && (
               <div style={{ marginBottom: "1rem" }}>
-                <p className="text-xs font-medium mb-2" style={{ color: "var(--text-secondary)" }}>Types de billets ({modalTickets.length})</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                  {modalTickets.map((t) => (
-                    <div key={t.id} style={{
-                      padding: "0.75rem 1rem", borderRadius: "8px",
-                      background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
-                      display: "flex", justifyContent: "space-between", alignItems: "center",
-                    }}>
-                      <div>
-                        <p className="text-sm font-semibold" style={{ color: "#F1F5F9" }}>{t.nom}</p>
-                        <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>
-                          {t.description || "—"}
-                        </p>
-                      </div>
-                      <div className="text-right" style={{ flexShrink: 0, marginLeft: "1rem" }}>
-                        <p style={{ color: "var(--success)", fontSize: "0.9rem", fontWeight: 600, whiteSpace: "nowrap" }}>
-                          {parseInt(t.prix).toLocaleString()} FCFA
-                        </p>
-                        <p style={{ color: "var(--text-secondary)", fontSize: "0.75rem", whiteSpace: "nowrap" }}>
-                          {t.places_disponibles}/{t.capacite} dispo.
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                <p className="text-xs font-medium mb-2" style={{ color: "var(--text-secondary)" }}><Ticket size={14} /> Catégories de tickets ({modalTickets.length})</p>
+                <div style={{ overflow: "hidden", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8rem" }}>
+                    <thead>
+                      <tr style={{ background: "rgba(255,255,255,0.04)" }}>
+                        <th style={{ padding: "0.5rem 0.75rem", textAlign: "left", color: "var(--text-secondary)", fontWeight: 500 }}>Nom</th>
+                        <th style={{ padding: "0.5rem 0.75rem", textAlign: "right", color: "var(--text-secondary)", fontWeight: 500 }}>Places</th>
+                        <th style={{ padding: "0.5rem 0.75rem", textAlign: "right", color: "var(--text-secondary)", fontWeight: 500 }}>Prix</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {modalTickets.map((t) => (
+                        <tr key={t.id} style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                          <td style={{ padding: "0.5rem 0.75rem", color: "#F1F5F9" }}>{t.nom}</td>
+                          <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", color: "rgba(255,255,255,0.7)" }}>
+                            {t.places_disponibles}/{t.capacite}
+                          </td>
+                          <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", color: "rgba(255,255,255,0.7)" }}>
+                            {parseInt(t.prix).toLocaleString()} F
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
 
-            {/* Commentaire de refus déjà affiché */}
-            {modal.statut === "refuse" && modal.commentaire_admin && (
-              <div style={{ padding: "0.75rem", borderRadius: "8px", background: "rgba(255,77,109,0.08)", border: "1px solid rgba(255,77,109,0.2)", marginBottom: "1rem" }}>
-                <p className="text-xs font-medium mb-1" style={{ color: "var(--error)" }}>Commentaire de refus</p>
-                <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.85rem" }}>{modal.commentaire_admin}</p>
+            {/* Affiche */}
+            {modal.affiche_url && !modal.affiche_url.startsWith("blob:") && (
+              <div style={{ marginBottom: "1rem" }}>
+                <p className="text-xs font-medium mb-2" style={{ color: "var(--text-secondary)" }}>Affiche</p>
+                <img src={modal.affiche_url} alt="Affiche événement"
+                  style={{ width: "100%", maxHeight: 250, objectFit: "contain", borderRadius: "8px", background: "rgba(255,255,255,0.04)" }}
+                />
               </div>
             )}
 
-            {/* Actions acceptation / refus */}
-            {modal.statut === "en_attente" && (
-              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "1rem" }}>
-                {showRefuseInput ? (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                    <textarea placeholder="Raison du refus (obligatoire)" value={refuseComment}
-                      onChange={(e) => setRefuseComment(e.target.value)} rows={3}
-                      style={{
-                        width: "100%", padding: "0.75rem", borderRadius: "8px",
-                        background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
-                        color: "#F1F5F9", fontSize: "0.875rem",
-                        fontFamily: "'Plus Jakarta Sans', sans-serif", resize: "vertical",
-                      }}
-                    />
-                    <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
-                      <button onClick={() => setShowRefuseInput(false)} className="px-4 py-2 rounded-lg text-sm"
-                        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-secondary)" }}>
-                        Annuler
-                      </button>
-                      <button onClick={() => handleAction(modal.id, "refuser")} disabled={!refuseComment.trim() || actionLoading}
-                        className="px-4 py-2 rounded-lg text-sm"
-                        style={{
-                          background: !refuseComment.trim() ? "rgba(255,77,109,0.3)" : "rgba(255,77,109,0.15)",
-                          border: "1px solid rgba(255,77,109,0.3)", color: "var(--error)",
-                          cursor: !refuseComment.trim() ? "not-allowed" : "pointer",
-                        }}>
-                        {actionLoading ? "Refus..." : "Confirmer le refus"}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
-                    <button onClick={() => setShowRefuseInput(true)} className="px-4 py-2 rounded-lg text-sm"
-                      style={{ background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.3)", color: "var(--error)" }}>
-                      Refuser
-                    </button>
-                    <button onClick={() => handleAction(modal.id, "accepter")} disabled={actionLoading}
-                      className="px-4 py-2 rounded-lg text-sm"
-                      style={{ background: "rgba(0,229,160,0.1)", border: "1px solid rgba(0,229,160,0.3)", color: "var(--success)" }}>
-                      {actionLoading ? "Accepter..." : "Accepter"}
-                    </button>
-                  </div>
-                )}
+            {/* Commentaire admin */}
+            {modal.commentaire_admin && (
+              <div style={{
+                padding: "0.75rem", borderRadius: "8px", marginBottom: "1rem",
+                background: modal.statut === "refuse" || modal.statut === "suspendu" || modal.statut === "annule"
+                  ? "rgba(255,77,109,0.08)" : "rgba(0,229,160,0.08)",
+                border: modal.statut === "refuse" || modal.statut === "suspendu" || modal.statut === "annule"
+                  ? "1px solid rgba(255,77,109,0.2)" : "1px solid rgba(0,229,160,0.2)",
+              }}>
+                <p className="text-xs font-medium mb-1" style={{
+                  color: modal.statut === "refuse" || modal.statut === "suspendu" || modal.statut === "annule"
+                    ? "var(--error)" : "var(--success)"
+                }}>
+                  Commentaire
+                </p>
+                <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.85rem" }}>{modal.commentaire_admin}</p>
               </div>
             )}
           </div>
