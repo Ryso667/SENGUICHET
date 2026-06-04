@@ -24,7 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 export default function EventDetailScreen({ route, navigation }) {
   const { eventId } = route.params
-  const { definirTelephone, numeroTel } = useAuth()
+  const { definirTelephone, numeroTel, email } = useAuth()
   const insets = useSafeAreaInsets()
   const { height: screenHeight } = useWindowDimensions()
   const [event, setEvent] = useState(null)
@@ -49,6 +49,7 @@ export default function EventDetailScreen({ route, navigation }) {
   const [paymentEtape, setPaymentEtape] = useState('confirm') // confirm | pending | success | failed
   const [paymentError, setPaymentError] = useState('')
   const [paymentResult, setPaymentResult] = useState(null)
+  const [selectedProvider, setSelectedProvider] = useState('WAVE')
   const spinAnim = useRef(new Animated.Value(0)).current
   const scaleAnim = useRef(new Animated.Value(0)).current
 
@@ -78,6 +79,7 @@ export default function EventDetailScreen({ route, navigation }) {
     if (!selectedTicket) return
     setShowPaymentSheet(true)
     setPaymentEtape('confirm')
+    setSelectedProvider('WAVE')
   }
 
   // Déclenche l'appel API d'achat et gère les étapes de paiement
@@ -112,7 +114,7 @@ export default function EventDetailScreen({ route, navigation }) {
       const telComplet = telPropre.startsWith('221') ? `+${telPropre}` : `+221${telPropre}`
       const resultat = await acheterBillet(
         event.id, selectedTicket.id,
-        telPropre ? telComplet : null, null, 'WAVE'
+        telPropre ? telComplet : null, email, selectedProvider
       )
 
       if (!resultat || !resultat.billet) {
@@ -121,7 +123,7 @@ export default function EventDetailScreen({ route, navigation }) {
 
       await definirTelephone(telComplet)
 
-      // Redirection vers Wave WebView ou succès direct selon réponse
+      // Redirection vers WebView de paiement ou succès direct
       if (resultat.paiement?.redirectUrl) {
         setShowPaymentSheet(false)
         navigation.replace('WebViewWave', {
@@ -396,14 +398,14 @@ export default function EventDetailScreen({ route, navigation }) {
             {paymentEtape === 'confirm' && (
               <>
                 {/* Montant uniquement */}
-                <Text style={styles.payAmountLabel}>{selectedTicket.name}</Text>
-                <Text style={[styles.payAmountValue, { color: catColor }]}>
+                <Text style={s.payAmountLabel}>{selectedTicket.name}</Text>
+                <Text style={[s.payAmountValue, { color: catColor }]}>
                   {selectedTicket.price.toLocaleString()} FCFA
                 </Text>
 
-                {/* Bouton de paiement Wave */}
+                {/* Bouton de paiement Wave — mobile money */}
                 <TouchableOpacity
-                  style={styles.confirmPayBtn}
+                  style={s.confirmPayBtn}
                   onPress={confirmerPaiement}
                   activeOpacity={0.9}
                 >
@@ -412,10 +414,10 @@ export default function EventDetailScreen({ route, navigation }) {
                     colors={['#1AB3E5', '#0D8ABC']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    style={styles.confirmPayGradient}
+                    style={s.confirmPayGradient}
                   >
-                    <Image source={require('../../assets/wave_logo.png')} style={styles.confirmBtnLogo} resizeMode="contain" />
-                    <Text style={styles.confirmPayText}>Payer {selectedTicket.price.toLocaleString()} FCFA</Text>
+                    <Image source={require('../../assets/wave_logo.png')} style={s.confirmBtnLogo} resizeMode="contain" />
+                    <Text style={s.confirmPayText}>Payer {selectedTicket.price.toLocaleString()} FCFA</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </>

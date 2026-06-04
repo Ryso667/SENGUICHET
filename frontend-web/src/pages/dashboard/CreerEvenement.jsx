@@ -62,9 +62,9 @@ const CategorySelect = ({ value, onChange, options, label }) => (
       className="input-premium appearance-none cursor-pointer"
       style={{ paddingRight: "40px" }}
     >
-      <option value="" disabled style={{ background: "var(--bg)", color: "var(--text-secondary)" }}>{label}</option>
+      <option value="" disabled style={{ color: "#1a1a2e" }}>{label}</option>
       {options.map((o) => (
-        <option key={o} value={o} style={{ background: "var(--bg)", color: "#F1F5F9" }}>{o}</option>
+        <option key={o} value={o} style={{ color: "#1a1a2e" }}>{o}</option>
       ))}
     </select>
     <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--text-secondary)", fontSize: "0.7rem" }}>▼</span>

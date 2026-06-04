@@ -1,16 +1,17 @@
-// Tableau de bord organisateur : stats, événements récents, actions rapides
-// Design glass (Apple Invites) — fond dégradé par catégorie, conteneurs verre dépoli
-import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert } from 'react-native'
+// Tableau de bord organisateur (calqué sur l'app web)
+// Design glass (Apple Invites) — fond dégradé, conteneurs verre dépoli
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, glass, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
+import { colors, spacing, fonts, textShadow, categoryGradients } from '../../constants/theme'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import { formaterDateLisible } from '../../utils/dateUtils'
+import { LinearGradient } from 'expo-linear-gradient'
 import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
-import GlassButton from '../../components/GlassButton'
+import Skeleton from '../../components/Skeleton'
 
 const STATUT_CONFIG = {
   actif: { label: 'Actif', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
@@ -22,208 +23,180 @@ const STATUT_CONFIG = {
 
 export default function OrganisateurDashboardScreen({ navigation }) {
   const insets = useSafeAreaInsets()
-  const { user, deconnecter } = useAuth()
+  const { user } = useAuth()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [navCourant, setNavCourant] = useState(null)
 
-  const onRefresh = React.useCallback(async () => {
+  const fadeAnims = useRef([...Array(8)].map(() => new Animated.Value(0))).current
+  const slideAnims = useRef([...Array(8)].map(() => new Animated.Value(40))).current
+
+  useEffect(() => {
+    Animated.stagger(80, fadeAnims.map((fa, i) =>
+      Animated.parallel([
+        Animated.timing(fa, { toValue: 1, duration: 400, useNativeDriver: true }),
+        Animated.timing(slideAnims[i], { toValue: 0, duration: 400, useNativeDriver: true }),
+      ])
+    )).start()
+  }, [loading])
+
+  const today = new Date().toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  })
+
+  const loadData = useCallback(async () => {
+    try {
+      const data = await fetchEvenementsAPI()
+      setEvents(data)
+    } catch {}
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { loadData() }, [loadData])
+
+  const onRefresh = useCallback(async () => {
     setRefreshing(true)
     await loadData()
     setRefreshing(false)
-  }, [])
+  }, [loadData])
 
-  const actifs = events.filter(e => e.statut === 'actif').length
+  const activeCount = events.filter(e => e.statut === 'actif').length
   const totalVendus = events.reduce((s, e) => s + (e.remplis || 0), 0)
   const totalCapacite = events.reduce((s, e) => s + (e.capacite || 0), 0)
   const totalRevenus = events.reduce((s, e) => {
-    if (!e.revenus) return s
-    return s + (parseInt(String(e.revenus).replace(/\D/g, '')) || 0)
+    const num = parseInt(String(e.revenus || '0').replace(/\D/g, ''))
+    return s + (isNaN(num) ? 0 : num)
   }, 0)
-  const tauxRemplissage = totalCapacite > 0 ? Math.round((totalVendus / totalCapacite) * 100) : 0
-  const recents = events.slice(0, 3)
 
+  const prochainEvent = events
+    .filter(e => e.statut === 'actif')
+    .sort((a, b) => new Date(a.date) - new Date(b.date))[0]
+
+  const recents = events.slice(0, 3)
   const fmt = (n) => n.toLocaleString('fr-FR')
 
   const stats = [
-    { icon: 'calendar-check', label: 'Événements actifs', value: String(actifs), color: '#00C8FF' },
-    { icon: 'ticket-outline', label: 'Billets vendus', value: fmt(totalVendus), color: '#00E5A0' },
-    { icon: 'cash', label: 'Revenus total', value: `${fmt(totalRevenus)} FCFA`, color: '#0077FF' },
-    { icon: 'account-group', label: 'Taux de remplissage', value: `${tauxRemplissage}%`, color: '#F97316' },
+    { icon: 'ticket-outline', label: 'Total billets vendus', value: String(totalVendus) },
+    { icon: 'flower', label: 'Revenus générés', value: `${fmt(totalRevenus)} FCFA` },
+    { icon: 'calendar-check', label: 'Événements actifs', value: String(activeCount) },
+    { icon: 'calendar-star', label: 'Prochain événement', value: prochainEvent?.nom || '—' },
   ]
 
-  const navItems = [
-    { icon: 'plus-circle-outline', label: 'Créer', route: 'CreerEvenement' },
-    { icon: 'chart-box-outline', label: 'Stats', route: 'Statistiques' },
-    { icon: 'cog-outline', label: 'Gérer', route: 'GestionEvenements' },
+  const statColors = [
+    ['rgba(0,200,255,0.25)', 'rgba(0,119,255,0.1)'],
+    ['rgba(0,229,160,0.25)', 'rgba(0,200,255,0.1)'],
+    ['rgba(99,102,241,0.25)', 'rgba(236,72,153,0.1)'],
+    ['rgba(249,115,22,0.25)', 'rgba(245,158,11,0.1)'],
   ]
-
-  const naviguer = (route) => {
-    setNavCourant(route)
-    navigation.navigate(route)
-  }
-
-  const totalEvents = events.length
-  const enAttente = events.filter(e => e.statut === 'en_attente').length
-
-  const stylesAction = (route) => {
-    const map = {
-      CreerEvenement: { accent: colors.accent },
-      Statistiques: { accent: '#00C8FF' },
-      GestionEvenements: { accent: '#6B7280' },
-    }
-    return map[route] || { accent: '#6B7280' }
-  }
 
   return (
-    <View style={s.container}>
+    <View style={[s.container, { paddingTop: insets.top }]}>
       <BlurBackground category="Conference" />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor="#fff" />}
       >
-        {/* Greeting */}
+        {/* Greeting — calqué sur le web : "Bonjour, {nom}" + date */}
         <GlassContainer style={s.greeting}>
           <View style={s.headerRow}>
-            <View style={s.avatarCircle}>
-              <MaterialCommunityIcons name="account-tie" size={22} color="#fff" />
-            </View>
-            <View style={s.headerText}>
-              <Text style={s.bonjour}>Bonjour, {user?.nom || 'Organisateur'}</Text>
-              <Text style={s.sousTitre}>
-                {totalEvents > 0
-                  ? `${totalEvents} événement${totalEvents > 1 ? 's' : ''}`
-                  : enAttente > 0 ? `${enAttente} en attente`
-                  : 'Aucun événement'}
-              </Text>
-            </View>
+            <MaterialCommunityIcons name="view-grid-outline" size={22} color="#fff" />
+            <Text style={s.bonjour}>Bonjour, {user?.nom || 'Organisateur'}</Text>
           </View>
-          {totalEvents > 0 && (
-            <View style={s.statsPills}>
-              {actifs > 0 && (
-                <View style={[s.statPill, { backgroundColor: 'rgba(0,229,160,0.15)' }]}>
-                  <Text style={[s.statPillText, { color: '#00E5A0' }]}>{actifs} actif{actifs > 1 ? 's' : ''}</Text>
-                </View>
-              )}
-              {enAttente > 0 && (
-                <View style={[s.statPill, { backgroundColor: 'rgba(249,115,22,0.15)' }]}>
-                  <Text style={[s.statPillText, { color: '#F97316' }]}>{enAttente} en attente</Text>
-                </View>
-              )}
-            </View>
-          )}
+          <Text style={s.dateText}>{today}</Text>
         </GlassContainer>
 
-        <Text style={s.refreshHint}>↓ Tirez vers le bas pour actualiser</Text>
-
         {loading ? (
-          <Text style={s.loading}>Chargement...</Text>
+          <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.lg }}>
+            <Skeleton type="card" count={4} />
+          </View>
         ) : (
           <>
-            <View style={s.statsRow}>
+            {/* Stats cards — une carte par ligne (évite débordement des chiffres) */}
+            <View style={s.statsColumn}>
               {stats.map((st, i) => (
-                <GlassContainer key={st.label} style={[s.statCard, { borderLeftColor: st.color, borderLeftWidth: 3 }]} intensity={40}>
-                  <View style={s.statTop}>
-                    <MaterialCommunityIcons name={st.icon} size={22} color={st.color} />
-                    <Text style={s.statValue}>{st.value}</Text>
-                  </View>
-                  <Text style={s.statLabel}>{st.label}</Text>
-                </GlassContainer>
+                <Animated.View key={st.label} style={{ opacity: fadeAnims[i], transform: [{ translateY: slideAnims[i] }] }}>
+                  <GlassContainer style={[s.statCard, { borderLeftWidth: 3, borderLeftColor: statColors[i][0].replace('0.25', '1') }]} intensity={40}>
+                    <LinearGradient colors={[statColors[i][0], statColors[i][1]]} style={s.statGradient}>
+                      <View style={s.statTop}>
+                        <MaterialCommunityIcons name={st.icon} size={20} color="#fff" />
+                        <Text style={s.statValue}>{st.value}</Text>
+                      </View>
+                      <Text style={s.statLabel}>{st.label}</Text>
+                    </LinearGradient>
+                  </GlassContainer>
+                </Animated.View>
               ))}
             </View>
 
-            {/* Actions rapides — 3 cards horizontales */}
-            <View style={s.quickSection}>
-              <Text style={s.quickTitle}>Actions rapides</Text>
-              <View style={s.quickRow}>
-                {navItems.map(item => {
-                  const style = stylesAction(item.route)
-                  return (
-                    <GlassContainer key={item.route} style={s.quickCard} intensity={35}>
-                      <TouchableOpacity
-                        style={s.quickTouchable}
-                        activeOpacity={0.8}
-                        onPress={() => naviguer(item.route)}
-                      >
-                        <MaterialCommunityIcons name={item.icon} size={24} color={style.accent} />
-                        <Text style={[s.quickLabel, { color: style.accent }]}>{item.label}</Text>
-                      </TouchableOpacity>
-                    </GlassContainer>
-                  )
-                })}
+            {/* Section événements récents — calquée sur le web */}
+            <Animated.View style={{ opacity: fadeAnims[4], transform: [{ translateY: slideAnims[4] }] }}>
+            <GlassContainer style={s.recentSection}>
+              <View style={s.recentHeader}>
+                <Text style={s.recentTitle}>Mes événements récents</Text>
+                {events.length > 3 && (
+                  <TouchableOpacity onPress={() => navigation.navigate('MesEvenementsTab')}>
+                    <Text style={s.voirTout}>Voir tout</Text>
+                  </TouchableOpacity>
+                )}
               </View>
-            </View>
 
-            {/* Recent events */}
-            <View style={s.sectionHeader}>
-              <Text style={s.sectionTitle}>Mes événements récents</Text>
-              {events.length > 3 && (
-                <TouchableOpacity onPress={() => navigation.navigate('GestionEvenements')}>
-                  <Text style={s.voirTout}>Voir tout</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {recents.length === 0 ? (
-              <GlassContainer style={s.empty} intensity={30}>
-                <MaterialCommunityIcons name="tent" size={48} color="rgba(255,255,255,0.6)" />
-                <Text style={s.emptyTitle}>Aucun événement</Text>
-                <Text style={s.emptySub}>Crée ton premier événement</Text>
-              </GlassContainer>
-            ) : (
-              recents.map((ev, i) => {
-                const cfg = STATUT_CONFIG[ev.statut] || STATUT_CONFIG.en_attente
-                return (
-                  <GlassContainer key={ev.id} style={s.eventCard} intensity={40}>
-                    <TouchableOpacity
-                      activeOpacity={0.85}
-                      onPress={() => navigation.navigate('DetailEvenement', { eventId: ev.id })}
-                    >
-                      <View style={s.eventTop}>
-                        <View style={s.eventHeader}>
-                          <View style={[s.eventBadge, { backgroundColor: cfg.color }]}>
-                            <Text style={s.eventBadgeText}>{ev.nom?.charAt(0)}</Text>
+              {recents.length === 0 ? (
+                <Text style={s.empty}>Aucun événement</Text>
+              ) : (
+                <View style={s.eventsGrid}>
+                  {recents.map((ev, i) => {
+                    const cfg = STATUT_CONFIG[ev.statut] || STATUT_CONFIG.en_attente
+                    const pct = Math.min(100, Math.round(((ev.remplis || 0) / (ev.capacite || 1)) * 100))
+                    return (
+                      <GlassContainer key={ev.id} style={s.eventCard}>
+                        {/* Hero image avec dégradé de catégorie + overlay */}
+                        <View style={s.eventHero}>
+                          {ev.affiche_url ? (
+                            <Image source={{ uri: ev.affiche_url }} style={s.eventHeroBg} resizeMode="cover" />
+                          ) : (
+                            <LinearGradient colors={categoryGradients[ev.categorie] || categoryGradients.default} style={s.eventHeroBg}>
+                              <MaterialCommunityIcons name="image-outline" size={40} color="rgba(255,255,255,0.15)" />
+                            </LinearGradient>
+                          )}
+                          <LinearGradient colors={['transparent', 'rgba(10,11,26,0.9)']} style={s.eventHeroOverlay} />
+                          <View style={s.eventBadgeWrap}>
+                            <View style={[s.eventBadge, { backgroundColor: cfg.bg }]}>
+                              <Text style={[s.eventBadgeLabel, { color: cfg.color }]}>{cfg.label}</Text>
+                            </View>
                           </View>
-                          <View style={s.eventInfo}>
+                          <View style={s.eventHeroBottom}>
                             <Text style={s.eventName} numberOfLines={1}>{ev.nom}</Text>
                             <Text style={s.eventMeta} numberOfLines={1}>
-                              {formaterDateLisible(ev.date)} · {ev.lieu || 'Non spécifié'}
+                              {ev.date} · {ev.lieu || 'Non spécifié'}
                             </Text>
                           </View>
-                          <View style={[s.pill, { backgroundColor: cfg.bg }]}>
-                            <Text style={[s.pillText, { color: cfg.color }]}>{cfg.label}</Text>
+                        </View>
+                        {/* Contenu */}
+                        <View style={s.eventBody}>
+                          <View style={s.barRow}>
+                            <View style={s.barBg}>
+                              <View style={[s.barFill, { width: `${pct}%` }]} />
+                            </View>
+                            <Text style={s.barCount}>{ev.remplis || 0} / {ev.capacite || 0}</Text>
+                          </View>
+                          <View style={s.eventFooter}>
+                            <Text style={s.revenu}>{ev.revenus || '0 FCFA'}</Text>
+                            <TouchableOpacity
+                              style={s.detailsBtn}
+                              onPress={() => navigation.navigate('DetailEvenement', { eventId: ev.id })}
+                              activeOpacity={0.8}
+                            >
+                              <Text style={s.detailsBtnText}>Détails</Text>
+                            </TouchableOpacity>
                           </View>
                         </View>
-                      </View>
-
-                      <View style={s.barRow}>
-                        <View style={s.barBg}>
-                          <View style={[s.barFill, { width: `${(ev.capacite || 1) > 0 ? ((ev.remplis || 0) / ev.capacite) * 100 : 0}%` }]} />
-                        </View>
-                        <Text style={s.barCount}>{fmt(ev.remplis || 0)} / {fmt(ev.capacite || 0)}</Text>
-                      </View>
-
-                      <View style={s.eventBottom}>
-                        <Text style={s.revenu}>{ev.revenus || '0 FCFA'}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  </GlassContainer>
-                )
-              })
-            )}
-
-            {/* Déconnexion */}
-            <GlassButton
-              title="Se déconnecter"
-              icon="log-out"
-              onPress={() => Alert.alert('Déconnexion', 'Veux-tu te déconnecter ?', [
-                { text: 'Annuler', style: 'cancel' },
-                { text: 'Se déconnecter', style: 'destructive', onPress: deconnecter },
-              ])}
-              style={s.logoutBtn}
-            />
+                      </GlassContainer>
+                    )
+                  })}
+                </View>
+              )}
+            </GlassContainer>
+            </Animated.View>
           </>
         )}
 
@@ -235,102 +208,59 @@ export default function OrganisateurDashboardScreen({ navigation }) {
 
 const s = StyleSheet.create({
   container: { flex: 1 },
-  quickSection: { paddingHorizontal: spacing.lg, marginTop: spacing.md },
-  quickTitle: {
-    fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff',
-    marginBottom: spacing.sm, ...textShadow,
+  // Greeting
+  greeting: { marginHorizontal: spacing.lg, marginTop: spacing.sm, padding: spacing.lg },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  bonjour: { fontSize: 20, fontFamily: fonts.outfit.bold, color: '#fff', flex: 1, ...textShadow },
+  dateText: {
+    fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)',
+    marginTop: spacing.xs, textTransform: 'capitalize',
   },
-  quickRow: { flexDirection: 'row', gap: spacing.sm },
-  quickCard: { flex: 1, overflow: 'hidden' },
-  quickTouchable: { paddingVertical: 20, alignItems: 'center', gap: 8 },
-  quickLabel: { fontSize: 13, fontFamily: fonts.outfit.semiBold },
-  mainContent: { flex: 1 },
-  greeting: {
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.sm,
-    padding: spacing.lg,
+  // Stats
+  statGradient: { padding: spacing.md, borderRadius: 16, minHeight: 80, justifyContent: 'space-between' },
+  statsColumn: { paddingHorizontal: spacing.lg, gap: spacing.sm, marginTop: spacing.lg },
+  statCard: { padding: 0, overflow: 'hidden' },
+  statTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  statValue: { fontSize: 20, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow, maxWidth: '70%', textAlign: 'right' },
+  statLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
+  // Section événements récents
+  recentSection: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
+  recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
+  recentTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
+  voirTout: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textAlign: 'center', paddingVertical: 30 },
+  eventsGrid: { gap: spacing.md },
+  // Carte événement
+  eventCard: { overflow: 'hidden', borderRadius: 16 },
+  eventHero: {
+    height: 140, position: 'relative', overflow: 'hidden', justifyContent: 'flex-end',
   },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  avatarCircle: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.2)',
+  eventHeroBg: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: 'center', justifyContent: 'center',
   },
-  headerText: { flex: 1 },
-  bonjour: { fontSize: 22, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
-  sousTitre: {
-    fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)',
-    marginTop: 2,
+  eventHeroOverlay: {
+    ...StyleSheet.absoluteFillObject,
   },
-  bannerText: {
-    flex: 1,
-    fontSize: 13,
-    fontFamily: 'Outfit_400Regular',
-    color: '#A0B4C8',
-    lineHeight: 18,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-  },
-  ventes: {
-    paddingHorizontal: 16,
-    marginTop: 8,
-  },
-  refreshHint: {
-    textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: 11, fontFamily: fonts.jakarta.regular,
-    paddingTop: spacing.sm, paddingBottom: 0, letterSpacing: 0.3,
-  },
-  loading: { textAlign: 'center', color: 'rgba(255,255,255,0.7)', fontSize: 14, fontFamily: fonts.jakarta.regular, marginTop: 60 },
-  statsRow: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.lg, gap: spacing.sm, marginTop: spacing.lg, marginBottom: spacing.md },
-  statCard: {
-    flex: 1, minWidth: '45%',
-    padding: spacing.md,
-  },
-  statTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  statValue: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
-  statLabel: { fontSize: 10, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
-  sectionHeader: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline',
-    paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm,
-  },
-  sectionTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
-  voirTout: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)' },
-  empty: { alignItems: 'center', paddingVertical: 60, marginHorizontal: spacing.lg, marginVertical: spacing.sm },
-  emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', marginTop: spacing.sm, ...textShadow },
-  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: spacing.xs },
-  eventCard: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-    padding: spacing.md,
-  },
-  venteDate: {
-    fontSize: 11,
-    fontFamily: 'Outfit_400Regular',
-    color: '#A0B4C8',
-    marginTop: 2,
-  },
-  eventBadgeText: { fontSize: 20, fontFamily: fonts.outfit.bold, color: '#fff' },
-  eventInfo: { flex: 1 },
+  eventBadgeWrap: { position: 'absolute', top: 12, left: 12 },
+  eventBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  eventBadgeLabel: { fontSize: 10, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.4 },
+  eventHeroBottom: { position: 'absolute', bottom: 12, left: 12, right: 12 },
   eventName: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff' },
-  eventMeta: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
-  pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, marginLeft: spacing.sm },
-  pillText: { fontSize: 10, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.4 },
-  barRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, marginBottom: spacing.sm },
+  eventMeta: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+  eventBody: { padding: spacing.md },
+  barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
   barBg: { flex: 1, height: 8, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 4, overflow: 'hidden' },
   barFill: { height: 8, borderRadius: 4, backgroundColor: '#00C8FF' },
-  barCount: { width: 70, textAlign: 'right', fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.7)', marginLeft: spacing.sm },
-  eventBottom: {
+  barCount: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.7)' },
+  eventFooter: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.15)', paddingTop: spacing.sm,
   },
   revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
-  logoutBtn: { marginHorizontal: spacing.lg, marginTop: spacing.lg },
-  statsPills: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-  statPill: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 },
-  statPillText: { fontSize: 11, fontFamily: fonts.outfit.semiBold },
-  eventTop: {},
-  eventHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  eventBadge: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  detailsBtn: {
+    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 8,
+    paddingHorizontal: 14, paddingVertical: 6,
+  },
+  detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
 })

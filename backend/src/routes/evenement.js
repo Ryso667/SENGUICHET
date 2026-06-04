@@ -13,6 +13,8 @@ router.get("/", authMiddleware(["ORGANISATEUR"]), e.lister);
 router.get("/:id", authMiddleware(["ORGANISATEUR"]), e.detail);
 router.put("/:id", authMiddleware(["ORGANISATEUR"]), e.modifier);
 router.put("/:id/annuler", authMiddleware(["ORGANISATEUR"]), e.annuler);
+router.get("/:id/equipe", authMiddleware(["ORGANISATEUR"]), e.getEquipe);
+router.post("/:id/regenerer-code", authMiddleware(["ORGANISATEUR"]), e.regenererScanCode);
 
 // Admin routes
 router.get("/admin/all", authMiddleware(["ADMIN"]), e.adminLister);

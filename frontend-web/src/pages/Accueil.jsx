@@ -983,17 +983,17 @@ const Accueil = () => {
                       onChange={handleFormChange}
                       onBlur={handleBlur}
                       className={"input-premium" + (touched.typeEvenement && formErrors.typeEvenement ? " input-error" : "")}
-                      style={{ appearance: "auto" }}
+                      style={{ appearance: "auto", color: "#fff" }}
                     >
-                      <option value="">Sélectionnez un type</option>
-                      <option value="concert">Concert</option>
-                      <option value="soiree">Soirée / Club</option>
-                      <option value="conference">Conférence / Séminaire</option>
-                      <option value="sport">Sport / Compétition</option>
-                      <option value="festival">Festival</option>
-                      <option value="theatre">Théâtre / Culturel</option>
-                      <option value="entreprise">Événement d'entreprise</option>
-                      <option value="autre">Autre</option>
+                      <option value="" style={{ color: "#1a1a2e" }}>Sélectionnez un type</option>
+                      <option value="concert" style={{ color: "#1a1a2e" }}>Concert</option>
+                      <option value="soiree" style={{ color: "#1a1a2e" }}>Soirée / Club</option>
+                      <option value="conference" style={{ color: "#1a1a2e" }}>Conférence / Séminaire</option>
+                      <option value="sport" style={{ color: "#1a1a2e" }}>Sport / Compétition</option>
+                      <option value="festival" style={{ color: "#1a1a2e" }}>Festival</option>
+                      <option value="theatre" style={{ color: "#1a1a2e" }}>Théâtre / Culturel</option>
+                      <option value="entreprise" style={{ color: "#1a1a2e" }}>Événement d'entreprise</option>
+                      <option value="autre" style={{ color: "#1a1a2e" }}>Autre</option>
                     </select>
                     {touched.typeEvenement && formErrors.typeEvenement && <p className="text-xs mt-1" style={{ color: "#FF4D6D" }}>{formErrors.typeEvenement}</p>}
                   </div>
@@ -1008,13 +1008,13 @@ const Accueil = () => {
                       onChange={handleFormChange}
                       onBlur={handleBlur}
                       className={"input-premium" + (touched.nbEvenements && formErrors.nbEvenements ? " input-error" : "")}
-                      style={{ appearance: "auto" }}
+                      style={{ appearance: "auto", color: "#fff" }}
                     >
-                      <option value="">Sélectionnez une fréquence</option>
-                      <option value="1-3">1 à 3 événements / an</option>
-                      <option value="4-6">4 à 6 événements / an</option>
-                      <option value="7-12">7 à 12 événements / an</option>
-                      <option value="12+">Plus de 12 événements / an</option>
+                      <option value="" style={{ color: "#1a1a2e" }}>Sélectionnez une fréquence</option>
+                      <option value="1-3" style={{ color: "#1a1a2e" }}>1 à 3 événements / an</option>
+                      <option value="4-6" style={{ color: "#1a1a2e" }}>4 à 6 événements / an</option>
+                      <option value="7-12" style={{ color: "#1a1a2e" }}>7 à 12 événements / an</option>
+                      <option value="12+" style={{ color: "#1a1a2e" }}>Plus de 12 événements / an</option>
                     </select>
                     {touched.nbEvenements && formErrors.nbEvenements && <p className="text-xs mt-1" style={{ color: "#FF4D6D" }}>{formErrors.nbEvenements}</p>}
                   </div>

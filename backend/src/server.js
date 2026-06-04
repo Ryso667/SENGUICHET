@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 require("dotenv").config();
 
 const routes = require("./routes");
@@ -16,9 +17,14 @@ if (!process.env.TICKET_URL && process.env.VERCEL_URL) {
 app.use(cors());
 app.use(express.json());
 
+// Sert le logo SENGUICHET pour les emails
+app.use("/api/logo", express.static(path.join(__dirname, "..", "public", "images")));
+
 app.get("/api/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
+
+
 
 app.use("/api", routes);
 

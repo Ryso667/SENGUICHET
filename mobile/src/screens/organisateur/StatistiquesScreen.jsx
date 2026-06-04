@@ -100,9 +100,9 @@ export default function StatistiquesScreen() {
   }
 
   return (
-    <View style={s.container}>
+    <View style={[s.container, { paddingTop: insets.top }]}>
       <BlurBackground category="Conference" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: insets.top }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View style={s.header}>
           <Text style={s.title}>Performances</Text>
           <View style={s.pills}>

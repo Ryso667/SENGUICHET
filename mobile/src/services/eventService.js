@@ -18,6 +18,7 @@ export async function fetchEvenementsAPI() {
     return {
       id: String(e.id),
       nom: e.nom || '',
+      affiche_url: e.affiche_url || null,
       date: e.date || '',
       lieu: e.lieu || '',
       categorie: e.categorie || '',
@@ -64,6 +65,7 @@ export async function fetchEvenementDetailAPI(id) {
     evenement: {
       id: String(e.id),
       nom: e.titre || '',
+      affiche_url: e.affiche_url || null,
       date: e.date_debut || '',
       lieu: e.lieu || '',
       categorie: e.categorie || '',
@@ -117,6 +119,18 @@ export async function annulerEvenementAPI(id) {
   return await appelAPI(`/evenements/${id}/annuler`, { method: 'PUT' })
 }
 
+// Récupère la liste des demandes de l'organisateur
+export async function listerMesDemandes() {
+  const data = await appelAPI('/demandes/')
+  if (!Array.isArray(data)) return []
+  return data
+}
+
+// Soumet une nouvelle demande (création, modification, suppression)
+export async function soumettreDemandeEvenement(payload) {
+  return await appelAPI('/demandes/', { method: 'POST', body: payload })
+}
+
 // ===== Fonctions acheteur =====
 
 // Récupère la liste des événements publics (acheteur) avec filtres optionnels
@@ -132,6 +146,7 @@ export async function fetchEvenementsPublics(filtres = {}) {
   return data.map(e => ({
     id: String(e.id),
     title: e.titre || e.nom || '',
+    affiche_url: e.affiche_url || null,
     date: e.date_debut || e.date || '',
     location: e.lieu || '',
     category: e.categorie || '',

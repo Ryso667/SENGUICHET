@@ -370,5 +370,56 @@ const detailPublic = async (req, res) => {
   }
 };
 
-module.exports = { creer, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic };
+// Retourne le scan_code de l'événement et la liste des contrôleurs affectés avec leurs stats
+// Accessible uniquement par l'organisateur propriétaire
+const getEquipe = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [events] = await pool.query(
+      "SELECT id, scan_code FROM evenement WHERE id = ? AND organisateur_id = ?",
+      [id, req.user.id]
+    );
+    if (!events.length) return res.status(404).json({ message: "Événement introuvable" });
+
+    const scanCode = events[0].scan_code;
+
+    const [controleurs] = await pool.query(
+      `SELECT c.id, c.nom, c.telephone, ac.zone,
+        (SELECT COUNT(*) FROM scan_billet sb WHERE sb.controleur_id = c.id AND sb.evenement_id = ?) AS scans_effectues
+      FROM affectation_controleur ac
+      JOIN controleur c ON c.id = ac.controleur_id
+      WHERE ac.evenement_id = ?
+      ORDER BY c.nom ASC`,
+      [id, id]
+    );
+
+    res.json({ scan_code: scanCode, controleurs });
+  } catch (err) {
+    console.error("Get equipe error:", err);
+    res.status(500).json({ message: "Erreur" });
+  }
+};
+
+// Génère un nouveau code scan à 4 caractères pour l'événement
+// Accessible uniquement par l'organisateur propriétaire
+const regenererScanCode = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [existing] = await pool.query(
+      "SELECT id FROM evenement WHERE id = ? AND organisateur_id = ?",
+      [id, req.user.id]
+    );
+    if (!existing.length) return res.status(404).json({ message: "Événement introuvable" });
+
+    const nouveauCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+    await pool.query("UPDATE evenement SET scan_code = ? WHERE id = ?", [nouveauCode, id]);
+
+    res.json({ scan_code: nouveauCode, message: "Code de scan régénéré avec succès" });
+  } catch (err) {
+    console.error("Regenerer scan code error:", err);
+    res.status(500).json({ message: "Erreur" });
+  }
+};
+
+module.exports = { creer, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic, getEquipe, regenererScanCode };
 

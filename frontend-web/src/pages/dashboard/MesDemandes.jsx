@@ -343,7 +343,7 @@ const MesDemandes = () => {
                       className="input-premium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                     >
                       {DEMANDE_TYPES.map((t) => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
+                        <option key={t.value} value={t.value} style={{ color: "#1a1a2e" }}>{t.label}</option>
                       ))}
                     </select>
                   </div>

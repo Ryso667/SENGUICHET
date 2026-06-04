@@ -1,8 +1,4 @@
-# Expo HAS CHANGED
-
-Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before writing any code.
-
-# Projet SENGUICHET — État d'avancement (Mai 2026)
+# Projet SENGUICHET — État d'avancement (Juin 2026)
 
 ## Branches
 - `feature/mouhtada` — branche de dev (Personne 3)
@@ -80,6 +76,10 @@ expo-camera, expo-sqlite, expo-crypto, @vercel/node, nodemailer
 - **OTP store** : utilise la table `code_otp` en MySQL (plus de fichier JSON) — nécessaire pour Vercel serverless
 - **Billet** : colonne `numero` VARCHAR(20) NOT NULL ajoutée (absent du schema initial)
 - **Evenement** : les colonnes sont `affiche_url` (pas `image_url`), `titre` (pas `nom`), `capacite_totale` (pas `capacite`)
+- **`simulé: true`** supprimé de la réponse OTP dans `authController.js`
+- **SMTP Vercel** fonctionnel — vérifier boîte et spams
+- **migrate.js** : SSL rejectUnauthorized: false, supprime CREATE DATABASE/USE, FOREIGN_KEY_CHECKS=0
+- **db.js** : SSL rejectUnauthorized: false
 
 ## Commentaires dans le code
 - TOUS les fichiers source doivent avoir des commentaires en français expliquant :

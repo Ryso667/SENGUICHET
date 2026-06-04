@@ -27,6 +27,13 @@ const createTransporter = () => {
   });
 };
 
+// Construit l'URL du logo SENGUICHET pour les emails
+const getLogoUrl = () => {
+  const baseUrl = process.env.TICKET_URL || "https://senguichet.com/billet";
+  const baseApi = baseUrl.replace('/billets', '');
+  return `${baseApi}/logo/logo.jpg`;
+};
+
 // Envoie un email de confirmation de billet à l'acheteur
 // ticket: { uuid, numero, evenement, categorie, prix, dateAchat, qrPayload }
 // destinataire: email de l'acheteur
@@ -41,54 +48,74 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
   const lienBillet = `${baseUrl}/${ticket.uuid}`;
 
   const html = `
-    <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8f9fc; padding: 30px; border-radius: 16px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <h1 style="color: #6366F1; font-size: 28px; margin: 0;">SENGUICHET</h1>
-        <p style="color: #94a3b8; font-size: 14px;">Billets & Événements</p>
-      </div>
+    <div style="font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #0F0A1A 0%, #1A1035 50%, #0F0A1A 100%); border-radius: 20px; overflow: hidden; box-shadow: 0 8px 40px rgba(99,102,241,0.15), 0 2px 8px rgba(0,0,0,0.3);">
 
-      <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-        <h2 style="color: #0f172a; font-size: 20px; margin: 0 0 16px 0;">🎫 Ton billet est confirmé !</h2>
-
-        <table style="width: 100%; border-collapse: collapse;">
-          <tr>
-            <td style="padding: 10px 0; color: #64748b; font-size: 13px;">Événement</td>
-            <td style="padding: 10px 0; color: #0f172a; font-size: 14px; font-weight: 600; text-align: right;">${ticket.evenement}</td>
-          </tr>
-          <tr><td colspan="2" style="border-bottom: 1px solid #f1f5f9;"></td></tr>
-          <tr>
-            <td style="padding: 10px 0; color: #64748b; font-size: 13px;">Catégorie</td>
-            <td style="padding: 10px 0; color: #0f172a; font-size: 14px; font-weight: 600; text-align: right;">${ticket.categorie}</td>
-          </tr>
-          <tr><td colspan="2" style="border-bottom: 1px solid #f1f5f9;"></td></tr>
-          <tr>
-            <td style="padding: 10px 0; color: #64748b; font-size: 13px;">Montant</td>
-            <td style="padding: 10px 0; color: #0f172a; font-size: 14px; font-weight: 600; text-align: right;">${ticket.prix.toLocaleString()} FCFA</td>
-          </tr>
-          <tr><td colspan="2" style="border-bottom: 1px solid #f1f5f9;"></td></tr>
-          <tr>
-            <td style="padding: 10px 0; color: #64748b; font-size: 13px;">Référence</td>
-            <td style="padding: 10px 0; color: #6366F1; font-size: 14px; font-weight: 700; text-align: right;">${ticket.numero}</td>
-          </tr>
-        </table>
-
-        <div style="text-align: center; margin-top: 24px;">
-          <a href="${lienBillet}"
-             style="display: inline-block; background: linear-gradient(135deg, #6366F1, #EC4899); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 15px;">
-            Voir mon billet →
-          </a>
+        <!-- En-tête -->
+        <div style="background: linear-gradient(135deg, #7C3AED, #EC4899); padding: 32px 32px 24px; text-align: center; position: relative;">
+          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2285%22 cy=%2220%22 r=%2240%22 fill=%22rgba(255,255,255,0.04)%22/><circle cx=%2215%22 cy=%2280%22 r=%2260%22 fill=%22rgba(255,255,255,0.03)%22/></svg>'); opacity: 0.5;"></div>
+          <div style="position: relative; z-index: 1;">
+            <img src="${getLogoUrl()}" alt="SENGUICHET" style="display: block; margin: 0 auto 12px; width: 140px; height: auto;" />
+            <p style="color: rgba(255,255,255,0.85); font-size: 12px; margin: 0; letter-spacing: 1px;">BILLET CONFIRMÉ</p>
+          </div>
         </div>
 
-        <p style="color: #94a3b8; font-size: 12px; text-align: center; margin-top: 16px;">
-          Présente ce QR code à l'entrée depuis l'application SENGUICHET.
-        </p>
-      </div>
+        <!-- Corps -->
+        <div style="padding: 0 32px 32px;">
+          <div style="background: linear-gradient(180deg, #1E1450 0%, #16102E 100%); border: 1px solid rgba(124,58,237,0.25); border-radius: 14px; margin-top: -12px; position: relative; z-index: 2; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
 
-      <div style="text-align: center; margin-top: 16px;">
-        <p style="color: #94a3b8; font-size: 11px;">
-          SENGUICHET — Billeterie événementielle<br>
-          Une question ? Contacte-nous sur support@senguichet.com
-        </p>
+            <!-- Badge succès -->
+            <div style="text-align: center; padding: 24px 24px 0;">
+              <div style="display: inline-block; background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05)); border: 1px solid rgba(16,185,129,0.3); border-radius: 20px; padding: 6px 18px;">
+                <span style="color: #34D399; font-size: 13px; font-weight: 600;">✅ Paiement confirmé</span>
+              </div>
+            </div>
+
+            <!-- Titre événement -->
+            <div style="text-align: center; padding: 16px 24px 0;">
+              <h2 style="color: #ffffff; font-size: 22px; margin: 0; font-weight: 700; line-height: 1.3;">${ticket.evenement}</h2>
+            </div>
+
+            <!-- Détails -->
+            <div style="padding: 20px 24px;">
+              <div style="background: rgba(124,58,237,0.08); border-radius: 12px; padding: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(124,58,237,0.12);">
+                  <span style="color: rgba(255,255,255,0.5); font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase;">Catégorie</span>
+                  <span style="color: #ffffff; font-size: 14px; font-weight: 600;">${ticket.categorie}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(124,58,237,0.12);">
+                  <span style="color: rgba(255,255,255,0.5); font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase;">Montant</span>
+                  <span style="color: #FCD34D; font-size: 16px; font-weight: 700;">${ticket.prix.toLocaleString()} <span style="font-size: 12px; font-weight: 400;">FCFA</span></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+                  <span style="color: rgba(255,255,255,0.5); font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase;">Référence</span>
+                  <span style="color: #A78BFA; font-size: 13px; font-weight: 700; letter-spacing: 1px; font-family: 'Courier New', monospace;">${ticket.numero}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bouton CTA -->
+            <div style="text-align: center; padding: 0 24px 24px;">
+              <a href="${lienBillet}"
+                 style="display: inline-block; background: linear-gradient(135deg, #7C3AED, #A855F7); color: white; text-decoration: none; padding: 14px 40px; border-radius: 10px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 16px rgba(124,58,237,0.35);">
+                Voir mon billet →
+              </a>
+              <p style="color: rgba(255,255,255,0.35); font-size: 11px; margin: 12px 0 0; line-height: 1.5;">
+                Présente le QR code à l'entrée depuis l'application.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pied de page -->
+        <div style="text-align: center; padding: 0 32px 24px;">
+          <div style="border-top: 1px solid rgba(124,58,237,0.15); padding-top: 16px;">
+            <p style="color: rgba(255,255,255,0.3); font-size: 11px; margin: 0 0 4px; letter-spacing: 1px;">SENGUICHET — BILLETERIE ÉVÉNEMENTIELLE</p>
+            <p style="color: rgba(255,255,255,0.2); font-size: 10px; margin: 0;">
+              Une question ? <a href="mailto:support@senguichet.com" style="color: #A78BFA; text-decoration: none;">support@senguichet.com</a>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -118,21 +145,31 @@ const envoyerCodeOTP = async (destinataire, code) => {
   }
 
   const html = `
-    <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 480px; margin: 0 auto; background: #f8f9fc; padding: 30px; border-radius: 16px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <h1 style="color: #6366F1; font-size: 24px; margin: 0;">SENGUICHET</h1>
-        <p style="color: #94a3b8; font-size: 14px;">Confirmation de connexion</p>
-      </div>
-      <div style="background: white; border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-        <p style="color: #0f172a; font-size: 15px; margin: 0 0 16px 0;">Voici ton code de confirmation :</p>
-        <div style="background: #f1f5f9; border-radius: 12px; padding: 16px; letter-spacing: 8px; font-size: 32px; font-weight: 700; color: #6366F1; font-family: monospace;">
-          ${code}
+    <div style="font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; max-width: 480px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #0F0A1A 0%, #1A1035 50%, #0F0A1A 100%); border-radius: 20px; overflow: hidden; box-shadow: 0 8px 40px rgba(99,102,241,0.15);">
+
+        <div style="background: linear-gradient(135deg, #7C3AED, #EC4899); padding: 28px 24px 20px; text-align: center;">
+          <img src="${getLogoUrl()}" alt="SENGUICHET" style="display: block; margin: 0 auto 8px; width: 120px; height: auto;" />
+          <p style="color: rgba(255,255,255,0.85); font-size: 11px; margin: 0; letter-spacing: 1px;">CONNEXION SÉCURISÉE</p>
         </div>
-        <p style="color: #94a3b8; font-size: 12px; margin-top: 16px;">Ce code expire dans 5 minutes.</p>
+
+        <div style="padding: 0 24px 24px;">
+          <div style="background: linear-gradient(180deg, #1E1450 0%, #16102E 100%); border: 1px solid rgba(124,58,237,0.25); border-radius: 14px; margin-top: -12px; position: relative; z-index: 1; padding: 24px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+            <div style="display: inline-block; background: rgba(124,58,237,0.12); border-radius: 50%; width: 48px; height: 48px; line-height: 48px; font-size: 22px; margin-bottom: 12px;">🔐</div>
+            <p style="color: rgba(255,255,255,0.6); font-size: 13px; margin: 0 0 16px; letter-spacing: 0.5px;">Ton code de confirmation</p>
+            <div style="background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); border-radius: 12px; padding: 16px; letter-spacing: 10px; font-size: 36px; font-weight: 700; color: #A78BFA; font-family: 'Courier New', monospace;">
+              ${code}
+            </div>
+            <p style="color: rgba(255,255,255,0.3); font-size: 11px; margin-top: 16px;">Ce code expire dans <strong style="color: #FCD34D;">5 minutes</strong>.</p>
+          </div>
+        </div>
+
+        <div style="text-align: center; padding: 0 24px 20px;">
+          <p style="color: rgba(255,255,255,0.25); font-size: 10px; margin: 0; letter-spacing: 1px;">
+            SENGUICHET — BILLETERIE ÉVÉNEMENTIELLE
+          </p>
+        </div>
       </div>
-      <p style="color: #94a3b8; font-size: 11px; text-align: center; margin-top: 16px;">
-        SENGUICHET — Billeterie événementielle
-      </p>
     </div>
   `;
 
@@ -171,47 +208,97 @@ const envoyerEmail = async (destinataire, sujet, html) => {
 // Envoie un email de confirmation au demandeur après soumission d'une demande de partenariat
 const envoyerConfirmationDemandeur = async (demande) => {
   const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:30px;background:#f8f9fc;border-radius:16px;">
-      <h1 style="color:#6366F1;">SENGUICHET</h1>
-      <p>Bonjour <strong>${demande.nom}</strong>,</p>
-      <p>Nous avons bien reçu votre demande de partenariat pour <strong>${demande.organisation}</strong>.</p>
-      <p>Notre équipe l'examinera sous 48h. Vous recevrez un email dès qu'une décision sera prise.</p>
-      <p style="color:#94a3b8;font-size:12px;">SENGUICHET — Billeterie événementielle</p>
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 480px; margin: 0 auto; background: #f8f9fc; padding: 30px; border-radius: 16px;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h1 style="color: #6366F1; font-size: 26px; margin: 0;">SENGUICHET</h1>
+        <p style="color: #94a3b8; font-size: 13px;">Billets & Événements</p>
+      </div>
+      <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <p style="color: #0f172a; font-size: 15px; margin: 0 0 12px;">Bonjour <strong>${demande.nom}</strong>,</p>
+        <p style="color: #475569; font-size: 14px; margin: 0 0 12px; line-height: 1.6;">Nous avons bien reçu votre demande de partenariat pour <strong>${demande.organisation}</strong>.</p>
+        <p style="color: #475569; font-size: 14px; margin: 0; line-height: 1.6;">Notre équipe l'examinera sous 48h. Vous recevrez un email dès qu'une décision sera prise.</p>
+      </div>
+      <p style="color: #94a3b8; font-size: 11px; text-align: center; margin-top: 16px;">SENGUICHET — Billeterie événementielle</p>
     </div>`;
   return envoyerEmail(demande.email, "Confirmation de votre demande de partenariat", html);
 };
 
+// Récupère la liste des admins depuis ADMIN_EMAIL (séparés par des virgules)
+const getAdminEmails = () => {
+  const raw = process.env.ADMIN_EMAIL || process.env.SMTP_USER || '';
+  return raw.split(',').map(e => e.trim()).filter(Boolean);
+};
+
 // Notifie l'admin d'une nouvelle demande de partenariat
 const envoyerNotificationAdmin = async (demande) => {
-  const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
+  const adminEmails = getAdminEmails();
   const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:30px;background:#f8f9fc;border-radius:16px;">
-      <h2>Nouvelle demande de partenariat</h2>
-      <p><strong>Nom :</strong> ${demande.nom}</p>
-      <p><strong>Organisation :</strong> ${demande.organisation}</p>
-      <p><strong>Email :</strong> ${demande.email}</p>
-      <p><strong>Téléphone :</strong> ${demande.telephone || "Non renseigné"}</p>
-      <p><strong>Message :</strong> ${demande.message || "Aucun"}</p>
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 480px; margin: 0 auto; background: #f8f9fc; padding: 30px; border-radius: 16px;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h1 style="color: #6366F1; font-size: 26px; margin: 0;">SENGUICHET</h1>
+        <p style="color: #94a3b8; font-size: 13px;">Billets & Événements</p>
+      </div>
+      <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <h2 style="color: #0f172a; font-size: 17px; margin: 0 0 16px; font-weight: 600;">Nouvelle demande de partenariat</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; color: #64748b; font-size: 13px;">Nom</td>
+            <td style="padding: 8px 0; color: #0f172a; font-size: 13px; font-weight: 600; text-align: right;">${demande.nom}</td>
+          </tr>
+          <tr><td colspan="2" style="border-bottom: 1px solid #f1f5f9;"></td></tr>
+          <tr>
+            <td style="padding: 8px 0; color: #64748b; font-size: 13px;">Organisation</td>
+            <td style="padding: 8px 0; color: #0f172a; font-size: 13px; font-weight: 600; text-align: right;">${demande.organisation}</td>
+          </tr>
+          <tr><td colspan="2" style="border-bottom: 1px solid #f1f5f9;"></td></tr>
+          <tr>
+            <td style="padding: 8px 0; color: #64748b; font-size: 13px;">Email</td>
+            <td style="padding: 8px 0; color: #6366F1; font-size: 13px; text-align: right;">${demande.email}</td>
+          </tr>
+          <tr><td colspan="2" style="border-bottom: 1px solid #f1f5f9;"></td></tr>
+          <tr>
+            <td style="padding: 8px 0; color: #64748b; font-size: 13px;">Téléphone</td>
+            <td style="padding: 8px 0; color: #0f172a; font-size: 13px; text-align: right;">${demande.telephone || "Non renseigné"}</td>
+          </tr>
+          <tr><td colspan="2" style="border-bottom: 1px solid #f1f5f9;"></td></tr>
+          <tr>
+            <td style="padding: 8px 0; color: #64748b; font-size: 13px;">Message</td>
+            <td style="padding: 8px 0; color: #475569; font-size: 13px; text-align: right; max-width: 60%;">${demande.message || "Aucun"}</td>
+          </tr>
+        </table>
+      </div>
+      <p style="color: #94a3b8; font-size: 11px; text-align: center; margin-top: 16px;">SENGUICHET — Billeterie événementielle</p>
     </div>`;
-  return envoyerEmail(adminEmail, "Nouvelle demande de partenariat — SENGUICHET", html);
+  return envoyerEmail(adminEmails, "Nouvelle demande de partenariat — SENGUICHET", html);
 };
 
 // Notifie le demandeur du statut de sa demande de partenariat
+// N'envoie un email que si le statut est définitif (ACCEPTEE ou REFUSEE)
 const envoyerStatutDemande = async (demandeur, statut, commentaire) => {
-  const sujet = statut === "VALIDE"
+  if (statut !== "ACCEPTEE" && statut !== "REFUSEE") {
+    return { ignoré: true, statut };
+  }
+  const acceptee = statut === "ACCEPTEE";
+  const sujet = acceptee
     ? "Votre demande de partenariat a été acceptée"
     : "Votre demande de partenariat a été refusée";
   const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:30px;background:#f8f9fc;border-radius:16px;">
-      <h1 style="color:#6366F1;">SENGUICHET</h1>
-      <p>Bonjour <strong>${demandeur.nom}</strong>,</p>
-      ${statut === "VALIDE"
-        ? `<p>Votre demande de partenariat pour <strong>${demandeur.organisation}</strong> a été approuvée !</p>
-           <p>Vous allez recevoir vos identifiants de connexion dans un email séparé.</p>`
-        : `<p>Votre demande de partenariat pour <strong>${demandeur.organisation}</strong> n'a pas été retenue.</p>
-           ${commentaire ? `<p>Motif : ${commentaire}</p>` : ""}`
-      }
-      <p style="color:#94a3b8;font-size:12px;">SENGUICHET — Billeterie événementielle</p>
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 480px; margin: 0 auto; background: #f8f9fc; padding: 30px; border-radius: 16px;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h1 style="color: #6366F1; font-size: 26px; margin: 0;">SENGUICHET</h1>
+        <p style="color: #94a3b8; font-size: 13px;">Billets & Événements</p>
+      </div>
+      <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center;">
+        <div style="font-size: 40px; margin-bottom: 8px;">${acceptee ? "🎉" : "😔"}</div>
+        <p style="color: #0f172a; font-size: 15px; margin: 0 0 12px;">Bonjour <strong>${demandeur.nom}</strong>,</p>
+        ${acceptee
+          ? `<p style="color: #475569; font-size: 14px; margin: 0 0 8px; line-height: 1.6;">Votre demande de partenariat pour <strong style="color: #059669;">${demandeur.organisation}</strong> a été <strong style="color: #059669;">approuvée</strong> !</p>
+             <p style="color: #475569; font-size: 14px; margin: 0; line-height: 1.6;">Vous allez recevoir vos identifiants de connexion dans un email séparé.</p>`
+          : `<p style="color: #475569; font-size: 14px; margin: 0 0 8px; line-height: 1.6;">Votre demande de partenariat pour <strong style="color: #DC2626;">${demandeur.organisation}</strong> n'a pas été retenue.</p>
+             ${commentaire ? `<div style="background: #FEF2F2; border-radius: 8px; padding: 12px; margin-top: 12px;"><p style="color: #991B1B; font-size: 13px; margin: 0; font-style: italic;">${commentaire}</p></div>` : ""}`
+        }
+      </div>
+      <p style="color: #94a3b8; font-size: 11px; text-align: center; margin-top: 16px;">SENGUICHET — Billeterie événementielle</p>
     </div>`;
   return envoyerEmail(demandeur.email, sujet, html);
 };
@@ -219,31 +306,78 @@ const envoyerStatutDemande = async (demandeur, statut, commentaire) => {
 // Envoie les identifiants de connexion à un nouveau partenaire
 const envoyerIdentifiantsPartenaire = async (identifiants) => {
   const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:30px;background:#f8f9fc;border-radius:16px;">
-      <h1 style="color:#6366F1;">SENGUICHET</h1>
-      <p>Bonjour <strong>${identifiants.nom}</strong>,</p>
-      <p>Votre compte partenaire pour <strong>${identifiants.organisation}</strong> a été créé.</p>
-      <p><strong>Email :</strong> ${identifiants.email}</p>
-      <p><strong>Mot de passe :</strong> ${identifiants.motDePasse}</p>
-      <p style="color:#94a3b8;font-size:12px;">Connectez-vous sur l'application SENGUICHET.</p>
+    <div style="font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; max-width: 480px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #0F0A1A, #1A1035); border-radius: 20px; overflow: hidden; box-shadow: 0 8px 40px rgba(99,102,241,0.15);">
+        <div style="background: linear-gradient(135deg, #7C3AED, #EC4899); padding: 28px 24px 20px; text-align: center;">
+          <img src="${getLogoUrl()}" alt="SENGUICHET" style="display: block; margin: 0 auto 8px; width: 120px; height: auto;" />
+          <p style="color: rgba(255,255,255,0.85); font-size: 11px; margin: 0; letter-spacing: 1px;">IDENTIFIANTS PARTENAIRE</p>
+        </div>
+        <div style="padding: 20px 24px;">
+          <div style="background: linear-gradient(180deg, #1E1450, #16102E); border: 1px solid rgba(124,58,237,0.25); border-radius: 14px; margin-top: -12px; padding: 24px;">
+            <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0 0 12px;">Bonjour <strong style="color: #fff;">${identifiants.nom}</strong>,</p>
+            <p style="color: rgba(255,255,255,0.7); font-size: 13px; margin: 0 0 16px; line-height: 1.6;">Votre compte partenaire pour <strong style="color: #A78BFA;">${identifiants.organisation}</strong> a été créé.</p>
+            <div style="background: rgba(124,58,237,0.08); border-radius: 10px; padding: 14px;">
+              <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(124,58,237,0.1);">
+                <span style="color: rgba(255,255,255,0.4); font-size: 12px;">Email</span>
+                <span style="color: #A78BFA; font-size: 13px;">${identifiants.email}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 6px 0;">
+                <span style="color: rgba(255,255,255,0.4); font-size: 12px;">Mot de passe</span>
+                <span style="color: #FCD34D; font-size: 13px; letter-spacing: 1px; font-family: 'Courier New', monospace;">${identifiants.motDePasse}</span>
+              </div>
+            </div>
+            <p style="color: rgba(255,255,255,0.35); font-size: 11px; margin: 12px 0 0;">Connectez-vous sur l'application SENGUICHET.</p>
+          </div>
+        </div>
+        <div style="text-align: center; padding: 0 24px 20px;">
+          <p style="color: rgba(255,255,255,0.25); font-size: 10px; margin: 0; letter-spacing: 1px;">SENGUICHET — BILLETERIE ÉVÉNEMENTIELLE</p>
+        </div>
+      </div>
     </div>`;
   return envoyerEmail(identifiants.email, "Vos identifiants partenaire — SENGUICHET", html);
 };
 
 // Notifie l'admin d'une demande d'événement (création, modification, suppression)
 const envoyerNotificationDemandeEvenement = async (demande) => {
-  const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
+  const adminEmails = getAdminEmails();
   const action = demande.type_action === "CREATION" ? "Création"
     : demande.type_action === "MODIFICATION" ? "Modification"
     : "Suppression";
   const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:30px;background:#f8f9fc;border-radius:16px;">
-      <h2>Demande d'événement : ${action}</h2>
-      <p><strong>Organisateur :</strong> ${demande.nom} (${demande.email})</p>
-      <p><strong>Événement :</strong> ${demande.titre || "N/A"}</p>
-      ${demande.id ? `<p><strong>ID demande :</strong> ${demande.id}</p>` : ""}
+    <div style="font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; max-width: 480px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #0F0A1A, #1A1035); border-radius: 20px; overflow: hidden; box-shadow: 0 8px 40px rgba(99,102,241,0.15);">
+        <div style="background: linear-gradient(135deg, #7C3AED, #EC4899); padding: 28px 24px 20px; text-align: center;">
+          <img src="${getLogoUrl()}" alt="SENGUICHET" style="display: block; margin: 0 auto 8px; width: 120px; height: auto;" />
+          <p style="color: rgba(255,255,255,0.85); font-size: 11px; margin: 0; letter-spacing: 1px;">DEMANDE ${action.toUpperCase()}</p>
+        </div>
+        <div style="padding: 20px 24px;">
+          <div style="background: linear-gradient(180deg, #1E1450, #16102E); border: 1px solid rgba(124,58,237,0.25); border-radius: 14px; margin-top: -12px; padding: 24px;">
+            <h2 style="color: #A78BFA; font-size: 15px; margin: 0 0 16px; font-weight: 600;">Demande d'événement : ${action}</h2>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(124,58,237,0.12);">
+              <span style="color: rgba(255,255,255,0.4); font-size: 12px;">Organisateur</span>
+              <span style="color: #fff; font-size: 13px; font-weight: 600;">${demande.nom}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(124,58,237,0.12);">
+              <span style="color: rgba(255,255,255,0.4); font-size: 12px;">Email</span>
+              <span style="color: #A78BFA; font-size: 13px;">${demande.email}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(124,58,237,0.12);">
+              <span style="color: rgba(255,255,255,0.4); font-size: 12px;">Événement</span>
+              <span style="color: #fff; font-size: 13px; font-weight: 600; text-align: right; max-width: 60%;">${demande.titre || "N/A"}</span>
+            </div>
+            ${demande.id ? `<div style="display: flex; justify-content: space-between; padding: 8px 0;">
+              <span style="color: rgba(255,255,255,0.4); font-size: 12px;">ID Demande</span>
+              <span style="color: #FCD34D; font-size: 12px; font-family: 'Courier New', monospace;">#${demande.id}</span>
+            </div>` : ""}
+          </div>
+        </div>
+        <div style="text-align: center; padding: 0 24px 20px;">
+          <p style="color: rgba(255,255,255,0.25); font-size: 10px; margin: 0; letter-spacing: 1px;">SENGUICHET — BILLETERIE ÉVÉNEMENTIELLE</p>
+        </div>
+      </div>
     </div>`;
-  return envoyerEmail(adminEmail, `Demande ${action.toLowerCase()} événement — SENGUICHET`, html);
+  // Envoie à tous les admins (ADMIN_EMAIL peut contenir plusieurs adresses séparées par des virgules)
+  return envoyerEmail(adminEmails, `Demande ${action.toLowerCase()} événement — SENGUICHET`, html);
 };
 
 module.exports = { envoyerEmailBillet, envoyerCodeOTP, envoyerConfirmationDemandeur, envoyerNotificationAdmin, envoyerStatutDemande, envoyerIdentifiantsPartenaire, envoyerNotificationDemandeEvenement };

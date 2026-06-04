@@ -48,9 +48,9 @@ export default function VoirTicketsScreen({ route }) {
   }
 
   return (
-    <View style={s.container}>
+    <View style={[s.container, { paddingTop: insets.top }]}>
       <BlurBackground category="Conference" />
-      <ScrollView contentContainerStyle={{ paddingTop: insets.top }} showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View style={s.content}>
           {evenement && (
             <GlassContainer style={s.eventInfo} intensity={35}>

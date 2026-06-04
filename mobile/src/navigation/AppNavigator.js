@@ -2,12 +2,14 @@
 // 3 piles distinctes selon le rôle : acheteur / controleur / organisateur
 // Les écrans non-connectés (auth) sont affichés quand aucun rôle n'est actif
 import React from 'react'
-import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Platform } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { NavigationContainer } from '@react-navigation/native'
+import { NavigationContainer, useFocusEffect } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '../context/AuthContext'
+import { listerMesDemandes } from '../services/eventService'
 
 // Écrans auth (aucun rôle)
 import AccueilChoixScreen from '../screens/AccueilChoixScreen'
@@ -38,13 +40,19 @@ import StatistiquesScreen from '../screens/organisateur/StatistiquesScreen'
 import MesDemandesScreen from '../screens/organisateur/MesDemandesScreen'
 import ParametresScreen from '../screens/organisateur/ParametresScreen'
 
+// Nouveaux écrans (gap 2, 3, 5)
+import ChangerMotDePasseScreen from '../screens/organisateur/ChangerMotDePasseScreen'
+import GestionEquipeScreen from '../screens/organisateur/GestionEquipeScreen'
+import ProfilScreen from '../screens/ProfilScreen'
+
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
 
 // Header réutilisable pour les tabs organisateur
 function OrganisateurHeader({ title, deconnecter, badgeCount }) {
+  const insets = useSafeAreaInsets()
   return (
-    <View style={headerStyles.container}>
+    <View style={[headerStyles.container, { paddingTop: insets.top + 8 }]}>
       <TouchableOpacity onPress={deconnecter} style={headerStyles.left}>
         <Feather name="log-out" size={20} color="#FF4D6D" />
       </TouchableOpacity>
@@ -101,7 +109,26 @@ const headerStyles = StyleSheet.create({
 // Onglets organisateur : 4 tabs
 function OrganisateurTabs() {
   const { deconnecter } = useAuth()
-  const [demandesCount] = React.useState(2)
+  const [demandesCount, setDemandesCount] = React.useState(0)
+  const badgeRef = React.useRef(false)
+
+  // Au premier montage : badge = nombre de demandes en attente
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const data = await listerMesDemandes()
+        const pending = (data || []).filter(d => d.statut === 'soumis' || d.statut === 'en_analyse').length
+        setDemandesCount(pending)
+      } catch {}
+    })()
+  }, [])
+
+  // Dès qu'on arrive sur l'onglet MesDemandes : badge disparaît
+  useFocusEffect(
+    React.useCallback(() => {
+      setDemandesCount(0)
+    }, [])
+  )
 
   return (
     <Tab.Navigator
@@ -274,6 +301,9 @@ export default function AppNavigator() {
         {/* Acheteur connecté */}
         {role === 'acheteur' && (
           <>
+            <Stack.Screen name="AccueilChoix" component={AccueilChoixScreen}
+              options={{ headerShown: true, headerTitle: 'Changer de rôle', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
+            />
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="EventSearch" component={EventSearchScreen} />
             <Stack.Screen name="EventDetail" component={EventDetailScreen} />
@@ -281,11 +311,19 @@ export default function AppNavigator() {
             <Stack.Screen name="MesTickets" component={MesTicketsScreen} />
             <Stack.Screen name="Support" component={SupportScreen} />
             <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="Profil" component={ProfilScreen}
+              options={{ headerShown: true, headerTitle: 'Profil', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
+            />
           </>)}
 
         {/* Contrôleur connecté */}
         {role === 'controleur' && (
-          <Stack.Screen name="ControleurTabs" component={ControleurTabs} />
+          <>
+            <Stack.Screen name="ControleurTabs" component={ControleurTabs} />
+            <Stack.Screen name="Profil" component={ProfilScreen}
+              options={{ headerShown: true, headerTitle: 'Profil', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
+            />
+          </>
         )}
 
         {/* Organisateur connecté : bottom tabs + stack screens */}
@@ -301,6 +339,16 @@ export default function AppNavigator() {
               name="Parametres"
               component={ParametresScreen}
               options={{ headerShown: true, headerTitle: 'Paramètres', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
+            />
+            <Stack.Screen
+              name="ChangerMotDePasse"
+              component={ChangerMotDePasseScreen}
+              options={{ headerShown: true, headerTitle: 'Changer le mot de passe', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
+            />
+            <Stack.Screen
+              name="GestionEquipe"
+              component={GestionEquipeScreen}
+              options={{ headerShown: true, headerTitle: 'Gestion équipe', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
             />
           </>
         )}

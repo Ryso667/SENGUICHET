@@ -1,9 +1,11 @@
 // Écran de sélection du rôle (Acheteur / Contrôleur / Organisateur)
 // Design glass immersif (Apple Invites) : fond sombre + cartes glass avec accent par rôle
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Image } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useAuth } from '../context/AuthContext'
 import { fonts, spacing, borderRadius, glass, categoryGradients } from '../constants/theme'
 import GlassContainer from '../components/GlassContainer'
 
@@ -35,14 +37,25 @@ const ROLES = [
 ]
 
 export default function AccueilChoixScreen({ navigation }) {
+  const { role, nettoyerSession } = useAuth()
   const insets = useSafeAreaInsets()
   const anims = useRef(ROLES.map(() => new Animated.Value(0))).current
+  const [redirection, setRedirection] = useState(null)
 
   useEffect(() => {
     Animated.stagger(120, anims.map(a =>
       Animated.timing(a, { toValue: 1, duration: 500, useNativeDriver: true })
     )).start()
   }, [])
+
+  // Si on vient de changer de rôle, on navigue vers l'écran cible
+  useFocusEffect(() => {
+    if (redirection) {
+      const target = redirection
+      setRedirection(null)
+      navigation.navigate(target)
+    }
+  })
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -76,11 +89,13 @@ export default function AccueilChoixScreen({ navigation }) {
             <Animated.View key={role.key} style={[styles.cardWrap, { opacity, transform: [{ scale }] }]}>
               <TouchableOpacity
                 activeOpacity={0.85}
-                  onPress={() => {
-                    if (!role.screen) {
-                      navigation.navigate('SocialAuth')
+                  onPress={async () => {
+                    const target = role.screen || 'SocialAuth'
+                    if (role) {
+                      setRedirection(target)
+                      await nettoyerSession()
                     } else {
-                      navigation.navigate(role.screen)
+                      navigation.navigate(target)
                     }
                   }}
               >
