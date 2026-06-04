@@ -3,11 +3,14 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
+import { Feather } from '@expo/vector-icons'
+import { spacing, fonts, textShadow, borderRadius } from '../../constants/theme'
 import { fetchEvenementDetailAPI } from '../../services/eventService'
+import { formaterDateLisible } from '../../utils/dateUtils'
 import Skeleton from '../../components/Skeleton'
 import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
+import GlassButton from '../../components/GlassButton'
 
 const STATUT_CONFIG = {
   actif: { label: 'Actif', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
@@ -16,35 +19,6 @@ const STATUT_CONFIG = {
   suspendu: { label: 'Suspendu', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
   annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
 }
-
-const MOCK_EVENT = {
-  id: '1',
-  nom: 'Festival Jazz St-Louis',
-  statut: 'ACTIF',
-  lieu: 'Saint-Louis, Sénégal',
-  date: '15 Juin 2026',
-  capacite: 500,
-  remplis: 342,
-  categories: [
-    { nom: 'Standard', prix: 15000, vendus: 200, total: 250 },
-    { nom: 'VIP', prix: 35000, vendus: 100, total: 150 },
-    { nom: 'Gold', prix: 50000, vendus: 42, total: 100 },
-  ],
-  transactions: [
-    { id: 't1', nom: 'Ousmane S.', categorie: 'VIP', montant: 35000, date: '28 Mai 2026' },
-    { id: 't2', nom: 'Fatou D.', categorie: 'Standard', montant: 15000, date: '27 Mai 2026' },
-    { id: 't3', nom: 'Mamadou N.', categorie: 'Gold', montant: 50000, date: '26 Mai 2026' },
-    { id: 't4', nom: 'Aïcha B.', categorie: 'Standard', montant: 15000, date: '25 Mai 2026' },
-  ],
-}
-
-const TYPES_DEMANDE = [
-  'Modification de date',
-  'Modification de lieu',
-  'Modification de prix',
-  'Autre modification',
-  'Annulation',
-]
 
 export default function DetailEvenementScreen({ route, navigation }) {
   const insets = useSafeAreaInsets()
@@ -85,13 +59,15 @@ export default function DetailEvenementScreen({ route, navigation }) {
         <Text style={s.errorText}>Événement introuvable</Text>
       </View>
     )
-    setShowModal(false)
   }
 
+  const cfg = STATUT_CONFIG[evenement.statut] || STATUT_CONFIG.en_attente
+  const pct = Math.min(100, Math.round(((evenement.remplis || 0) / (evenement.capacite || 1)) * 100))
+
   return (
-    <View style={s.container}>
+    <View style={[s.container, { paddingTop: insets.top }]}>
       <BlurBackground category="Conference" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: insets.top }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <GlassContainer style={s.header} intensity={35}>
           <Text style={s.title}>{evenement.nom}</Text>
           <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
@@ -102,7 +78,7 @@ export default function DetailEvenementScreen({ route, navigation }) {
         <View style={s.infoGrid}>
           <GlassContainer style={s.infoCard} intensity={30}>
             <Text style={s.infoLabel}>Date</Text>
-            <Text style={s.infoValue}>{formaterDate(evenement.date)}</Text>
+            <Text style={s.infoValue}>{formaterDateLisible(evenement.date)}</Text>
           </GlassContainer>
           <GlassContainer style={s.infoCard} intensity={30}>
             <Text style={s.infoLabel}>Lieu</Text>
@@ -135,6 +111,21 @@ export default function DetailEvenementScreen({ route, navigation }) {
             <Text style={s.description}>{evenement.description}</Text>
           </GlassContainer>
         ) : null}
+
+        {/* Bouton Gérer l'équipe */}
+        {evenement.statut === 'actif' && (
+          <TouchableOpacity
+            style={s.equipeBtn}
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('GestionEquipe', { eventId })}
+          >
+            <GlassContainer style={s.equipeBtnInner} intensity={35}>
+              <Feather name="users" size={18} color="#00C8FF" />
+              <Text style={s.equipeBtnText}>Gérer l'équipe</Text>
+              <Feather name="chevron-right" size={16} color="rgba(255,255,255,0.4)" />
+            </GlassContainer>
+          </TouchableOpacity>
+        )}
 
         <GlassContainer style={s.section} intensity={30}>
           <Text style={s.sectionTitle}>Billets ({tickets.length})</Text>
@@ -192,4 +183,9 @@ const s = StyleSheet.create({
   ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#fff', flex: 1 },
   ticketPrix: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
   ticketStatut: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginLeft: spacing.sm, textTransform: 'capitalize' },
+  equipeBtn: { marginHorizontal: spacing.lg, marginBottom: spacing.lg },
+  equipeBtnInner: {
+    flexDirection: 'row', alignItems: 'center', padding: spacing.md,
+  },
+  equipeBtnText: { flex: 1, fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#fff', marginLeft: spacing.sm },
 })

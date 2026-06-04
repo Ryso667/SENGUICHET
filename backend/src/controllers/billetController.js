@@ -162,12 +162,12 @@ const acheter = async (req, res) => {
         transaction_ref: reference,
       });
 
-      // Envoyer les notifications en arrière-plan (email + SMS)
-      setImmediate(() => {
-        // Email de confirmation
-        if (ticketEmail) {
+      // Envoyer les notifications (email + SMS) avant de répondre
+      // Requis pour Vercel serverless — le processus est coupé après la réponse
+      if (ticketEmail) {
+        try {
           const { envoyerEmailBillet } = require("../services/emailService");
-          envoyerEmailBillet(ticketEmail, {
+          await envoyerEmailBillet(ticketEmail, {
             uuid,
             numero,
             evenement: events[0].titre,
@@ -175,19 +175,24 @@ const acheter = async (req, res) => {
             prix: montantTotal,
             dateAchat: timestamp,
             qrPayload,
-          }).catch(err => console.error("Email error:", err));
+          });
+        } catch (e) {
+          console.error("Email error:", e.message);
         }
+      }
 
-        // SMS de confirmation
+      try {
         const { envoyerSMSBillet } = require("../services/smsService");
-        envoyerSMSBillet(telephone, {
+        await envoyerSMSBillet(telephone, {
           uuid,
           numero,
           evenement: events[0].titre,
           categorie: cat.nom,
           prix: montantTotal,
-        }).catch(err => console.error("SMS error:", err));
-      });
+        });
+      } catch (e) {
+        console.error("SMS error:", e.message);
+      }
 
       res.status(201).json({
         billet: {

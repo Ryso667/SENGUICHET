@@ -99,11 +99,10 @@ export default function StatistiquesScreen() {
     )
   }
 
-export default function StatistiquesScreen() {
   return (
-    <View style={s.container}>
+    <View style={[s.container, { paddingTop: insets.top }]}>
       <BlurBackground category="Conference" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: insets.top }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View style={s.header}>
           <Text style={s.title}>Performances</Text>
           <View style={s.pills}>
@@ -171,6 +170,7 @@ export default function StatistiquesScreen() {
   )
 }
 
+// Sera remplacé par API — composant de carte statistique
 function StatCard({ label, value, icon, color }) {
   return (
     <GlassContainer style={[s.card, { borderLeftColor: color, borderLeftWidth: 4 }]} intensity={40}>

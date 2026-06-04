@@ -221,11 +221,10 @@ const envoyerCodeOTP = async (req, res) => {
     const { STOCKER_CODE } = require("../services/otpStore");
     await STOCKER_CODE(email, code);
 
-    // Répond immédiatement — l'email part en arrière-plan
-    res.json({ message: "Code envoyé", simulé: true, code });
-
     const { envoyerCodeOTP: envoyerEmail } = require("../services/emailService");
-    envoyerEmail(email, code).catch(err => console.error("Erreur SMTP:", err.message));
+    await envoyerEmail(email, code);
+
+    res.json({ message: "Code envoyé", code });
   } catch (err) {
     console.error("Erreur envoi OTP:", err);
     res.status(500).json({ message: "Erreur lors de l'envoi du code" });
@@ -321,4 +320,39 @@ const connexionSociale = async (req, res) => {
   }
 };
 
-module.exports = { inscription, connexionOrganisateur, connexionAdmin, connexionPartenaire, adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur, connexionSociale, envoyerCodeOTP, verifierCodeOTP };
+// Permet à un organisateur de changer son mot de passe en vérifiant l'ancien
+// Reçoit : { ancienMotDePasse, nouveauMotDePasse } — met à jour si ancien correspond
+const changerMotDePasse = async (req, res) => {
+  try {
+    const { ancienMotDePasse, nouveauMotDePasse } = req.body;
+    if (!ancienMotDePasse || !nouveauMotDePasse) {
+      return res.status(400).json({ message: "Ancien et nouveau mot de passe requis" });
+    }
+    if (nouveauMotDePasse.length < 6) {
+      return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères" });
+    }
+
+    const [rows] = await pool.query(
+      "SELECT mot_de_passe FROM organisateur WHERE id = ?",
+      [req.user.id]
+    );
+    if (!rows.length) {
+      return res.status(404).json({ message: "Organisateur introuvable" });
+    }
+
+    const valide = await bcrypt.compare(ancienMotDePasse, rows[0].mot_de_passe);
+    if (!valide) {
+      return res.status(401).json({ message: "Ancien mot de passe incorrect" });
+    }
+
+    const hashed = await bcrypt.hash(nouveauMotDePasse, 10);
+    await pool.query("UPDATE organisateur SET mot_de_passe = ? WHERE id = ?", [hashed, req.user.id]);
+
+    res.json({ message: "Mot de passe modifié avec succès" });
+  } catch (err) {
+    console.error("Changer mot de passe error:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+module.exports = { inscription, connexionOrganisateur, connexionAdmin, connexionPartenaire, adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur, connexionSociale, envoyerCodeOTP, verifierCodeOTP, changerMotDePasse };

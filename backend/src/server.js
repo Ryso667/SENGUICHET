@@ -21,9 +21,14 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // Servir les fichiers uploads (affiches)
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
+// Sert le logo SENGUICHET pour les emails
+app.use("/api/logo", express.static(path.join(__dirname, "..", "public", "images")));
+
 app.get("/api/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
+
+
 
 app.use("/api", routes);
 
