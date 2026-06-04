@@ -22,7 +22,7 @@ export default function ConnexionControleurScreen({ navigation }) {
   const insets = useSafeAreaInsets()
 
   // Valide le code 4 chiffres et stocke la session contrôleur
-  // En mode démo, le service accepte n'importe quel code (cf. authService.connecterControleur)
+  // Le code est vérifié contre un hash bcrypt stocké localement
   const handleConnecter = async () => {
     if (codeAcces.length !== 4) return
     setChargement(true)

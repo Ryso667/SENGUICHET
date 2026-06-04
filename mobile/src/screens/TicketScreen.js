@@ -13,9 +13,9 @@ import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { genererTicketPDF } from '../services/ticketPdfService'
+import { HMAC_SECRET } from '../config'
 
 const QR_REFRESH_INTERVAL = 30
-const CLE_SECRETE_QR = 'senguichet-cle-secrete-hmac'
 
 // Génère le payload JSON du QR avec HMAC-SHA256 (uuid, ref, timestamp, event_id, category)
 async function genererQRPayload(ticket) {
@@ -23,7 +23,7 @@ async function genererQRPayload(ticket) {
   const payload = `${ticket.id}|${ticket.numero}|${now}|${ticket.eventId}|${ticket.categorie}`
   const signature = await Crypto.digestStringAsync(
     Crypto.CryptoDigestAlgorithm.SHA256,
-    payload + CLE_SECRETE_QR
+    payload + HMAC_SECRET
   )
   return JSON.stringify({
     uuid: ticket.id,

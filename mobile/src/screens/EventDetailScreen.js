@@ -34,6 +34,17 @@ export default function EventDetailScreen({ route, navigation }) {
   const [error, setError] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
   const [telephone, setTelephone] = useState(numeroTel || '')
+
+  // Formate le numéro en groupes XX XXX XX XX, limité à 9 chiffres
+  const formaterTel = (texte) => {
+    const chiffres = texte.replace(/\D/g, '').slice(0, 9)
+    let formate = ''
+    for (let i = 0; i < chiffres.length; i++) {
+      if (i === 2 || i === 5 || i === 7) formate += ' '
+      formate += chiffres[i]
+    }
+    return formate
+  }
   const [showPaymentSheet, setShowPaymentSheet] = useState(false)
   const [paymentEtape, setPaymentEtape] = useState('confirm') // confirm | pending | success | failed
   const [paymentError, setPaymentError] = useState('')
@@ -71,6 +82,13 @@ export default function EventDetailScreen({ route, navigation }) {
 
   // Déclenche l'appel API d'achat et gère les étapes de paiement
   const confirmerPaiement = async () => {
+    const telPropre = telephone.replace(/[^\d]/g, '')
+    if (!telPropre || telPropre.length < 9) {
+      setPaymentError("Renseigne ton numéro pour confirmer le paiement")
+      setPaymentEtape('failed')
+      return
+    }
+
     setPaymentEtape('pending')
 
     // Animation de rotation pour le loader
@@ -91,7 +109,6 @@ export default function EventDetailScreen({ route, navigation }) {
     }).start()
 
     try {
-      const telPropre = telephone.replace(/[^\d]/g, '')
       const telComplet = telPropre.startsWith('221') ? `+${telPropre}` : `+221${telPropre}`
       const resultat = await acheterBillet(
         event.id, selectedTicket.id,
@@ -250,7 +267,7 @@ export default function EventDetailScreen({ route, navigation }) {
           <TextInput
             style={styles.formPhoneInput}
             value={telephone}
-            onChangeText={setTelephone}
+            onChangeText={(t) => setTelephone(formaterTel(t))}
             keyboardType="phone-pad"
             placeholder="77 XXX XX XX"
             placeholderTextColor="rgba(255,255,255,0.25)"
@@ -830,15 +847,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   confirmPayGradient: {
-    paddingVertical: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    gap: 10,
+    gap: 14,
   },
   confirmBtnLogo: {
-    width: 28,
-    height: 28,
+    width: 36,
+    height: 36,
   },
   confirmPayText: {
     fontFamily: fonts.outfit.bold,

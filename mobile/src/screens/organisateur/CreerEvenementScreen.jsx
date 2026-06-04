@@ -11,6 +11,7 @@ import { Feather } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import { colors, fonts, textShadow } from '../../constants/theme'
 import { creerEvenementAPI } from '../../services/eventService'
+import { uploadImage } from '../../services/cloudinaryService'
 import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
 import GlassButton from '../../components/GlassButton'
@@ -173,7 +174,11 @@ export default function CreerEvenementScreen({ navigation }) {
   const handleSubmit = async () => {
     setSubmitting(true)
     try {
-      const data = { nom, date, dateFin, lieu, ville, heure, categorie: categorieFinale, description, capacite, categories, poster, promo: promoActif ? promo : null }
+      let posterUrl = null
+      if (poster) {
+        posterUrl = await uploadImage(poster)
+      }
+      const data = { nom, date, dateFin, lieu, ville, heure, categorie: categorieFinale, description, capacite, categories, poster: posterUrl, promo: promoActif ? promo : null }
       await creerEvenementAPI(data)
       Alert.alert('Événement créé !', 'En attente de validation par l\'administrateur.')
       navigation.navigate('Dashboard')

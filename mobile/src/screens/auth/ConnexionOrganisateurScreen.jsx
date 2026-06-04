@@ -1,6 +1,6 @@
 // Écran de connexion organisateur (email + mot de passe)
-// En mode démo, n'importe quel email/mdp fonctionne
-import { useState } from 'react'
+// Vérification via le backend — partagé avec le frontend-web
+import { useState, useEffect } from 'react'
 import {
   View, Text, TextInput, ActivityIndicator,
   KeyboardAvoidingView, Platform, ScrollView, StyleSheet,
@@ -17,11 +17,15 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
   const [email, setEmail] = useState('')
   const [mdp, setMdp] = useState('')
   const [chargement, setChargement] = useState(false)
-  const { connecterOrganisateur: connecter } = useAuth()
+  const { connecterOrganisateur: connecter, orgaEmailSuggestion } = useAuth()
+
+  // Pré-remplit l'email organisateur suggéré depuis la dernière connexion
+  useEffect(() => {
+    if (orgaEmailSuggestion && !email) setEmail(orgaEmailSuggestion)
+  }, [orgaEmailSuggestion])
   const insets = useSafeAreaInsets()
 
-  // Authentifie l'organisateur et stocke la session
-  // En mode démo, n'importe quel email/mdp fonctionne (cf. authService.connecterOrganisateur)
+  // Authentifie l'organisateur via le backend et stocke la session
   const handleConnexion = async () => {
     if (!email || !mdp) return
     setChargement(true)
@@ -29,7 +33,7 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
       const reponse = await connecterOrganisateur(email, mdp)
       await connecter(reponse.token, reponse.user)
     } catch (err) {
-      alert(err?.message || 'Email ou mot de passe incorrect')
+      alert(err.message)
     } finally {
       setChargement(false)
     }
