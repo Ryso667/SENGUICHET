@@ -1,12 +1,11 @@
 // Écran de profil universel (acheteur / controleur)
 // Design glass (Apple Invites)
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { colors, spacing, borderRadius, fonts, textShadow, glass } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
-import { getStats } from '../services/scanService'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 
@@ -14,18 +13,6 @@ export default function ProfilScreen({ route }) {
   const insets = useSafeAreaInsets()
   const { role, email, user, profil } = useAuth()
   const currentRole = route?.params?.role || role
-  const [stats, setStats] = useState(null)
-
-  useEffect(() => {
-    if (currentRole === 'controleur') chargerStats()
-  }, [currentRole])
-
-  async function chargerStats() {
-    try {
-      const data = await getStats()
-      setStats(data)
-    } catch {}
-  }
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
@@ -47,30 +34,6 @@ export default function ProfilScreen({ route }) {
               <View style={s.supportSection}>
                 <Feather name="headphones" size={14} color={colors.accent} />
                 <Text style={s.supportText}>Support : contact@senguichet.com</Text>
-              </View>
-            </>
-          ) : currentRole === 'controleur' ? (
-            <>
-              <Text style={s.roleBadge}>Contrôleur</Text>
-              <Text style={s.roleDesc}>Contrôle d'accès — scan QR</Text>
-              <View style={s.divider} />
-              <View style={s.statsGrid}>
-                <View style={s.statBox}>
-                  <Text style={s.statValue}>{stats?.ticketsLocaux || 0}</Text>
-                  <Text style={s.statLabel}>Tickets locaux</Text>
-                </View>
-                <View style={s.statBox}>
-                  <Text style={s.statValue}>{stats?.VALIDE || 0}</Text>
-                  <Text style={s.statLabel}>Validés</Text>
-                </View>
-                <View style={s.statBox}>
-                  <Text style={s.statValue}>{stats?.DEJA_UTILISE || 0}</Text>
-                  <Text style={s.statLabel}>Déjà utilisés</Text>
-                </View>
-                <View style={s.statBox}>
-                  <Text style={s.statValue}>{stats?.FRAUDE || 0}</Text>
-                  <Text style={s.statLabel}>Fraudes</Text>
-                </View>
               </View>
             </>
           ) : (
@@ -96,7 +59,6 @@ const s = StyleSheet.create({
     textTransform: 'uppercase', letterSpacing: 1, marginBottom: spacing.xs,
   },
   email: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', marginBottom: spacing.sm, ...textShadow },
-  roleDesc: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginBottom: spacing.sm },
   divider: { width: '100%', height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.15)', marginVertical: spacing.md },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
   infoText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
@@ -107,13 +69,4 @@ const s = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(0,200,255,0.2)',
   },
   supportText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
-  statsGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%',
-  },
-  statBox: {
-    width: '47%', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: borderRadius.md, paddingVertical: spacing.md, marginBottom: spacing.sm,
-  },
-  statValue: { fontSize: 22, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
-  statLabel: { fontSize: 10, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 0.3, marginTop: 2 },
 })

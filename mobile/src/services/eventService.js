@@ -70,7 +70,6 @@ export async function fetchEvenementDetailAPI(id) {
       lieu: e.lieu || '',
       categorie: e.categorie || '',
       capacite: e.capacite_totale || 0,
-      code: e.scan_code || '',
       statut: e.statut || 'en_attente',
       description: e.description || '',
       remplis: s.remplis ?? 0,

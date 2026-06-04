@@ -19,14 +19,6 @@ const ROLES = [
     screen: null,
   },
   {
-    key: 'controleur',
-    title: 'Contrôleur',
-    subtitle: "Scanne les billets\nà l'entrée",
-    icon: 'qrcode-scan',
-    accent: '#00C8FF',
-    screen: 'ConnexionControleur',
-  },
-  {
     key: 'organisateur',
     title: 'Organisateur',
     subtitle: 'Crée et gère\ntes événements',

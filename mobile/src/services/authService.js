@@ -1,10 +1,7 @@
-// Service d'authentification : sociale (Google/Apple), code contrôleur, email organisateur
-// Le flux OTP téléphone a été remplacé par l'authentification sociale (Google/Apple)
+// Service d'authentification : sociale (Google/Apple), email organisateur
 import * as Crypto from 'expo-crypto'
 import { appelAPI } from './apiService'
 import * as Securite from '../utils/secureStorage'
-
-const STORAGE_KEY_CTRL_CODE = '@senguichet_ctrl_code'
 
 // Connecte un acheteur via Firebase Social Auth (Google/Apple)
 // Envoie le firebaseToken au backend qui le vérifie et retourne un JWT de session
@@ -32,15 +29,6 @@ export const connecterOrganisateur = async (email, motDePasse) => {
     body: { email, motDePasse },
   })
   return { token: data.token, user: data.user }
-}
-
-// Connexion contrôleur via code d'accès à 4 chiffres
-// Appelle le backend qui vérifie le code et retourne un JWT signé
-export const connecterControleur = async (codeAcces) => {
-  return appelAPI('/auth/controleur', {
-    method: 'POST',
-    body: { codeAcces },
-  })
 }
 
 // Envoie un code OTP à l'email de l'acheteur via le backend
