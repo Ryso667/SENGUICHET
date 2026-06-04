@@ -152,8 +152,12 @@ export function AuthProvider({ children }) {
     await Securite.SET(STORAGE_KEY_ACHETEUR_EMAIL, email)
     await Securite.SET(STORAGE_KEY_JWT, token)
     await AsyncStorage.setItem(STORAGE_KEY_ACHETEUR_EMAIL_SUGGESTION, email)
+    const nom = email.split('@')[0].replace(/\d+$/, '')
+    const profilData = { nom }
+    await Securite.SET(STORAGE_KEY_PROFIL, JSON.stringify(profilData))
     setEmail(email)
     setJwt(token)
+    setProfil(profilData)
     setRole('acheteur')
     setAcheteurEmailSuggestion(email)
   }
@@ -176,7 +180,7 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const deconnecter = async () => {
+  const nettoyerSession = async () => {
     await AsyncStorage.multiRemove([
       STORAGE_KEY_ROLE,
       STORAGE_KEY_ACHETEUR_PIN,
@@ -198,6 +202,21 @@ export function AuthProvider({ children }) {
     setSessionEmail(null)
   }
 
+  const deconnecter = () => {
+    Alert.alert(
+      'Déconnexion',
+      'Êtes-vous sûr de vouloir vous déconnecter ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Se déconnecter',
+          style: 'destructive',
+          onPress: nettoyerSession,
+        },
+      ],
+    )
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -215,6 +234,7 @@ export function AuthProvider({ children }) {
         connecterControleur,
         connecterOrganisateur,
         deconnecter,
+        nettoyerSession,
         tenterBiometrie,
         hasSavedSession,
         sessionEmail,

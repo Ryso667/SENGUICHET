@@ -104,18 +104,18 @@ const AdminGestionDemandes = () => {
           <div className="flex gap-2">
             <select value={filterStatut} onChange={(e) => setFilterStatut(e.target.value)}
               className="input-premium text-xs" style={{ width: "auto", minWidth: "120px", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              <option value="">Tous statuts</option>
-              <option value="soumis">Soumis</option>
-              <option value="en_analyse">En analyse</option>
-              <option value="approuve">Approuvé</option>
-              <option value="refuse">Refusé</option>
+              <option style={{ color: "#1a1a2e" }} value="">Tous statuts</option>
+              <option style={{ color: "#1a1a2e" }} value="soumis">Soumis</option>
+              <option style={{ color: "#1a1a2e" }} value="en_analyse">En analyse</option>
+              <option style={{ color: "#1a1a2e" }} value="approuve">Approuvé</option>
+              <option style={{ color: "#1a1a2e" }} value="refuse">Refusé</option>
             </select>
             <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
               className="input-premium text-xs" style={{ width: "auto", minWidth: "120px", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              <option value="">Tous types</option>
-              <option value="CREATION">Création</option>
-              <option value="MODIFICATION">Modification</option>
-              <option value="SUPPRESSION">Suppression</option>
+              <option style={{ color: "#1a1a2e" }} value="">Tous types</option>
+              <option style={{ color: "#1a1a2e" }} value="CREATION">Création</option>
+              <option style={{ color: "#1a1a2e" }} value="MODIFICATION">Modification</option>
+              <option style={{ color: "#1a1a2e" }} value="SUPPRESSION">Suppression</option>
             </select>
           </div>
         </div>

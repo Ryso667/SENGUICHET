@@ -1,7 +1,7 @@
 // Paramètres organisateur (lecture seule)
 // Design glass (Apple Invites)
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, Switch } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
@@ -15,7 +15,7 @@ const NOTIF_KEYS = {
   stockFaible: '@senguichet_notif_stock_faible',
 }
 
-export default function ParametresScreen() {
+export default function ParametresScreen({ navigation }) {
   const insets = useSafeAreaInsets()
   const { user } = useAuth()
   const [notifications, setNotifications] = useState({
@@ -31,9 +31,9 @@ export default function ParametresScreen() {
   }
 
   return (
-    <View style={s.container}>
+    <View style={[s.container, { paddingTop: insets.top }]}>
       <BlurBackground category="Conference" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: insets.top }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <GlassContainer style={s.section} intensity={35}>
           <Text style={s.sectionTitle}>Mon profil</Text>
           <View style={s.row}>
@@ -54,9 +54,9 @@ export default function ParametresScreen() {
 
         <GlassContainer style={s.section} intensity={35}>
           <Text style={s.sectionTitle}>Sécurité</Text>
-          <Text style={s.infoText}>
-            Pour modifier ton mot de passe, connecte-toi à la version web.
-          </Text>
+          <TouchableOpacity style={s.securityBtn} onPress={() => navigation.navigate('ChangerMotDePasse')}>
+            <Text style={s.securityBtnText}>Modifier le mot de passe →</Text>
+          </TouchableOpacity>
         </GlassContainer>
 
         <GlassContainer style={s.section} intensity={35}>
@@ -106,4 +106,11 @@ const s = StyleSheet.create({
   value: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)', textAlign: 'right', flex: 1, marginLeft: spacing.md },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.15)' },
   infoText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', lineHeight: 20 },
+  securityBtn: {
+    paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md,
+    backgroundColor: 'rgba(0,200,255,0.12)', borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(0,200,255,0.25)',
+    alignItems: 'center',
+  },
+  securityBtnText: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 })

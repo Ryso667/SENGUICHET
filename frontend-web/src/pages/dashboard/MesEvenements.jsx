@@ -99,9 +99,9 @@ const MesEvenements = () => {
             onChange={(e) => setCatFilter(e.target.value)}
             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           >
-            <option value="">Toutes catégories</option>
+            <option style={{ color: "#1a1a2e" }} value="">Toutes catégories</option>
             {categories.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c} style={{ color: "#1a1a2e" }}>{c}</option>
             ))}
           </select>
         </div>

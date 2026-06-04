@@ -39,11 +39,9 @@ const soumettreDemande = async (req, res) => {
       description,
     };
 
-    setImmediate(async () => {
-      await envoyerConfirmationDemandeur(nouvelleDemande);
-      await new Promise((r) => setTimeout(r, 3000));
-      await envoyerNotificationAdmin(nouvelleDemande);
-    });
+    // Envoi synchrone (Vercel serverless tue le processus après la réponse)
+    try { await envoyerConfirmationDemandeur(nouvelleDemande); } catch (e) { console.error("Email error:", e.message); }
+    try { await envoyerNotificationAdmin(nouvelleDemande); } catch (e) { console.error("Email error:", e.message); }
 
     res.status(201).json({
       message: "Votre demande a bien été envoyée. Nous vous contactons sous 48h.",
@@ -162,15 +160,15 @@ const traiterDemande = async (req, res) => {
     );
 
     const data = demande[0];
-    envoyerStatutDemande(
-      {
-        nom: data.nom,
-        organisation: data.organisation,
-        email: data.email,
-      },
-      statut,
-      note_admin
-    ).catch((err) => console.error("Erreur envoi statut email:", err));
+    try {
+      await envoyerStatutDemande(
+        { nom: data.nom, organisation: data.organisation, email: data.email },
+        statut,
+        note_admin
+      );
+    } catch (e) {
+      console.error("Erreur envoi statut email:", e.message);
+    }
 
     res.json({ message: "Demande mise à jour avec succès" });
   } catch (err) {
@@ -272,18 +270,16 @@ const creerIdentifiantsPartenaire = async (req, res) => {
       ]
     );
 
-    setImmediate(async () => {
-      try {
-        await envoyerIdentifiantsPartenaire({
-          nom: demande.nom,
-          organisation: demande.organisation,
-          email: emailLower,
-          motDePasse: mot_de_passe,
-        });
-      } catch (err) {
-        console.error("Erreur envoi identifiants partenaire:", err.message);
-      }
-    });
+    try {
+      await envoyerIdentifiantsPartenaire({
+        nom: demande.nom,
+        organisation: demande.organisation,
+        email: emailLower,
+        motDePasse: mot_de_passe,
+      });
+    } catch (err) {
+      console.error("Erreur envoi identifiants partenaire:", err.message);
+    }
 
     res.status(201).json({
       message: "Identifiants créés avec succès. L'utilisateur peut se connecter comme organisateur.",

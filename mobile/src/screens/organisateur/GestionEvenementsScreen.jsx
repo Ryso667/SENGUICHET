@@ -1,18 +1,17 @@
-// Gestion des événements : liste complète avec onglets, recherche,
-// détails expandables, stats individuelles — consultation uniquement
-// Design glass (Apple Invites)
+// Gestion des événements : liste complète calquée sur l'app web
+// Design glass (Apple Invites) — cartes avec hero image, overlay, stats
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput } from 'react-native'
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, glass, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
+import { colors, spacing, borderRadius, fonts, textShadow, categoryGradients } from '../../constants/theme'
+import { LinearGradient } from 'expo-linear-gradient'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import { formaterDateLisible } from '../../utils/dateUtils'
-import EmptyState from '../../components/EmptyState'
 import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
-import GlassChip from '../../components/GlassChip'
+import Skeleton from '../../components/Skeleton'
 
 const STATUT_CONFIG = {
   actif: { label: 'Actif', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
@@ -26,47 +25,36 @@ const TABS = ['Tous', 'Actifs', 'En attente', 'Terminés', 'Annulés']
 
 export default function GestionEvenementsScreen({ navigation }) {
   const insets = useSafeAreaInsets()
-  const { user } = useAuth()
   const [events, setEvents] = useState([])
-  const [stats, setStats] = useState({})
-  const [expandedId, setExpandedId] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('Tous')
   const [search, setSearch] = useState('')
   const [refreshing, setRefreshing] = useState(false)
 
+  const charger = useCallback(async () => {
+    try {
+      const evts = await fetchEvenementsAPI()
+      setEvents(evts)
+    } catch {}
+    setLoading(false)
+  }, [])
+
   useEffect(() => {
     charger()
-    const unsubscribe = navigation.addListener('focus', charger)
-    return unsubscribe
-  }, [navigation])
+    const unsub = navigation.addListener('focus', charger)
+    return unsub
+  }, [charger, navigation])
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)
     await charger()
     setRefreshing(false)
-  }, [])
-
-  async function charger() {
-    try {
-      const evts = await fetchEvenementsAPI()
-      setEvents(evts)
-      const s = {}
-      for (const e of evts) {
-        s[e.id] = {
-          totalVendus: e.remplis || 0,
-          totalScannes: 0,
-          recettes: e.revenus ? parseInt(e.revenus.replace(/\D/g, '')) || 0 : 0,
-          capacite: e.capacite || 0,
-        }
-      }
-      setStats(s)
-    } catch {}
-  }
+  }, [charger])
 
   const filtered = events.filter(evt => {
     if (activeTab === 'Actifs') return evt.statut === 'actif'
     if (activeTab === 'En attente') return evt.statut === 'en_attente'
-    if (activeTab === 'Terminés') return evt.statut === 'termine'
+    if (activeTab === 'Terminés') return evt.statut === 'termine' || evt.statut === 'refuse' || evt.statut === 'suspendu'
     if (activeTab === 'Annulés') return evt.statut === 'annule'
     return true
   }).filter(evt =>
@@ -77,100 +65,125 @@ export default function GestionEvenementsScreen({ navigation }) {
     <View style={s.container}>
       <BlurBackground category="Conference" />
       <View style={{ paddingTop: insets.top, flex: 1 }}>
-        {/* Barre d'onglets */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.tabsScroll}>
-          <View style={s.tabs}>
-            {TABS.map(tab => (
-              <GlassChip
-                key={tab}
-                label={tab}
-                active={activeTab === tab}
-                onPress={() => setActiveTab(tab)}
-              />
-            ))}
-          </View>
-        </ScrollView>
-
-        {/* Barre de recherche */}
-        <View style={s.searchContainer}>
-          <TextInput
-            style={s.searchInput}
-            placeholder="Rechercher un événement..."
-            placeholderTextColor="rgba(255,255,255,0.5)"
-            value={search}
-            onChangeText={setSearch}
-          />
-        </View>
-
         <ScrollView
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor="#fff" />}
         >
-          {filtered.length === 0 ? (
-            <EmptyState icon={<MaterialCommunityIcons name="tent" size={48} color="rgba(255,255,255,0.6)" />} title="Aucun événement" subtitle={search ? "Aucun résultat pour ta recherche" : "Crée ton premier événement"} />
-          ) : (
-            filtered.map(evt => {
-              const st = stats[evt.id]
-              const isOpen = expandedId === evt.id
+          {/* Header : titre + bouton demander — calqué sur le web */}
+          <View style={s.header}>
+            <Text style={s.headerTitle}>Mes événements</Text>
+            <TouchableOpacity style={s.demanderBtn} onPress={() => navigation.navigate('MesDemandesTab')}>
+              <MaterialCommunityIcons name="clipboard-text-outline" size={16} color="#fff" />
+              <Text style={s.demanderBtnText}>Demander</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Tabs — calquées sur le web */}
+          <View style={s.tabsBar}>
+            {TABS.map(tab => {
+              const isActive = activeTab === tab
               return (
-                <GlassContainer key={evt.id} style={s.card} intensity={40}>
-                  <TouchableOpacity style={s.cardTop} onPress={() => navigation.navigate('DetailEvenement', { eventId: evt.id })} activeOpacity={0.7}>
-                    <View style={s.badge}>
-                      <Text style={s.badgeText}>{evt.nom.charAt(0)}</Text>
-                    </View>
-                    <View style={s.info}>
-                      <Text style={s.nom}>{evt.nom}</Text>
-                      <Text style={s.date}>{formaterDateLisible(evt.date)} · Code: {evt.code}</Text>
-                    </View>
-                    {(() => {
-                      const cfg = STATUT_CONFIG[evt.statut] || STATUT_CONFIG.en_attente
-                      return (
-                        <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
-                          <Text style={[s.statusBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
+                <TouchableOpacity key={tab} style={[s.tab, isActive && s.tabActive]} onPress={() => setActiveTab(tab)} activeOpacity={0.7}>
+                  {isActive ? (
+                    <LinearGradient colors={['#00C8FF', '#0077FF']} style={s.tabGradient}>
+                      <Text style={s.tabTextActive}>{tab}</Text>
+                    </LinearGradient>
+                  ) : (
+                    <Text style={s.tabText}>{tab}</Text>
+                  )}
+                </TouchableOpacity>
+              )
+            })}
+          </View>
+
+          {/* Barre de recherche */}
+          <View style={s.searchContainer}>
+            <MaterialCommunityIcons name="magnify" size={18} color="rgba(255,255,255,0.4)" style={{ marginRight: 8 }} />
+            <TextInput
+              style={s.searchInput}
+              placeholder="Rechercher un événement..."
+              placeholderTextColor="rgba(255,255,255,0.4)"
+              value={search}
+              onChangeText={setSearch}
+            />
+          </View>
+
+          {/* État chargement */}
+          {loading ? (
+            <View style={{ marginTop: spacing.lg }}>
+              <Skeleton type="card" count={3} />
+            </View>
+          ) : filtered.length === 0 ? (
+            /* État vide — calqué sur le web */
+            <GlassContainer style={s.emptyState}>
+              <MaterialCommunityIcons name="ticket-outline" size={56} color="rgba(255,255,255,0.3)" />
+              <Text style={s.emptyTitle}>Aucun événement trouvé</Text>
+              <Text style={s.emptySub}>Vous n'avez pas encore d'événement. Faites une demande à l'équipe SENGUICHET.</Text>
+              <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('MesDemandesTab')}>
+                <Text style={s.emptyBtnText}>Demander un événement</Text>
+              </TouchableOpacity>
+            </GlassContainer>
+          ) : (
+            /* Liste d'événements — cartes calquées sur le web (version mobile) */
+            <View style={s.eventsList}>
+              {filtered.map(evt => {
+                const cfg = STATUT_CONFIG[evt.statut] || STATUT_CONFIG.en_attente
+                const capa = evt.capacite || 1
+                const pct = Math.min(100, Math.round(((evt.remplis || 0) / capa) * 100))
+                return (
+                  <GlassContainer key={evt.id} style={s.eventCard}>
+                    {/* Hero image avec gradient overlay */}
+                    <View style={s.cardHero}>
+                      {evt.affiche_url ? (
+                        <Image source={{ uri: evt.affiche_url }} style={s.cardHeroBg} resizeMode="cover" />
+                      ) : (
+                        <LinearGradient colors={categoryGradients[evt.categorie] || categoryGradients.default} style={s.cardHeroBg}>
+                          <MaterialCommunityIcons name="image-outline" size={36} color="rgba(255,255,255,0.15)" />
+                        </LinearGradient>
+                      )}
+                      <LinearGradient colors={['transparent', 'rgba(10,11,26,0.9)']} style={s.cardHeroOverlay} />
+                      {/* Badge statut — position top-right */}
+                      <View style={s.cardBadgeWrap}>
+                        <View style={[s.cardBadge, { backgroundColor: cfg.bg }]}>
+                          <Text style={[s.cardBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
                         </View>
-                      )
-                    })()}
-                    <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={() => setExpandedId(isOpen ? null : evt.id)}>
-                      <Text style={s.chevron}>{isOpen ? '▾' : '▸'}</Text>
-                    </TouchableOpacity>
-                  </TouchableOpacity>
-
-                  {isOpen && st && (
-                    <View style={s.details}>
-                      <View style={s.miniStats}>
-                        <GlassContainer style={s.miniStat} intensity={30} blurType="dark">
-                          <Text style={s.miniStatValue}>{st.totalVendus}</Text>
-                          <Text style={s.miniStatLabel}>vendus</Text>
-                        </GlassContainer>
-                        <GlassContainer style={s.miniStat} intensity={30} blurType="dark">
-                          <Text style={s.miniStatValue}>{(st.recettes || 0).toLocaleString()} F</Text>
-                          <Text style={s.miniStatLabel}>recettes</Text>
-                        </GlassContainer>
                       </View>
-
-                      <Text style={s.detailTitle}>Remplissage</Text>
-                      <View style={s.barRow}>
-                        <Text style={s.barLabel}>Vendus</Text>
-                        <View style={s.barBg}>
-                          <View style={[s.barFill, { width: `${(st.capacite || 1) > 0 ? (st.totalVendus / (st.capacite || 1)) * 100 : 0}%` }]} />
+                      {/* Overlay infos en bas */}
+                      <View style={s.cardHeroBottom}>
+                        <Text style={s.cardName} numberOfLines={1}>{evt.nom}</Text>
+                        <Text style={s.cardMeta} numberOfLines={1}>{evt.date} · {evt.lieu || 'Non spécifié'}</Text>
+                      </View>
+                    </View>
+                    {/* Corps : places + revenus + bouton */}
+                    <View style={s.cardBody}>
+                      <View style={s.cardStats}>
+                        <Text style={s.cardPlaces}>{evt.remplis || 0}/{evt.capacite || 0} places</Text>
+                        <Text style={s.cardRevenu}>{evt.revenus || '0 FCFA'}</Text>
+                      </View>
+                      {/* Barre de progression */}
+                      <View style={s.cardBarRow}>
+                        <View style={s.cardBarBg}>
+                          <View style={[s.cardBarFill, { width: `${pct}%` }]} />
                         </View>
-                        <Text style={s.barCount}>{st.totalVendus}/{st.capacite || '?'}</Text>
+                        <Text style={s.cardBarPct}>{pct}%</Text>
                       </View>
-
+                      {/* Bouton d'action */}
                       <TouchableOpacity
-                        style={s.voirTickets}
-                        onPress={() => navigation.navigate('VoirTickets', { eventId: evt.id })}
+                        style={s.cardBtn}
+                        onPress={() => navigation.navigate('DetailEvenement', { eventId: evt.id })}
+                        activeOpacity={0.7}
                       >
-                        <Text style={s.voirTicketsText}>Voir les tickets →</Text>
+                        <Text style={s.cardBtnText}>Voir les détails</Text>
                       </TouchableOpacity>
                     </View>
-                  )}
-                </GlassContainer>
-              )
-            })
+                  </GlassContainer>
+                )
+              })}
+            </View>
           )}
+
           <View style={{ height: 40 }} />
         </ScrollView>
       </View>
@@ -180,47 +193,79 @@ export default function GestionEvenementsScreen({ navigation }) {
 
 const s = StyleSheet.create({
   container: { flex: 1 },
-  tabsScroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, flexGrow: 0 },
-  tabs: { flexDirection: 'row', gap: spacing.xs, flexWrap: 'nowrap' },
-  searchContainer: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
-  searchInput: {
-    backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: borderRadius.lg, paddingHorizontal: 16, height: 44,
-    fontFamily: fonts.outfit.regular, fontSize: 14, color: '#fff',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.2)',
-  },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 40 },
-  card: { padding: spacing.md },
-  cardTop: { flexDirection: 'row', alignItems: 'center' },
-  badge: {
-    width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(0,200,255,0.4)',
-    alignItems: 'center', justifyContent: 'center', marginRight: spacing.md,
+
+  /* Header */
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
+  headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
+  demanderBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: 8,
   },
-  badgeText: { fontSize: 18, fontFamily: fonts.outfit.bold, color: '#fff' },
-  info: { flex: 1 },
-  nom: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
-  date: { fontSize: 12, fontFamily: fonts.outfit.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
-  chevron: { fontSize: 16, color: 'rgba(255,255,255,0.6)', marginLeft: spacing.sm },
-  statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginRight: spacing.xs },
-  statusBadgeText: { fontSize: 10, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.3 },
-  details: {
-    marginTop: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.15)',
-    paddingTop: spacing.md,
+  demanderBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff' },
+
+  /* Tabs */
+  tabsBar: {
+    flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.md,
+    padding: 6, borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.03)',
   },
-  miniStats: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
-  miniStat: {
-    flex: 1, padding: spacing.sm, alignItems: 'center',
+  tab: { flex: 1, borderRadius: 14, overflow: 'hidden' },
+  tabActive: {},
+  tabGradient: { paddingVertical: 8, alignItems: 'center', borderRadius: 14 },
+  tabText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.5)', textAlign: 'center', paddingVertical: 8 },
+  tabTextActive: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: '#fff', textAlign: 'center' },
+
+  /* Search */
+  searchContainer: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14,
+    paddingHorizontal: 14, height: 44, marginBottom: spacing.md,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.12)',
   },
-  miniStatValue: { fontSize: 18, fontFamily: fonts.outfit.bold, color: '#fff' },
-  miniStatLabel: { fontSize: 10, fontFamily: fonts.outfit.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
-  detailTitle: {
-    fontSize: 12, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)',
-    textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: spacing.sm,
+  searchInput: { flex: 1, fontFamily: fonts.outfit.regular, fontSize: 14, color: '#fff' },
+
+  /* État vide */
+  emptyState: { padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
+  emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
+  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', textAlign: 'center', lineHeight: 20 },
+  emptyBtn: {
+    marginTop: spacing.sm,
+    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12,
+    paddingHorizontal: 20, paddingVertical: 10,
   },
-  barRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
-  barLabel: { width: 70, fontSize: 12, fontFamily: fonts.outfit.regular, color: 'rgba(255,255,255,0.6)' },
-  barBg: { flex: 1, height: 8, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 4, overflow: 'hidden', marginHorizontal: spacing.sm },
-  barFill: { height: 8, borderRadius: 4, backgroundColor: '#00C8FF' },
-  barCount: { width: 50, textAlign: 'right', fontSize: 12, fontFamily: fonts.outfit.semiBold, color: '#fff' },
-  voirTickets: { marginTop: spacing.md, alignSelf: 'flex-end' },
-  voirTicketsText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)' },
+  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+
+  /* Liste */
+  eventsList: { gap: spacing.md },
+
+  /* Carte événement — calquée sur le web */
+  eventCard: { overflow: 'hidden', borderRadius: 16 },
+
+  cardHero: { height: 130, position: 'relative', overflow: 'hidden', justifyContent: 'flex-end' },
+  cardHeroBg: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
+  cardHeroOverlay: { ...StyleSheet.absoluteFillObject },
+  cardBadgeWrap: { position: 'absolute', top: 10, right: 10 },
+  cardBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  cardBadgeText: { fontSize: 10, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.4 },
+  cardHeroBottom: { position: 'absolute', bottom: 10, left: 14, right: 14 },
+  cardName: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff' },
+  cardMeta: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+
+  cardBody: { padding: spacing.md },
+  cardStats: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
+  cardPlaces: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
+  cardRevenu: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+
+  cardBarRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
+  cardBarBg: { flex: 1, height: 6, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden' },
+  cardBarFill: { height: 6, borderRadius: 3, backgroundColor: '#00C8FF' },
+  cardBarPct: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.5)', width: 36, textAlign: 'right' },
+
+  cardBtn: {
+    backgroundColor: 'rgba(0,200,255,0.12)', borderRadius: 10,
+    paddingVertical: 10, alignItems: 'center',
+  },
+  cardBtnText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
 })

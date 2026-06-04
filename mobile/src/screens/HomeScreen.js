@@ -31,7 +31,7 @@ export default function HomeScreen({ navigation }) {
   const [evenements, setEvenements] = useState([])
   const [tickets, setTickets] = useState([])
   const [category, setCategory] = useState(null)
-  const { deconnecter, numeroTel, profil } = useAuth()
+  const { deconnecter, numeroTel, profil, email } = useAuth()
   const headerSpring = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
@@ -78,8 +78,11 @@ export default function HomeScreen({ navigation }) {
               </View>
               <View style={styles.headerText}>
                 <Text style={styles.greeting}>Bonjour</Text>
-                <Text style={styles.name}>{profil?.nom || 'Invité'}</Text>
+                <Text style={styles.name}>{profil?.nom || (email ? email.split('@')[0].replace(/\d+$/, '') : 'Invité')}</Text>
               </View>
+              <TouchableOpacity onPress={() => navigation.navigate('AccueilChoix')} style={styles.homeBtn}>
+                <Feather name="home" size={18} color="rgba(255,255,255,0.7)" />
+              </TouchableOpacity>
               <TouchableOpacity onPress={deconnecter} style={styles.logoutBtn}>
                 <Feather name="log-out" size={16} color="rgba(255,255,255,0.7)" />
               </TouchableOpacity>
@@ -176,9 +179,14 @@ const styles = StyleSheet.create({
   headerText: { flex: 1 },
   greeting: { fontSize: 12, color: 'rgba(255,255,255,0.7)', fontFamily: fonts.jakarta.regular },
   name: { fontSize: 18, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.3 },
+  homeBtn: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: 'rgba(0,200,255,0.1)',
+    alignItems: 'center', justifyContent: 'center', marginRight: 8,
+  },
   logoutBtn: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,77,109,0.1)',
     alignItems: 'center', justifyContent: 'center',
   },
   ticketCount: {
