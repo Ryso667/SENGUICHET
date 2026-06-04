@@ -270,7 +270,7 @@ const afficherBillet = async (req, res) => {
 
     const [rows] = await pool.query(
       `SELECT b.uuid, b.numero, b.prix_paye, b.statut, b.date_creation, b.telephone_acheteur,
-        b.payload_signature, e.titre, e.lieu, e.date_debut, e.image_url, ct.nom AS categorie
+        b.payload_signature, e.titre, e.lieu, e.date_debut, e.affiche_url, ct.nom AS categorie
       FROM billet b
       JOIN evenement e ON e.id = b.evenement_id
       JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id

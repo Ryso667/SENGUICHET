@@ -18,12 +18,13 @@ USE senguichet;
 -- 1.1 Acheteur
 CREATE TABLE acheteur (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  telephone VARCHAR(20) NOT NULL UNIQUE,
+  telephone VARCHAR(20) DEFAULT NULL,
   nom VARCHAR(100) DEFAULT NULL,
-  email VARCHAR(150) DEFAULT NULL,
+  email VARCHAR(150) DEFAULT NULL UNIQUE,
   date_inscription DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   dernier_acces DATETIME DEFAULT NULL,
-  INDEX idx_acheteur_telephone (telephone)
+  INDEX idx_acheteur_telephone (telephone),
+  INDEX idx_acheteur_email (email)
 ) ENGINE=InnoDB;
 
 -- 1.2 Organisateur
@@ -155,6 +156,7 @@ CREATE TABLE affectation_controleur (
 CREATE TABLE billet (
   id INT AUTO_INCREMENT PRIMARY KEY,
   uuid VARCHAR(36) NOT NULL UNIQUE,
+  numero VARCHAR(20) NOT NULL,
   evenement_id INT NOT NULL,
   categorie_ticket_id INT NOT NULL,
   acheteur_id INT DEFAULT NULL,
@@ -300,6 +302,7 @@ CREATE TABLE synchronisation_offline (
 CREATE TABLE code_otp (
   id INT AUTO_INCREMENT PRIMARY KEY,
   telephone VARCHAR(20) NOT NULL,
+  email VARCHAR(255),
   code VARCHAR(6) NOT NULL,
   type ENUM('AUTH', 'VERIFICATION', 'PAIEMENT') NOT NULL DEFAULT 'AUTH',
   est_utilise TINYINT(1) NOT NULL DEFAULT 0,

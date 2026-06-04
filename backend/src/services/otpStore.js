@@ -1,75 +1,65 @@
-// Stockage persistant des codes OTP sur disque (fichier JSON)
-// Survit aux redémarrages du serveur contrairement au Map mémoire
-// Nettoyage : suppression automatique des codes expirés (TTL : 5 min)
-const fs = require('fs')
-const path = require('path')
+/**
+ * Stockage des codes OTP en base de données MySQL
+ * Compatible Vercel (serverless) — contrairement au stockage fichier
+ * TTL : 5 minutes, nettoyage à la création et via vérification
+ */
+const pool = require("../config/db");
 
-const TTL_MS = 5 * 60 * 1000
-const DATA_DIR = path.join(__dirname, '..', '..', 'data')
-const FILE_PATH = path.join(DATA_DIR, 'otps.json')
+const TTL_MINUTES = 5;
 
-// Charge les OTP depuis le fichier JSON au démarrage
-const CHARGER_OTPS = () => {
-  try {
-    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true })
-    if (!fs.existsSync(FILE_PATH)) return {}
-    const raw = fs.readFileSync(FILE_PATH, 'utf-8')
-    return JSON.parse(raw)
-  } catch {
-    return {}
-  }
-}
+/**
+ * Stocke un code OTP pour un email donné
+ * Remplace tout code existant non utilisé pour le même email
+ * @param {string} email - Email de l'acheteur
+ * @param {string} code - Code OTP à 6 chiffres
+ */
+const STOCKER_CODE = async (email, code) => {
+  const emailLower = email.toLowerCase();
+  // Invalide les anciens codes pour cet email
+  await pool.query(
+    `UPDATE code_otp SET est_utilise = 1
+     WHERE email = ? AND est_utilise = 0 AND type = 'AUTH'`,
+    [emailLower]
+  );
+  // Insère le nouveau code
+  await pool.query(
+    `INSERT INTO code_otp (telephone, email, code, type, date_expiration)
+     VALUES (?, ?, ?, 'AUTH', DATE_ADD(NOW(), INTERVAL ? MINUTE))`,
+    ['', emailLower, code, TTL_MINUTES]
+  );
+};
 
-// Sauvegarde tous les OTP dans le fichier JSON
-const SAUVEGARDER = (donnees) => {
-  try {
-    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true })
-    fs.writeFileSync(FILE_PATH, JSON.stringify(donnees, null, 2), 'utf-8')
-  } catch (err) {
-    console.error('Erreur sauvegarde OTP:', err.message)
-  }
-}
+/**
+ * Vérifie et consomme un code OTP pour un email
+ * @param {string} email - Email de l'acheteur
+ * @param {string} code - Code OTP à vérifier
+ * @returns {Promise<boolean>} true si valide et non expiré
+ */
+const VERIFIER_CODE = async (email, code) => {
+  const emailLower = email.toLowerCase();
+  const [rows] = await pool.query(
+    `SELECT id FROM code_otp
+     WHERE email = ? AND code = ? AND type = 'AUTH'
+       AND est_utilise = 0 AND date_expiration > NOW()
+     LIMIT 1`,
+    [emailLower, code]
+  );
+  if (rows.length === 0) return false;
+  // Consomme le code (marque comme utilisé)
+  await pool.query("UPDATE code_otp SET est_utilise = 1 WHERE id = ?", [rows[0].id]);
+  return true;
+};
 
-// Nettoie les codes expirés (lazy cleanup)
-const NETTOYER = (donnees) => {
-  const maintenant = Date.now()
-  let modifie = false
-  for (const email in donnees) {
-    if (donnees[email].createdAt + TTL_MS < maintenant) {
-      delete donnees[email]
-      modifie = true
-    }
-  }
-  if (modifie) SAUVEGARDER(donnees)
-  return donnees
-}
+/**
+ * Supprime les codes expirés pour un email
+ * @param {string} email - Email dont il faut nettoyer les codes
+ */
+const SUPPRIMER_CODE = async (email) => {
+  const emailLower = email.toLowerCase();
+  await pool.query(
+    "DELETE FROM code_otp WHERE email = ? AND type = 'AUTH'",
+    [emailLower]
+  );
+};
 
-// Stocke un code OTP pour un email (remplace l'ancien s'il existe)
-const STOCKER_CODE = (email, code) => {
-  const donnees = CHARGER_OTPS()
-  const emailKey = email.toLowerCase()
-  donnees[emailKey] = { code, createdAt: Date.now() }
-  SAUVEGARDER(donnees)
-}
-
-// Vérifie et consomme un code OTP (supprime après vérification réussie)
-// Retourne true si le code est valide et non expiré
-const VERIFIER_CODE = (email, code) => {
-  const donnees = NETTOYER(CHARGER_OTPS())
-  const emailKey = email.toLowerCase()
-  const entry = donnees[emailKey]
-  if (!entry) return false
-  if (entry.code !== code) return false
-  delete donnees[emailKey]
-  SAUVEGARDER(donnees)
-  return true
-}
-
-// Supprime un code existant pour un email
-const SUPPRIMER_CODE = (email) => {
-  const donnees = CHARGER_OTPS()
-  delete donnees[email.toLowerCase()]
-  SAUVEGARDER(donnees)
-}
-
-module.exports = { STOCKER_CODE, VERIFIER_CODE, SUPPRIMER_CODE }
+module.exports = { STOCKER_CODE, VERIFIER_CODE, SUPPRIMER_CODE };
