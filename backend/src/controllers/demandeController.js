@@ -5,7 +5,7 @@
  */
 const pool = require("../config/db");
 const crypto = require("crypto");
-const { envoyerNotificationDemandeEvenement } = require("../services/emailService");
+const { envoyerNotificationDemandeEvenement } = require("../services/EmailService");
 
 const soumettreDemande = async (req, res) => {
   try {
@@ -153,17 +153,23 @@ const adminDetailDemande = async (req, res) => {
 
 const creerEvenementDepuisDemande = async (conn, demande) => {
   const scanCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+
+  // Extraire ville et categorie du payload JSON de la demande
+  const payload = typeof demande.payload === "string"
+    ? JSON.parse(demande.payload) : demande.payload;
+  const ville = payload?.ville || null;
+  const categorie = payload?.categorie || null;
   const [evResult] = await conn.query(
-    `INSERT INTO evenement (organisateur_id, titre, description, lieu, date_debut, date_fin, capacite_totale, affiche_url, scan_code, statut)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'actif')`,
+    `INSERT INTO evenement (organisateur_id, titre, description, lieu, ville, categorie, date_debut, date_fin, capacite_totale, affiche_url, scan_code, statut)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'actif')`,
     [demande.organisateur_id, demande.titre, demande.description, demande.lieu,
+     ville, categorie,
      demande.date_debut, demande.date_fin, demande.capacite, demande.affiche_url || null, scanCode]
   );
   const evenementId = evResult.insertId;
 
   // Créer les catégories de tickets depuis le payload de la demande
-  const payload = typeof demande.payload === "string"
-    ? JSON.parse(demande.payload) : demande.payload;
+  // payload déjà parsé ci-dessus
   if (payload?.categories_tickets?.length) {
     const ticketValues = payload.categories_tickets.map(t => [
       evenementId, t.nom, null, parseInt(t.prix), parseInt(t.places), parseInt(t.places)

@@ -19,9 +19,10 @@
     "firebase-admin": "^13.10.0",
     "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^2.1.1",
     "mysql2": "^3.14.1",
     "nodemailer": "^8.0.10",
-    "uuid": "^7.0.3"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@vercel/node": "^5.1.14",

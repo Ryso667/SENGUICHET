@@ -97,6 +97,12 @@ const DetailEvenement = () => {
             </span>
           </div>
 
+          {ev.affiche_url && (
+            <div className="mb-6 rounded-xl overflow-hidden" style={{ maxHeight: "320px" }}>
+              <img src={ev.affiche_url} alt={ev.titre} className="w-full h-full object-cover" />
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.03)" }}>
               <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>Date</p>

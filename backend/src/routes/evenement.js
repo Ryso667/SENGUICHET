@@ -8,10 +8,10 @@ router.get('/public', e.listerPublic);
 router.get('/public/:id', e.detailPublic);
 
 // Organisateur routes
-router.post("/", authMiddleware(["ORGANISATEUR"]), e.creer);
+router.post("/", authMiddleware(["ORGANISATEUR"]), e.upload.single("affiche"), e.creer);
 router.get("/", authMiddleware(["ORGANISATEUR"]), e.lister);
 router.get("/:id", authMiddleware(["ORGANISATEUR"]), e.detail);
-router.put("/:id", authMiddleware(["ORGANISATEUR"]), e.modifier);
+router.put("/:id", authMiddleware(["ORGANISATEUR"]), e.upload.single("affiche"), e.modifier);
 router.put("/:id/annuler", authMiddleware(["ORGANISATEUR"]), e.annuler);
 router.get("/:id/equipe", authMiddleware(["ORGANISATEUR"]), e.getEquipe);
 router.post("/:id/regenerer-code", authMiddleware(["ORGANISATEUR"]), e.regenererScanCode);

@@ -42,7 +42,11 @@ if (!process.env.FRONTEND_URL) {
   console.warn("⚠️  FRONTEND_URL non défini — CORS utilise 'http://localhost:3000'. En production, définis FRONTEND_URL dans les variables d'environnement.");
 }
 app.use(cors({ origin: FRONTEND_URL, credentials: true }));
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Servir les fichiers uploads (affiches)
+app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 // Sert le logo SENGUICHET pour les emails
 app.use("/api/logo", express.static(path.join(__dirname, "..", "public", "images")));

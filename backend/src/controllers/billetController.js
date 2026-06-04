@@ -6,7 +6,7 @@ const pool = require("../config/db");
 const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
 const PaymentService = require("../services/PaymentService");
-const { envoyerEmailBillet } = require("../services/emailService");
+const { envoyerEmailBillet } = require("../services/EmailService");
 const { envoyerSMSBillet } = require("../services/smsService");
 
 // HMAC_SECRET est validé au démarrage dans server.js — pas besoin de le revalider ici

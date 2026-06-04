@@ -70,6 +70,7 @@ const ModifierEvenement = () => {
     lieu: "",
     ville: "",
     capacite: "",
+    affiche: null,
     affichePreview: null,
   });
 
@@ -101,7 +102,8 @@ const ModifierEvenement = () => {
           lieu: ev.lieu,
           ville: ev.ville || "",
           capacite: String(ev.capacite_totale),
-          affichePreview: null,
+          affiche: null,
+          affichePreview: ev.affiche_url || null,
         });
         setTicketTypes(
           (data.tickets || []).map((t) => ({
@@ -124,23 +126,41 @@ const ModifierEvenement = () => {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      const payload = {
-        titre: form.nom,
-        categorie: form.categorie,
-        description: form.description,
-        dateDebut: form.dateDebut,
-        dateFin: form.dateFin || null,
-        heureDebut: form.heureDebut,
-        lieu: form.lieu,
-        ville: form.ville,
-        capacite: form.capacite,
-        ticketTypes: ticketTypes.map((t) => ({
-          nom: t.nom,
-          description: t.description || null,
-          prix: t.prix,
-          quantite: t.quantite,
-        })),
-      };
+      const ticketTypesData = ticketTypes.map((t) => ({
+        nom: t.nom,
+        description: t.description || null,
+        prix: t.prix,
+        quantite: t.quantite,
+      }));
+
+      let payload;
+      if (form.affiche instanceof File) {
+        payload = new FormData();
+        payload.append("titre", form.nom);
+        payload.append("categorie", form.categorie);
+        payload.append("description", form.description);
+        payload.append("dateDebut", form.dateDebut);
+        payload.append("dateFin", form.dateFin || "");
+        payload.append("heureDebut", form.heureDebut);
+        payload.append("lieu", form.lieu);
+        payload.append("ville", form.ville);
+        payload.append("capacite", form.capacite);
+        payload.append("ticketTypes", JSON.stringify(ticketTypesData));
+        payload.append("affiche", form.affiche);
+      } else {
+        payload = {
+          titre: form.nom,
+          categorie: form.categorie,
+          description: form.description,
+          dateDebut: form.dateDebut,
+          dateFin: form.dateFin || null,
+          heureDebut: form.heureDebut,
+          lieu: form.lieu,
+          ville: form.ville,
+          capacite: form.capacite,
+          ticketTypes: ticketTypesData,
+        };
+      }
       await modifierEvenement(id, payload);
       setSubmitting(false);
       showToast("Événement modifié avec succès !");

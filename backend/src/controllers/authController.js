@@ -4,7 +4,7 @@ const pool = require("../config/db");
 require("dotenv").config();
 const crypto = require("crypto");
 const { STOCKER_CODE, VERIFIER_CODE } = require("../services/otpStore");
-const { envoyerCodeOTP: envoyerEmail } = require("../services/emailService");
+const { envoyerCodeOTP: envoyerEmail } = require("../services/EmailService");
 
 // Validation stricte : si JWT_SECRET n'est pas défini, le serveur ne démarre pas
 // Évite l'utilisation d'une fallback_secret en production

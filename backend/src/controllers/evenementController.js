@@ -1,9 +1,27 @@
 const pool = require("../config/db");
 const crypto = require("crypto");
+const multer = require("multer");
+const path = require("path");
+
+// Configuration multer pour l'upload d'affiches
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, path.join(__dirname, "..", "..", "uploads")),
+  filename: (req, file, cb) => cb(null, `event-${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`),
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 Mo max
+  fileFilter: (req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png"];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error("Seuls les fichiers JPG et PNG sont acceptés"));
+  },
+});
 
 const creer = async (req, res) => {
   try {
     const { titre, description, lieu, ville, categorie, dateDebut, dateFin, heureDebut, capacite, ticketTypes } = req.body;
+    const ticketTypesArr = typeof ticketTypes === "string" ? JSON.parse(ticketTypes) : ticketTypes;
 
     if (!titre || !description || !lieu || !ville || !dateDebut || !heureDebut || !capacite) {
       return res.status(400).json({ message: "Champs obligatoires manquants" });
@@ -11,6 +29,7 @@ const creer = async (req, res) => {
 
     const dateDebutFull = `${dateDebut} ${heureDebut}:00`;
     const dateFinFull = dateFin ? `${dateFin} 23:59:00` : null;
+    const afficheUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
     // Utilise crypto.randomBytes au lieu de Math.random pour une génération cryptographique sécurisée
     const scanCode = crypto.randomBytes(3).toString('hex').toUpperCase();
@@ -20,15 +39,15 @@ const creer = async (req, res) => {
       await conn.beginTransaction();
 
       const [evResult] = await conn.query(
-        `INSERT INTO evenement (organisateur_id, titre, description, lieu, ville, categorie, date_debut, date_fin, capacite_totale, scan_code, statut)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [req.user.id, titre, description, lieu, ville || null, categorie || null, dateDebutFull, dateFinFull, parseInt(capacite), scanCode, 'en_attente']
+        `INSERT INTO evenement (organisateur_id, titre, description, lieu, ville, categorie, date_debut, date_fin, capacite_totale, affiche_url, scan_code, statut)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [req.user.id, titre, description, lieu, ville || null, categorie || null, dateDebutFull, dateFinFull, parseInt(capacite), afficheUrl, scanCode, 'en_attente']
       );
 
       const evenementId = evResult.insertId;
 
-      if (ticketTypes && ticketTypes.length > 0) {
-        const ticketValues = ticketTypes.map(t => [
+      if (ticketTypesArr && ticketTypesArr.length > 0) {
+        const ticketValues = ticketTypesArr.map(t => [
           evenementId, t.nom, t.description || null,
           parseInt(t.prix), parseInt(t.quantite), parseInt(t.quantite)
         ]);
@@ -42,7 +61,7 @@ const creer = async (req, res) => {
 
       res.status(201).json({
         message: "Événement créé avec succès. En attente de validation par l'administrateur.",
-        evenement: { id: evenementId, titre, scanCode, statut: 'en_attente' }
+        evenement: { id: evenementId, titre, scanCode, statut: 'en_attente', affiche_url: afficheUrl }
       });
     } catch (err) {
       await conn.rollback();
@@ -88,7 +107,7 @@ const lister = async (req, res) => {
         revenus: `${parseInt(r.revenus || 0).toLocaleString()} FCFA`,
         statut,
         code: r.scan_code || '',
-        img: `/images/event-${(r.id % 3) + 1}.jpg`,
+        img: r.affiche_url || `/images/event-${(r.id % 3) + 1}.jpg`,
       };
     });
 
@@ -147,8 +166,9 @@ const modifier = async (req, res) => {
   try {
     const { id } = req.params;
     const { titre, description, lieu, ville, categorie, dateDebut, dateFin, heureDebut, capacite, ticketTypes } = req.body;
+    const ticketTypesArr = typeof ticketTypes === "string" ? JSON.parse(ticketTypes) : (ticketTypes || []);
 
-    const [existing] = await pool.query("SELECT id, statut FROM evenement WHERE id = ? AND organisateur_id = ?", [id, req.user.id]);
+    const [existing] = await pool.query("SELECT id, statut, affiche_url FROM evenement WHERE id = ? AND organisateur_id = ?", [id, req.user.id]);
     if (!existing.length) return res.status(404).json({ message: "Événement introuvable" });
     if (existing[0].statut !== 'en_attente' && existing[0].statut !== 'actif') {
       return res.status(400).json({ message: "Impossible de modifier un événement qui n'est plus en attente ou actif" });
@@ -156,15 +176,16 @@ const modifier = async (req, res) => {
 
     const dateDebutFull = `${dateDebut} ${heureDebut}:00`;
     const dateFinFull = dateFin ? `${dateFin} 23:59:00` : null;
+    const afficheUrl = req.file ? `/uploads/${req.file.filename}` : existing[0].affiche_url;
 
     const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
 
       await conn.query(
-        `UPDATE evenement SET titre=?, description=?, lieu=?, ville=?, categorie=?, date_debut=?, date_fin=?, capacite_totale=?
+        `UPDATE evenement SET titre=?, description=?, lieu=?, ville=?, categorie=?, date_debut=?, date_fin=?, capacite_totale=?, affiche_url=?
          WHERE id=?`,
-        [titre, description, lieu, ville || null, categorie || null, dateDebutFull, dateFinFull, parseInt(capacite), id]
+        [titre, description, lieu, ville || null, categorie || null, dateDebutFull, dateFinFull, parseInt(capacite), afficheUrl, id]
       );
 
       // Vérifier s'il existe des billets pour cet événement avant de supprimer les catégories
@@ -179,8 +200,8 @@ const modifier = async (req, res) => {
         await conn.query("DELETE FROM categorie_ticket WHERE evenement_id = ?", [id]);
       }
 
-      if (ticketTypes && ticketTypes.length > 0) {
-        const ticketValues = ticketTypes.map(t => [
+      if (ticketTypesArr && ticketTypesArr.length > 0) {
+        const ticketValues = ticketTypesArr.map(t => [
           id, t.nom, t.description || null,
           parseInt(t.prix), parseInt(t.quantite), parseInt(t.quantite)
         ]);
@@ -310,9 +331,19 @@ const adminDetail = async (req, res) => {
   try {
     const { id } = req.params;
     const [rows] = await pool.query(
-      `SELECT e.*, o.nom AS organisateur_nom, o.email AS organisateur_email, o.telephone AS organisateur_telephone
+      `SELECT e.*, o.nom AS organisateur_nom, o.email AS organisateur_email, o.telephone AS organisateur_telephone,
+        COALESCE(
+          e.ville,
+          JSON_UNQUOTE(JSON_EXTRACT(d.payload, '$.ville')),
+          TRIM(SUBSTRING_INDEX(d.lieu, ',', -1))
+        ) AS ville,
+        COALESCE(
+          e.categorie,
+          JSON_UNQUOTE(JSON_EXTRACT(d.payload, '$.categorie'))
+        ) AS categorie
       FROM evenement e
       JOIN organisateur o ON o.id = e.organisateur_id
+      LEFT JOIN demande_evenement d ON d.evenement_id = e.id AND d.type_action = 'CREATION'
       WHERE e.id = ?`, [id]
     );
     if (!rows.length) return res.status(404).json({ message: "Événement introuvable" });
@@ -383,7 +414,6 @@ const detailPublic = async (req, res) => {
 };
 
 // Retourne le scan_code de l'événement et la liste des contrôleurs affectés avec leurs stats
-// Accessible uniquement par l'organisateur propriétaire
 const getEquipe = async (req, res) => {
   try {
     const { id } = req.params;
@@ -392,9 +422,7 @@ const getEquipe = async (req, res) => {
       [id, req.user.id]
     );
     if (!events.length) return res.status(404).json({ message: "Événement introuvable" });
-
     const scanCode = events[0].scan_code;
-
     const [controleurs] = await pool.query(
       `SELECT c.id, c.nom, c.telephone, ac.zone,
         (SELECT COUNT(*) FROM scan_billet sb WHERE sb.controleur_id = c.id AND sb.evenement_id = ?) AS scans_effectues
@@ -404,7 +432,6 @@ const getEquipe = async (req, res) => {
       ORDER BY c.nom ASC`,
       [id, id]
     );
-
     res.json({ scan_code: scanCode, controleurs });
   } catch (err) {
     console.error("Get equipe error:", err);
@@ -413,7 +440,6 @@ const getEquipe = async (req, res) => {
 };
 
 // Génère un nouveau code scan à 4 caractères pour l'événement
-// Accessible uniquement par l'organisateur propriétaire
 const regenererScanCode = async (req, res) => {
   try {
     const { id } = req.params;
@@ -422,11 +448,14 @@ const regenererScanCode = async (req, res) => {
       [id, req.user.id]
     );
     if (!existing.length) return res.status(404).json({ message: "Événement introuvable" });
+<<<<<<< HEAD
 
     // Utilise crypto.randomBytes au lieu de Math.random pour une génération cryptographique sécurisée
     const nouveauCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+=======
+    const nouveauCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+>>>>>>> origin/main
     await pool.query("UPDATE evenement SET scan_code = ? WHERE id = ?", [nouveauCode, id]);
-
     res.json({ scan_code: nouveauCode, message: "Code de scan régénéré avec succès" });
   } catch (err) {
     console.error("Regenerer scan code error:", err);
@@ -434,5 +463,5 @@ const regenererScanCode = async (req, res) => {
   }
 };
 
-module.exports = { creer, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic, getEquipe, regenererScanCode };
+module.exports = { creer, upload, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic, getEquipe, regenererScanCode };
 
