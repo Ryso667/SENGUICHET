@@ -1,10 +1,11 @@
 // Écran d'inscription organisateur (nom, téléphone, email, mot de passe)
-// Permet de créer un compte organisateur — en mode mock, retourne un statut "en_attente"
+// Envoie les données au backend — mêmes données partagées avec le frontend-web
 import { useState, useMemo } from 'react'
 import {
   View, Text, TextInput, ActivityIndicator,
   KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Alert,
 } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { inscrireOrganisateur } from '../../services/authService'
 import GlassButton from '../../components/GlassButton'
@@ -31,14 +32,19 @@ const evaluerForceMotDePasse = (mdp) => {
 }
 
 // Formate le numéro de téléphone avec l'indicatif +221 et le masque XX XXX XX XX
+// Limite à 9 chiffres après l'indicatif
 const formatterTelephone = (texte) => {
   const nettoye = texte.replace(/[^0-9]/g, '')
-  if (!nettoye.startsWith('221')) {
-    // Si l'utilisateur efface le début, on remet +221
-    if (nettoye.length === 0) return '+221 '
-    return '+221 ' + nettoye.slice(0, 9)
+  // Extrait les 12 premiers chiffres max (221 + 9)
+  const borne = nettoye.slice(0, 12)
+  if (!borne.startsWith('221')) {
+    if (borne.length === 0) return '+221 '
+    const chiffres = borne.slice(0, 9)
+    if (chiffres.length <= 2) return '+221 ' + chiffres
+    if (chiffres.length <= 5) return '+221 ' + chiffres.slice(0, 2) + ' ' + chiffres.slice(2)
+    return '+221 ' + chiffres.slice(0, 2) + ' ' + chiffres.slice(2, 5) + ' ' + chiffres.slice(5, 7) + ' ' + chiffres.slice(7)
   }
-  const chiffres = nettoye.slice(3, 12)
+  const chiffres = borne.slice(3, 12)
   if (chiffres.length <= 2) return '+221 ' + chiffres
   if (chiffres.length <= 5) return '+221 ' + chiffres.slice(0, 2) + ' ' + chiffres.slice(2)
   if (chiffres.length <= 8) return '+221 ' + chiffres.slice(0, 2) + ' ' + chiffres.slice(2, 5) + ' ' + chiffres.slice(5)
@@ -63,7 +69,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
       nom.trim().length > 0 &&
       telephone.replace(/[\s+]/g, '').length >= 9 &&
       email.includes('@') &&
-      mdp.length >= 6 &&
+      mdp.length >= 8 &&
       mdp === confirmMdp
     )
   }, [nom, telephone, email, mdp, confirmMdp])
@@ -84,8 +90,8 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
       Alert.alert('Email invalide', 'Veuillez saisir un email valide.')
       return
     }
-    if (mdp.length < 6) {
-      Alert.alert('Mot de passe trop court', 'Minimum 6 caractères.')
+    if (mdp.length < 8) {
+      Alert.alert('Mot de passe trop court', 'Minimum 8 caractères.')
       return
     }
     if (mdp !== confirmMdp) {
@@ -101,7 +107,8 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
         email: email.trim().toLowerCase(),
         motDePasse: mdp,
       })
-      navigation.navigate('EnAttenteValidation')
+      await AsyncStorage.setItem('@senguichet_orga_email_suggestion', email.trim().toLowerCase())
+      navigation.navigate('ConnexionOrganisateur')
     } catch (err) {
       Alert.alert('Erreur', err?.message || "L'inscription a échoué. Réessaie.")
     } finally {
@@ -181,7 +188,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
               value={mdp}
               onChangeText={setMdp}
               secureTextEntry
-              placeholder="Minimum 6 caractères"
+              placeholder="Minimum 8 caractères"
               placeholderTextColor="rgba(255,255,255,0.5)"
             />
           </GlassContainer>

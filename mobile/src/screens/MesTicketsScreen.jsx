@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useFocusEffect } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, colors, spacing, borderRadius, glass, textShadow } from '../constants/theme'
@@ -57,7 +58,7 @@ export default function MesTicketsScreen({ navigation }) {
         <GlassContainer style={styles.ticketCard} intensity={40}>
           <View style={styles.eventThumb}>
             <LinearGradient colors={['#6366F1', '#EC4899']} style={styles.thumbGradient}>
-              <Feather name="ticket" size={18} color="#fff" />
+              <Feather name="tag" size={18} color="#fff" />
             </LinearGradient>
           </View>
           <View style={styles.ticketInfo}>

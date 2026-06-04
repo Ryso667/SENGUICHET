@@ -1,8 +1,11 @@
 // Service d'authentification : sociale (Google/Apple), code contrôleur, email organisateur
 // Le flux OTP téléphone a été remplacé par l'authentification sociale (Google/Apple)
+import bcrypt from 'bcryptjs'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { appelAPI } from './apiService'
 
-const MOCK_MODE = true
+const SALT_ROUNDS = 10
+const STORAGE_KEY_CTRL_CODE = '@senguichet_ctrl_code'
 
 // Connecte un acheteur via Firebase Social Auth (Google/Apple)
 // Envoie le firebaseToken au backend qui le vérifie et retourne un JWT de session
@@ -13,39 +16,53 @@ export const connecterAcheteurSocial = async (firebaseToken) => {
   })
 }
 
-// Inscription d'un nouvel organisateur — utilisée par InscriptionOrganisateurScreen
+// Inscription d'un nouvel organisateur via le backend
+// Partagé avec le frontend-web : mêmes données, même API
 export const inscrireOrganisateur = async (payload) => {
-  if (MOCK_MODE) {
-    return {
-      message: 'Inscription envoyée',
-      user: {
-        id: Date.now(),
-        nom: payload.nom,
-        email: payload.email,
-        telephone: payload.telephone,
-        role: 'ORGANISATEUR',
-        statut: 'en_attente',
-      },
-    }
-  }
-  const axios = (await import('axios')).default
-  const { data } = await axios.post('http://localhost:3000/api/auth/organisateur/inscription', payload)
-  return data
-}
-
-// Connexion organisateur (email + mot de passe)
-// Appelle le backend Express, retourne { token, user }
-export const connecterOrganisateur = async (email, motsDePasse) => {
-  return appelAPI('/auth/organisateur/connexion', {
+  return appelAPI('/auth/organisateur/inscription', {
     method: 'POST',
-    body: { email, motDePasse: motsDePasse },
+    body: payload,
   })
 }
 
-// Connexion contrôleur via code d'accès à 4 chiffres (mock : accepte tout)
+// Connexion organisateur (email + mot de passe) via le backend
+// Partagé avec le frontend-web : vérification centralisée côté serveur
+export const connecterOrganisateur = async (email, motDePasse) => {
+  const data = await appelAPI('/auth/organisateur/connexion', {
+    method: 'POST',
+    body: { email, motDePasse },
+  })
+  return { token: data.token, user: data.user }
+}
+
+// Connexion contrôleur via code d'accès à 4 chiffres
+// Vérifie le code contre un hash bcrypt stocké localement
+// Au premier démarrage, initialise avec un code par défaut
 export const connecterControleur = async (codeAcces) => {
-  if (MOCK_MODE) return { token: 'mock-jwt-controleur', role: 'controleur' }
-  const axios = (await import('axios')).default
-  const { data } = await axios.post('http://localhost:3000/api/auth/controleur/connexion', { codeAcces })
-  return data
+  let storedHash = await AsyncStorage.getItem(STORAGE_KEY_CTRL_CODE)
+  if (!storedHash) {
+    storedHash = await bcrypt.hash('1234', SALT_ROUNDS)
+    await AsyncStorage.setItem(STORAGE_KEY_CTRL_CODE, storedHash)
+  }
+  const valide = await bcrypt.compare(codeAcces, storedHash)
+  if (!valide) throw new Error('Code d\'accès invalide')
+  return { token: 'jwt-ctrl-' + Date.now(), role: 'controleur' }
+}
+
+// Envoie un code OTP à l'email de l'acheteur via le backend
+// Retourne { message, simulé, code? } — le code est renvoyé en mode simulé
+export const envoyerCodeOTP = async (email) => {
+  return appelAPI('/auth/acheteur/envoyer-code', {
+    method: 'POST',
+    body: { email },
+  })
+}
+
+// Vérifie le code OTP saisi par l'acheteur
+// Retourne { token, user } si le code est correct
+export const verifierCodeOTP = async (email, code) => {
+  return appelAPI('/auth/acheteur/verifier-code', {
+    method: 'POST',
+    body: { email, code },
+  })
 }

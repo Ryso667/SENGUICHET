@@ -162,10 +162,11 @@ const acheter = async (req, res) => {
         transaction_ref: reference,
       });
 
-      // Envoyer email de confirmation en arrière-plan
-      if (ticketEmail) {
-        const { envoyerEmailBillet } = require("../services/emailService");
-        setImmediate(() => {
+      // Envoyer les notifications en arrière-plan (email + SMS)
+      setImmediate(() => {
+        // Email de confirmation
+        if (ticketEmail) {
+          const { envoyerEmailBillet } = require("../services/emailService");
           envoyerEmailBillet(ticketEmail, {
             uuid,
             numero,
@@ -175,8 +176,18 @@ const acheter = async (req, res) => {
             dateAchat: timestamp,
             qrPayload,
           }).catch(err => console.error("Email error:", err));
-        });
-      }
+        }
+
+        // SMS de confirmation
+        const { envoyerSMSBillet } = require("../services/smsService");
+        envoyerSMSBillet(telephone, {
+          uuid,
+          numero,
+          evenement: events[0].titre,
+          categorie: cat.nom,
+          prix: montantTotal,
+        }).catch(err => console.error("SMS error:", err));
+      });
 
       res.status(201).json({
         billet: {
@@ -251,4 +262,93 @@ const mesBillets = async (req, res) => {
   }
 };
 
-module.exports = { acheter, mesBillets };
+// Affiche une page HTML publique avec les infos du billet
+// GET /api/billets/:uuid
+const afficherBillet = async (req, res) => {
+  try {
+    const { uuid } = req.params;
+
+    const [rows] = await pool.query(
+      `SELECT b.uuid, b.numero, b.prix_paye, b.statut, b.date_creation, b.telephone_acheteur,
+        b.payload_signature, e.titre, e.lieu, e.date_debut, e.image_url, ct.nom AS categorie
+      FROM billet b
+      JOIN evenement e ON e.id = b.evenement_id
+      JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+      WHERE b.uuid = ?`,
+      [uuid]
+    );
+
+    if (!rows.length) {
+      return res.status(404).send(`
+        <html><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#f8f9fd">
+          <h1 style="color:#6366F1;">SENGUICHET</h1>
+          <p style="color:#94a3b8;">Billet introuvable</p>
+        </body></html>
+      `);
+    }
+
+    const b = rows[0];
+    const dateEvent = new Date(b.date_debut).toLocaleDateString("fr-FR", {
+      day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
+    });
+    const dateAchat = new Date(b.date_creation).toLocaleDateString("fr-FR", {
+      day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
+    });
+    const statut = b.statut === "ACTIF" ? "✅ Valide" : "⏳ En attente";
+
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Billet ${b.numero} — SENGUICHET</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f8f9fd; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+          .card { background: white; border-radius: 20px; max-width: 420px; width: 100%; box-shadow: 0 4px 24px rgba(99,102,241,0.12); overflow: hidden; }
+          .header { background: linear-gradient(135deg, #6366F1, #EC4899); padding: 32px 24px; text-align: center; }
+          .header h1 { color: white; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.8; margin-bottom: 4px; }
+          .header .numero { color: white; font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+          .body { padding: 24px; }
+          .statut { display: inline-block; background: #dcfce7; color: #166534; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; margin-bottom: 20px; }
+          .field { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+          .field:last-child { border: none; }
+          .field .label { color: #64748b; font-size: 13px; }
+          .field .value { color: #0f172a; font-size: 14px; font-weight: 600; text-align: right; max-width: 60%; }
+          .footer { text-align: center; padding: 20px 24px; background: #f8f9fd; color: #94a3b8; font-size: 12px; }
+          .qr { text-align: center; margin: 20px 0; }
+          .qr img { width: 160px; height: 160px; border-radius: 12px; }
+          @media print { .card { box-shadow: none; border: 1px solid #e2e8f0; } }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="header">
+            <h1>SENGUICHET</h1>
+            <div class="numero">${b.numero}</div>
+          </div>
+          <div class="body">
+            <div class="statut">${statut}</div>
+            <div class="field"><span class="label">Événement</span><span class="value">${b.titre}</span></div>
+            <div class="field"><span class="label">Date</span><span class="value">${dateEvent}</span></div>
+            <div class="field"><span class="label">Lieu</span><span class="value">${b.lieu}</span></div>
+            <div class="field"><span class="label">Catégorie</span><span class="value">${b.categorie}</span></div>
+            <div class="field"><span class="label">Prix</span><span class="value">${b.prix_paye.toLocaleString()} FCFA</span></div>
+            <div class="field"><span class="label">Acheté le</span><span class="value">${dateAchat}</span></div>
+          </div>
+          <div class="footer">
+            SENGUICHET — Billeterie événementielle<br>
+            Présente ce billet à l'entrée depuis l'application.
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+  } catch (err) {
+    console.error("Afficher billet error:", err);
+    res.status(500).send("<html><body><p>Erreur serveur</p></body></html>");
+  }
+};
+
+module.exports = { acheter, mesBillets, afficherBillet };

@@ -4,7 +4,6 @@ import { useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Image } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useAuth } from '../context/AuthContext'
 import { fonts, spacing, borderRadius, glass, categoryGradients } from '../constants/theme'
 import GlassContainer from '../components/GlassContainer'
 
@@ -36,7 +35,6 @@ const ROLES = [
 ]
 
 export default function AccueilChoixScreen({ navigation }) {
-  const { connecterAcheteur } = useAuth()
   const insets = useSafeAreaInsets()
   const anims = useRef(ROLES.map(() => new Animated.Value(0))).current
 
@@ -78,13 +76,13 @@ export default function AccueilChoixScreen({ navigation }) {
             <Animated.View key={role.key} style={[styles.cardWrap, { opacity, transform: [{ scale }] }]}>
               <TouchableOpacity
                 activeOpacity={0.85}
-                onPress={() => {
-                  if (!role.screen) {
-                    connecterAcheteur('+221771234567')
-                  } else {
-                    navigation.navigate(role.screen)
-                  }
-                }}
+                  onPress={() => {
+                    if (!role.screen) {
+                      navigation.navigate('SocialAuth')
+                    } else {
+                      navigation.navigate(role.screen)
+                    }
+                  }}
               >
                 <GlassContainer style={styles.card} blurType="light" intensity={60}>
                   <View style={[styles.accentBar, { backgroundColor: role.accent }]} />
