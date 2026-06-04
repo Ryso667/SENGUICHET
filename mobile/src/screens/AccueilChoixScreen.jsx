@@ -1,23 +1,22 @@
 // Écran de sélection du rôle (Acheteur / Contrôleur / Organisateur)
 // Affiche 3 cartes animées — point d'entrée avant redirection vers la pile de navigation adaptée
 import React, { useEffect, useRef } from 'react'
-import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Alert, Image } from 'react-native'
+import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Image } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { LinearGradient } from 'expo-linear-gradient'
-import { viderTickets } from '../database/database'
+import { useAuth } from '../context/AuthContext'
 import { colors, gradients, shadows, spacing, borderRadius, fonts } from '../constants/theme'
 
 // Définition des 3 rôles avec leur titre, icône, dégradé et écran de destination
 // Sera remplacé par une configuration dynamique venant d'une API
 const ROLES = [
   {
-    key: 'acheteur',
+          key: 'acheteur',
     title: 'Acheteur',
     subtitle: "Achète tes billets\nen un clic",
     icon: 'ticket-outline',
-    gradient: gradients.acheteur,
-    screen: 'EntrerNumero',
+    gradient: gradients.primary,
+    screen: null, // Désactivé : connexion immédiate via connecterAcheteur
   },
   {
     key: 'controleur',
@@ -39,6 +38,7 @@ const ROLES = [
 
 // Écran d'accueil avec sélection du rôle utilisateur et animation d'entrée des cartes
 export default function AccueilChoixScreen({ navigation }) {
+  const { connecterAcheteur } = useAuth()
   const animations = useRef(ROLES.map(() => new Animated.Value(0))).current
 
   // Animation d'entrée : les 3 cartes apparaissent en décalé (stagger 120ms)
@@ -54,12 +54,11 @@ export default function AccueilChoixScreen({ navigation }) {
       {/* Titre et logo de l'application */}
       <View style={s.header}>
         <Image
-          source={require('../../assets/logo_mobile.jpeg')}
+          source={require('../../assets/logo_app.jpeg')}
           style={s.logo}
           resizeMode="contain"
         />
         <Text style={s.title}>Senguichet</Text>
-        <Text style={s.tagline}>Billets & Événements</Text>
       </View>
 
       {/* 3 cartes de sélection de rôle avec animation d'entrée */}
@@ -75,7 +74,14 @@ export default function AccueilChoixScreen({ navigation }) {
             <Animated.View key={role.key} style={[s.cardWrap, { opacity, transform: [{ scale }] }]}>
               <TouchableOpacity
                 activeOpacity={0.9}
-                onPress={() => navigation.navigate(role.screen)}
+                onPress={() => {
+                  if (!role.screen) {
+                    // Mode test : bypass auth sociale
+                    connecterAcheteur('+221771234567')
+                  } else {
+                    navigation.navigate(role.screen)
+                  }
+                }}
               >
                 <LinearGradient
                   colors={role.gradient}
@@ -94,24 +100,6 @@ export default function AccueilChoixScreen({ navigation }) {
           )
         })}
       </View>
-      {/* Bouton de réinitialisation : efface AsyncStorage + SQLite (mode debug) */}
-      <TouchableOpacity
-        style={s.reset}
-        onPress={() => {
-          Alert.alert('Réinitialiser', 'Effacer toutes les données ?', [
-            { text: 'Annuler', style: 'cancel' },
-            { text: 'OK', onPress: async () => {
-              const keys = await AsyncStorage.getAllKeys()
-              const appKeys = keys.filter(k => k.startsWith('@senguichet_'))
-              await AsyncStorage.multiRemove(appKeys)
-              await viderTickets()
-              Alert.alert('Données effacées', 'Redémarre l\'app.')
-            }},
-          ])
-        }}
-      >
-        <Text style={s.resetText}>Réinitialiser</Text>
-      </TouchableOpacity>
     </LinearGradient>
   )
 }
@@ -119,8 +107,8 @@ export default function AccueilChoixScreen({ navigation }) {
 const s = StyleSheet.create({
   container: { flex: 1 },
   header: { alignItems: 'center', paddingTop: 80, paddingBottom: spacing.xl },
-  logo: { width: 64, height: 64, marginBottom: spacing.sm, borderRadius: 16 },
-  title: { fontSize: 32, fontFamily: fonts.outfit.bold, color: colors.slate },
+  logo: { width: 100, height: 100, marginBottom: spacing.sm, borderRadius: 20 },
+  title: { fontSize: 32, fontFamily: fonts.outfit.bold, color: '#0B2B4A', letterSpacing: 1 },
   tagline: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.mid, marginTop: 4 },
   cards: { flex: 1, justifyContent: 'center', gap: spacing.md, paddingHorizontal: spacing.xl },
   cardWrap: { borderRadius: borderRadius.xl, ...shadows.lg },
@@ -130,6 +118,4 @@ const s = StyleSheet.create({
   cardSubtitle: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
   arrow: { position: 'absolute', right: spacing.lg, top: '50%', marginTop: -12 },
   arrowText: { fontSize: 24, color: 'rgba(255,255,255,0.6)' },
-  reset: { alignItems: 'center', paddingBottom: 40 },
-  resetText: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.muted, textDecorationLine: 'underline' },
 })

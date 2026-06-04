@@ -89,7 +89,7 @@ const lister = async (req, res) => {
     );
 
     const events = rows.map(r => {
-      const remplies = r.capacite_billets - r.places_restantes;
+      const remplies = r.billets_vendus || (r.capacite_billets - r.places_restantes);
       const statut =
         r.statut === 'actif' && r.places_restantes <= 0 ? 'sold-out'
         : r.statut === 'actif' ? 'active'

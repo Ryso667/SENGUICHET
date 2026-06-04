@@ -13,27 +13,34 @@ const statutPaiement = async (req, res) => {
     if (!rows.length) return res.status(404).json({ message: "Transaction introuvable" });
 
     const tx = rows[0];
-
-    // Pour la simulation, le statut est toujours SUCCESS
-    // Pour les vrais providers, on appellerait le provider pour vérifier
     let statut = tx.statut;
-    if (tx.statut === 'PENDING' && tx.moyen_paiement === 'SIMULATION') {
-      const provider = PaymentService.getProvider('SIMULATION');
-      const result = await provider.verifierPaiement(tx.reference_operateur);
-      statut = result.statut === 'SUCCESS' ? 'SUCCESS' : 'PENDING';
 
-      if (statut === 'SUCCESS') {
-        await pool.query(
-          "UPDATE transaction SET statut = 'SUCCESS', date_mise_a_jour = NOW() WHERE reference = ?",
-          [reference]
-        );
-        // Activer le billet si le paiement est réussi
-        await pool.query(
-          `UPDATE billet SET statut = 'ACTIF' WHERE id = (
-            SELECT billet_id FROM transaction WHERE reference = ?
-          )`,
-          [reference]
-        );
+    // Si la transaction est en attente, vérifier via le provider externe
+    if (tx.statut === 'PENDING' && tx.reference_operateur) {
+      try {
+        const provider = PaymentService.getProvider(tx.moyen_paiement);
+        if (provider.verifierPaiement) {
+          const result = await provider.verifierPaiement(tx.reference_operateur);
+
+          if (result.statut === 'SUCCESS') {
+            statut = 'SUCCESS';
+            await pool.query(
+              "UPDATE transaction SET statut = 'SUCCESS', date_mise_a_jour = NOW() WHERE reference = ?",
+              [reference]
+            );
+            await pool.query(
+              `UPDATE billet SET statut = 'ACTIF' WHERE id = (
+                SELECT billet_id FROM transaction WHERE reference = ?
+              )`,
+              [reference]
+            );
+          } else if (result.statut === 'FAILED') {
+            statut = 'FAILED';
+          }
+        }
+      } catch (err) {
+        console.error("Provider verification error:", err);
+        // Si le provider est injoignable, on garde PENDING
       }
     }
 
