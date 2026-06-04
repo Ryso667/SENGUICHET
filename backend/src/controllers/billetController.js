@@ -6,9 +6,11 @@ const pool = require("../config/db");
 const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
 const PaymentService = require("../services/PaymentService");
+const { envoyerEmailBillet } = require("../services/emailService");
+const { envoyerSMSBillet } = require("../services/smsService");
 
-const HMAC_SECRET = process.env.HMAC_SECRET || 'senguichet-cle-secrete-hmac';
-
+// HMAC_SECRET est validé au démarrage dans server.js — pas besoin de le revalider ici
+const HMAC_SECRET = process.env.HMAC_SECRET;
 const acheter = async (req, res) => {
   try {
     const { evenementId, categorieTicketId, telephone, quantite = 1, provider = 'WAVE', email } = req.body;
@@ -44,7 +46,7 @@ const acheter = async (req, res) => {
       try {
         const [acheteurs] = await pool.query("SELECT email FROM acheteur WHERE telephone = ? LIMIT 1", [telephone]);
         if (acheteurs.length > 0) ticketEmail = acheteurs[0].email;
-      } catch {}
+      } catch (err) { console.warn("Erreur récupération email:", err.message); }
     }
 
     // Anti-doublon : si le mobile appelle 2× (StrictMode, retry...), on ne crée pas 2 billets
@@ -95,11 +97,8 @@ const acheter = async (req, res) => {
 
       const billetId = billetResult.insertId;
 
-      // Réserver les places immédiatement
-      await conn.query(
-        "UPDATE categorie_ticket SET places_disponibles = places_disponibles - ? WHERE id = ? AND places_disponibles >= ?",
-        [quantite, categorieTicketId, quantite]
-      );
+      // La décrémentation des places est gérée par le trigger SQL after_billet_insert
+      // pour éviter une double décrémentation (trigger + code manuel)
 
       // Créer la transaction
       const reference = 'PAI-' + uuidv4().slice(0, 12).toUpperCase();
@@ -135,9 +134,9 @@ const acheter = async (req, res) => {
           );
         }
 
-        // Si pas de redirectUrl (mode simulation/sync), confirmer immédiatement
-        // Évite que le billet reste bloqué en EN_ATTENTE sans réponse asynchrone
-        if (!paymentResult.redirectUrl) {
+        // Seul le mode SIMULATION confirme immédiatement (pas de webhook disponible)
+        // Pour les vrais providers (WAVE, Orange Money...), le webhook confirme le paiement
+        if (provider === 'SIMULATION') {
           await pool.query(
             "UPDATE transaction SET statut = 'SUCCESS', date_mise_a_jour = NOW() WHERE reference = ?",
             [reference]
@@ -166,7 +165,6 @@ const acheter = async (req, res) => {
       // Requis pour Vercel serverless — le processus est coupé après la réponse
       if (ticketEmail) {
         try {
-          const { envoyerEmailBillet } = require("../services/emailService");
           await envoyerEmailBillet(ticketEmail, {
             uuid,
             numero,
@@ -182,7 +180,6 @@ const acheter = async (req, res) => {
       }
 
       try {
-        const { envoyerSMSBillet } = require("../services/smsService");
         await envoyerSMSBillet(telephone, {
           uuid,
           numero,

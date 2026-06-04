@@ -13,17 +13,18 @@ import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { genererTicketPDF } from '../services/ticketPdfService'
-import { HMAC_SECRET } from '../config'
+import { getHMACSecret } from '../services/hmacService'
 
 const QR_REFRESH_INTERVAL = 30
 
 // Génère le payload JSON du QR avec HMAC-SHA256 (uuid, ref, timestamp, event_id, category)
 async function genererQRPayload(ticket) {
+  const secret = await getHMACSecret()
   const now = new Date().toISOString()
   const payload = `${ticket.id}|${ticket.numero}|${now}|${ticket.eventId}|${ticket.categorie}`
   const signature = await Crypto.digestStringAsync(
     Crypto.CryptoDigestAlgorithm.SHA256,
-    payload + HMAC_SECRET
+    payload + secret
   )
   return JSON.stringify({
     uuid: ticket.id,
@@ -49,7 +50,12 @@ export default function TicketScreen({ route, navigation }) {
   const qrRef = useRef(null)
 
   // Génère le QR payload à l'ouverture et le rafraîchit toutes les 30s
+  // N'actualise pas le QR si le ticket a déjà été scanné (économie batterie)
   useEffect(() => {
+    if (ticket?.statut === 'utilise') {
+      genererQRPayload(ticket).then((v) => { setQrValue(v); setQrReady(true) })
+      return
+    }
     genererQRPayload(ticket).then((v) => { setQrValue(v); setQrReady(true) })
     const interval = setInterval(async () => {
       const nouveau = await genererQRPayload(ticket)

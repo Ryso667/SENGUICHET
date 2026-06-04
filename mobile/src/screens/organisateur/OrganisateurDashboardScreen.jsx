@@ -28,8 +28,12 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
-  const fadeAnims = useRef([...Array(8)].map(() => new Animated.Value(0))).current
-  const slideAnims = useRef([...Array(8)].map(() => new Animated.Value(40))).current
+  const fadeAnims = useRef(null)
+  const slideAnims = useRef(null)
+  if (!fadeAnims.current) {
+    fadeAnims.current = [...Array(8)].map(() => new Animated.Value(0))
+    slideAnims.current = [...Array(8)].map(() => new Animated.Value(40))
+  }
 
   useEffect(() => {
     Animated.stagger(80, fadeAnims.map((fa, i) =>
@@ -48,7 +52,9 @@ export default function OrganisateurDashboardScreen({ navigation }) {
     try {
       const data = await fetchEvenementsAPI()
       setEvents(data)
-    } catch {}
+    } catch (err) {
+      console.warn('Dashboard load error:', err?.message)
+    }
     setLoading(false)
   }, [])
 

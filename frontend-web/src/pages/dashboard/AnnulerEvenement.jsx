@@ -11,6 +11,7 @@ const AnnulerEvenement = () => {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [buyers, setBuyers] = useState(0);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetch = async () => {
@@ -38,6 +39,7 @@ const AnnulerEvenement = () => {
       navigate("/dashboard/evenements");
     } catch (err) {
       setSubmitting(false);
+      setError(err.message || "Erreur lors de l'annulation");
     }
   };
 
@@ -71,7 +73,12 @@ const AnnulerEvenement = () => {
               placeholder={eventName || "Nom de l'événement"}
               className={`input-premium ${confirmText && !isConfirmed ? "error" : ""}`}
             />
-            {confirmText && !isConfirmed && (
+            {error && (
+            <p className="mt-1.5 text-xs" style={{ color: "var(--error)" }}>
+              {error}
+            </p>
+          )}
+          {confirmText && !isConfirmed && (
               <p className="mt-1.5 text-xs" style={{ color: "var(--error)" }}>
                 Le nom saisi ne correspond pas
               </p>

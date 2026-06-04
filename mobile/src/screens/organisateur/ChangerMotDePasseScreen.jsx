@@ -35,8 +35,8 @@ export default function ChangerMotDePasseScreen({ navigation }) {
       setErreur('Tous les champs sont requis')
       return false
     }
-    if (nouveauMotDePasse.length < 6) {
-      setErreur('Le nouveau mot de passe doit contenir au moins 6 caractères')
+    if (nouveauMotDePasse.length < 8) {
+      setErreur('Le nouveau mot de passe doit contenir au moins 8 caractères')
       return false
     }
     if (nouveauMotDePasse !== confirmMotDePasse) {
@@ -100,7 +100,7 @@ export default function ChangerMotDePasseScreen({ navigation }) {
             <View style={s.inputRow}>
               <TextInput
                 style={s.input}
-                placeholder="Min. 6 caractères"
+                placeholder="Min. 8 caractères"
                 placeholderTextColor="rgba(255,255,255,0.4)"
                 secureTextEntry={!showNouveau}
                 value={nouveauMotDePasse}

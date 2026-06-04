@@ -2,12 +2,21 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const pool = require("../config/db");
 require("dotenv").config();
+const crypto = require("crypto");
+const { STOCKER_CODE, VERIFIER_CODE } = require("../services/otpStore");
+const { envoyerCodeOTP: envoyerEmail } = require("../services/emailService");
 
-const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret";
+// Validation stricte : si JWT_SECRET n'est pas défini, le serveur ne démarre pas
+// Évite l'utilisation d'une fallback_secret en production
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error("ERREUR CRITIQUE : JWT_SECRET non défini dans les variables d'environnement");
+  process.exit(1);
+}
 
 const generateToken = (user, role) => {
   return jwt.sign(
-    { id: user.id, email: user.email, role },
+    { id: user.id, email: user.email, role, iat: Math.floor(Date.now() / 1000) },
     JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
   );
@@ -19,6 +28,9 @@ const inscription = async (req, res) => {
 
     if (!nom || !telephone || !email || !motDePasse) {
       return res.status(400).json({ message: "Tous les champs sont requis" });
+    }
+    if (motDePasse.length < 8) {
+      return res.status(400).json({ message: "Le mot de passe doit contenir au moins 8 caractères" });
     }
 
     const [existing] = await pool.query(
@@ -68,12 +80,9 @@ const connexionOrganisateur = async (req, res) => {
       return res.status(401).json({ message: "Email ou mot de passe incorrect" });
     }
 
+    // Bloque les comptes en attente de validation : pas de JWT, message clair
     if (user.statut === "EN_ATTENTE") {
-      const token = generateToken(user, "ORGANISATEUR");
-      return res.status(200).json({
-        token,
-        user: { id: user.id, nom: user.nom, telephone: user.telephone, email: user.email, role: "ORGANISATEUR", statut: user.statut },
-      });
+      return res.status(403).json({ message: "Email ou mot de passe incorrect" });
     }
 
     const token = generateToken(user, "ORGANISATEUR");
@@ -189,8 +198,8 @@ const reinitialiserMotDePasseOrganisateur = async (req, res) => {
     const { id } = req.params;
     const { nouveau_mot_de_passe } = req.body;
 
-    if (!nouveau_mot_de_passe || nouveau_mot_de_passe.length < 6) {
-      return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères" });
+    if (!nouveau_mot_de_passe || nouveau_mot_de_passe.length < 8) {
+      return res.status(400).json({ message: "Le mot de passe doit contenir au moins 8 caractères" });
     }
 
     const [rows] = await pool.query("SELECT id FROM organisateur WHERE id = ?", [id]);
@@ -217,14 +226,12 @@ const envoyerCodeOTP = async (req, res) => {
       return res.status(400).json({ message: "Email requis" });
     }
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const { STOCKER_CODE } = require("../services/otpStore");
+    const code = crypto.randomInt(100000, 999999).toString();
     await STOCKER_CODE(email, code);
 
-    const { envoyerCodeOTP: envoyerEmail } = require("../services/emailService");
     await envoyerEmail(email, code);
 
-    res.json({ message: "Code envoyé", code });
+    res.json({ message: "Code envoyé" });
   } catch (err) {
     console.error("Erreur envoi OTP:", err);
     res.status(500).json({ message: "Erreur lors de l'envoi du code" });
@@ -240,7 +247,6 @@ const verifierCodeOTP = async (req, res) => {
       return res.status(400).json({ message: "Email et code requis" });
     }
 
-    const { VERIFIER_CODE } = require("../services/otpStore");
     const codeValide = await VERIFIER_CODE(email, code);
     if (!codeValide) {
       return res.status(401).json({ message: "Code invalide ou expiré" });
@@ -266,9 +272,8 @@ const verifierCodeOTP = async (req, res) => {
         acheteur = { id: result.insertId, email };
       }
     } catch (dbErr) {
-      // Mode démo : si la base n'est pas accessible, créer un acheteur factice
-      console.warn("DB indisponible, mode démo:", dbErr.message);
-      acheteur = { id: Date.now(), email };
+      // Une erreur DB doit remonter au catch externe pour être traitée, pas créer d'acheteur fictif
+      throw dbErr;
     }
 
     const token = generateToken({ id: acheteur.id, email }, "ACHETEUR");
@@ -308,8 +313,7 @@ const connexionSociale = async (req, res) => {
         acheteur = { id: result.insertId, email };
       }
     } catch (dbErr) {
-      console.warn("DB indisponible, mode démo:", dbErr.message);
-      acheteur = { id: Date.now(), email };
+      throw dbErr;
     }
 
     const token = generateToken({ id: acheteur.id, email }, "ACHETEUR");
@@ -328,8 +332,8 @@ const changerMotDePasse = async (req, res) => {
     if (!ancienMotDePasse || !nouveauMotDePasse) {
       return res.status(400).json({ message: "Ancien et nouveau mot de passe requis" });
     }
-    if (nouveauMotDePasse.length < 6) {
-      return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères" });
+    if (nouveauMotDePasse.length < 8) {
+      return res.status(400).json({ message: "Le mot de passe doit contenir au moins 8 caractères" });
     }
 
     const [rows] = await pool.query(
@@ -355,4 +359,28 @@ const changerMotDePasse = async (req, res) => {
   }
 };
 
-module.exports = { inscription, connexionOrganisateur, connexionAdmin, connexionPartenaire, adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur, connexionSociale, envoyerCodeOTP, verifierCodeOTP, changerMotDePasse };
+// Connexion contrôleur via code d'accès à 4 chiffres
+// En mode mock, accepte tout code à 4 chiffres et retourne un JWT signé
+const connexionControleur = async (req, res) => {
+  try {
+    const { codeAcces } = req.body;
+    if (!codeAcces || codeAcces.length !== 4) {
+      return res.status(400).json({ message: "Code d'accès à 4 chiffres requis" });
+    }
+
+    // En mode mock, on accepte n'importe quel code à 4 chiffres
+    // Sera remplacé par une vérification en base de données en production
+    const token = jwt.sign(
+      { id: `ctrl-${Date.now()}`, role: "CONTROLEUR", iat: Math.floor(Date.now() / 1000) },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    res.json({ token, role: "controleur" });
+  } catch (err) {
+    console.error("Connexion contrôleur error:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+module.exports = { inscription, connexionOrganisateur, connexionAdmin, connexionPartenaire, adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur, connexionSociale, envoyerCodeOTP, verifierCodeOTP, changerMotDePasse, connexionControleur };

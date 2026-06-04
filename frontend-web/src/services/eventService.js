@@ -1,6 +1,9 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+// Fichier : eventService.js
+// Rôle : Service d'appels API pour la gestion des événements et demandes
 
-const getToken = () => localStorage.getItem("jwt_token");
+import { getToken } from "../utils/storage";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 const headers = () => ({
   "Content-Type": "application/json",
@@ -8,6 +11,8 @@ const headers = () => ({
 });
 
 const handleResponse = async (res) => {
+  // Les réponses 204 No Content n'ont pas de body
+  if (res.status === 204) return [];
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Erreur serveur");
   return data;

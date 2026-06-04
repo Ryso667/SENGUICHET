@@ -4,8 +4,7 @@
   "private": true,
   "workspaces": [
     "backend",
-    "frontend-web",
-    "shared"
+    "frontend-web"
   ],
   "overrides": {
     "react": "19.1.0",

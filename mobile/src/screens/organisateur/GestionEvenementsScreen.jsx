@@ -35,7 +35,9 @@ export default function GestionEvenementsScreen({ navigation }) {
     try {
       const evts = await fetchEvenementsAPI()
       setEvents(evts)
-    } catch {}
+    } catch (err) {
+      console.warn('Events load error:', err?.message)
+    }
     setLoading(false)
   }, [])
 

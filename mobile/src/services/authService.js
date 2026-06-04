@@ -1,10 +1,9 @@
 // Service d'authentification : sociale (Google/Apple), code contrôleur, email organisateur
 // Le flux OTP téléphone a été remplacé par l'authentification sociale (Google/Apple)
-import bcrypt from 'bcryptjs'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import * as Crypto from 'expo-crypto'
 import { appelAPI } from './apiService'
+import * as Securite from '../utils/secureStorage'
 
-const SALT_ROUNDS = 10
 const STORAGE_KEY_CTRL_CODE = '@senguichet_ctrl_code'
 
 // Connecte un acheteur via Firebase Social Auth (Google/Apple)
@@ -36,17 +35,12 @@ export const connecterOrganisateur = async (email, motDePasse) => {
 }
 
 // Connexion contrôleur via code d'accès à 4 chiffres
-// Vérifie le code contre un hash bcrypt stocké localement
-// Au premier démarrage, initialise avec un code par défaut
+// Appelle le backend qui vérifie le code et retourne un JWT signé
 export const connecterControleur = async (codeAcces) => {
-  let storedHash = await AsyncStorage.getItem(STORAGE_KEY_CTRL_CODE)
-  if (!storedHash) {
-    storedHash = await bcrypt.hash('1234', SALT_ROUNDS)
-    await AsyncStorage.setItem(STORAGE_KEY_CTRL_CODE, storedHash)
-  }
-  const valide = await bcrypt.compare(codeAcces, storedHash)
-  if (!valide) throw new Error('Code d\'accès invalide')
-  return { token: 'jwt-ctrl-' + Date.now(), role: 'controleur' }
+  return appelAPI('/auth/controleur', {
+    method: 'POST',
+    body: { codeAcces },
+  })
 }
 
 // Envoie un code OTP à l'email de l'acheteur via le backend

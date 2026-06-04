@@ -321,12 +321,13 @@ const envoyerIdentifiantsPartenaire = async (identifiants) => {
                 <span style="color: rgba(255,255,255,0.4); font-size: 12px;">Email</span>
                 <span style="color: #A78BFA; font-size: 13px;">${identifiants.email}</span>
               </div>
-              <div style="display: flex; justify-content: space-between; padding: 6px 0;">
-                <span style="color: rgba(255,255,255,0.4); font-size: 12px;">Mot de passe</span>
-                <span style="color: #FCD34D; font-size: 13px; letter-spacing: 1px; font-family: 'Courier New', monospace;">${identifiants.motDePasse}</span>
-              </div>
             </div>
-            <p style="color: rgba(255,255,255,0.35); font-size: 11px; margin: 12px 0 0;">Connectez-vous sur l'application SENGUICHET.</p>
+            <div style="text-align: center; margin-top: 16px;">
+              <a href="https://senguichet.com/connexion" style="display: inline-block; background: linear-gradient(135deg, #7C3AED, #A855F7); color: white; text-decoration: none; padding: 12px 32px; border-radius: 10px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 16px rgba(124,58,237,0.35);">
+                Se connecter →
+              </a>
+            </div>
+            <p style="color: rgba(255,255,255,0.35); font-size: 11px; margin: 12px 0 0;">Connectez-vous sur l'application SENGUICHET avec l'email ci-dessus et le mot de passe défini lors de la création du compte.</p>
           </div>
         </div>
         <div style="text-align: center; padding: 0 24px 20px;">

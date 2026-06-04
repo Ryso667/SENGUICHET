@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import ErrorBoundary from "./components/ErrorBoundary";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Footer from "./components/Footer";
 import Accueil from "./pages/Accueil";
@@ -28,7 +29,8 @@ import Unauthorized from "./pages/Unauthorized";
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
+      <ErrorBoundary>
+        <AuthProvider>
         <div className="min-h-screen bg-[#0D1B2A]">
           <Routes>
             <Route element={<><Outlet /><Footer /></>}>
@@ -62,6 +64,7 @@ function App() {
           </Routes>
         </div>
       </AuthProvider>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

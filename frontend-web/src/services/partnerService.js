@@ -1,10 +1,10 @@
-/**
- * Service d'appels API pour les demandes de partenariat
- * Communique avec le backend sur /api/partenaires
- */
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+// Fichier : partnerService.js
+// Rôle : Service d'appels API pour les demandes de partenariat
+// Communique avec le backend sur /api/partenaires
 
-const getToken = () => localStorage.getItem("jwt_token");
+import { getToken } from "../utils/storage";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 const authHeaders = () => ({
   "Content-Type": "application/json",
@@ -12,6 +12,8 @@ const authHeaders = () => ({
 });
 
 const handleResponse = async (res) => {
+  // Les réponses 204 No Content n'ont pas de body
+  if (res.status === 204) return [];
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Erreur serveur");
   return data;

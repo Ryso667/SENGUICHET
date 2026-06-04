@@ -4,6 +4,7 @@
  * Types : CREATION, MODIFICATION, SUPPRESSION
  */
 const pool = require("../config/db");
+const crypto = require("crypto");
 const { envoyerNotificationDemandeEvenement } = require("../services/emailService");
 
 const soumettreDemande = async (req, res) => {
@@ -151,7 +152,7 @@ const adminDetailDemande = async (req, res) => {
 };
 
 const creerEvenementDepuisDemande = async (conn, demande) => {
-  const scanCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const scanCode = crypto.randomBytes(3).toString('hex').toUpperCase();
   const [evResult] = await conn.query(
     `INSERT INTO evenement (organisateur_id, titre, description, lieu, date_debut, date_fin, capacite_totale, affiche_url, scan_code, statut)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'actif')`,

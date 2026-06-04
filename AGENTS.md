@@ -80,6 +80,14 @@ expo-camera, expo-sqlite, expo-crypto, @vercel/node, nodemailer
 - **SMTP Vercel** fonctionnel — vérifier boîte et spams
 - **migrate.js** : SSL rejectUnauthorized: false, supprime CREATE DATABASE/USE, FOREIGN_KEY_CHECKS=0
 - **db.js** : SSL rejectUnauthorized: false
+- **Code review juin 2026** : 34 critiques corrigés (secrets commités, HMAC_SECRET manquant, rate limiting connexion, OTP crypto, validation inscription, webhook idempotence, 204 frontend, migrate sécurité)
+- **Secrets** : `.env.prod`/`.env.vercel` ajoutés à `.gitignore` + retirés du cache git. SMTP credentials retirés du `.env` mobile (plus `EXPO_PUBLIC_SMTP_*`)
+- **Rate limiting** : `limiteConnexion` (5/min) et `limiteConnexionAdmin` (3/min) sur les 3 routes de login
+- **OTP** : `crypto.randomInt()` au lieu de `Math.random()`
+- **HMAC_SECRET** : validation stricte avec `process.exit(1)` dans `billetController.js`
+- **JWT** : claim `iat` ajouté au payload
+- **shared/** : retiré du workspace (package vide, pas de consommateurs)
+- **Frontend** : `react`/`react-dom` en dépendances directes de `frontend-web`, 204 retourne `[]` au lieu de `null`
 
 ## Commentaires dans le code
 - TOUS les fichiers source doivent avoir des commentaires en français expliquant :

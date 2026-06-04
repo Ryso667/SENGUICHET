@@ -17,11 +17,12 @@ const STORAGE_KEY_NUMERO = '@senguichet_telephone'
 const STORAGE_KEY_EMAIL  = '@senguichet_orga_email'
 const STORAGE_KEY_USER   = '@senguichet_orga_user'
 const STORAGE_KEY_PROFIL = '@senguichet_profil'
-const STORAGE_KEY_BIOMETRIC_EMAIL = '@senguichet_biometric_email'
 const STORAGE_KEY_ACHETEUR_EMAIL  = '@senguichet_acheteur_email'
-const STORAGE_KEY_ACHETEUR_PIN    = '@senguichet_acheteur_pin'
+// Clés non critiques stockées dans AsyncStorage (préférences, suggestions)
 const STORAGE_KEY_ORGA_EMAIL_SUGGESTION = '@senguichet_orga_email_suggestion'
 const STORAGE_KEY_ACHETEUR_EMAIL_SUGGESTION = '@senguichet_acheteur_email_suggestion'
+
+const STORAGE_KEY_BIOMETRIC_EMAIL = '@senguichet_biometric_email'
 
 export function AuthProvider({ children }) {
   const [role, setRole] = useState(null)
@@ -73,7 +74,7 @@ export function AuthProvider({ children }) {
         }
       }
 
-      const bioEmail = await AsyncStorage.getItem(STORAGE_KEY_BIOMETRIC_EMAIL)
+      const bioEmail = await Securite.GET(STORAGE_KEY_BIOMETRIC_EMAIL)
       if (bioEmail) {
         setHasSavedSession(true)
         setSessionEmail(bioEmail)
@@ -109,14 +110,14 @@ export function AuthProvider({ children }) {
   // Connexion acheteur (ancien flow OTP, conservé pour compatibilité)
   const connecterAcheteur = async (tel) => {
     await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'acheteur')
-    await AsyncStorage.setItem(STORAGE_KEY_NUMERO, tel)
+    await Securite.SET(STORAGE_KEY_NUMERO, tel)
     setNumeroTel(tel)
     setRole('acheteur')
   }
 
   // Stocke le téléphone après un achat (utilisé par le flow social)
   const definirTelephone = async (tel) => {
-    await AsyncStorage.setItem(STORAGE_KEY_NUMERO, tel)
+    await Securite.SET(STORAGE_KEY_NUMERO, tel)
     setNumeroTel(tel)
   }
 
@@ -132,7 +133,7 @@ export function AuthProvider({ children }) {
     await Securite.SET(STORAGE_KEY_JWT, token)
     await Securite.SET(STORAGE_KEY_EMAIL, userData.email)
     await Securite.SET(STORAGE_KEY_USER, JSON.stringify(userData))
-    await AsyncStorage.setItem(STORAGE_KEY_BIOMETRIC_EMAIL, userData.email)
+    await Securite.SET(STORAGE_KEY_BIOMETRIC_EMAIL, userData.email)
     await AsyncStorage.setItem(STORAGE_KEY_ORGA_EMAIL_SUGGESTION, userData.email)
     setJwt(token)
     setEmail(userData.email)
@@ -170,7 +171,7 @@ export function AuthProvider({ children }) {
         promptMessage: 'Connecte-toi avec ton empreinte',
       })
       if (result.success) {
-        const userData = await AsyncStorage.getItem(STORAGE_KEY_USER)
+        const userData = await Securite.GET(STORAGE_KEY_USER)
         const token = await Securite.GET(STORAGE_KEY_JWT)
         if (token && userData) {
           await connecterOrganisateur(token, JSON.parse(userData))
@@ -183,8 +184,6 @@ export function AuthProvider({ children }) {
   const nettoyerSession = async () => {
     await AsyncStorage.multiRemove([
       STORAGE_KEY_ROLE,
-      STORAGE_KEY_ACHETEUR_PIN,
-      STORAGE_KEY_BIOMETRIC_EMAIL,
     ])
     await Securite.SUPPRIMER(STORAGE_KEY_NUMERO)
     await Securite.SUPPRIMER(STORAGE_KEY_JWT)
@@ -192,6 +191,7 @@ export function AuthProvider({ children }) {
     await Securite.SUPPRIMER(STORAGE_KEY_USER)
     await Securite.SUPPRIMER(STORAGE_KEY_PROFIL)
     await Securite.SUPPRIMER(STORAGE_KEY_ACHETEUR_EMAIL)
+    await Securite.SUPPRIMER(STORAGE_KEY_BIOMETRIC_EMAIL)
     setRole(null)
     setNumeroTel(null)
     setJwt(null)

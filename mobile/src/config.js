@@ -12,7 +12,6 @@ export const API_BASE_URL = 'https://backend-rust-sigma-64.vercel.app/api'
 
 export const API_TIMEOUT = 10000 // 10 secondes avant abandon
 
-// Clé secrète partagée pour la signature HMAC des QR codes
-// En production, cette clé doit être fournie par le serveur via un canal sécurisé
-// et jamais codée en dur dans le code source distribué
-export const HMAC_SECRET = 'senguichet-hmac-secret-v1'
+// ATTENTION : La clé HMAC ne doit PAS être codée en dur ici.
+// Utiliser hmacService.getHMACSecret() qui la récupère depuis SecureStore.
+// Voir mobile/src/services/hmacService.js

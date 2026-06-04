@@ -7,7 +7,7 @@ import {
   historiqueScans, historiqueScansAvecDetails,
   compterTickets, compterScansParResultat, viderTickets,
 } from '../database/database'
-import { HMAC_SECRET } from '../config'
+import { getHMACSecret } from './hmacService'
 
 // 5 statuts possibles pour un scan (conforme Document Technique v1.0)
 const RESULTATS = {
@@ -40,8 +40,9 @@ function parserQR(donnees) {
 // Vérifie la signature HMAC-SHA256 (anti-contrefaçon)
 // Concatène les champs dans l'ordre défini puis compare avec le HMAC du QR
 async function verifierHMAC(qr) {
+  const secret = await getHMACSecret()
   const donnees = `${qr.uuid}|${qr.transaction_ref}|${qr.timestamp}|${qr.event_id}|${qr.category}`
-  const calcule = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, donnees + HMAC_SECRET)
+  const calcule = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, donnees + secret)
   return comparerTempsConstant(calcule, qr.hmac)
 }
 

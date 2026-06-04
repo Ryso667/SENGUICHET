@@ -1,4 +1,8 @@
+// Fichier : authService.js
+// Rôle : Service d'appels API pour l'authentification (inscription, connexion, admin)
+
 import axios from "axios";
+import { getToken } from "../utils/storage";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -20,9 +24,8 @@ export const inscriptionOrganisateur = async (data) => {
     );
     return response.data;
   } catch (err) {
-    if (err.response) {
-      return err.response.data;
-    }
+    // On propage l'erreur pour que le caller puisse la gérer
+    console.error("Erreur inscriptionOrganisateur:", err.response?.data || err.message);
     throw err;
   }
 };
@@ -35,9 +38,7 @@ export const connexionOrganisateur = async (data) => {
     );
     return response.data;
   } catch (err) {
-    if (err.response) {
-      return err.response.data;
-    }
+    console.error("Erreur connexionOrganisateur:", err.response?.data || err.message);
     throw err;
   }
 };
@@ -50,9 +51,7 @@ export const connexionAdmin = async (data) => {
     );
     return response.data;
   } catch (err) {
-    if (err.response) {
-      return err.response.data;
-    }
+    console.error("Erreur connexionAdmin:", err.response?.data || err.message);
     throw err;
   }
 };
@@ -65,19 +64,16 @@ export const connexionPartenaire = async (data) => {
     );
     return response.data;
   } catch (err) {
-    if (err.response) {
-      return err.response.data;
-    }
+    console.error("Erreur connexionPartenaire:", err.response?.data || err.message);
     throw err;
   }
 };
-
-const getToken = () => localStorage.getItem("jwt_token");
 
 export const adminListerOrganisateurs = async () => {
   const res = await fetch(`${BASE_URL}/api/auth/admin/organisateurs`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });
+  if (res.status === 204) return null;
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Erreur serveur");
   return data;
@@ -89,6 +85,7 @@ export const reinitialiserMotDePasseOrganisateur = async (id, nouveauMotDePasse)
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
     body: JSON.stringify({ nouveau_mot_de_passe: nouveauMotDePasse }),
   });
+  if (res.status === 204) return null;
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Erreur serveur");
   return data;

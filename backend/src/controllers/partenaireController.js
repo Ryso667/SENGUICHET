@@ -217,8 +217,8 @@ const creerIdentifiantsPartenaire = async (req, res) => {
       return res.status(400).json({ message: "demande_id, email et mot_de_passe sont requis" });
     }
 
-    if (mot_de_passe.length < 6) {
-      return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères" });
+    if (mot_de_passe.length < 8) {
+      return res.status(400).json({ message: "Le mot de passe doit contenir au moins 8 caractères" });
     }
 
     const [demandes] = await pool.query(
@@ -275,7 +275,8 @@ const creerIdentifiantsPartenaire = async (req, res) => {
         nom: demande.nom,
         organisation: demande.organisation,
         email: emailLower,
-        motDePasse: mot_de_passe,
+        // Ne plus envoyer le mot de passe en clair par email (risque de sécurité)
+        // Le destinataire reçoit un lien de connexion à la place
       });
     } catch (err) {
       console.error("Erreur envoi identifiants partenaire:", err.message);
@@ -335,8 +336,8 @@ const reinitialiserMotDePasse = async (req, res) => {
   try {
     const { nouveau_mot_de_passe } = req.body;
 
-    if (!nouveau_mot_de_passe || nouveau_mot_de_passe.length < 6) {
-      return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères" });
+    if (!nouveau_mot_de_passe || nouveau_mot_de_passe.length < 8) {
+      return res.status(400).json({ message: "Le mot de passe doit contenir au moins 8 caractères" });
     }
 
     const [partenaires] = await pool.query(

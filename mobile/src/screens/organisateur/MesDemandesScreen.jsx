@@ -63,7 +63,9 @@ export default function MesDemandesScreen({ navigation }) {
     try {
       const data = await listerMesDemandes()
       setDemandes(data || [])
-    } catch {}
+    } catch (err) {
+      console.warn('Demandes load error:', err?.message)
+    }
     setLoading(false)
   }, [])
 

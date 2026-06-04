@@ -20,4 +20,22 @@ const limiteVerifOTP = rateLimit({
   legacyHeaders: false,
 });
 
-module.exports = { limiteEnvoiOTP, limiteVerifOTP };
+// Limiteur pour la connexion par mot de passe : 5 tentatives par minute par IP
+const limiteConnexion = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: { message: "Trop de tentatives. Réessaie dans une minute." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Limiteur strict pour la connexion admin : 3 tentatives par minute par IP
+const limiteConnexionAdmin = rateLimit({
+  windowMs: 60 * 1000,
+  max: 3,
+  message: { message: "Trop de tentatives. Réessaie dans une minute." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+module.exports = { limiteEnvoiOTP, limiteVerifOTP, limiteConnexion, limiteConnexionAdmin };

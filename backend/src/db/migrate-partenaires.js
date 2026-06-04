@@ -8,20 +8,26 @@ const path = require("path");
 require("dotenv").config();
 
 async function migratePartenaires() {
+  const sslConfig = process.env.DB_SSL === "true"
+    ? { rejectUnauthorized: false }
+    : undefined;
+
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST || "localhost",
     port: parseInt(process.env.DB_PORT) || 3306,
     user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "",
+    database: process.env.DB_NAME || "senguichet",
+    ssl: sslConfig,
     multipleStatements: true,
   });
 
   try {
     console.log("⏳ Migration partenaires...");
-    await connection.query("USE senguichet");
+    // La base est déjà sélectionnée via database: dans la connexion
 
     const [rows] = await connection.query(
-      "SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema = 'senguichet' AND table_name = 'partenaire_demande'"
+      `SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema = '${process.env.DB_NAME || "senguichet"}' AND table_name = 'partenaire_demande'`
     );
 
     if (rows[0].cnt === 0) {

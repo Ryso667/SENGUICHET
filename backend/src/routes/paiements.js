@@ -4,7 +4,6 @@ const express = require("express");
 const router = express.Router();
 const paiementController = require("../controllers/paiementController");
 const webhookController = require("../controllers/webhookController");
-
 // Redirections Wave Checkout (l'utilisateur revient ici depuis la WebView)
 router.get("/wave/success/:reference", (req, res) => {
   res.status(200).json({ message: 'Paiement Wave terminé', reference: req.params.reference });
