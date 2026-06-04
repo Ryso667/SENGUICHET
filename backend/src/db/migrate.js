@@ -4,16 +4,29 @@ const path = require("path");
 require("dotenv").config();
 
 async function migrate() {
+  const sslConfig = process.env.DB_SSL === "true"
+    ? { rejectUnauthorized: false }
+    : undefined;
+
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST || "localhost",
     port: parseInt(process.env.DB_PORT) || 3306,
     user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "",
+    database: process.env.DB_NAME || "senguichet",
+    ssl: sslConfig,
     multipleStatements: true,
   });
 
   const sqlPath = path.join(__dirname, "schema.sql");
-  const sql = fs.readFileSync(sqlPath, "utf8");
+  let sql = fs.readFileSync(sqlPath, "utf8");
+
+  // Supprime CREATE DATABASE et USE (la DB est déjà créée sur Aiven)
+  sql = sql.replace(/CREATE DATABASE .*?;/i, "");
+  sql = sql.replace(/USE .*?;/i, "");
+
+  // Ajoute les désactivatons de FK checks pour permettre l'ordre des tables
+  sql = "SET FOREIGN_KEY_CHECKS=0;\n" + sql + "\nSET FOREIGN_KEY_CHECKS=1;\n";
 
   try {
     console.log("⏳ Migration en cours...");
