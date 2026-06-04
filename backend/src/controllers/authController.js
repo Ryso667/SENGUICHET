@@ -219,7 +219,7 @@ const envoyerCodeOTP = async (req, res) => {
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const { STOCKER_CODE } = require("../services/otpStore");
-    STOCKER_CODE(email, code);
+    await STOCKER_CODE(email, code);
 
     // Répond immédiatement — l'email part en arrière-plan
     res.json({ message: "Code envoyé", simulé: true, code });
@@ -242,7 +242,8 @@ const verifierCodeOTP = async (req, res) => {
     }
 
     const { VERIFIER_CODE } = require("../services/otpStore");
-    if (!VERIFIER_CODE(email, code)) {
+    const codeValide = await VERIFIER_CODE(email, code);
+    if (!codeValide) {
       return res.status(401).json({ message: "Code invalide ou expiré" });
     }
 
