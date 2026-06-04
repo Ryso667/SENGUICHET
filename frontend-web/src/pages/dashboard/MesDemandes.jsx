@@ -4,6 +4,26 @@ import { listerMesDemandes, soumettreDemandeEvenement } from "../../services/eve
 import { useAuth } from "../../context/AuthContext";
 import { FileText, Inbox, Check, Calendar, Edit, X, Send, Loader } from "../../components/Icons";
 
+const CATEGORIES = ["Concert", "Festival", "Soirée", "Sport", "Conférence", "Théâtre", "Autre"];
+const VILLES = ["Dakar", "Thiès", "Saint-Louis", "Ziguinchor", "Autre"];
+
+const CategorySelect = ({ value, onChange, options, label }) => (
+  <div className="relative">
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="input-premium appearance-none cursor-pointer"
+      style={{ paddingRight: "40px", fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+    >
+      <option value="" disabled style={{ background: "var(--bg)", color: "var(--text-secondary)" }}>{label}</option>
+      {options.map((o) => (
+        <option key={o} value={o} style={{ background: "var(--bg)", color: "#F1F5F9" }}>{o}</option>
+      ))}
+    </select>
+    <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--text-secondary)", fontSize: "0.7rem" }}>▼</span>
+  </div>
+);
+
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "dsozpl9vh";
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "senguichet_affiches";
 
@@ -58,6 +78,8 @@ const MesDemandes = () => {
   const [dateDebut, setDateDebut] = useState("");
   const [dateFin, setDateFin] = useState("");
   const [capacite, setCapacite] = useState("");
+  const [ville, setVille] = useState("");
+  const [categorie, setCategorie] = useState("");
   const [message, setMessage] = useState("");
   const [categories, setCategories] = useState([{ nom: "", places: "", prix: "" }]);
   const [uploading, setUploading] = useState(false);
@@ -106,6 +128,8 @@ const MesDemandes = () => {
     setDateDebut("");
     setDateFin("");
     setCapacite("");
+    setVille("");
+    setCategorie("");
     setMessage("");
     setCategories([{ nom: "", places: "", prix: "" }]);
     setUploading(false);
@@ -136,6 +160,8 @@ const MesDemandes = () => {
         payload.date_debut = dateDebut;
         payload.date_fin = dateFin || null;
         payload.capacite = parseInt(capacite) || 0;
+        payload.ville = ville || null;
+        payload.categorie = categorie || null;
         if (cloudinaryUrl) payload.affiche_url = cloudinaryUrl;
         payload.categories_tickets = categories
           .filter((c) => c.nom.trim() && c.places && c.prix)
@@ -361,6 +387,20 @@ const MesDemandes = () => {
                           Description <span style={{ color: "var(--error)" }}>*</span>
                         </label>
                         <textarea required rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="input-premium" placeholder="Décrivez votre événement..." style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", resize: "vertical" }} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            Catégorie <span style={{ color: "var(--error)" }}>*</span>
+                          </label>
+                          <CategorySelect value={categorie} onChange={setCategorie} options={CATEGORIES} label="Sélectionnez une catégorie" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            Ville <span style={{ color: "var(--error)" }}>*</span>
+                          </label>
+                          <CategorySelect value={ville} onChange={setVille} options={VILLES} label="Sélectionnez une ville" />
+                        </div>
                       </div>
                       <div>
                         <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>

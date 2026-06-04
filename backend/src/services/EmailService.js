@@ -18,6 +18,9 @@ const transporter = nodemailer.createTransport({
 
 const MAIL_FROM = process.env.MAIL_FROM || "noreply@senguichet.sn";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@senguichet.com";
+const SITE_URL = process.env.SITE_URL || "http://localhost:8080";
+const LOGO_URL = `${SITE_URL}/uploads/logo.jpg`;
+const LOGO_HTML = `<img src="${LOGO_URL}" alt="SENGUICHET" style="width:150px;height:auto;display:block;margin:0 auto 16px;" />`;
 
 /**
  * Envoie un email de confirmation au demandeur
@@ -36,9 +39,7 @@ const envoyerConfirmationDemandeur = async (data) => {
         <body style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; background: #0D1B2A; color: #fff; margin: 0; padding: 0;">
           <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <div style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #00C8FF, #0077FF); text-align: center; line-height: 56px; margin: 0 auto 16px;">
-                <span style="color: #fff; font-size: 24px; font-weight: 800; line-height: 56px; vertical-align: middle; display: inline-block;">S</span>
-              </div>
+              ${LOGO_HTML}
               <h1 style="font-size: 24px; font-weight: 700; margin: 0; font-family: Outfit, sans-serif;">Merci pour votre intérêt !</h1>
             </div>
 
@@ -219,9 +220,7 @@ const envoyerStatutDemande = async (data, statut, noteAdmin = "") => {
         <body style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; background: #0D1B2A; color: #fff; margin: 0; padding: 0;">
           <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <div style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #00C8FF, #0077FF); text-align: center; line-height: 56px; margin: 0 auto 16px;">
-                <span style="color: #fff; font-size: 24px; font-weight: 800; line-height: 56px; vertical-align: middle; display: inline-block;">S</span>
-              </div>
+              ${LOGO_HTML}
               <h1 style="font-size: 22px; font-weight: 700; margin: 0; font-family: Outfit, sans-serif;">Mise à jour de votre demande</h1>
             </div>
             <div style="background: #152232; border-radius: 16px; padding: 32px; border: 1px solid rgba(0,200,255,0.12);">
@@ -257,9 +256,7 @@ const envoyerIdentifiantsPartenaire = async (data) => {
         <body style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; background: #0D1B2A; color: #fff; margin: 0; padding: 0;">
           <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <div style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #00C8FF, #0077FF); text-align: center; line-height: 56px; margin: 0 auto 16px;">
-                <span style="color: #fff; font-size: 24px; font-weight: 800; line-height: 56px; vertical-align: middle; display: inline-block;">S</span>
-              </div>
+              ${LOGO_HTML}
               <h1 style="font-size: 24px; font-weight: 700; margin: 0; font-family: Outfit, sans-serif;">Bienvenue chez SENGUICHET !</h1>
             </div>
             <div style="background: #152232; border-radius: 16px; padding: 32px; border: 1px solid rgba(0,200,255,0.12);">
@@ -412,9 +409,7 @@ const envoyerNotificationDemandeEvenement = async (data) => {
         <body style="font-family:'Plus Jakarta Sans',Arial,sans-serif;background:#0D1B2A;color:#fff;margin:0;padding:0;">
           <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
             <div style="text-align:center;margin-bottom:30px;">
-              <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#00C8FF,#0077FF);text-align:center;line-height:56px;margin:0 auto 16px;">
-                <span style="color:#fff;font-size:24px;font-weight:800;line-height:56px;vertical-align:middle;display:inline-block;">S</span>
-              </div>
+              ${LOGO_HTML}
               <h1 style="font-size:22px;font-weight:700;margin:0;font-family:Outfit,sans-serif;">
                 ${isAdminNotif ? "Nouvelle demande" : "Mise à jour de votre demande"}
               </h1>
