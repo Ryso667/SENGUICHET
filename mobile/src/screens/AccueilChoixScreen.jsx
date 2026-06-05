@@ -78,7 +78,7 @@ export default function AccueilChoixScreen({ navigation }) {
 
       {/* Cartes glass */}
       <View style={styles.cards}>
-        {ROLES.map((role, i) => {
+        {ROLES.map((r, i) => {
           const scale = anims[i].interpolate({
             inputRange: [0, 1], outputRange: [0.92, 1],
           })
@@ -86,11 +86,11 @@ export default function AccueilChoixScreen({ navigation }) {
             inputRange: [0, 1], outputRange: [0, 1],
           })
           return (
-            <Animated.View key={role.key} style={[styles.cardWrap, { opacity, transform: [{ scale }] }]}>
+            <Animated.View key={r.key} style={[styles.cardWrap, { opacity, transform: [{ scale }] }]}>
               <TouchableOpacity
                 activeOpacity={0.85}
                   onPress={async () => {
-                    const target = role.screen || 'SocialAuth'
+                    const target = r.screen || 'SocialAuth'
                     if (role) {
                       setRedirection(target)
                       await nettoyerSession()
@@ -100,12 +100,12 @@ export default function AccueilChoixScreen({ navigation }) {
                   }}
               >
                 <GlassContainer style={styles.card} blurType="light" intensity={60}>
-                  <View style={[styles.accentBar, { backgroundColor: role.accent }]} />
+                  <View style={[styles.accentBar, { backgroundColor: r.accent }]} />
                   <View style={styles.cardContent}>
-                    <MaterialCommunityIcons name={role.icon} size={32} color={role.accent} />
+                    <MaterialCommunityIcons name={r.icon} size={32} color={r.accent} />
                     <View style={styles.cardText}>
-                      <Text style={styles.cardTitle}>{role.title}</Text>
-                      <Text style={styles.cardSubtitle}>{role.subtitle}</Text>
+                      <Text style={styles.cardTitle}>{r.title}</Text>
+                      <Text style={styles.cardSubtitle}>{r.subtitle}</Text>
                     </View>
                     <MaterialCommunityIcons name="chevron-right" size={20} color="rgba(255,255,255,0.4)" />
                   </View>

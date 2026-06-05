@@ -31,34 +31,35 @@ const emailLayout = (content, options = {}) => {
     </div>`;
 };
 
-// Crée le transporteur SMTP selon la configuration d'environnement
-// Retourne null si SMTP non configuré
-const createTransporter = () => {
+// Transporteur SMTP singleton (réutilisé entre les appels d'une même instance serverless)
+// Évite de créer une nouvelle connexion SMTP à chaque requête (Gmail rate-limite)
+let _transporter = null;
+const getTransporter = () => {
+  if (_transporter) return _transporter;
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
   const port = parseInt(process.env.SMTP_PORT || "587", 10);
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
-
   if (!user || !pass) {
-    console.warn("SMTP non configuré. Les emails ne seront pas envoyés.");
+    console.warn("[EMAIL] SMTP non configuré (SMTP_USER/PASS manquants)");
     return null;
   }
-
   const secure = process.env.SMTP_SECURE
     ? process.env.SMTP_SECURE === "true"
     : port === 465;
-
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure,
+  _transporter = nodemailer.createTransport({
+    host, port, secure,
     auth: { user, pass },
   });
+  return _transporter;
 };
+
+// Réinitialise le transporteur (utile si les credentials changent)
+const resetTransporter = () => { _transporter = null; };
 
 // Fonction utilitaire pour envoyer un email via le transporteur
 const envoyerEmail = async (destinataire, sujet, html) => {
-  const transporter = createTransporter();
+  const transporter = getTransporter();
   if (!transporter) {
     console.log(`[EMAIL SIMULÉ] À: ${destinataire} — ${sujet}`);
     return { simulé: true, destinataire };
@@ -69,7 +70,7 @@ const envoyerEmail = async (destinataire, sujet, html) => {
     subject: sujet,
     html,
   });
-  console.log(`Email envoyé à ${destinataire}: ${info.messageId}`);
+  console.log(`[EMAIL] Envoyé à ${destinataire}: ${info.messageId}`);
   return { success: true, messageId: info.messageId };
 };
 
@@ -125,12 +126,6 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
 // Envoie un code OTP à l'acheteur pour confirmer son email
 // code : chaîne de 6 chiffres, valable 5 minutes
 const envoyerCodeOTP = async (destinataire, code) => {
-  const transporter = createTransporter();
-  if (!transporter) {
-    console.log(`[OTP SIMULÉ] ${destinataire} → Code: ${code}`);
-    return { simulé: true, destinataire, code };
-  }
-
   const content = `
     <div style="background:white;border-radius:12px;padding:24px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
       <p style="color:#0D1B2A;font-size:15px;margin:0 0 16px 0;">Voici ton code de confirmation :</p>
@@ -139,7 +134,6 @@ const envoyerCodeOTP = async (destinataire, code) => {
       </div>
       <p style="color:#94a3b8;font-size:12px;margin-top:16px;">Ce code expire dans 5 minutes.</p>
     </div>`;
-
   return envoyerEmail(destinataire, "Ton code de connexion SENGUICHET", emailLayout(content, { preheader: "Ton code de confirmation" }));
 };
 
