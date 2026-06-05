@@ -8,7 +8,7 @@
         "npx",
         "-y",
         "@berthojoris/mcp-mysql-server",
-        "mysql://root:password@localhost:3306/senguichet",
+        "mysql://3Xf3xDmifk7jajp.root:aRB0S1VMTjE8McKJ@gateway01.eu-central-1.prod.aws.tidbcloud.com:4000/test?ssl=%7B%22rejectUnauthorized%22%3Atrue%7D",
         "list,read,utility,create,update,ddl"
       ],
       "enabled": true

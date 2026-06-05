@@ -1,4 +1,4 @@
-// Service d'envoi d'emails — ticket confirmation après paiement
+// Service d'envoi d'emails — confirmation billet, OTP, partenariat
 // Utilise nodemailer avec SMTP configurable (Gmail, SendGrid, etc.)
 const nodemailer = require("nodemailer");
 require("dotenv").config();
@@ -9,6 +9,8 @@ const SITE_URL = process.env.SITE_URL || process.env.VERCEL_URL
 
 const LOGO_URL = `${SITE_URL}/uploads/logo.jpg`;
 
+// Wrapper de mise en page commun à tous les emails
+// Ajoute le logo, l'en-tête et le pied de page
 const emailLayout = (content, options = {}) => {
   const { preheader } = options;
   return `
@@ -29,32 +31,35 @@ const emailLayout = (content, options = {}) => {
     </div>`;
 };
 
-const createTransporter = () => {
+// Transporteur SMTP singleton (réutilisé entre les appels d'une même instance serverless)
+// Évite de créer une nouvelle connexion SMTP à chaque requête (Gmail rate-limite)
+let _transporter = null;
+const getTransporter = () => {
+  if (_transporter) return _transporter;
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
   const port = parseInt(process.env.SMTP_PORT || "587", 10);
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
-
   if (!user || !pass) {
-    console.warn("SMTP non configuré. Les emails ne seront pas envoyés.");
+    console.warn("[EMAIL] SMTP non configuré (SMTP_USER/PASS manquants)");
     return null;
   }
-
   const secure = process.env.SMTP_SECURE
     ? process.env.SMTP_SECURE === "true"
     : port === 465;
-
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure,
+  _transporter = nodemailer.createTransport({
+    host, port, secure,
     auth: { user, pass },
   });
+  return _transporter;
 };
 
-// Envoie un email générique via le transporteur SMTP
+// Réinitialise le transporteur (utile si les credentials changent)
+const resetTransporter = () => { _transporter = null; };
+
+// Fonction utilitaire pour envoyer un email via le transporteur
 const envoyerEmail = async (destinataire, sujet, html) => {
-  const transporter = createTransporter();
+  const transporter = getTransporter();
   if (!transporter) {
     console.log(`[EMAIL SIMULÉ] À: ${destinataire} — ${sujet}`);
     return { simulé: true, destinataire };
@@ -65,53 +70,54 @@ const envoyerEmail = async (destinataire, sujet, html) => {
     subject: sujet,
     html,
   });
-  console.log(`Email envoyé à ${destinataire}: ${info.messageId}`);
+  console.log(`[EMAIL] Envoyé à ${destinataire}: ${info.messageId}`);
   return { success: true, messageId: info.messageId };
 };
 
 // Envoie un email de confirmation de billet à l'acheteur
-// ticket: { uuid, numero, evenement, categorie, prix, dateAchat, qrPayload }
-// destinataire: email de l'acheteur
+// ticket: { uuid, numero, evenement, categorie, prix, dateAchat, lieu, dateDebut }
+// Template ticket 4 sections (adapté email)
 const envoyerEmailBillet = async (destinataire, ticket) => {
-  const baseUrl = process.env.TICKET_URL || "https://senguichet.com/billet";
+  const baseUrl = process.env.TICKET_URL || `${SITE_URL}/api/billets`;
   const lienBillet = `${baseUrl}/${ticket.uuid}`;
+  const catColor = ticket.couleurHex || '#6366F1';
 
   const content = `
-    <div style="background:white;border-radius:12px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-      <h2 style="color:#0D1B2A;font-size:20px;margin:0 0 16px 0;">Ton billet est confirmé !</h2>
+    <div style="background:white;border-radius:12px;padding:0;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;">
 
-      <table style="width:100%;border-collapse:collapse;">
-        <tr>
-          <td style="padding:10px 0;color:#64748b;font-size:13px;">Événement</td>
-          <td style="padding:10px 0;color:#0D1B2A;font-size:14px;font-weight:600;text-align:right;">${ticket.evenement}</td>
-        </tr>
-        <tr><td colspan="2" style="border-bottom:1px solid #f1f5f9;"></td></tr>
-        <tr>
-          <td style="padding:10px 0;color:#64748b;font-size:13px;">Catégorie</td>
-          <td style="padding:10px 0;color:#0D1B2A;font-size:14px;font-weight:600;text-align:right;">${ticket.categorie}</td>
-        </tr>
-        <tr><td colspan="2" style="border-bottom:1px solid #f1f5f9;"></td></tr>
-        <tr>
-          <td style="padding:10px 0;color:#64748b;font-size:13px;">Montant</td>
-          <td style="padding:10px 0;color:#0D1B2A;font-size:14px;font-weight:600;text-align:right;">${ticket.prix.toLocaleString()} FCFA</td>
-        </tr>
-        <tr><td colspan="2" style="border-bottom:1px solid #f1f5f9;"></td></tr>
-        <tr>
-          <td style="padding:10px 0;color:#64748b;font-size:13px;">Référence</td>
-          <td style="padding:10px 0;color:#00C8FF;font-size:14px;font-weight:700;text-align:right;">${ticket.numero}</td>
-        </tr>
-      </table>
+      <!-- Section A : En-tête dégradé -->
+      <div style="background:linear-gradient(135deg,#6366F1,${catColor},#EC4899);padding:20px 24px;text-align:center;">
+        <div style="background:white;border-radius:8px;width:80px;height:80px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;">
+          <div style="width:70px;height:70px;background:#f1f5f9;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#94a3b8;text-align:center;line-height:1.3;">
+            QR${ticket.numero ? `<br/>#${ticket.numero}` : ''}
+          </div>
+        </div>
+        <div style="color:rgba(255,255,255,0.85);font-size:11px;font-weight:700;letter-spacing:2px;">RÉFÉRENCE ${ticket.numero || ''}</div>
+      </div>
 
-      <div style="text-align:center;margin-top:24px;">
+      <!-- Section B : Infos -->
+      <div style="padding:16px 24px;text-align:center;border-bottom:2px dashed #e2e8f0;">
+        <h2 style="color:#0D1B2A;font-size:16px;margin:0 0 6px;letter-spacing:0.5px;">${ticket.evenement.toUpperCase()}</h2>
+        <p style="color:#475569;font-size:12px;margin:0 0 2px;">${ticket.dateDebut ? new Date(ticket.dateDebut).toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) : ''}</p>
+        ${ticket.lieu ? `<p style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin:0 0 8px;">${ticket.lieu}</p>` : ''}
+        <div style="display:inline-block;background:rgba(99,102,241,0.08);color:${catColor};font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;margin:4px 2px;">${ticket.categorie}</div>
+        <div style="display:inline-block;background:rgba(99,102,241,0.08);color:${catColor};font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;margin:4px 2px;">${ticket.prix.toLocaleString()} FCFA</div>
+      </div>
+
+      <!-- Section C : Bouton CTA -->
+      <div style="padding:20px 24px;text-align:center;background:#f8fafc;border-bottom:2px dashed #e2e8f0;">
+        <p style="color:#64748b;font-size:12px;margin:0 0 12px;">Présente ce QR code à l'entrée</p>
         <a href="${lienBillet}"
-           style="display:inline-block;background:#00C8FF;color:#0D1B2A;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:700;font-size:15px;">
+           style="display:inline-block;background:#00C8FF;color:#0D1B2A;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;font-size:14px;">
           Voir mon billet →
         </a>
       </div>
 
-      <p style="color:#94a3b8;font-size:12px;text-align:center;margin-top:16px;">
-        Présente ce QR code à l'entrée depuis l'application SENGUICHET.
-      </p>
+      <!-- Section D : Talon -->
+      <div style="padding:12px 24px;text-align:center;background:#f1f5f9;">
+        <p style="color:#0D1B2A;font-size:10px;font-weight:700;letter-spacing:2px;margin:0 0 2px;">SENGUICHET</p>
+        <p style="color:#94a3b8;font-size:9px;margin:0;">Billeterie événementielle • Entrée unique</p>
+      </div>
     </div>`;
 
   return envoyerEmail(destinataire, `Ton billet ${ticket.numero} — ${ticket.evenement}`, emailLayout(content, { preheader: `Ton billet pour ${ticket.evenement} est confirmé !` }));
@@ -120,12 +126,6 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
 // Envoie un code OTP à l'acheteur pour confirmer son email
 // code : chaîne de 6 chiffres, valable 5 minutes
 const envoyerCodeOTP = async (destinataire, code) => {
-  const transporter = createTransporter();
-  if (!transporter) {
-    console.log(`[OTP SIMULÉ] ${destinataire} → Code: ${code}`);
-    return { simulé: true, destinataire, code };
-  }
-
   const content = `
     <div style="background:white;border-radius:12px;padding:24px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
       <p style="color:#0D1B2A;font-size:15px;margin:0 0 16px 0;">Voici ton code de confirmation :</p>
@@ -134,7 +134,6 @@ const envoyerCodeOTP = async (destinataire, code) => {
       </div>
       <p style="color:#94a3b8;font-size:12px;margin-top:16px;">Ce code expire dans 5 minutes.</p>
     </div>`;
-
   return envoyerEmail(destinataire, "Ton code de connexion SENGUICHET", emailLayout(content, { preheader: "Ton code de confirmation" }));
 };
 

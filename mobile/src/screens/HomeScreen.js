@@ -80,7 +80,7 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.greeting}>Bonjour</Text>
                 <Text style={styles.name}>{profil?.nom || (email ? email.split('@')[0].replace(/\d+$/, '') : 'Invité')}</Text>
               </View>
-              <TouchableOpacity onPress={() => navigation.navigate('AccueilChoix')} style={styles.homeBtn}>
+              <TouchableOpacity onPress={() => navigation.navigate('Profil')} style={styles.homeBtn}>
                 <Feather name="home" size={18} color="rgba(255,255,255,0.7)" />
               </TouchableOpacity>
               <TouchableOpacity onPress={deconnecter} style={styles.logoutBtn}>

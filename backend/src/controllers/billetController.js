@@ -19,14 +19,14 @@ const acheter = async (req, res) => {
 
     // Vérifier que l'événement existe et est actif
     const [events] = await pool.query(
-      "SELECT id, titre FROM evenement WHERE id = ? AND statut = 'actif'",
+      "SELECT id, titre, lieu, date_debut FROM evenement WHERE id = ? AND statut = 'actif'",
       [evenementId]
     );
     if (!events.length) return res.status(404).json({ message: "Événement introuvable ou inactif" });
 
     // Vérifier la catégorie et les places disponibles
     const [categories] = await pool.query(
-      "SELECT id, nom, prix, places_disponibles FROM categorie_ticket WHERE id = ? AND evenement_id = ?",
+      "SELECT id, nom, prix, places_disponibles, couleur_hex FROM categorie_ticket WHERE id = ? AND evenement_id = ?",
       [categorieTicketId, evenementId]
     );
     if (!categories.length) return res.status(404).json({ message: "Catégorie introuvable" });
@@ -166,7 +166,7 @@ const acheter = async (req, res) => {
       // Requis pour Vercel serverless — le processus est coupé après la réponse
       if (ticketEmail) {
         try {
-          const { envoyerEmailBillet } = require("../services/emailService");
+          const { envoyerEmailBillet } = require("../services/EmailService");
           await envoyerEmailBillet(ticketEmail, {
             uuid,
             numero,
@@ -174,6 +174,9 @@ const acheter = async (req, res) => {
             categorie: cat.nom,
             prix: montantTotal,
             dateAchat: timestamp,
+            lieu: events[0].lieu,
+            dateDebut: events[0].date_debut,
+            couleurHex: cat.couleur_hex,
             qrPayload,
           });
         } catch (e) {
@@ -267,7 +270,8 @@ const mesBillets = async (req, res) => {
   }
 };
 
-// Affiche une page HTML publique avec les infos du billet
+// Affiche une page HTML publique avec le billet imprimable (design 4 sections)
+// Sections : A-souche dégradé + QR vertical, B-infos événement, C-corps QR+filigrane, D-talon gris
 // GET /api/billets/:uuid
 const afficherBillet = async (req, res) => {
   try {
@@ -275,7 +279,8 @@ const afficherBillet = async (req, res) => {
 
     const [rows] = await pool.query(
       `SELECT b.uuid, b.numero, b.prix_paye, b.statut, b.date_creation, b.telephone_acheteur,
-        b.payload_signature, e.titre, e.lieu, e.date_debut, e.affiche_url, ct.nom AS categorie
+        b.payload_signature, e.titre, e.lieu, e.date_debut, e.affiche_url, ct.nom AS categorie,
+        ct.couleur_hex
       FROM billet b
       JOIN evenement e ON e.id = b.evenement_id
       JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
@@ -299,57 +304,459 @@ const afficherBillet = async (req, res) => {
     const dateAchat = new Date(b.date_creation).toLocaleDateString("fr-FR", {
       day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
     });
-    const statut = b.statut === "ACTIF" ? "✅ Valide" : "⏳ En attente";
+    const statut = b.statut;
+    const statutLabel = statut === "ACTIF" ? "Valide" : statut === "UTILISE" ? "Utilisé" : "En attente";
+    const statutColor = statut === "ACTIF" ? "#00E5A0" : statut === "UTILISE" ? "#94A3B8" : "#F97316";
 
-    res.send(`
-      <!DOCTYPE html>
-      <html lang="fr">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Billet ${b.numero} — SENGUICHET</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f8f9fd; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-          .card { background: white; border-radius: 20px; max-width: 420px; width: 100%; box-shadow: 0 4px 24px rgba(99,102,241,0.12); overflow: hidden; }
-          .header { background: linear-gradient(135deg, #6366F1, #EC4899); padding: 32px 24px; text-align: center; }
-          .header h1 { color: white; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.8; margin-bottom: 4px; }
-          .header .numero { color: white; font-size: 22px; font-weight: 700; letter-spacing: 1px; }
-          .body { padding: 24px; }
-          .statut { display: inline-block; background: #dcfce7; color: #166534; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; margin-bottom: 20px; }
-          .field { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
-          .field:last-child { border: none; }
-          .field .label { color: #64748b; font-size: 13px; }
-          .field .value { color: #0f172a; font-size: 14px; font-weight: 600; text-align: right; max-width: 60%; }
-          .footer { text-align: center; padding: 20px 24px; background: #f8f9fd; color: #94a3b8; font-size: 12px; }
-          .qr { text-align: center; margin: 20px 0; }
-          .qr img { width: 160px; height: 160px; border-radius: 12px; }
-          @media print { .card { box-shadow: none; border: 1px solid #e2e8f0; } }
-        </style>
-      </head>
-      <body>
-        <div class="card">
-          <div class="header">
-            <h1>SENGUICHET</h1>
-            <div class="numero">${b.numero}</div>
-          </div>
-          <div class="body">
-            <div class="statut">${statut}</div>
-            <div class="field"><span class="label">Événement</span><span class="value">${b.titre}</span></div>
-            <div class="field"><span class="label">Date</span><span class="value">${dateEvent}</span></div>
-            <div class="field"><span class="label">Lieu</span><span class="value">${b.lieu}</span></div>
-            <div class="field"><span class="label">Catégorie</span><span class="value">${b.categorie}</span></div>
-            <div class="field"><span class="label">Prix</span><span class="value">${b.prix_paye.toLocaleString()} FCFA</span></div>
-            <div class="field"><span class="label">Acheté le</span><span class="value">${dateAchat}</span></div>
-          </div>
-          <div class="footer">
-            SENGUICHET — Billeterie événementielle<br>
-            Présente ce billet à l'entrée depuis l'application.
-          </div>
-        </div>
-      </body>
-      </html>
-    `);
+    // QR via API publique (utilisable en impression)
+    const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(uuid)}`;
+
+    // Palette de la catégorie ou défaut
+    const catColor = b.couleur_hex || "#6366F1";
+
+    const [
+      debutDate, debutHeure
+    ] = b.date_debut ? b.date_debut.toISOString().replace('T', ' ').split(' ') : ['', ''];
+    const dateFormatted = new Date(b.date_debut).toLocaleDateString("fr-FR", {
+      day: "numeric", month: "short", year: "numeric"
+    });
+    const heureFormatted = new Date(b.date_debut).toLocaleTimeString("fr-FR", {
+      hour: "2-digit", minute: "2-digit"
+    });
+
+    res.send(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Billet ${b.numero} — SENGUICHET</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --cat-color: ${catColor};
+    --statut-color: ${statutColor};
+    --w: 55mm;
+    --h: 160mm;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f0f2f5;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  /* Conteneur ticket */
+  .ticket {
+    width: var(--w);
+    height: var(--h);
+    background: #fff;
+    border-radius: 4mm;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* ===================== SECTION A : Souche dégradé ===================== */
+  .section-a {
+    height: 38mm;
+    background: linear-gradient(135deg, #6366F1, var(--cat-color), #EC4899);
+    padding: 3mm 4mm;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .section-a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 3mm,
+      rgba(255,255,255,0.03) 3mm,
+      rgba(255,255,255,0.03) 6mm
+    );
+    pointer-events: none;
+  }
+  .section-a-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2mm;
+    z-index: 1;
+  }
+  .section-a-left .qr-stub {
+    width: 22mm;
+    height: 22mm;
+    background: #fff;
+    border-radius: 1.5mm;
+    padding: 1.5mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .section-a-left .qr-stub img {
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+  }
+  .section-a-left .ref-stub {
+    color: rgba(255,255,255,0.85);
+    font-size: 2.5mm;
+    font-weight: 700;
+    letter-spacing: 0.5mm;
+    text-align: center;
+  }
+
+  /* Marque verticale */
+  .section-a-right {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    color: rgba(255,255,255,0.15);
+    font-size: 5mm;
+    font-weight: 900;
+    letter-spacing: 2mm;
+    text-transform: uppercase;
+    z-index: 1;
+    margin-left: auto;
+    user-select: none;
+    line-height: 1;
+  }
+
+  /* Perforation entre A et B */
+  .perf {
+    height: 3mm;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .perf-dot {
+    width: 1.2mm;
+    height: 1.2mm;
+    border-radius: 50%;
+    background: #f0f2f5;
+    flex-shrink: 0;
+  }
+  .perf-line {
+    flex: 1;
+    height: 0;
+    border-top: 0.3mm dashed #cbd5e1;
+    margin: 0 0.5mm;
+  }
+
+  /* ===================== SECTION B : Infos événement ===================== */
+  .section-b {
+    height: 30mm;
+    padding: 2.5mm 4mm;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8mm;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .section-b .event-title {
+    font-size: 3.8mm;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+    letter-spacing: 0.2mm;
+    max-width: 100%;
+  }
+  .section-b .event-date {
+    font-size: 2.6mm;
+    color: #475569;
+    font-weight: 600;
+  }
+  .section-b .event-lieu {
+    font-size: 2.4mm;
+    color: #94a3b8;
+    font-weight: 700;
+    letter-spacing: 0.3mm;
+    text-transform: uppercase;
+  }
+  .section-b .event-meta {
+    display: flex;
+    gap: 4mm;
+    font-size: 2.4mm;
+    font-weight: 700;
+    color: var(--cat-color);
+    margin-top: 1mm;
+  }
+  .section-b .event-meta span {
+    background: rgba(99,102,241,0.08);
+    padding: 0.5mm 2mm;
+    border-radius: 1mm;
+  }
+
+  /* ===================== SECTION C : Corps QR + filigrane ===================== */
+  .section-c {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2mm 4mm;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    min-height: 0;
+  }
+  .section-c-watermark {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+  }
+  .section-c-watermark span {
+    font-size: 14mm;
+    font-weight: 900;
+    color: rgba(99,102,241,0.04);
+    letter-spacing: 3mm;
+    text-transform: uppercase;
+    transform: rotate(-20deg);
+    white-space: nowrap;
+  }
+  .section-c .qr-main {
+    width: 48%;
+    aspect-ratio: 1;
+    background: #fff;
+    border-radius: 2mm;
+    padding: 1.5mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    box-shadow: 0 1mm 4mm rgba(0,0,0,0.06);
+  }
+  .section-c .qr-main img {
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+  }
+  .section-c .statut-badge {
+    z-index: 1;
+    margin-top: 2mm;
+    padding: 0.5mm 3mm;
+    border-radius: 2mm;
+    font-size: 2.4mm;
+    font-weight: 700;
+    color: #fff;
+    background: var(--statut-color);
+  }
+  .section-c .acheteur-info {
+    z-index: 1;
+    font-size: 2mm;
+    color: #94a3b8;
+    margin-top: 1mm;
+  }
+
+  /* ===================== SECTION D : Talon gris ===================== */
+  .section-d {
+    height: 30mm;
+    background: #f8fafc;
+    padding: 2.5mm 4mm;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1mm;
+    flex-shrink: 0;
+    border-top: 0.3mm solid #e2e8f0;
+  }
+  .section-d .d-logo {
+    font-size: 3mm;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: 1mm;
+  }
+  .section-d .d-line {
+    font-size: 2mm;
+    color: #94a3b8;
+    line-height: 1.5;
+    text-align: center;
+  }
+  .section-d .d-barcode {
+    width: 80%;
+    height: 3mm;
+    background: repeating-linear-gradient(
+      90deg,
+      #0f172a,
+      #0f172a 0.3mm,
+      transparent 0.3mm,
+      transparent 0.8mm
+    );
+    margin-top: 1mm;
+    opacity: 0.3;
+  }
+
+  /* État scanné */
+  .scanned-stamp {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-25deg);
+    font-size: 8mm;
+    font-weight: 900;
+    color: ${statut === "UTILISE" ? "#ef4444" : "transparent"};
+    border: ${statut === "UTILISE" ? "0.5mm solid #ef4444" : "none"};
+    padding: 1mm 3mm;
+    border-radius: 1mm;
+    z-index: 10;
+    pointer-events: none;
+    opacity: ${statut === "UTILISE" ? 0.7 : 0};
+    letter-spacing: 0.5mm;
+  }
+
+  /* ===================== RESPONSIVE ===================== */
+  @media screen and (max-width: 400px) {
+    :root {
+      --w: 90vw;
+      --h: auto;
+    }
+    .ticket {
+      height: auto;
+      min-height: 140vw;
+      border-radius: 3mm;
+    }
+    .section-a { height: 30vw; padding: 2vw 3vw; }
+    .section-a-left .qr-stub { width: 18vw; height: 18vw; }
+    .section-a-right { font-size: 4vw; }
+    .section-b { height: auto; padding: 3vw; min-height: 24vw; }
+    .section-b .event-title { font-size: 4.5vw; }
+    .perf { height: 2.5vw; }
+    .section-c { min-height: 45vw; padding: 3vw; }
+    .section-c .qr-main { width: 40%; }
+    .section-d { height: auto; padding: 3vw; min-height: 22vw; }
+    .section-d .d-barcode { height: 2vw; }
+    .scanned-stamp { font-size: 6vw; }
+  }
+
+  @media screen and (min-width: 401px) and (max-width: 700px) {
+    .ticket { transform: scale(0.85); transform-origin: center center; }
+  }
+
+  /* ===================== PRINT ===================== */
+  @media print {
+    body {
+      padding: 0;
+      background: #fff;
+      display: block;
+    }
+    .ticket {
+      box-shadow: none;
+      border-radius: 0;
+      width: 55mm;
+      height: 160mm;
+      page-break-after: always;
+      margin: 0 auto;
+    }
+    .section-a { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section-d { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section-c .statut-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .scanned-stamp { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  @page {
+    size: 55mm 160mm;
+    margin: 0;
+  }
+</style>
+</head>
+<body>
+<div class="ticket">
+
+  <!-- Tampon scanné si utilisé -->
+  <div class="scanned-stamp">UTILISÉ</div>
+
+  <!-- ===== SECTION A : Souche dégradé ===== -->
+  <div class="section-a">
+    <div class="section-a-left">
+      <div class="qr-stub">
+        <img src="${qrApi}" alt="QR billet" />
+      </div>
+      <div class="ref-stub">#${b.numero}</div>
+    </div>
+    <div class="section-a-right">SENGUICHET</div>
+  </div>
+
+  <!-- Perforation -->
+  <div class="perf">
+    <div class="perf-dot"></div>
+    <div class="perf-line"></div>
+    <div class="perf-dot"></div>
+    <div class="perf-line"></div>
+    <div class="perf-dot"></div>
+    <div class="perf-line"></div>
+    <div class="perf-dot"></div>
+  </div>
+
+  <!-- ===== SECTION B : Infos événement ===== -->
+  <div class="section-b">
+    <div class="event-title">${b.titre.toUpperCase()}</div>
+    <div class="event-date">${dateFormatted} à ${heureFormatted}</div>
+    <div class="event-lieu">${b.lieu ? b.lieu.toUpperCase() : ''}</div>
+    <div class="event-meta">
+      <span>${b.categorie}</span>
+      <span>${b.prix_paye.toLocaleString()} FCFA</span>
+    </div>
+  </div>
+
+  <!-- Perforation -->
+  <div class="perf">
+    <div class="perf-dot"></div>
+    <div class="perf-line"></div>
+    <div class="perf-dot"></div>
+    <div class="perf-line"></div>
+    <div class="perf-dot"></div>
+    <div class="perf-line"></div>
+    <div class="perf-dot"></div>
+  </div>
+
+  <!-- ===== SECTION C : Corps QR + filigrane ===== -->
+  <div class="section-c">
+    <div class="section-c-watermark">
+      <span>SENGUICHET</span>
+    </div>
+    <div class="qr-main">
+      <img src="${qrApi}" alt="QR billet" />
+    </div>
+    <div class="statut-badge">${statutLabel}</div>
+    <div class="acheteur-info">${b.telephone_acheteur || ''}</div>
+  </div>
+
+  <!-- ===== SECTION D : Talon gris ===== -->
+  <div class="section-d">
+    <div class="d-logo">SENGUICHET</div>
+    <div class="d-line">Billeterie événementielle</div>
+    <div class="d-line">Entrée unique et non transférable</div>
+    <div class="d-line">Acheté le ${dateAchat}</div>
+    <div class="d-barcode"></div>
+  </div>
+
+</div>
+</body>
+</html>`);
   } catch (err) {
     console.error("Afficher billet error:", err);
     res.status(500).send("<html><body><p>Erreur serveur</p></body></html>");
