@@ -96,7 +96,6 @@ const s = StyleSheet.create({
     textTransform: 'uppercase', letterSpacing: 1, marginBottom: spacing.xs,
   },
   email: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', marginBottom: spacing.sm, ...textShadow },
-  roleDesc: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginBottom: spacing.sm },
   divider: { width: '100%', height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.15)', marginVertical: spacing.md },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
   infoText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
@@ -107,6 +106,7 @@ const s = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(0,200,255,0.2)',
   },
   supportText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
+  roleDesc: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginBottom: spacing.sm },
   statsGrid: {
     flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%',
   },

@@ -45,7 +45,7 @@ async function seed() {
     }
 
     // 1. Créer un événement test
-    await connection.query(
+    const [eventResult] = await connection.query(
       `INSERT INTO evenement (organisateur_id, titre, description, lieu, ville, date_debut, date_fin, capacite_totale, scan_code, statut)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'actif')`,
       [
@@ -60,23 +60,24 @@ async function seed() {
         "1234",
       ]
     );
+    const eventId = eventResult.insertId;
     console.log("✅ Événement test créé : Concert de Hip Hop");
 
     // 2. Créer des catégories de tickets
     await connection.query(
       `INSERT INTO categorie_ticket (evenement_id, nom, prix, capacite, places_disponibles, couleur_hex)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [1, "Standard", 5000, 100, 100, "#22C55E"]
+      [eventId, "Standard", 5000, 100, 100, "#22C55E"]
     );
     await connection.query(
       `INSERT INTO categorie_ticket (evenement_id, nom, prix, capacite, places_disponibles, couleur_hex)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [1, "VIP", 15000, 50, 50, "#F59E0B"]
+      [eventId, "VIP", 15000, 50, 50, "#F59E0B"]
     );
     await connection.query(
       `INSERT INTO categorie_ticket (evenement_id, nom, prix, capacite, places_disponibles, couleur_hex)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [1, "Gold", 30000, 20, 20, "#EF4444"]
+      [eventId, "Gold", 30000, 20, 20, "#EF4444"]
     );
     console.log(
       "✅ Catégories test créées : Standard (5000 F), VIP (15000 F), Gold (30000 F)"

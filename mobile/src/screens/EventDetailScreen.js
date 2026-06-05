@@ -398,14 +398,14 @@ export default function EventDetailScreen({ route, navigation }) {
             {paymentEtape === 'confirm' && (
               <>
                 {/* Montant uniquement */}
-                <Text style={s.payAmountLabel}>{selectedTicket.name}</Text>
-                <Text style={[s.payAmountValue, { color: catColor }]}>
+                <Text style={styles.payAmountLabel}>{selectedTicket.name}</Text>
+                <Text style={[styles.payAmountValue, { color: catColor }]}>
                   {selectedTicket.price.toLocaleString()} FCFA
                 </Text>
 
                 {/* Bouton de paiement Wave — mobile money */}
                 <TouchableOpacity
-                  style={s.confirmPayBtn}
+                  style={styles.confirmPayBtn}
                   onPress={confirmerPaiement}
                   activeOpacity={0.9}
                 >
@@ -414,10 +414,10 @@ export default function EventDetailScreen({ route, navigation }) {
                     colors={['#1AB3E5', '#0D8ABC']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    style={s.confirmPayGradient}
+                    style={styles.confirmPayGradient}
                   >
-                    <Image source={require('../../assets/wave_logo.png')} style={s.confirmBtnLogo} resizeMode="contain" />
-                    <Text style={s.confirmPayText}>Payer {selectedTicket.price.toLocaleString()} FCFA</Text>
+                    <Image source={require('../../assets/wave_logo.png')} style={styles.confirmBtnLogo} resizeMode="contain" />
+                    <Text style={styles.confirmPayText}>Payer {selectedTicket.price.toLocaleString()} FCFA</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </>

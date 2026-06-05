@@ -53,7 +53,8 @@ export default function AccueilChoixScreen({ navigation }) {
     if (redirection) {
       const target = redirection
       setRedirection(null)
-      navigation.navigate(target)
+      // reset évite les erreurs pendant la transition de stack (changement de rôle)
+      navigation.reset({ index: 0, routes: [{ name: target }] })
     }
   })
 

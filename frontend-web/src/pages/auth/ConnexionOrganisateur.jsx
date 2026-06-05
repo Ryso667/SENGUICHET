@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, Link } from "react-router-dom";
-import { connexionOrganisateur, connexionAdmin, connexionPartenaire } from "../../services/authService";
+import { connexionOrganisateur } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
 import InputField from "../../components/InputField";
 import Button from "../../components/Button";
@@ -22,15 +22,7 @@ const ConnexionOrganisateur = () => {
     setIsLoading(true);
     setAlert(null);
     try {
-      const result = await connexionAdmin({ email: data.email, motDePasse: data.motDePasse });
-      if (result.token && result.user) {
-        login(result.user, result.token);
-        navigate("/admin/dashboard");
-        return;
-      }
-    } catch (_) {}
-
-    try {
+      // Un seul appel API — les rôles Admin et Partenaire ont leurs propres pages de connexion
       const result = await connexionOrganisateur({ email: data.email, motDePasse: data.motDePasse });
       if (result.token && result.user) {
         login(result.user, result.token);
@@ -39,21 +31,12 @@ const ConnexionOrganisateur = () => {
       }
       if (result.message?.includes("EN_ATTENTE")) {
         setAlert({ message: "Compte en attente de validation", type: "warning" });
-        setIsLoading(false);
-        return;
-      }
-    } catch (_) {}
-
-    try {
-      const result = await connexionPartenaire({ email: data.email, motDePasse: data.motDePasse });
-      if (result.token && result.user) {
-        login(result.user, result.token);
-        navigate("/dashboard");
         return;
       }
       setAlert({ message: "Email ou mot de passe incorrect", type: "error" });
     } catch (err) {
-      setAlert({ message: err.message || "Email ou mot de passe incorrect", type: "error" });
+      const message = err.response?.data?.message || err.message || "Email ou mot de passe incorrect";
+      setAlert({ message, type: "error" });
     } finally {
       setIsLoading(false);
     }

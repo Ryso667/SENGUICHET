@@ -112,21 +112,6 @@ export default function DetailEvenementScreen({ route, navigation }) {
           </GlassContainer>
         ) : null}
 
-        {/* Bouton Gérer l'équipe */}
-        {evenement.statut === 'actif' && (
-          <TouchableOpacity
-            style={s.equipeBtn}
-            activeOpacity={0.9}
-            onPress={() => navigation.navigate('GestionEquipe', { eventId })}
-          >
-            <GlassContainer style={s.equipeBtnInner} intensity={35}>
-              <Feather name="users" size={18} color="#00C8FF" />
-              <Text style={s.equipeBtnText}>Gérer l'équipe</Text>
-              <Feather name="chevron-right" size={16} color="rgba(255,255,255,0.4)" />
-            </GlassContainer>
-          </TouchableOpacity>
-        )}
-
         <GlassContainer style={s.section} intensity={30}>
           <Text style={s.sectionTitle}>Billets ({tickets.length})</Text>
           {tickets.length === 0 ? (
@@ -183,9 +168,4 @@ const s = StyleSheet.create({
   ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#fff', flex: 1 },
   ticketPrix: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
   ticketStatut: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginLeft: spacing.sm, textTransform: 'capitalize' },
-  equipeBtn: { marginHorizontal: spacing.lg, marginBottom: spacing.lg },
-  equipeBtnInner: {
-    flexDirection: 'row', alignItems: 'center', padding: spacing.md,
-  },
-  equipeBtnText: { flex: 1, fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#fff', marginLeft: spacing.sm },
 })

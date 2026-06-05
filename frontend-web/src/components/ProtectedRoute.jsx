@@ -1,10 +1,31 @@
+// Fichier : ProtectedRoute.jsx
+// Rôle : Route protégée — vérifie l'authentification et le rôle via le JWT (pas le localStorage)
+// Note : Le rôle est extrait du payload JWT côté client, ce qui est moins sûr qu'une vérification
+//        serveur, mais permet d'éviter la modification directe du localStorage
+
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { getToken } from "../utils/storage";
 import logo from "../assets/logo.jpg";
 
+// Décode le payload d'un JWT sans bibliothèque externe
+const decodeJwtPayload = (token) => {
+  try {
+    const payload = token.split(".")[1];
+    return JSON.parse(atob(payload));
+  } catch {
+    return null;
+  }
+};
+
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-  const { isAuthenticated, userRole, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Vérification du rôle depuis le JWT plutôt que depuis le user stocké
+  const token = getToken();
+  const decoded = token ? decodeJwtPayload(token) : null;
+  const userRole = decoded?.role || null;
 
   if (isLoading) {
     return (

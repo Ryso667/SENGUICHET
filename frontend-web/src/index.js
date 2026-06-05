@@ -1,11 +1,3 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import "./index.css";
-import App from "./App";
-
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+// Ce fichier est un doublon de index.jsx — conservé pour compatibilité, mais index.html référence index.jsx
+// Voir : index.html ligne 18 : <script type="module" src="/src/index.jsx"></script>
+export { default } from "./index.jsx";

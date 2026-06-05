@@ -13,6 +13,26 @@ import { statutPaiement } from '../services/paiementService'
 const POLL_INTERVAL = 3000 // 3 secondes entre chaque vérification
 const MAX_POLLS = 60 // 3 minutes maximum
 
+const DOMAINES_AUTORISES = [
+  'wave.com',
+  'www.wave.com',
+  'pay.wave.com',
+  'sandbox.wave.com',
+  'orange.com',
+  'orange.sn',
+  'pay.orange.sn',
+  'api.orange.com',
+]
+
+function validerURL(url) {
+  try {
+    const parsed = new URL(url)
+    return DOMAINES_AUTORISES.some((domaine) => parsed.hostname === domaine || parsed.hostname.endsWith('.' + domaine))
+  } catch {
+    return false
+  }
+}
+
 export default function WebViewWaveScreen({ route, navigation }) {
   const { redirectUrl, transactionReference, eventId, ticket } = route.params
   const [statut, setStatut] = useState('PENDING') // PENDING | SUCCESS | FAILED
@@ -93,6 +113,32 @@ export default function WebViewWaveScreen({ route, navigation }) {
             <LinearGradient colors={['#00C8FF', '#0077FF']} style={s.retryGradient}>
               <Feather name="refresh-cw" size={14} color="#fff" />
               <Text style={s.retryText}>Réessayer</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    )
+  }
+
+  const urlValide = validerURL(redirectUrl)
+
+  if (!urlValide) {
+    return (
+      <SafeAreaView style={s.safe}>
+        <View style={s.centerBox}>
+          <View style={s.errorCircle}>
+            <Feather name="alert-triangle" size={36} color="#fff" />
+          </View>
+          <Text style={s.errorText}>URL de paiement invalide</Text>
+          <Text style={s.subText}>L'URL de redirection ne correspond pas à un domaine autorisé</Text>
+          <TouchableOpacity
+            style={s.retryBtn}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.8}
+          >
+            <LinearGradient colors={['#00C8FF', '#0077FF']} style={s.retryGradient}>
+              <Feather name="arrow-left" size={14} color="#fff" />
+              <Text style={s.retryText}>Retour</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>

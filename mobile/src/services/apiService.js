@@ -1,15 +1,33 @@
 // Client HTTP centralisé pour les appels API backend
-// Gère l'URL de base, l'en-tête Authorization JWT et les erreurs réseau
+// Gère l'URL de base, l'en-tête Authorization JWT, le retry et les erreurs réseau
 import { API_BASE_URL, API_TIMEOUT } from '../config'
 import * as Securite from '../utils/secureStorage'
 
 const STORAGE_KEY_JWT = '@senguichet_jwt'
+const MAX_RETRY = 2 // Nombre de tentatives supplémentaires en cas d'échec
 
-// Effectue un appel API authentifié
+// Effectue un appel API authentifié avec retry automatique
 // endpoint : chemin après /api (ex: '/evenements/')
-// options : { method, body } — body est automatiquement JSON.stringify
+// options : { method, body, retry } — body est automatiquement JSON.stringify
 // Retourne les données JSON ou lance une erreur
 export async function appelAPI(endpoint, options = {}) {
+  const tentativesMax = options.retry !== undefined ? options.retry : MAX_RETRY
+
+  for (let tentative = 0; tentative <= tentativesMax; tentative++) {
+    try {
+      return await executerRequete(endpoint, options)
+    } catch (err) {
+      const estDerniere = tentative === tentativesMax
+      if (estDerniere) throw err
+      // Attente avec backoff exponentiel : 1s, 2s, 4s...
+      const delai = Math.min(1000 * Math.pow(2, tentative), 8000)
+      await new Promise((resolve) => setTimeout(resolve, delai))
+    }
+  }
+}
+
+// Exécute une requête HTTP unique (appelée par appelAPI avec retry)
+async function executerRequete(endpoint, options) {
   let token = null
   try {
     token = await Securite.GET(STORAGE_KEY_JWT)
@@ -36,8 +54,7 @@ export async function appelAPI(endpoint, options = {}) {
   } catch (err) {
     if (err.name === 'AbortError') {
       throw new Error(
-        `Connexion impossible au serveur (${API_BASE_URL}${endpoint}). ` +
-        'Vérifie que le backend est lancé et que l\'iPhone est sur le même WiFi.'
+        'Connexion impossible au serveur. Vérifie que le backend est lancé.'
       )
     }
     throw new Error(err.message || 'Erreur réseau')

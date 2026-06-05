@@ -29,9 +29,7 @@ const statutPaiement = async (req, res) => {
               [reference]
             );
             await pool.query(
-              `UPDATE billet SET statut = 'ACTIF' WHERE id = (
-                SELECT billet_id FROM transaction WHERE reference = ?
-              )`,
+              "UPDATE billet b JOIN transaction t ON b.id = t.billet_id SET b.statut = 'ACTIF' WHERE t.reference = ?",
               [reference]
             );
           } else if (result.statut === 'FAILED') {

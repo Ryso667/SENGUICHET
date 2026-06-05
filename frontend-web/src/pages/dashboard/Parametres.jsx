@@ -21,7 +21,11 @@ const Parametres = () => {
   const [notifStock, setNotifStock] = useState(true);
   const [saved, setSaved] = useState(false);
 
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
+  // Sera implémenté avec l'API de paramètres
+  const handleSave = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   const Toggle = ({ val, setVal }) => (
     <button
@@ -68,7 +72,8 @@ const Parametres = () => {
                         <label className="block text-xs mb-2" style={{ color: "rgba(255,255,255,0.65)" }}>Téléphone</label>
                         <input value={telephone} onChange={(e) => setTelephone(e.target.value)} className="input-premium" />
                       </div>
-                      <button onClick={handleSave} className="btn-primary" style={{ width: "auto", paddingLeft: 28, paddingRight: 28 }}>
+                      {/* Sera implémenté avec l'API de paramètres */}
+                      <button disabled className="btn-primary" style={{ width: "auto", paddingLeft: 28, paddingRight: 28, opacity: 0.5, cursor: "not-allowed" }}>
                         {saved ? <><Check size={16} /> Sauvegardé</> : "Sauvegarder"}
                       </button>
                     </>
@@ -88,7 +93,8 @@ const Parametres = () => {
                         <label className="block text-xs mb-2" style={{ color: "rgba(255,255,255,0.65)" }}>Confirmer le mot de passe</label>
                         <input type="password" value={confirmPwd} onChange={(e) => setConfirmPwd(e.target.value)} className={`input-premium ${confirmPwd && confirmPwd !== newPwd ? "error" : ""}`} />
                       </div>
-                      <button onClick={handleSave} className="btn-primary" style={{ width: "auto", paddingLeft: 28, paddingRight: 28 }}>
+                      {/* Sera implémenté avec l'API de paramètres */}
+                      <button disabled className="btn-primary" style={{ width: "auto", paddingLeft: 28, paddingRight: 28, opacity: 0.5, cursor: "not-allowed" }}>
                         Changer le mot de passe
                       </button>
                     </>

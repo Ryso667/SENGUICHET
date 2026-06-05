@@ -28,14 +28,18 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
-  const fadeAnims = useRef([...Array(8)].map(() => new Animated.Value(0))).current
-  const slideAnims = useRef([...Array(8)].map(() => new Animated.Value(40))).current
+  const fadeAnims = useRef([])
+  const slideAnims = useRef([])
+  if (fadeAnims.current.length === 0) {
+    fadeAnims.current = [...Array(8)].map(() => new Animated.Value(0))
+    slideAnims.current = [...Array(8)].map(() => new Animated.Value(40))
+  }
 
   useEffect(() => {
-    Animated.stagger(80, fadeAnims.map((fa, i) =>
+    Animated.stagger(80, fadeAnims.current.map((fa, i) =>
       Animated.parallel([
         Animated.timing(fa, { toValue: 1, duration: 400, useNativeDriver: true }),
-        Animated.timing(slideAnims[i], { toValue: 0, duration: 400, useNativeDriver: true }),
+        Animated.timing(slideAnims.current[i], { toValue: 0, duration: 400, useNativeDriver: true }),
       ])
     )).start()
   }, [loading])
@@ -48,7 +52,9 @@ export default function OrganisateurDashboardScreen({ navigation }) {
     try {
       const data = await fetchEvenementsAPI()
       setEvents(data)
-    } catch {}
+    } catch (err) {
+      console.warn('Dashboard load error:', err?.message)
+    }
     setLoading(false)
   }, [])
 
@@ -114,7 +120,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
             {/* Stats cards — une carte par ligne (évite débordement des chiffres) */}
             <View style={s.statsColumn}>
               {stats.map((st, i) => (
-                <Animated.View key={st.label} style={{ opacity: fadeAnims[i], transform: [{ translateY: slideAnims[i] }] }}>
+                  <Animated.View key={st.label} style={{ opacity: fadeAnims.current[i], transform: [{ translateY: slideAnims.current[i] }] }}>
                   <GlassContainer style={[s.statCard, { borderLeftWidth: 3, borderLeftColor: statColors[i][0].replace('0.25', '1') }]} intensity={40}>
                     <LinearGradient colors={[statColors[i][0], statColors[i][1]]} style={s.statGradient}>
                       <View style={s.statTop}>
@@ -129,7 +135,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
             </View>
 
             {/* Section événements récents — calquée sur le web */}
-            <Animated.View style={{ opacity: fadeAnims[4], transform: [{ translateY: slideAnims[4] }] }}>
+            <Animated.View style={{ opacity: fadeAnims.current[4], transform: [{ translateY: slideAnims.current[4] }] }}>
             <GlassContainer style={s.recentSection}>
               <View style={s.recentHeader}>
                 <Text style={s.recentTitle}>Mes événements récents</Text>

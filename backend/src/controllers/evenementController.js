@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const crypto = require("crypto");
 const multer = require("multer");
 const path = require("path");
 
@@ -30,7 +31,8 @@ const creer = async (req, res) => {
     const dateFinFull = dateFin ? `${dateFin} 23:59:00` : null;
     const afficheUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
-    const scanCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+    // Utilise crypto.randomBytes au lieu de Math.random pour une génération cryptographique sécurisée
+    const scanCode = crypto.randomBytes(3).toString('hex').toUpperCase();
 
     const conn = await pool.getConnection();
     try {
@@ -188,7 +190,17 @@ const modifier = async (req, res) => {
         [titre, description, lieu, ville || null, categorie || null, dateDebutFull, dateFinFull, parseInt(capacite), afficheUrl, id]
       );
 
-      await conn.query("DELETE FROM categorie_ticket WHERE evenement_id = ?", [id]);
+      // Vérifier s'il existe des billets pour cet événement avant de supprimer les catégories
+      // Si des billets existent, on désactive les catégories au lieu de les supprimer (soft delete)
+      const [billetsCount] = await conn.query(
+        "SELECT COUNT(*) AS total FROM billet b JOIN categorie_ticket ct ON b.categorie_ticket_id = ct.id WHERE ct.evenement_id = ?",
+        [id]
+      );
+      if (billetsCount[0].total > 0) {
+        await conn.query("UPDATE categorie_ticket SET places_disponibles = 0, capacite = 0 WHERE evenement_id = ?", [id]);
+      } else {
+        await conn.query("DELETE FROM categorie_ticket WHERE evenement_id = ?", [id]);
+      }
 
       if (ticketTypesArr && ticketTypesArr.length > 0) {
         const ticketValues = ticketTypesArr.map(t => [
@@ -438,7 +450,7 @@ const regenererScanCode = async (req, res) => {
       [id, req.user.id]
     );
     if (!existing.length) return res.status(404).json({ message: "Événement introuvable" });
-    const nouveauCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const nouveauCode = crypto.randomBytes(3).toString('hex').toUpperCase();
     await pool.query("UPDATE evenement SET scan_code = ? WHERE id = ?", [nouveauCode, id]);
     res.json({ scan_code: nouveauCode, message: "Code de scan régénéré avec succès" });
   } catch (err) {

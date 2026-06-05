@@ -4,6 +4,7 @@ import { listerMesDemandes, soumettreDemandeEvenement } from "../../services/eve
 import { useAuth } from "../../context/AuthContext";
 import { FileText, Inbox, Check, Calendar, Edit, X, Send, Loader } from "../../components/Icons";
 
+// Clés Cloudinary issues des variables d'environnement — ne pas exposer de clés en dur
 const CATEGORIES = ["Concert", "Festival", "Soirée", "Sport", "Conférence", "Théâtre", "Autre"];
 const VILLES = ["Dakar", "Thiès", "Saint-Louis", "Ziguinchor", "Autre"];
 
@@ -23,9 +24,16 @@ const CategorySelect = ({ value, onChange, options, label }) => (
     <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--text-secondary)", fontSize: "0.7rem" }}>▼</span>
   </div>
 );
-
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "dsozpl9vh";
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "senguichet_affiches";
+
+// Validation : ces clés doivent être définies via .env en production
+if (!import.meta.env.VITE_CLOUDINARY_CLOUD_NAME) {
+  console.warn("⚠️ VITE_CLOUDINARY_CLOUD_NAME non défini — utilisation de la valeur par défaut (développement uniquement)");
+}
+if (!import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET) {
+  console.warn("⚠️ VITE_CLOUDINARY_UPLOAD_PRESET non défini — utilisation de la valeur par défaut (développement uniquement)");
+}
 
 const uploadToCloudinary = async (file) => {
   const formData = new FormData();

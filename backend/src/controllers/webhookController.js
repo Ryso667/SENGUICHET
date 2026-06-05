@@ -7,8 +7,9 @@ const crypto = require("crypto");
 const WAVE_SIGNING_SECRET = process.env.WAVE_SIGNING_SECRET;
 
 // Vérifie la signature HMAC d'un webhook Wave
+// Refuse tous les webhooks si WAVE_SIGNING_SECRET n'est pas configuré
 function verifierSignatureWave(signatureHeader, body, timestamp) {
-  if (!WAVE_SIGNING_SECRET) return true;
+  if (!WAVE_SIGNING_SECRET) throw new Error('WAVE_SIGNING_SECRET not configured');
   const payload = String(timestamp) + body;
   const expected = crypto.createHmac('sha256', WAVE_SIGNING_SECRET).update(payload).digest('hex');
   const match = signatureHeader.match(/v1=([a-f0-9]+)/);
@@ -68,6 +69,15 @@ const gererWebhookWave = async (req, res) => {
 
       if (!tx) {
         return res.status(200).json({ message: 'Ignoré' });
+      }
+
+      // Vérification d'idempotence : ignorer si déjà traité
+      const [existingTx] = await pool.query(
+        "SELECT statut FROM transaction WHERE reference_operateur = ? AND statut = 'SUCCESS'",
+        [sessionId]
+      );
+      if (existingTx.length > 0) {
+        return res.status(200).json({ message: 'Déjà traité' });
       }
 
       await pool.query(

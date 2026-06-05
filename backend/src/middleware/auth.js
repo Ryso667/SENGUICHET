@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
 
-const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret";
+// JWT_SECRET est validé au démarrage dans server.js — pas besoin de le revalider ici
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const authMiddleware = (roles = []) => {
   return (req, res, next) => {

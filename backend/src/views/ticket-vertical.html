@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Billet {{NUMERO}} — SENGUICHET</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f1f5f9;
+    font-family: 'Courier New', 'Courier', monospace;
+  }
+
+  .ticket {
+    width: 50mm;
+    min-height: 150mm;
+    background: #fafafa;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .perf {
+    width: 100%;
+    height: 0;
+    border: none;
+    border-top: 1.5px dashed #cbd5e1;
+    margin: 3mm 0;
+    position: relative;
+  }
+  .perf::after {
+    content: '∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘ ∘';
+    display: block;
+    text-align: center;
+    font-size: 3pt;
+    color: #94a3b8;
+    letter-spacing: 2px;
+    position: absolute;
+    top: -6px;
+    width: 100%;
+  }
+
+  .section-a {
+    height: 30mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(90deg);
+    transform-origin: center center;
+    position: relative;
+    margin: 10mm 0;
+  }
+  .section-a .qr-small {
+    width: 22mm;
+    height: 22mm;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 6px;
+    color: #94a3b8;
+    margin: 0 3mm;
+  }
+  .section-a .qr-small img {
+    width: 22mm;
+    height: 22mm;
+    display: block;
+  }
+  .section-a .ticket-num {
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .section-a .barcode {
+    font-size: 6pt;
+    letter-spacing: 2px;
+    color: #64748b;
+    white-space: nowrap;
+    writing-mode: horizontal-tb;
+  }
+
+  .section-b {
+    height: 30mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(270deg);
+    transform-origin: center center;
+    position: relative;
+    margin: 10mm 0;
+  }
+  .section-b .ticket-num {
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    margin: 0 3mm;
+  }
+  .section-b .price {
+    font-size: 14pt;
+    font-weight: 900;
+    color: #0f172a;
+    white-space: nowrap;
+    margin: 0 3mm;
+  }
+  .section-b .barcode {
+    font-size: 6pt;
+    letter-spacing: 2px;
+    color: #64748b;
+    white-space: nowrap;
+    writing-mode: horizontal-tb;
+  }
+
+  .section-c {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-height: 50mm;
+  }
+  .section-c .watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 28pt;
+    font-weight: 900;
+    color: rgba(99, 102, 241, 0.06);
+    letter-spacing: 4px;
+    text-align: center;
+    line-height: 1.2;
+    pointer-events: none;
+    white-space: pre;
+  }
+  .section-c .qr-large {
+    width: 32mm;
+    height: 32mm;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 7px;
+    color: #94a3b8;
+    z-index: 1;
+    position: relative;
+  }
+  .section-c .qr-large img {
+    width: 32mm;
+    height: 32mm;
+    display: block;
+  }
+  .section-c .price-side {
+    writing-mode: vertical-rl;
+    font-size: 11pt;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: 2px;
+    position: absolute;
+    right: 2mm;
+    top: 50%;
+    transform: translateY(-50%);
+    padding-left: 1.5mm;
+    border-left: 1px solid #cbd5e1;
+  }
+
+  .section-d {
+    background: #2563eb;
+    color: white;
+    padding: 4mm 3mm;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .section-d .platform {
+    font-size: 7pt;
+    font-weight: 700;
+    letter-spacing: 3px;
+    opacity: 0.7;
+    margin-bottom: 2mm;
+  }
+  .section-d .event-title {
+    font-size: 10pt;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 1.5mm;
+  }
+  .section-d .event-venue {
+    font-size: 7pt;
+    opacity: 0.85;
+    letter-spacing: 0.5px;
+    margin-bottom: 1mm;
+    line-height: 1.4;
+  }
+  .section-d .event-datetime {
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 2mm;
+  }
+  .section-d .legal {
+    font-size: 5.5pt;
+    opacity: 0.5;
+    letter-spacing: 0.3px;
+    border-top: 0.5px solid rgba(255,255,255,0.3);
+    padding-top: 1.5mm;
+  }
+
+  .status-badge {
+    position: absolute;
+    top: 3mm;
+    right: 3mm;
+    font-size: 6pt;
+    font-weight: 700;
+    padding: 1mm 2mm;
+    border-radius: 2mm;
+    z-index: 5;
+  }
+  .status-badge.valide {
+    background: #dcfce7;
+    color: #166534;
+  }
+  .status-badge.utilise {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  .status-badge.expire {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  @media print {
+    @page {
+      size: 50mm 150mm;
+      margin: 0;
+    }
+    html, body {
+      background: white;
+      min-height: auto;
+    }
+    .ticket {
+      width: 50mm;
+      height: 150mm;
+      box-shadow: none;
+      border: none;
+      background: #fafafa;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="ticket">
+
+  <div class="status-badge {{STATUT_CLASS}}">{{STATUT_LABEL}}</div>
+
+  <div class="section-a">
+    <span class="ticket-num">{{NUMERO}}</span>
+    <div class="qr-small">
+      {{QR_CODE_A}}
+    </div>
+    <span class="barcode">{{CODE_BARRES}}</span>
+  </div>
+
+  <div class="perf"></div>
+
+  <div class="section-b">
+    <span class="ticket-num">{{NUMERO}}</span>
+    <span class="price">{{PRIX}}</span>
+    <span class="barcode">{{CODE_BARRES}}</span>
+  </div>
+
+  <div class="perf"></div>
+
+  <div class="section-c">
+    <div class="watermark">{{WATERMARK}}</div>
+    <div class="qr-large">
+      {{QR_CODE_C}}
+    </div>
+    <div class="price-side">{{PRIX}}</div>
+  </div>
+
+  <div class="perf"></div>
+
+  <div class="section-d">
+    <div class="platform">S E N G U I C H E T</div>
+    <div class="event-title">{{TITRE_EVENEMENT}}</div>
+    <div class="event-venue">{{LIEU}}</div>
+    <div class="event-datetime">{{DATE_HEURE}}</div>
+    <div class="legal">Entrée unique et non transférable</div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -2,6 +2,17 @@ const mysql = require("mysql2/promise");
 const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
+const readline = require("readline");
+
+async function demanderConfirmation(message) {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve) => {
+    rl.question(message + " (oui/non) ", (reponse) => {
+      rl.close();
+      resolve(reponse.toLowerCase() === "oui");
+    });
+  });
+}
 
 async function migrateAiven() {
   const sslConfig = process.env.DB_SSL === "true"
@@ -19,6 +30,12 @@ async function migrateAiven() {
   });
 
   try {
+    console.log("⚠️  ATTENTION : Ce script va SUPPRIMER toutes les tables existantes !");
+    const confirme = await demanderConfirmation("Voulez-vous continuer ?");
+    if (!confirme) {
+      console.log("Migration annulée.");
+      process.exit(0);
+    }
     console.log("🗑️ Suppression des tables existantes...");
     await connection.query("SET FOREIGN_KEY_CHECKS=0");
     const [tables] = await connection.query(
