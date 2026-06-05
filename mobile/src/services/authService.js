@@ -1,4 +1,4 @@
-// Service d'authentification : sociale (Google/Apple), email organisateur
+// Service d'authentification : sociale (Google/Apple), code contrôleur, email organisateur
 import * as Crypto from 'expo-crypto'
 import { appelAPI } from './apiService'
 import * as Securite from '../utils/secureStorage'
@@ -29,6 +29,15 @@ export const connecterOrganisateur = async (email, motDePasse) => {
     body: { email, motDePasse },
   })
   return { token: data.token, user: data.user }
+}
+
+// Connexion contrôleur via code d'accès à 4 chiffres
+// Appelle le backend qui vérifie le code et retourne un JWT signé
+export const connecterControleur = async (codeAcces) => {
+  return appelAPI('/auth/controleur', {
+    method: 'POST',
+    body: { codeAcces },
+  })
 }
 
 // Envoie un code OTP à l'email de l'acheteur via le backend

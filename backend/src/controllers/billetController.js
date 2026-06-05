@@ -115,6 +115,7 @@ const acheter = async (req, res) => {
 
       // Initier le paiement via le provider (hors transaction)
       const paymentProvider = PaymentService.getProvider(provider);
+      const estSimulation = paymentProvider.nom === 'SIMULATION';
       let paymentResult;
       try {
         paymentResult = await paymentProvider.initierPaiement({
@@ -135,7 +136,7 @@ const acheter = async (req, res) => {
 
         // Seul le mode SIMULATION confirme immédiatement (pas de webhook disponible)
         // Pour les vrais providers (WAVE, Orange Money...), le webhook confirme le paiement
-        if (provider === 'SIMULATION') {
+        if (estSimulation) {
           await pool.query(
             "UPDATE transaction SET statut = 'SUCCESS', date_mise_a_jour = NOW() WHERE reference = ?",
             [reference]

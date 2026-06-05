@@ -56,6 +56,12 @@ export function AuthProvider({ children }) {
         if (acheteurEmail) setEmail(acheteurEmail)
         if (profilData) setProfil(JSON.parse(profilData))
         setRole('acheteur')
+      } else if (roleStocke === 'controleur') {
+        const token = await Securite.GET(STORAGE_KEY_JWT)
+        if (token) {
+          setJwt(token)
+          setRole('controleur')
+        }
       } else if (roleStocke === 'organisateur') {
         const token = await Securite.GET(STORAGE_KEY_JWT)
         const userData = await Securite.GET(STORAGE_KEY_USER)
@@ -113,6 +119,13 @@ export function AuthProvider({ children }) {
   const definirTelephone = async (tel) => {
     await Securite.SET(STORAGE_KEY_NUMERO, tel)
     setNumeroTel(tel)
+  }
+
+  const connecterControleur = async (token) => {
+    await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'controleur')
+    await Securite.SET(STORAGE_KEY_JWT, token)
+    setJwt(token)
+    setRole('controleur')
   }
 
   const connecterOrganisateur = async (token, userData) => {
@@ -218,6 +231,7 @@ export function AuthProvider({ children }) {
         connecterAcheteurSocial,
         connecterAcheteurOTP,
         definirTelephone,
+        connecterControleur,
         connecterOrganisateur,
         deconnecter,
         nettoyerSession,
