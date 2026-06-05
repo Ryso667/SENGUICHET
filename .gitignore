@@ -46,6 +46,7 @@ google-services.json
 GoogleService-Info.plist
 
 .playwright-mcp/
+.superpowers/
 frontend-web/build/
 # Backend data directory (OTP persist)
 backend/data/
