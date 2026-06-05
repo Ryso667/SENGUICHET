@@ -2,7 +2,7 @@
  * Service d'appels API pour les demandes de partenariat
  * Communique avec le backend sur /api/partenaires
  */
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:8080");
 
 const getToken = () => localStorage.getItem("jwt_token");
 
