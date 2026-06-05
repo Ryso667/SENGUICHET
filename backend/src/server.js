@@ -14,7 +14,13 @@ if (!process.env.TICKET_URL && process.env.VERCEL_URL) {
   process.env.TICKET_URL = `https://${process.env.VERCEL_URL}/api/billets`;
 }
 
-app.use(cors());
+app.use(cors({
+  origin: function (origin, callback) {
+    // Autorise toutes les origines en production (Vercel gère la sécurité au niveau edge)
+    callback(null, true);
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
