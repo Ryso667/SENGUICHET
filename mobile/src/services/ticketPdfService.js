@@ -1,4 +1,5 @@
-// Service de génération de ticket PDF — layout ticket classique
+// Service de génération de ticket PDF — layout 4 sections (55mm×160mm)
+// Sections : A-souche dégradé QR+vertical, B-infos événement, C-corps QR+filigrane, D-talon gris
 import * as Print from 'expo-print'
 import * as Sharing from 'expo-sharing'
 import * as FS from 'expo-file-system'
@@ -7,7 +8,6 @@ import { Asset } from 'expo-asset'
 import { Alert } from 'react-native'
 import { formatDateTicket, formatDatetimeLong } from '../utils/dateUtils'
 
-// Logo en base64 mis en cache côté module (initialisation paresseuse)
 let _logoBase64Promise = null
 function getLogoBase64() {
   if (!_logoBase64Promise) {
@@ -32,218 +32,361 @@ function formatPrix(prix) {
   return `${Number(prix).toLocaleString('fr-FR')} FCFA`
 }
 
-  const DASHES = '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
+// Dimensions : 55mm × 160mm ≈ 156pt × 454pt
+const W = 156
+const H = 454
 
 function construireHtmlTicket(ticket, qrDataUrl, logoBase64) {
   const isScanned = ticket.statut === 'utilise'
-  const organisateur = 'SENGUICHET'
   const dateStr = formatDateTicket(ticket.eventDate)
+  const heureStr = ticket.eventHeure || ''
   const scannedStr = ticket.dateScan ? formatDatetimeLong(ticket.dateScan) : null
-  const logoSrc = logoBase64 ? `data:image/jpeg;base64,${logoBase64}` : null
+  const statutLabel = isScanned ? 'Utilisé' : 'Valide'
+  const statutColor = isScanned ? '#94A3B8' : '#00E5A0'
+  const catColor = ticket.couleurHex || '#6366F1'
 
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=300">
+<meta name="viewport" content="width=${W}">
 <title>Billet ${ticket.eventNom} — SENGUICHET</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
-    width: 300pt;
-    height: 420pt;
+    width: ${W}pt;
+    height: ${H}pt;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     color: #0f172a;
     background: #ffffff;
   }
   .page {
-    width: 300pt;
-    height: 420pt;
-    padding: 6pt 10pt;
+    width: ${W}pt;
+    height: ${H}pt;
     display: flex;
     flex-direction: column;
-    text-align: center;
     overflow: hidden;
+    position: relative;
   }
-  .top-block { flex-shrink: 0; }
-  .bottom-block { flex-shrink: 0; }
 
-  /* En-tête */
-  .header { margin-bottom: 3pt; }
-  .logo-circle {
-    width: 28pt; height: 28pt;
-    border-radius: 50%;
-    background: #E0F7FF;
-    display: inline-flex;
+  /* Scanné stamp */
+  .scanned-stamp {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-25deg);
+    font-size: 22pt;
+    font-weight: 900;
+    color: ${isScanned ? '#ef4444' : 'transparent'};
+    border: ${isScanned ? '1.5pt solid #ef4444' : 'none'};
+    padding: 2pt 8pt;
+    border-radius: 2pt;
+    z-index: 10;
+    pointer-events: none;
+    opacity: ${isScanned ? 0.7 : 0};
+    letter-spacing: 1.5pt;
+  }
+
+  /* SECTION A : Souche dégradé */
+  .section-a {
+    height: 108pt;
+    background: linear-gradient(135deg, #6366F1, ${catColor}, #EC4899);
+    padding: 8pt 11pt;
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
-    font-size: 14pt;
-    margin-bottom: 3pt;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
   }
-  .org-name {
-    font-size: 9pt;
-    font-weight: 800;
-    color: #64748b;
-    letter-spacing: 2px;
+  .section-a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent, transparent 8pt,
+      rgba(255,255,255,0.03) 8pt, rgba(255,255,255,0.03) 16pt
+    );
+    pointer-events: none;
   }
-
-  /* Ligne de tirets */
-  .dash {
-    font-size: 6pt;
-    color: #cbd5e1;
-    letter-spacing: -1px;
-    margin: 3pt 0;
-    width: 100%;
-  }
-
-  /* Nom événement */
-  .event-name {
-    font-size: 15pt;
-    font-weight: 800;
-    line-height: 1.3;
-    letter-spacing: 0.5px;
-    width: 100%;
-  }
-
-  /* Infos */
-  .info-line {
-    font-size: 11pt;
-    font-weight: 700;
-    color: #0f172a;
-    width: 100%;
-  }
-  .venue {
-    font-size: 10pt;
-    font-weight: 800;
-    color: #64748b;
-    letter-spacing: 1px;
-    width: 100%;
-  }
-  .ref {
-    font-size: 10pt;
-    font-weight: 800;
-    color: #64748b;
-    letter-spacing: 0.5px;
-    width: 100%;
-    margin-bottom: 2pt;
-  }
-
-  /* QR */
-  .qr-section {
+  .section-a-left {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 100%;
+    gap: 5pt;
+    z-index: 1;
   }
-  .qr-wrap {
-    position: relative;
-    display: inline-block;
-    padding: 1pt;
-    background: #ffffff;
+  .qr-stub {
+    width: 62pt; height: 62pt;
+    background: #fff;
+    border-radius: 4pt;
+    padding: 4pt;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .qr-wrap img {
-    width: 160pt;
-    height: 160pt;
+  .qr-stub img {
+    width: 100%; height: 100%;
     image-rendering: pixelated;
-    display: block;
   }
-  .scanned-overlay {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .ref-stub {
+    color: rgba(255,255,255,0.85);
+    font-size: 7pt;
+    font-weight: 700;
+    letter-spacing: 1.5pt;
+    text-align: center;
   }
-  .red-circle {
-    width: 52pt; height: 52pt;
-    border-radius: 50%;
-    background: rgba(220, 38, 38, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .red-circle span {
-    font-size: 28pt;
-    color: #ffffff;
-    font-weight: 800;
+  .section-a-right {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    color: rgba(255,255,255,0.15);
+    font-size: 14pt;
+    font-weight: 900;
+    letter-spacing: 5pt;
+    text-transform: uppercase;
+    z-index: 1;
+    margin-left: auto;
+    user-select: none;
     line-height: 1;
   }
-  .scanned-text {
-    font-size: 9pt;
+
+  /* Perforation */
+  .perf {
+    height: 8pt;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-shrink: 0;
+  }
+  .perf-dot {
+    width: 3pt; height: 3pt;
+    border-radius: 50%;
+    background: #f0f2f5;
+    flex-shrink: 0;
+  }
+  .perf-line {
+    flex: 1;
+    height: 0;
+    border-top: 1pt dashed #cbd5e1;
+    margin: 0 1.5pt;
+  }
+
+  /* SECTION B : Infos événement */
+  .section-b {
+    height: 85pt;
+    padding: 7pt 11pt;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2pt;
+    flex-shrink: 0;
+  }
+  .event-title {
+    font-size: 11pt;
     font-weight: 800;
-    color: #0f172a;
-    letter-spacing: 0.5px;
+    line-height: 1.2;
+    letter-spacing: 0.5pt;
+    max-width: 100%;
+  }
+  .event-date {
+    font-size: 7pt;
+    color: #475569;
+    font-weight: 600;
+  }
+  .event-lieu {
+    font-size: 7pt;
+    color: #94a3b8;
+    font-weight: 700;
+    letter-spacing: 1pt;
+    text-transform: uppercase;
+  }
+  .event-meta {
+    display: flex;
+    gap: 10pt;
+    font-size: 7pt;
+    font-weight: 700;
+    color: ${catColor};
+    margin-top: 3pt;
+  }
+  .event-meta span {
+    background: rgba(99,102,241,0.08);
+    padding: 1.5pt 6pt;
+    border-radius: 3pt;
+  }
+
+  /* SECTION C : Corps QR + filigrane */
+  .section-c {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5pt 11pt;
+    position: relative;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .watermark {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+  }
+  .watermark span {
+    font-size: 40pt;
+    font-weight: 900;
+    color: rgba(99,102,241,0.04);
+    letter-spacing: 8pt;
+    text-transform: uppercase;
+    transform: rotate(-20deg);
+    white-space: nowrap;
+  }
+  .qr-main-wrap {
+    width: 48%;
+    aspect-ratio: 1;
+    background: #fff;
+    border-radius: 5pt;
+    padding: 4pt;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    box-shadow: 0 2pt 10pt rgba(0,0,0,0.06);
+  }
+  .qr-main-wrap img {
+    width: 100%; height: 100%;
+    image-rendering: pixelated;
+  }
+  .statut-badge {
+    z-index: 1;
+    margin-top: 5pt;
+    padding: 1.5pt 8pt;
+    border-radius: 5pt;
+    font-size: 7pt;
+    font-weight: 700;
+    color: #fff;
+    background: ${statutColor};
+  }
+  .acheteur-info {
+    z-index: 1;
+    font-size: 5.5pt;
+    color: #94a3b8;
     margin-top: 3pt;
   }
 
-  /* Catégorie et prix */
-  .categorie {
-    font-size: 13pt;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    width: 100%;
+  /* SECTION D : Talon gris */
+  .section-d {
+    height: 85pt;
+    background: #f8fafc;
+    padding: 7pt 11pt;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3pt;
+    flex-shrink: 0;
+    border-top: 1pt solid #e2e8f0;
   }
-  .prix {
-    font-size: 12pt;
+  .d-logo {
+    font-size: 8pt;
     font-weight: 800;
     color: #0f172a;
-    letter-spacing: 0.5px;
-    width: 100%;
-    margin-bottom: 3pt;
+    letter-spacing: 3pt;
   }
-
-  /* Footer */
-  .footer {
-    font-size: 8pt;
-    color: #64748b;
-    font-style: italic;
-    width: 100%;
-    line-height: 1.4;
+  .d-line {
+    font-size: 5.5pt;
+    color: #94a3b8;
+    line-height: 1.5;
+    text-align: center;
+  }
+  .d-barcode {
+    width: 80%;
+    height: 8pt;
+    background: repeating-linear-gradient(
+      90deg,
+      #0f172a, #0f172a 1pt,
+      transparent 1pt, transparent 2pt
+    );
+    margin-top: 3pt;
+    opacity: 0.3;
   }
 </style>
 </head>
 <body>
 <div class="page">
 
-  <!-- Bloc haut : en-tête, infos, référence -->
-  <div class="top-block">
-    <div class="header">
-      <div class="logo-circle">${logoSrc ? `<img src="${logoSrc}" alt="SENGUICHET" style="width:18pt;height:18pt;border-radius:4pt;display:block" />` : '🎫'}</div>
-      <div class="org-name">${organisateur}</div>
+  <div class="scanned-stamp">UTILISÉ</div>
+
+  <!-- SECTION A -->
+  <div class="section-a">
+    <div class="section-a-left">
+      <div class="qr-stub">
+        ${qrDataUrl
+          ? `<img src="${qrDataUrl}" alt="QR" />`
+          : `<div style="width:100%;height:100%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:5pt;color:#94a3b8">—</div>`
+        }
+      </div>
+      <div class="ref-stub">#${ticket.numero || '—'}</div>
     </div>
-    <div class="dash">${DASHES}</div>
-    <div class="event-name">${(ticket.eventNom || 'ÉVÉNEMENT').toUpperCase()}</div>
-    <div class="dash">${DASHES}</div>
-    <div class="info-line">${dateStr}${ticket.eventHeure ? ` à ${ticket.eventHeure}` : ''}</div>
-    ${ticket.eventLieu ? `<div class="venue">${ticket.eventLieu.toUpperCase()}</div>` : ''}
-    <div class="dash">${DASHES}</div>
-    <div class="ref">REF : ${ticket.numero || '—'}</div>
+    <div class="section-a-right">SENGUICHET</div>
   </div>
 
-  <!-- Bloc milieu : QR Code (flex:1 s'étire pour remplir) -->
-  <div class="qr-section">
-    <div class="qr-wrap">
+  <!-- Perf -->
+  <div class="perf">
+    <div class="perf-dot"></div><div class="perf-line"></div>
+    <div class="perf-dot"></div><div class="perf-line"></div>
+    <div class="perf-dot"></div><div class="perf-line"></div>
+    <div class="perf-dot"></div>
+  </div>
+
+  <!-- SECTION B -->
+  <div class="section-b">
+    <div class="event-title">${(ticket.eventNom || 'ÉVÉNEMENT').toUpperCase()}</div>
+    <div class="event-date">${dateStr}${heureStr ? ` à ${heureStr}` : ''}</div>
+    ${ticket.eventLieu ? `<div class="event-lieu">${ticket.eventLieu.toUpperCase()}</div>` : ''}
+    <div class="event-meta">
+      <span>${(ticket.categorie || 'STANDARD').toUpperCase()}</span>
+      <span>${formatPrix(ticket.prix)}</span>
+    </div>
+  </div>
+
+  <!-- Perf -->
+  <div class="perf">
+    <div class="perf-dot"></div><div class="perf-line"></div>
+    <div class="perf-dot"></div><div class="perf-line"></div>
+    <div class="perf-dot"></div><div class="perf-line"></div>
+    <div class="perf-dot"></div>
+  </div>
+
+  <!-- SECTION C -->
+  <div class="section-c">
+    <div class="watermark"><span>SENGUICHET</span></div>
+    <div class="qr-main-wrap">
       ${qrDataUrl
-        ? `<img src="${qrDataUrl}" alt="QR Code billet" />`
-        : `<div style="width:160pt;height:160pt;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:7pt;color:#94a3b8">QR non disponible</div>`
+        ? `<img src="${qrDataUrl}" alt="QR" />`
+        : `<div style="width:100%;height:100%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:5pt;color:#94a3b8">QR non disponible</div>`
       }
-      ${isScanned ? `
-      <div class="scanned-overlay">
-        <div class="red-circle"><span>✕</span></div>
-      </div>` : ''}
     </div>
-    ${isScanned && scannedStr ? `<div class="scanned-text">Contrôlé le ${scannedStr}</div>` : ''}
+    <div class="statut-badge">${statutLabel}</div>
+    <div class="acheteur-info">${ticket.telephone || ''}</div>
   </div>
 
-  <!-- Bloc bas : catégorie, prix, footer -->
-  <div class="bottom-block">
-    <div class="dash">${DASHES}</div>
-    <div class="categorie">${(ticket.categorie || 'STANDARD').toUpperCase()}</div>
-    <div class="prix">PRIX: ${formatPrix(ticket.prix)}</div>
-    <div class="dash">${DASHES}</div>
-    <div class="footer">Entrée unique et non transférable</div>
+  <!-- SECTION D -->
+  <div class="section-d">
+    <div class="d-logo">SENGUICHET</div>
+    <div class="d-line">Billeterie événementielle</div>
+    <div class="d-line">Entrée unique et non transférable</div>
+    ${scannedStr ? `<div class="d-line">Scanné le ${scannedStr}</div>` : ''}
+    <div class="d-barcode"></div>
   </div>
 
 </div>
@@ -279,8 +422,8 @@ export async function genererTicketPDF(ticket, qrDataUrl) {
 
   const { uri } = await Print.printToFileAsync({
     html,
-    width: 300,
-    height: 420,
+    width: W,
+    height: H,
   })
 
   const pdfPath = `${FileSystem.cacheDirectory}${nomFichier}`
