@@ -33,10 +33,10 @@
 
 ## Déploiement
 - **API** : Vercel — https://backend-rust-sigma-64.vercel.app
-- **Base de données** : Aiven MySQL (SSL requis)
-  - Host: `mysql-364674f7-muhamedndiaye00-1360.l.aivencloud.com:12444`
-  - DB: `defaultdb`, User: `avnadmin`
-- **Variables d'env Vercel** : DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, DB_SSL=true, SMTP_USER, SMTP_PASS, ORANGE_CLIENT_ID, ORANGE_CLIENT_SECRET, ORANGE_SANDBOX
+- **Base de données** : TiDB Cloud (MySQL-compatible, SSL non requis)
+  - Host: `gateway01.eu-central-1.prod.aws.tidbcloud.com:4000`
+  - DB: `test`, User: `<cluster>.root`
+- **Variables d'env Vercel** : DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, DB_SSL=false, SMTP_USER, SMTP_PASS, ORANGE_CLIENT_ID, ORANGE_CLIENT_SECRET, ORANGE_SANDBOX
 - `TICKET_URL` auto-détecté via `VERCEL_URL`
 
 ## Dépendances installées
@@ -72,7 +72,7 @@ expo-camera, expo-sqlite, expo-crypto, @vercel/node, nodemailer
 - **Branche de travail** : `feature/mouhtada` — NE JAMAIS modifier `main`
 - **bcrypt pour organisateur** : backend hash avec bcrypt work factor 10
 - **Authentification** : 3 rôles (Acheteur OTP email, Contrôleur code 4 chiffres, Organisateur email+bcrypt)
-- **API déployée** sur Vercel avec base Aiven — ne pas écraser les infos de connexion
+- **API déployée** sur Vercel avec base TiDB Cloud — ne pas écraser les infos de connexion
 - **OTP store** : utilise la table `code_otp` en MySQL (plus de fichier JSON) — nécessaire pour Vercel serverless
 - **Billet** : colonne `numero` VARCHAR(20) NOT NULL ajoutée (absent du schema initial)
 - **Evenement** : les colonnes sont `affiche_url` (pas `image_url`), `titre` (pas `nom`), `capacite_totale` (pas `capacite`)
@@ -101,7 +101,8 @@ expo-camera, expo-sqlite, expo-crypto, @vercel/node, nodemailer
 ## PR mergées
 - PR #3 : Module auth + scan contrôleur + 3 rôles (merged)
 - PR #14 : Notifications email+SMS, page billet publique, Vercel deploy
-- PR #15 : Fix connexionSociale + SSL Aiven
+- PR #15 : Fix connexionSociale + SSL Aiven (historique)
 - PR #16 : Fix EmailService casing Linux + fonctions email partenaires
-- PR #18 : Migration Aiven + SSL + OTP fichier→DB + table billet/acheteur fixes
+- PR #18 : Migration Aiven + SSL + OTP fichier→DB + table billet/acheteur fixes (historique)
 - PR #20 : Fix affiche_url + numero column schema.sql
+- PR #28 : Migration TiDB Cloud + route /scans/sync + fix template ticket
