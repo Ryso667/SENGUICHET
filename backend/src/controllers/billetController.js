@@ -317,7 +317,7 @@ const afficherBillet = async (req, res) => {
       statutClass = 'utilise';
       statutLabel = '✕ UTILISÉ';
     } else if (b.statut === 'EXPIRE') {
-      statutClass = 'exire';
+      statutClass = 'expire';
       statutLabel = '⚠ EXPIRE';
     }
 
