@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENGUICHET – Maquettes Complètes</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F8F9FD;
+    --white: #FFFFFF;
+    --slate: #0F172A;
+    --mid: #64748B;
+    --iris: #6366F1;
+    --rose: #F43F5E;
+    --green: #10B981;
+    --red: #EF4444;
+    --grad: linear-gradient(135deg, #6366F1, #F43F5E);
+    --shadow: 0 8px 30px rgba(15,23,42,0.04);
+    --shadow-md: 0 12px 40px rgba(15,23,42,0.10);
+    --r: 16px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #E8EAF6;
+    min-height: 100vh;
+    color: var(--slate);
+  }
+
+  /* ---- NAV ---- */
+  .nav {
+    background: var(--white);
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(99,102,241,.08);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 22px; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px; }
+  .nav-tabs { display: flex; gap: 6px; }
+  .tab-btn {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px; font-weight: 600;
+    padding: 8px 16px; border-radius: 40px;
+    border: 1.5px solid transparent;
+    cursor: pointer; transition: all .2s;
+    background: transparent; color: var(--mid);
+  }
+  .tab-btn.active { background: var(--grad); color: #fff; border-color: transparent; }
+  .tab-btn:not(.active):hover { border-color: var(--iris); color: var(--iris); background: rgba(99,102,241,.06); }
+
+  /* ---- STAGE ---- */
+  .stage {
+    max-width: 1400px; margin: 40px auto;
+    padding: 0 40px 80px;
+  }
+  .stage-title {
+    font-family: 'Outfit', sans-serif; font-weight: 800;
+    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--mid); margin-bottom: 28px;
+  }
+
+  .screen-grid { display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; }
+  .screen-col { display: flex; flex-direction: column; gap: 28px; }
+
+  /* ---- PHONE FRAME ---- */
+  .phone {
+    width: 320px;
+    background: var(--slate);
+    border-radius: 44px;
+    padding: 14px;
+    box-shadow: 0 30px 80px rgba(15,23,42,0.28), 0 0 0 1px rgba(255,255,255,.08);
+    flex-shrink: 0;
+  }
+  .phone-inner {
+    background: var(--bg);
+    border-radius: 33px;
+    overflow: hidden;
+    position: relative;
+    min-height: 620px;
+  }
+  .phone-notch {
+    width: 100px; height: 28px;
+    background: var(--slate);
+    border-radius: 0 0 18px 18px;
+    margin: 0 auto 0;
+    position: relative; z-index: 10;
+  }
+  .phone-label {
+    font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 700;
+    color: var(--mid); text-align: center;
+    margin-top: 12px; letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  /* ---- BROWSER FRAME ---- */
+  .browser {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 30px 80px rgba(15,23,42,0.18);
+    overflow: hidden;
+    min-width: 680px;
+  }
+  .browser-bar {
+    background: #F1F5F9;
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid #E2E8F0;
+  }
+  .browser-dots { display: flex; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #FF5F57; }
+  .dot-y { background: #FFBD2E; }
+  .dot-g { background: #28C840; }
+  .browser-url {
+    flex: 1; background: #fff; border-radius: 6px;
+    padding: 6px 12px; font-size: 12px; color: var(--mid);
+    border: 1px solid #E2E8F0;
+  }
+
+  /* ---- HIDDEN ---- */
+  .screen { display: none; }
+  .screen.active { display: flex; }
+
+  /* ======= SCREEN A1 : ACCUEIL CLIENT ======= */
+  .app-header {
+    padding: 20px 18px 14px;
+    background: var(--white);
+  }
+  .app-header-top {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+  }
+  .app-logo { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 20px;
+    background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .app-notif { width: 34px; height: 34px; background: var(--bg); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; }
+  .search-bar {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg); border-radius: 12px; padding: 10px 14px;
+    border: 1.5px solid transparent; transition: border-color .2s;
+  }
+  .search-bar:focus-within { border-color: #C7D2FE; }
+  .search-bar input { background: transparent; border: none; outline: none; font-size: 13px; color: var(--mid); width: 100%; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .cat-row { display: flex; gap: 8px; padding: 12px 18px; overflow-x: auto; }
+  .cat-chip {
+    flex-shrink: 0; padding: 7px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: all .2s;
+  }
+  .cat-chip.active { background: var(--grad); color: #fff; }
+  .cat-chip:not(.active) { background: var(--white); color: var(--mid); border: 1.5px solid #E2E8F0; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; padding: 0 18px 12px; }
+  .section-title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px; }
+  .see-all { font-size: 12px; font-weight: 600; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; cursor: pointer; }
+  .event-scroll { display: flex; gap: 12px; padding: 0 18px 16px; overflow-x: auto; }
+  .event-scroll::-webkit-scrollbar { display: none; }
+  .event-card {
+    flex-shrink: 0; width: 180px;
+    background: var(--white); border-radius: 16px;
+    overflow: hidden; box-shadow: var(--shadow-md);
+    cursor: pointer; transition: transform .2s;
+  }
+  .event-card:hover { transform: translateY(-3px); }
+  .event-card-img {
+    width: 100%; height: 100px; object-fit: cover;
+    position: relative; overflow: hidden;
+  }
+  .event-card-img-bg {
+    width: 100%; height: 100px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+  }
+  .event-badge {
+    position: absolute; top: 8px; left: 8px;
+    background: var(--white); border-radius: 8px; padding: 4px 8px;
+    font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 10px;
+    color: var(--slate); display: flex; flex-direction: column; align-items: center; line-height: 1.1;
+  }
+  .event-badge .month { font-size: 8px; text-transform: uppercase; color: var(--rose); letter-spacing: .5px; }
+  .event-card-body { padding: 10px 10px 12px; }
+  .event-card-name { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 12px; line-height: 1.3; margin-bottom: 4px; }
+  .event-card-price { font-size: 11px; font-weight: 600; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .event-card-loc { font-size: 10px; color: var(--mid); margin-top: 2px; }
+
+  .popular-list { padding: 0 18px; display: flex; flex-direction: column; gap: 10px; }
+  .popular-item { display: flex; gap: 12px; align-items: center; background: var(--white); border-radius: 14px; padding: 12px; box-shadow: var(--shadow); cursor: pointer; }
+  .popular-img { width: 50px; height: 50px; border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .popular-info { flex: 1; }
+  .popular-name { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+  .popular-price { font-size: 12px; font-weight: 600; }
+  .popular-loc { font-size: 11px; color: var(--mid); }
+  .free-badge { color: var(--green); }
+  .fav-btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--mid); font-size: 16px; }
+
+  .bottom-nav {
+    display: flex; background: var(--white);
+    border-top: 1px solid #F1F5F9; padding: 10px 0 4px;
+  }
+  .bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; }
+  .bnav-icon { font-size: 20px; }
+  .bnav-label { font-size: 9px; font-weight: 600; color: var(--mid); }
+  .bnav-item.active .bnav-label { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  /* ======= SCREEN A2 : DÉTAIL EVENT ======= */
+  .event-banner {
+    width: 100%; height: 200px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 64px; position: relative;
+  }
+  .back-btn {
+    position: absolute; top: 14px; left: 14px;
+    width: 34px; height: 34px; background: rgba(255,255,255,.85);
+    backdrop-filter: blur(8px);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; cursor: pointer;
+  }
+  .share-btn {
+    position: absolute; top: 14px; right: 14px;
+    width: 34px; height: 34px; background: rgba(255,255,255,.85);
+    backdrop-filter: blur(8px);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; cursor: pointer;
+  }
+  .detail-body { padding: 18px; }
+  .detail-tags { display: flex; gap: 8px; margin-bottom: 10px; }
+  .tag { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: .3px; }
+  .tag-cat { background: rgba(99,102,241,.1); color: var(--iris); }
+  .tag-date { background: rgba(244,63,94,.1); color: var(--rose); }
+  .detail-title { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 20px; margin-bottom: 8px; line-height: 1.2; }
+  .detail-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; font-size: 12px; color: var(--mid); }
+  .detail-row strong { color: var(--slate); font-weight: 600; }
+  .detail-divider { height: 1px; background: #F1F5F9; margin: 14px 0; }
+  .detail-section-title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 13px; margin-bottom: 8px; }
+  .detail-desc { font-size: 12px; color: var(--mid); line-height: 1.6; }
+  .ticket-types { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .ticket-type { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--bg); border-radius: 12px; border: 1.5px solid transparent; cursor: pointer; transition: all .2s; }
+  .ticket-type.selected { border-color: var(--iris); background: rgba(99,102,241,.04); }
+  .tt-name { font-weight: 600; font-size: 13px; }
+  .tt-price { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 14px; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .tt-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #CBD5E1; display: flex; align-items: center; justify-content: center; }
+  .tt-radio.checked { border-color: var(--iris); background: var(--iris); }
+  .tt-radio.checked::after { content: ''; width: 6px; height: 6px; background: #fff; border-radius: 50%; }
+  .buy-btn {
+    width: 100%; padding: 15px; border-radius: 14px;
+    background: var(--grad); border: none; cursor: pointer;
+    font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px; color: #fff;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 8px 24px rgba(99,102,241,.35);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .buy-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(99,102,241,.45); }
+
+  /* ======= SCREEN A3 : SMART TICKET ======= */
+  .ticket-screen { padding: 16px; display: flex; flex-direction: column; align-items: center; }
+  .ticket-screen-title { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 18px; margin-bottom: 4px; }
+  .ticket-screen-sub { font-size: 11px; color: var(--mid); margin-bottom: 20px; }
+  .smart-ticket {
+    width: 270px;
+    background: var(--white);
+    border-radius: 22px;
+    overflow: visible;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(15,23,42,.14), 0 4px 16px rgba(99,102,241,.12);
+  }
+  .ticket-top {
+    padding: 18px 18px 14px;
+    background: linear-gradient(145deg, #6366F1, #8B5CF6, #F43F5E);
+    border-radius: 22px 22px 0 0;
+    position: relative; overflow: hidden;
+  }
+  .ticket-top::before {
+    content: '';
+    position: absolute; top: -30px; right: -30px;
+    width: 120px; height: 120px;
+    background: rgba(255,255,255,.1); border-radius: 50%;
+  }
+  .ticket-event-emoji { font-size: 28px; margin-bottom: 6px; }
+  .ticket-event-name { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 15px; color: #fff; line-height: 1.2; }
+  .ticket-event-date { font-size: 11px; color: rgba(255,255,255,.8); margin-top: 4px; }
+  .ticket-valid { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; background: rgba(255,255,255,.2); backdrop-filter: blur(4px); border-radius: 20px; padding: 4px 10px; font-size: 10px; color: #fff; font-weight: 600; }
+  .ticket-valid::before { content: ''; width: 6px; height: 6px; background: #86EFAC; border-radius: 50%; }
+
+  /* Tear line */
+  .tear-line {
+    height: 0; position: relative; overflow: visible;
+    display: flex; align-items: center;
+  }
+  .tear-line::before {
+    content: ''; position: absolute; left: 20px; right: 20px; top: 0;
+    border-top: 2px dashed #E2E8F0;
+  }
+  .notch-left {
+    position: absolute; left: -14px; top: -14px;
+    width: 28px; height: 28px; background: #E8EAF6; border-radius: 50%;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.08);
+  }
+  .notch-right {
+    position: absolute; right: -14px; top: -14px;
+    width: 28px; height: 28px; background: #E8EAF6; border-radius: 50%;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.08);
+  }
+
+  .ticket-bottom { padding: 20px 18px 18px; }
+  .ticket-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 10px; margin-bottom: 18px; }
+  .ticket-info-item { }
+  .ticket-info-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--mid); margin-bottom: 3px; }
+  .ticket-info-val { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 13px; color: var(--slate); }
+  .ticket-info-val.price { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .qr-wrapper {
+    display: flex; justify-content: center; margin-bottom: 12px;
+  }
+  .qr-code {
+    width: 110px; height: 110px; background: var(--white);
+    border-radius: 12px; padding: 8px;
+    box-shadow: 0 4px 16px rgba(15,23,42,.10);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .qr-svg { width: 94px; height: 94px; }
+  .ticket-id { text-align: center; font-size: 9px; font-weight: 700; letter-spacing: 2px; color: var(--mid); text-transform: uppercase; }
+  .ticket-footer { margin-top: 14px; display: flex; gap: 8px; width: 100%; }
+  .ticket-action {
+    flex: 1; padding: 11px 0; border-radius: 12px; border: none; cursor: pointer;
+    font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 12px;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    transition: all .2s;
+  }
+  .ticket-action.primary { background: var(--grad); color: #fff; box-shadow: 0 6px 18px rgba(99,102,241,.3); }
+  .ticket-action.secondary { background: var(--bg); color: var(--slate); border: 1.5px solid #E2E8F0; }
+
+  /* ======= SCREEN B : SCANNER ======= */
+  .scanner-screen {
+    background: var(--slate); min-height: 620px;
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    padding: 20px;
+    border-radius: 33px;
+  }
+  .scanner-top { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+  .scanner-logo { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 16px; color: #fff; }
+  .scanner-status { display: flex; align-items: center; gap: 6px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+  .status-text { font-size: 11px; color: rgba(255,255,255,.7); font-weight: 600; }
+  .scanner-code-badge { background: rgba(255,255,255,.1); border-radius: 10px; padding: 6px 14px; font-size: 12px; color: rgba(255,255,255,.7); }
+  .scanner-code-badge span { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 16px; color: #fff; letter-spacing: 3px; }
+
+  .scanner-viewfinder {
+    width: 220px; height: 220px; position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .vf-bg { width: 100%; height: 100%; background: rgba(255,255,255,.05); border-radius: 24px; position: absolute; }
+  .vf-corner {
+    position: absolute; width: 28px; height: 28px;
+    border-color: var(--green); border-style: solid; border-width: 0;
+  }
+  .vf-corner.tl { top: 0; left: 0; border-top-width: 3px; border-left-width: 3px; border-radius: 8px 0 0 0; }
+  .vf-corner.tr { top: 0; right: 0; border-top-width: 3px; border-right-width: 3px; border-radius: 0 8px 0 0; }
+  .vf-corner.bl { bottom: 0; left: 0; border-bottom-width: 3px; border-left-width: 3px; border-radius: 0 0 0 8px; }
+  .vf-corner.br { bottom: 0; right: 0; border-bottom-width: 3px; border-right-width: 3px; border-radius: 0 0 8px 0; }
+  .laser-line {
+    position: absolute; left: 10px; right: 10px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    border-radius: 2px;
+    animation: laser 2s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--green);
+  }
+  @keyframes laser { 0%{top:20px; opacity:.8}50%{top:190px; opacity:1}100%{top:20px; opacity:.8} }
+  .vf-hint { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 14px; }
+
+  .scanner-bottom { width: 100%; }
+  .last-scan { background: rgba(255,255,255,.08); border-radius: 16px; padding: 14px; margin-bottom: 14px; }
+  .last-scan-title { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .scan-result-valid { background: rgba(16,185,129,.15); border: 1px solid rgba(16,185,129,.3); border-radius: 12px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; }
+  .scan-res-name { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 13px; color: #fff; }
+  .scan-res-time { font-size: 10px; color: rgba(255,255,255,.5); margin-top: 2px; }
+  .scan-valid-badge { background: var(--green); border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 4px; }
+  .scan-count { display: flex; justify-content: space-between; }
+  .scan-stat { text-align: center; }
+  .scan-stat-val { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 22px; color: #fff; }
+  .scan-stat-label { font-size: 10px; color: rgba(255,255,255,.4); font-weight: 600; }
+  .scan-stat-val.green { color: var(--green); }
+  .scan-stat-val.red { color: var(--red); }
+
+  /* ======= SCREEN C1 : DASHBOARD ORGA ======= */
+  .web-content { padding: 28px 32px; background: var(--bg); min-height: 500px; }
+  .web-sidebar {
+    width: 200px; background: var(--white); border-right: 1px solid #F1F5F9;
+    padding: 24px 16px; display: flex; flex-direction: column; gap: 6px;
+    flex-shrink: 0;
+  }
+  .sidebar-logo { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 18px; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 24px; padding-left: 8px; }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px; cursor: pointer;
+    font-size: 13px; font-weight: 600; color: var(--mid);
+    transition: all .2s;
+  }
+  .sidebar-item:hover { background: var(--bg); color: var(--slate); }
+  .sidebar-item.active { background: rgba(99,102,241,.08); color: var(--iris); }
+  .sidebar-icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-user { margin-top: auto; display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--bg); }
+  .sidebar-avatar { width: 32px; height: 32px; background: var(--grad); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; font-weight: 700; }
+  .sidebar-user-info { }
+  .sidebar-user-name { font-size: 12px; font-weight: 700; color: var(--slate); }
+  .sidebar-user-role { font-size: 10px; color: var(--mid); }
+
+  .web-layout { display: flex; min-height: 500px; }
+  .web-main { flex: 1; overflow: auto; }
+
+  .dash-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+  .dash-title { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 22px; color: var(--slate); }
+  .dash-sub { font-size: 13px; color: var(--mid); margin-top: 3px; }
+  .new-event-btn {
+    padding: 10px 20px; background: var(--grad); color: #fff; border: none; border-radius: 10px;
+    font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    box-shadow: 0 6px 20px rgba(99,102,241,.3);
+  }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  .stat-card { background: var(--white); border-radius: var(--r); padding: 18px; box-shadow: var(--shadow); }
+  .stat-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .stat-trend { font-size: 11px; font-weight: 700; color: var(--green); background: rgba(16,185,129,.1); padding: 4px 8px; border-radius: 20px; }
+  .stat-val { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 26px; color: var(--slate); }
+  .stat-label { font-size: 12px; color: var(--mid); margin-top: 2px; }
+
+  .scan-code-card {
+    background: var(--white); border-radius: var(--r); padding: 20px;
+    box-shadow: var(--shadow); margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1.5px solid rgba(99,102,241,.15);
+  }
+  .scan-code-left { }
+  .scan-code-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--mid); margin-bottom: 6px; }
+  .scan-code-digits {
+    font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 48px;
+    background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: 12px; line-height: 1;
+  }
+  .scan-code-hint { font-size: 11px; color: var(--mid); margin-top: 6px; }
+  .scan-code-icon { width: 64px; height: 64px; background: rgba(99,102,241,.08); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+  .copy-btn { margin-top: 10px; padding: 8px 16px; border-radius: 8px; background: var(--bg); border: 1.5px solid #E2E8F0; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--slate); display: flex; align-items: center; gap: 5px; }
+
+  .web-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .chart-card { background: var(--white); border-radius: var(--r); padding: 18px; box-shadow: var(--shadow); }
+  .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .chart-title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 14px; }
+  .chart-legend { display: flex; gap: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--mid); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  /* Simple bar chart */
+  .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 100px; }
+  .bar-group { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+  .bar { width: 100%; border-radius: 6px 6px 0 0; transition: opacity .2s; }
+  .bar:hover { opacity: .85; }
+  .bar-label { font-size: 9px; color: var(--mid); font-weight: 600; }
+
+  .event-table-card { background: var(--white); border-radius: var(--r); padding: 18px; box-shadow: var(--shadow); }
+  .event-table { width: 100%; border-collapse: collapse; }
+  .event-table th { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--mid); padding: 0 0 10px 0; border-bottom: 1px solid #F1F5F9; text-align: left; }
+  .event-table td { padding: 10px 0; font-size: 12px; border-bottom: 1px solid #F8F9FD; vertical-align: middle; }
+  .event-table tr:last-child td { border-bottom: none; }
+  .event-name-cell { font-weight: 600; font-size: 13px; }
+  .event-date-cell { color: var(--mid); }
+  .progress-bar-wrap { background: #F1F5F9; border-radius: 20px; height: 6px; width: 70px; }
+  .progress-bar-fill { height: 6px; border-radius: 20px; background: var(--grad); }
+  .pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+  .pill-active { background: rgba(16,185,129,.1); color: var(--green); }
+  .pill-soon { background: rgba(99,102,241,.1); color: var(--iris); }
+
+  /* ======= SCREEN C2 : FORM ÉVÉNEMENT ======= */
+  .form-card { background: var(--white); border-radius: var(--r); padding: 24px; box-shadow: var(--shadow); max-width: 600px; }
+  .form-card-title { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 18px; margin-bottom: 4px; }
+  .form-card-sub { font-size: 12px; color: var(--mid); margin-bottom: 24px; }
+  .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 12px; font-weight: 700; color: var(--slate); margin-bottom: 6px; display: block; }
+  .form-input {
+    width: 100%; padding: 11px 14px; border-radius: 10px;
+    border: 1.5px solid #E2E8F0; background: var(--bg);
+    font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: var(--slate);
+    transition: border-color .2s;
+    outline: none;
+  }
+  .form-input:focus { border-color: var(--iris); background: var(--white); }
+  .form-input::placeholder { color: #CBD5E1; }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-hint { font-size: 10px; color: var(--mid); margin-top: 5px; }
+  .ticket-tiers { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .tier-row { display: flex; gap: 10px; align-items: center; background: var(--bg); border-radius: 10px; padding: 10px 12px; }
+  .tier-remove { width: 24px; height: 24px; border-radius: 6px; background: rgba(239,68,68,.1); color: var(--red); border: none; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .add-tier { border: 1.5px dashed #CBD5E1; border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--mid); transition: all .2s; background: transparent; width: 100%; }
+  .add-tier:hover { border-color: var(--iris); color: var(--iris); background: rgba(99,102,241,.04); }
+  .image-upload {
+    border: 2px dashed #CBD5E1; border-radius: 12px; padding: 24px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    cursor: pointer; transition: all .2s;
+  }
+  .image-upload:hover { border-color: var(--iris); background: rgba(99,102,241,.03); }
+  .upload-icon { font-size: 28px; }
+  .upload-text { font-size: 12px; font-weight: 600; color: var(--slate); }
+  .upload-hint { font-size: 10px; color: var(--mid); }
+  .form-submit {
+    width: 100%; padding: 14px; border-radius: 12px; background: var(--grad); border: none;
+    font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px; color: #fff; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(99,102,241,.3); transition: transform .15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .form-submit:hover { transform: translateY(-1px); }
+
+  /* ======= SCREEN C3 : ADMIN DASHBOARD ======= */
+  .admin-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .admin-stat { background: var(--white); border-radius: var(--r); padding: 16px; box-shadow: var(--shadow); }
+  .admin-stat-icon { font-size: 22px; margin-bottom: 8px; }
+  .admin-stat-val { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 22px; color: var(--slate); }
+  .admin-stat-label { font-size: 11px; color: var(--mid); font-weight: 600; margin-top: 2px; }
+  .admin-stat-delta { font-size: 10px; font-weight: 700; background: rgba(16,185,129,.1); color: var(--green); padding: 2px 7px; border-radius: 20px; display: inline-flex; margin-top: 6px; }
+
+  .admin-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+  .admin-table-card { background: var(--white); border-radius: var(--r); padding: 18px; box-shadow: var(--shadow); }
+  .admin-table { width: 100%; border-collapse: collapse; }
+  .admin-table th { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--mid); letter-spacing: .8px; padding: 0 0 10px; border-bottom: 1px solid #F1F5F9; text-align: left; }
+  .admin-table td { padding: 10px 0; font-size: 12px; border-bottom: 1px solid #F8F9FD; }
+  .admin-table tr:last-child td { border-bottom: none; }
+  .orga-avatar { width: 28px; height: 28px; border-radius: 8px; background: var(--grad); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; font-weight: 700; margin-right: 8px; vertical-align: middle; }
+
+  .donut-card { background: var(--white); border-radius: var(--r); padding: 18px; box-shadow: var(--shadow); }
+  .donut-wrap { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+  .donut-svg { width: 120px; height: 120px; }
+  .donut-legend { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+  .donut-legend-item { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+  .donut-legend-left { display: flex; align-items: center; gap: 8px; }
+  .donut-color { width: 10px; height: 10px; border-radius: 3px; }
+  .donut-label { font-weight: 600; color: var(--slate); }
+  .donut-pct { font-family: 'Outfit', sans-serif; font-weight: 700; color: var(--mid); }
+
+  /* QR CODE SVG helper */
+  .qr-module { fill: var(--slate); }
+
+  /* Responsive */
+  @media(max-width:900px) {
+    .screen-grid { flex-direction: column; }
+    .browser { min-width: unset; width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">SENGUICHET</div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="showSection('mobile-client')">📱 Client Mobile</button>
+    <button class="tab-btn" onclick="showSection('mobile-staff')">🔍 Staff Scanner</button>
+    <button class="tab-btn" onclick="showSection('web-orga')">🖥️ Organisateur Web</button>
+    <button class="tab-btn" onclick="showSection('web-admin')">⚙️ Admin Web</button>
+  </div>
+</nav>
+
+<div class="stage">
+
+  <!-- ===== A: MOBILE CLIENT ===== -->
+  <div id="mobile-client" class="screen active">
+    <div class="stage-title">A. Application Mobile — Acheteur</div>
+    <div class="screen-grid">
+
+      <!-- A1 : Accueil -->
+      <div>
+        <div class="phone">
+          <div class="phone-inner" style="display:flex; flex-direction:column; justify-content:space-between; min-height:620px;">
+            <div>
+              <div class="phone-notch"></div>
+              <!-- Header -->
+              <div class="app-header" style="padding-bottom:10px;">
+                <div class="app-header-top" style="margin-bottom:6px;">
+                  <div>
+                    <div class="app-logo">SENGUICHET 🎫</div>
+                    <div style="font-size:10px;color:var(--iris);font-weight:700;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;">Billetterie Instantanée</div>
+                  </div>
+                  <div class="app-notif" style="font-size:14px;">📶</div>
+                </div>
+                <div style="background:rgba(99,102,241,0.06); border-radius:10px; padding:8px 12px; font-size:11px; color:var(--slate); border:1px dashed rgba(99,102,241,0.2); margin-top:8px;">
+                  ⚡ <strong>Mode sans compte</strong> : Vos tickets d'entrée sont stockés localement et sécurisés dans ce téléphone.
+                </div>
+              </div>
+
+              <!-- Section 1 : MON GUICHET (Accès instantané aux tickets achetés) -->
+              <div class="section-header" style="padding-top:10px; margin-bottom:8px;">
+                <div class="section-title" style="font-size:13px; color:var(--slate); display:flex; align-items:center; gap:5px;">
+                  <span>🎟️</span> Mon Guichet (Mes Tickets)
+                </div>
+                <div style="font-size:10px; font-weight:700; color:var(--green);">1 Actif</div>
+              </div>
+
+              <div style="padding:0 18px; margin-bottom:20px;">
+                <!-- Raccourci vers le ticket stocké localement -->
+                <div onclick="showSection('mobile-client')" style="background:var(--white); border-radius:14px; padding:12px; box-shadow:var(--shadow-md); border:1.5px solid rgba(16,185,129,0.2); display:flex; gap:10px; align-items:center; cursor:pointer;">
+                  <div style="font-size:24px; width:44px; height:44px; background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(99,102,241,0.1)); border-radius:10px; display:flex; align-items:center; justify-content:center;">🎫</div>
+                  <div style="flex:1;">
+                    <div style="font-family:'Outfit',sans-serif; font-weight:700; font-size:12px; color:var(--slate);">Dakar Music Festival 2026</div>
+                    <div style="font-size:10px; color:var(--mid); margin-top:2px;">VIP Carré Or · 1 place</div>
+                    <div style="font-size:9px; color:var(--green); font-weight:700; display:inline-flex; align-items:center; gap:3px; margin-top:4px; background:rgba(16,185,129,0.08); padding:2px 6px; border-radius:10px;">
+                      <span style="width:5px; height:5px; background:var(--green); border-radius:50%;"></span> Prêt à être scanné
+                    </div>
+                  </div>
+                  <div style="font-size:14px; color:var(--mid);">➡️</div>
+                </div>
+              </div>
+
+              <!-- Section 2 : ACHAT DIRECT (Événements disponibles) -->
+              <div class="section-header" style="margin-bottom:8px;">
+                <div class="section-title" style="font-size:13px; color:var(--slate); display:flex; align-items:center; gap:5px;">
+                  <span>⚡</span> Guichet Express (Acheter)
+                </div>
+              </div>
+
+              <div class="event-scroll" style="margin-bottom:14px;">
+                <!-- Event Card 1 -->
+                <div class="event-card" style="width:200px;">
+                  <div class="event-card-img" style="position:relative; height:90px;">
+                    <div class="event-card-img-bg" style="background:linear-gradient(135deg,#1a0533,#6d28d9,#db2777); height:90px; font-size:24px;">🎶</div>
+                    <div class="event-badge" style="position:absolute;top:6px;left:6px; padding:3px 6px;">
+                      <span class="month" style="font-size:7px;">MAI</span>
+                      <span style="font-size:11px; font-weight:800;">24</span>
+                    </div>
+                  </div>
+                  <div class="event-card-body" style="padding:8px 10px;">
+                    <div class="event-card-name" style="font-size:11px; margin-bottom:2px;">Dakar Music Festival</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                      <div class="event-card-price" style="font-size:10px; font-weight:800;">5 000F – 15 000F</div>
+                      <div style="font-size:9px; background:rgba(99,102,241,0.1); color:var(--iris); padding:1px 5px; border-radius:4px; font-weight:700;">Achat 1-clic</div>
+                    </div>
+                    <div class="event-card-loc" style="font-size:9px; margin-top:4px;">📍 Monument Renaissance</div>
+                  </div>
+                </div>
+
+                <!-- Event Card 2 -->
+                <div class="event-card" style="width:200px;">
+                  <div class="event-card-img" style="position:relative; height:90px;">
+                    <div class="event-card-img-bg" style="background:linear-gradient(135deg,#0c4a6e,#0284c7,#06b6d4); height:90px; font-size:24px;">✨</div>
+                    <div class="event-badge" style="position:absolute;top:6px;left:6px; padding:3px 6px;">
+                      <span class="month" style="font-size:7px;">JUIN</span>
+                      <span style="font-size:11px; font-weight:800;">02</span>
+                    </div>
+                  </div>
+                  <div class="event-card-body" style="padding:8px 10px;">
+                    <div class="event-card-name" style="font-size:11px; margin-bottom:2px;">Soirée Starlight</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                      <div class="event-card-price" style="font-size:10px; font-weight:800;">10 000F</div>
+                      <div style="font-size:9px; background:rgba(99,102,241,0.1); color:var(--iris); padding:1px 5px; border-radius:4px; font-weight:700;">Achat 1-clic</div>
+                    </div>
+                    <div class="event-card-loc" style="font-size:9px; margin-top:4px;">📍 Grand Théâtre</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Nav -->
+            <div class="bottom-nav" style="border-top:1px solid #F1F5F9; padding:8px 0;">
+              <div class="bnav-item active"><div class="bnav-icon">🏠</div><div class="bnav-label">Guichet</div></div>
+              <div class="bnav-item" onclick="showSection('mobile-client')"><div class="bnav-icon">🎫</div><div class="bnav-label">Mes Tickets</div></div>
+              <div class="bnav-item" onclick="alert('Simulateur de support SENGUICHET : En cas de perte de téléphone, l\'organisateur peut retrouver votre ticket à l\'entrée grâce à votre numéro de téléphone.')"><div class="bnav-icon">💬</div><div class="bnav-label">Support</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">A1 · Guichet & Tickets Locaux</div>
+      </div>
+
+      <!-- A2 : Détail événement -->
+      <div>
+        <div class="phone">
+          <div class="phone-inner" style="display:flex; flex-direction:column; justify-content:space-between; min-height:620px;">
+            <div>
+              <div class="phone-notch"></div>
+              <div class="event-banner" style="background:linear-gradient(145deg,#1a0533,#6d28d9,#db2777); height:130px; font-size:44px;">
+                🎶
+                <div class="back-btn" onclick="showSection('mobile-client')">←</div>
+              </div>
+              <div style="overflow-y:auto; max-height:380px; padding-bottom:16px;">
+                <div class="detail-body" style="padding:14px 18px 10px;">
+                  <div class="detail-tags" style="margin-bottom:6px;">
+                    <span class="tag tag-cat">🎵 Concert</span>
+                    <span class="tag tag-date">24 Mai 2026</span>
+                  </div>
+                  <div class="detail-title" style="font-size:17px; margin-bottom:6px;">Dakar Music Festival 2026</div>
+                  <div class="detail-row" style="font-size:11px; margin-bottom:3px;">📍 <strong>Monument de la Renaissance</strong></div>
+                  <div class="detail-row" style="font-size:11px; margin-bottom:6px;">👥 <strong>580 places disponibles</strong></div>
+                  
+                  <div style="background:rgba(16,185,129,0.06); border-radius:10px; padding:10px; font-size:11px; color:#065f46; border:1px solid rgba(16,185,129,0.15); margin:8px 0 12px;">
+                    ⚡ <strong>Aucune inscription requise</strong>. Saisissez votre numéro de téléphone pour le paiement. Votre ticket sera stocké localement.
+                  </div>
+
+                  <div class="detail-section-title" style="font-size:12px; margin-bottom:6px;">1. Choisir la catégorie</div>
+                  <div class="ticket-types" style="gap:6px; margin-bottom:12px;">
+                    <div class="ticket-type" style="padding:8px 12px;">
+                      <div><div class="tt-name" style="font-size:12px;">Entrée Standard</div><div style="font-size:9px;color:var(--mid)">Générale</div></div>
+                      <div style="display:flex;align-items:center;gap:6px">
+                        <div class="tt-price" style="font-size:12px;">5 000F</div>
+                        <div class="tt-radio"></div>
+                      </div>
+                    </div>
+                    <div class="ticket-type selected" style="padding:8px 12px;">
+                      <div><div class="tt-name" style="font-size:12px;">VIP Carré Or</div><div style="font-size:9px;color:var(--mid)">Vue scène + Boisson</div></div>
+                      <div style="display:flex;align-items:center;gap:6px">
+                        <div class="tt-price" style="font-size:12px;">15 000F</div>
+                        <div class="tt-radio checked"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="detail-section-title" style="font-size:12px; margin-bottom:6px;">2. Saisir votre Téléphone</div>
+                  <div style="background:var(--bg); border-radius:10px; padding:8px 12px; display:flex; align-items:center; gap:8px; border:1.5px solid #E2E8F0; margin-bottom:10px;">
+                    <span style="font-size:14px;">🇸🇳</span>
+                    <span style="font-size:12px; font-weight:700; color:var(--slate);">+221</span>
+                    <input type="tel" value="77 456 78 90" style="background:transparent; border:none; outline:none; font-size:12px; font-weight:700; color:var(--slate); width:100%; font-family:'Plus Jakarta Sans',sans-serif;" />
+                    <span style="font-size:12px; opacity:0.8;">🌊</span>
+                  </div>
+                  <div style="font-size:9px; color:var(--mid); text-align:center;">Support paiement mobile : <strong>Wave</strong> & <strong>Orange Money</strong></div>
+                </div>
+              </div>
+            </div>
+            <div style="padding: 12px 18px 16px; background:var(--white); border-top:1px solid #F1F5F9;">
+              <button class="buy-btn" style="padding:12px; font-size:13px;" onclick="alert('Simulation de Paiement SENGUICHET : Paiement validé avec succès ! Votre Smart Ticket a été généré et enregistré localement dans la mémoire de l\'application.')">🎫 Payer 15 000 FCFA</button>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">A2 · Achat Direct & Mobile Money</div>
+      </div>
+
+      <!-- A3 : Smart Ticket -->
+      <div>
+        <div class="phone">
+          <div class="phone-inner">
+            <div class="phone-notch"></div>
+            <div class="ticket-screen">
+              <div style="width:100%;text-align:center;margin-bottom:4px">
+                <div class="ticket-screen-title">Mon Ticket 🎫</div>
+                <div class="ticket-screen-sub" style="color:var(--green); font-weight:700;">🔒 Sauvegardé en local & Hors-ligne</div>
+              </div>
+              <div class="smart-ticket">
+                <!-- Top coloré -->
+                <div class="ticket-top">
+                  <div class="ticket-event-emoji">🎶</div>
+                  <div class="ticket-event-name">Dakar Music Festival 2026</div>
+                  <div class="ticket-event-date">📍 Monument de la Renaissance · 24 Mai</div>
+                  <div class="ticket-valid" style="background:#10B981; color:#fff;">Statut : Prêt à scanner ✅</div>
+                </div>
+                <!-- Ligne pointillée avec encoches -->
+                <div class="tear-line">
+                  <div class="notch-left"></div>
+                  <div class="notch-right"></div>
+                </div>
+                <!-- Bas blanc -->
+                <div class="ticket-bottom" style="padding-bottom:12px;">
+                  <div class="ticket-info-grid" style="margin-bottom:10px;">
+                    <div class="ticket-info-item">
+                      <div class="ticket-info-label">Catégorie</div>
+                      <div class="ticket-info-val">VIP Carré Or</div>
+                    </div>
+                    <div class="ticket-info-item">
+                      <div class="ticket-info-label">Prix payé</div>
+                      <div class="ticket-info-val price">15 000F</div>
+                    </div>
+                    <div class="ticket-info-item">
+                      <div class="ticket-info-label">Lié au Tél.</div>
+                      <div class="ticket-info-val" style="color:var(--iris);">+221 77 456 78 90</div>
+                    </div>
+                    <div class="ticket-info-item">
+                      <div class="ticket-info-label">Heure</div>
+                      <div class="ticket-info-val">19h00</div>
+                    </div>
+                  </div>
+                  <!-- QR Code -->
+                  <div class="qr-wrapper" style="margin-bottom:8px;">
+                    <div class="qr-code">
+                      <svg class="qr-svg" viewBox="0 0 94 94" xmlns="http://www.w3.org/2000/svg">
+                        <!-- QR stylisé -->
+                        <rect x="0" y="0" width="94" height="94" fill="white"/>
+                        <!-- Top-left finder pattern -->
+                        <rect x="4" y="4" width="26" height="26" rx="3" fill="#0F172A"/>
+                        <rect x="8" y="8" width="18" height="18" rx="2" fill="white"/>
+                        <rect x="12" y="12" width="10" height="10" rx="1" fill="#0F172A"/>
+                        <!-- Top-right finder -->
+                        <rect x="64" y="4" width="26" height="26" rx="3" fill="#0F172A"/>
+                        <rect x="68" y="8" width="18" height="18" rx="2" fill="white"/>
+                        <rect x="72" y="12" width="10" height="10" rx="1" fill="#0F172A"/>
+                        <!-- Bottom-left finder -->
+                        <rect x="4" y="64" width="26" height="26" rx="3" fill="#0F172A"/>
+                        <rect x="8" y="68" width="18" height="18" rx="2" fill="white"/>
+                        <rect x="12" y="72" width="10" height="10" rx="1" fill="#0F172A"/>
+                        <!-- Data modules (random pattern for design) -->
+                        <rect x="34" y="4" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="44" y="4" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="54" y="4" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="34" y="14" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="44" y="14" width="6" height="6" rx="1" fill="#6366F1"/>
+                        <rect x="34" y="24" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="54" y="14" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="4" y="34" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="14" y="34" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="24" y="34" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="34" y="34" width="6" height="6" rx="1" fill="#6366F1"/>
+                        <rect x="44" y="34" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="54" y="34" width="6" height="6" rx="1" fill="#F43F5E"/>
+                        <rect x="64" y="34" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="74" y="34" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="84" y="34" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="4" y="44" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="24" y="44" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="44" y="44" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="64" y="44" width="6" height="6" rx="1" fill="#6366F1"/>
+                        <rect x="84" y="44" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="4" y="54" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="14" y="54" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="34" y="54" width="6" height="6" rx="1" fill="#F43F5E"/>
+                        <rect x="54" y="54" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="74" y="54" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="84" y="54" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="34" y="64" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="44" y="64" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="54" y="64" width="6" height="6" rx="1" fill="#6366F1"/>
+                        <rect x="64" y="64" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="34" y="74" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="54" y="74" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="74" y="74" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="44" y="84" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="64" y="84" width="6" height="6" rx="1" fill="#F43F5E"/>
+                        <rect x="84" y="84" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="44" y="74" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="84" y="64" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="74" y="84" width="6" height="6" rx="1" fill="#0F172A"/>
+                        <rect x="84" y="74" width="6" height="6" rx="1" fill="#6366F1"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ticket-id" style="font-size:8px;">ID unique : SGT-DMF26-VIP-00847</div>
+                </div>
+              </div>
+              <div class="ticket-footer" style="width:270px; margin-top:8px;">
+                <button class="ticket-action primary" style="font-size:11px; padding:8px 0;" onclick="alert('Simulation SENGUICHET : Le ticket a été exporté en PDF haute qualité dans vos téléchargements.')">⬇️ Exporter PDF</button>
+                <button class="ticket-action secondary" style="font-size:11px; padding:8px 0;" onclick="alert('Simulation SENGUICHET : Lien de partage généré pour WhatsApp / SMS.')">📤 Partager</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">A3 · Smart Ticket avec QR Code</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== B: MOBILE STAFF ===== -->
+  <div id="mobile-staff" class="screen">
+    <div class="stage-title">B. Application Mobile — Staff & Contrôleur</div>
+    <div class="screen-grid">
+      <div>
+        <div class="phone">
+          <div class="phone-inner">
+            <div class="scanner-screen">
+              <!-- Top -->
+              <div class="scanner-top">
+                <div>
+                  <div class="scanner-logo">SENGUICHET</div>
+                  <div class="scanner-status">
+                    <div class="status-dot"></div>
+                    <div class="status-text">Scanner Actif</div>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size:9px;color:rgba(255,255,255,.4);text-align:right;margin-bottom:4px;font-weight:700;letter-spacing:.8px;text-transform:uppercase">Code Scan</div>
+                  <div class="scanner-code-badge">
+                    <span>4827</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Event info badge -->
+              <div style="background:rgba(255,255,255,.07);border-radius:12px;padding:10px 14px;width:100%;display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <div style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;text-transform:uppercase;letter-spacing:.8px">Événement</div>
+                  <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:13px;color:#fff;margin-top:2px">Dakar Music Festival</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;color:var(--green)">247</div>
+                  <div style="font-size:10px;color:rgba(255,255,255,.4);font-weight:600">Validés</div>
+                </div>
+              </div>
+
+              <!-- Viewfinder -->
+              <div style="display:flex;flex-direction:column;align-items:center">
+                <div class="scanner-viewfinder">
+                  <div class="vf-bg"></div>
+                  <div class="vf-corner tl"></div>
+                  <div class="vf-corner tr"></div>
+                  <div class="vf-corner bl"></div>
+                  <div class="vf-corner br"></div>
+                  <div class="laser-line"></div>
+                </div>
+                <div class="vf-hint">Pointez vers le QR Code du ticket</div>
+              </div>
+
+              <!-- Last scan -->
+              <div class="scanner-bottom">
+                <div class="last-scan">
+                  <div class="last-scan-title">Dernier scan</div>
+                  <div class="scan-result-valid">
+                    <div>
+                      <div class="scan-res-name">Ticket #00846 · VIP</div>
+                      <div class="scan-res-time">Il y a 12 secondes</div>
+                    </div>
+                    <div class="scan-valid-badge">✓ Valide</div>
+                  </div>
+                </div>
+                <div class="scan-count">
+                  <div class="scan-stat"><div class="scan-stat-val green">247</div><div class="scan-stat-label">Valides</div></div>
+                  <div class="scan-stat"><div class="scan-stat-val" style="color:#fff">580</div><div class="scan-stat-label">Total</div></div>
+                  <div class="scan-stat"><div class="scan-stat-val red">3</div><div class="scan-stat-label">Invalides</div></div>
+                  <div class="scan-stat"><div class="scan-stat-val" style="color:rgba(255,255,255,.5)">333</div><div class="scan-stat-label">Restants</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">B · Scanner QR Code (Staff)</div>
+      </div>
+
+      <!-- Résultat valide / invalide -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <!-- Écran vert valide -->
+        <div>
+          <div class="phone" style="width:220px">
+            <div class="phone-inner" style="min-height:200px;background:#022c22;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border-radius:33px">
+              <div style="width:70px;height:70px;background:rgba(16,185,129,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid var(--green)">
+                <span style="font-size:32px">✓</span>
+              </div>
+              <div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:22px;color:var(--green)">VALIDE</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.6);text-align:center;padding:0 20px">Ticket #00847 · VIP Carré Or<br>1ère utilisation ✓</div>
+            </div>
+          </div>
+          <div class="phone-label">✅ Scan Valide</div>
+        </div>
+        <!-- Écran rouge invalide -->
+        <div>
+          <div class="phone" style="width:220px">
+            <div class="phone-inner" style="min-height:200px;background:#2d0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border-radius:33px">
+              <div style="width:70px;height:70px;background:rgba(239,68,68,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid var(--red)">
+                <span style="font-size:32px">✗</span>
+              </div>
+              <div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:22px;color:var(--red)">INVALIDE</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.6);text-align:center;padding:0 20px">Déjà scanné à 20h14<br>Tentative de fraude ⚠️</div>
+            </div>
+          </div>
+          <div class="phone-label">❌ Scan Invalide / Fraude</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== C: WEB ORGANISATEUR ===== -->
+  <div id="web-orga" class="screen" style="flex-direction:column; gap:28px">
+    <div class="stage-title">C. Portail Web — Organisateur</div>
+
+    <!-- Dashboard -->
+    <div>
+      <div class="browser">
+        <div class="browser-bar">
+          <div class="browser-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <div class="browser-url">senguichet.sn/organisateur/dashboard</div>
+        </div>
+        <div class="web-layout" style="height:520px">
+          <!-- Sidebar -->
+          <div class="web-sidebar">
+            <div class="sidebar-logo">SENGUICHET</div>
+            <div class="sidebar-item active"><span class="sidebar-icon">📊</span>Dashboard</div>
+            <div class="sidebar-item"><span class="sidebar-icon">🎭</span>Mes Événements</div>
+            <div class="sidebar-item"><span class="sidebar-icon">➕</span>Créer un Event</div>
+            <div class="sidebar-item"><span class="sidebar-icon">💳</span>Transactions</div>
+            <div class="sidebar-item"><span class="sidebar-icon">📈</span>Statistiques</div>
+            <div class="sidebar-user">
+              <div class="sidebar-avatar">AB</div>
+              <div class="sidebar-user-info">
+                <div class="sidebar-user-name">Amina Bâ</div>
+                <div class="sidebar-user-role">Organisateur</div>
+              </div>
+            </div>
+          </div>
+          <div class="web-main">
+            <div class="web-content" style="padding: 20px 24px;">
+              <div class="dash-header" style="margin-bottom:16px;">
+                <div>
+                  <div class="dash-title" style="font-size:18px;">Gestion des Entrées & Tickets 📊</div>
+                  <div class="dash-sub" style="font-size:11px;">Dakar Music Festival 2026 · Contrôle d'accès en direct</div>
+                </div>
+                <button class="new-event-btn" style="padding:8px 16px; font-size:11px;">+ Créer un Guichet</button>
+              </div>
+              
+              <!-- Stats de Billetterie & Flux -->
+              <div class="stats-grid" style="margin-bottom:14px; gap:10px;">
+                <div class="stat-card" style="padding:12px;">
+                  <div class="stat-card-top" style="margin-bottom:6px;">
+                    <div class="stat-icon" style="background:rgba(99,102,241,.1); width:32px; height:32px; font-size:14px;">🎫</div>
+                    <div class="stat-trend" style="font-size:9px; padding:2px 6px;">72% Rempli</div>
+                  </div>
+                  <div class="stat-val" style="font-size:20px;">847</div>
+                  <div class="stat-label" style="font-size:10px;">Tickets vendus</div>
+                </div>
+                <div class="stat-card" style="padding:12px;">
+                  <div class="stat-card-top" style="margin-bottom:6px;">
+                    <div class="stat-icon" style="background:rgba(16,185,129,.1); width:32px; height:32px; font-size:14px;">🔍</div>
+                    <div class="stat-trend" style="font-size:9px; padding:2px 6px; background:rgba(16,185,129,.15); color:var(--green);">29% Entrés</div>
+                  </div>
+                  <div class="stat-val" style="font-size:20px;">247 / 847</div>
+                  <div class="stat-label" style="font-size:10px;">Flux d'Admission (Scans)</div>
+                </div>
+                <div class="stat-card" style="padding:12px;">
+                  <div class="stat-card-top" style="margin-bottom:6px;">
+                    <div class="stat-icon" style="background:rgba(244,63,94,.1); width:32px; height:32px; font-size:14px;">🛡️</div>
+                    <div class="stat-trend" style="font-size:9px; padding:2px 6px; background:rgba(16,185,129,0.1); color:var(--green);">Nominal</div>
+                  </div>
+                  <div class="stat-val" style="font-size:20px;">100%</div>
+                  <div class="stat-label" style="font-size:10px;">Taux de tickets valides</div>
+                </div>
+              </div>
+
+              <!-- Zone de Code de Scan & Statut Portes -->
+              <div class="scan-code-card" style="padding:14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;">
+                <div class="scan-code-left">
+                  <div class="scan-code-label" style="font-size:9px; margin-bottom:2px;">🔑 Clef de Scan pour le Staff aux portes</div>
+                  <div style="display:flex; align-items:center; gap:16px;">
+                    <div class="scan-code-digits" style="font-size:32px; letter-spacing:8px;">4827</div>
+                    <div style="background:rgba(16,185,129,0.1); color:var(--green); font-size:10px; font-weight:700; padding:4px 8px; border-radius:6px; display:flex; align-items:center; gap:4px;">
+                      <span style="width:6px; height:6px; background:var(--green); border-radius:50%; display:inline-block;"></span> 2 Scanners Connectés
+                    </div>
+                  </div>
+                  <div class="scan-code-hint" style="font-size:10px; margin-top:4px;">Les contrôleurs entrent ce code sur leur mobile pour déverrouiller l'appareil photo.</div>
+                </div>
+                <button class="copy-btn" style="margin-top:0; padding:6px 12px; font-size:11px;" onclick="alert('Code de scan copié !')">📋 Partager Code</button>
+              </div>
+
+              <!-- Grille d'Incident Support & Audit -->
+              <div class="web-grid-2" style="gap:12px;">
+                <!-- Outil de Recherche par Téléphone (Cas de panne de batterie/perte de ticket) -->
+                <div class="chart-card" style="padding:14px;">
+                  <div class="chart-header" style="margin-bottom:8px;">
+                    <div class="chart-title" style="font-size:12px;">🛠️ Support Client : Recherche & Entrée Manuelle</div>
+                  </div>
+                  <div style="font-size:10px; color:var(--mid); margin-bottom:8px;">Un client n'a plus de batterie ? Saisissez son numéro pour retrouver son ticket en base et valider son entrée.</div>
+                  <div style="display:flex; gap:6px; margin-bottom:12px;">
+                    <input type="text" placeholder="Ex: 77 456 78 90" style="flex:1; padding:6px 10px; font-size:11px; border-radius:6px; border:1.5px solid #E2E8F0; outline:none;" />
+                    <button style="background:var(--iris); color:#fff; border:none; padding:6px 12px; font-size:11px; border-radius:6px; font-weight:700; cursor:pointer;" onclick="alert('Recherche en cours... Ticket VIP de Mouhamadou Diop trouvé ! Entrée validée manuellement.')">🔍 Valider Entrée</button>
+                  </div>
+                  <div style="font-size:10px; font-weight:700; color:var(--slate); border-top:1px solid #F1F5F9; padding-top:8px;">Derniers audits manuels :</div>
+                  <div style="display:flex; justify-content:space-between; font-size:10px; margin-top:4px; color:var(--mid);">
+                    <span>📞 +221 77 129 45 XX</span>
+                    <span style="color:var(--green); font-weight:700;">Validé manuellement ✓</span>
+                  </div>
+                </div>
+
+                <!-- Liste des entrées par catégories de billets -->
+                <div class="event-table-card" style="padding:14px;">
+                  <div class="chart-title" style="margin-bottom:8px; font-size:12px;">📊 Flux par Catégorie de Ticket</div>
+                  <table class="event-table" style="width:100%;">
+                    <thead>
+                      <tr>
+                        <th style="font-size:9px; padding-bottom:6px;">Billet</th>
+                        <th style="font-size:9px; padding-bottom:6px;">Admission</th>
+                        <th style="font-size:9px; padding-bottom:6px;">Statut Porte</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style="font-size:11px; padding:6px 0;"><div style="font-weight:700;">Entrée Standard</div><div style="font-size:9px; color:var(--mid);">5 000F</div></td>
+                        <td style="font-size:11px; padding:6px 0;"><strong>182 / 600</strong> <span style="font-size:9px; color:var(--mid);">(30%)</span></td>
+                        <td style="font-size:11px; padding:6px 0;"><span class="pill pill-active" style="padding:2px 6px; font-size:9px;">Fluide</span></td>
+                      </tr>
+                      <tr>
+                        <td style="font-size:11px; padding:6px 0;"><div style="font-weight:700;">VIP Carré Or</div><div style="font-size:9px; color:var(--mid);">15 000F</div></td>
+                        <td style="font-size:11px; padding:6px 0;"><strong>65 / 247</strong> <span style="font-size:9px; color:var(--mid);">(26%)</span></td>
+                        <td style="font-size:11px; padding:6px 0;"><span class="pill pill-active" style="padding:2px 6px; font-size:9px;">Fluide</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;color:var(--mid);text-align:center;margin-top:10px;letter-spacing:1px;text-transform:uppercase">C1 · Dashboard Organisateur</div>
+    </div>
+
+    <!-- Formulaire -->
+    <div>
+      <div class="browser">
+        <div class="browser-bar">
+          <div class="browser-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <div class="browser-url">senguichet.sn/organisateur/creer-evenement</div>
+        </div>
+        <div class="web-layout" style="min-height:420px">
+          <div class="web-sidebar" style="height:auto">
+            <div class="sidebar-logo">SENGUICHET</div>
+            <div class="sidebar-item"><span class="sidebar-icon">📊</span>Dashboard</div>
+            <div class="sidebar-item"><span class="sidebar-icon">🎭</span>Mes Événements</div>
+            <div class="sidebar-item active"><span class="sidebar-icon">➕</span>Créer un Event</div>
+            <div class="sidebar-item"><span class="sidebar-icon">💳</span>Transactions</div>
+          </div>
+          <div class="web-main">
+            <div class="web-content">
+              <div class="form-card">
+                <div class="form-card-title">Créer un Événement ✨</div>
+                <div class="form-card-sub">Remplissez les informations pour publier votre événement sur SENGUICHET.</div>
+                <!-- Image upload -->
+                <div class="form-group">
+                  <label class="form-label">Bannière de l'événement</label>
+                  <div class="image-upload">
+                    <div class="upload-icon">🖼️</div>
+                    <div class="upload-text">Glissez votre image ici</div>
+                    <div class="upload-hint">JPG, PNG · Max 5MB · Recommandé : 1200×600px</div>
+                  </div>
+                </div>
+                <div class="form-grid-2">
+                  <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Nom de l'événement *</label>
+                    <input class="form-input" type="text" placeholder="Ex: Dakar Music Festival" />
+                  </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Catégorie</label>
+                    <input class="form-input" type="text" placeholder="Concert, Festival, Conf…" />
+                  </div>
+                </div>
+                <div style="height:14px"></div>
+                <div class="form-grid-2">
+                  <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Date *</label>
+                    <input class="form-input" type="date" />
+                  </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Heure de début *</label>
+                    <input class="form-input" type="time" />
+                  </div>
+                </div>
+                <div style="height:14px"></div>
+                <div class="form-group">
+                  <label class="form-label">Lieu *</label>
+                  <input class="form-input" type="text" placeholder="Nom du lieu, ville" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Description</label>
+                  <textarea class="form-input form-textarea" placeholder="Décrivez votre événement…"></textarea>
+                </div>
+                <!-- Ticket tiers -->
+                <div class="form-group">
+                  <label class="form-label">Catégories de tickets</label>
+                  <div class="ticket-tiers">
+                    <div class="tier-row">
+                      <input class="form-input" type="text" placeholder="Nom (ex: Standard)" style="flex:2;margin:0;padding:8px 10px" />
+                      <input class="form-input" type="number" placeholder="Prix FCFA" style="flex:1;margin:0;padding:8px 10px" />
+                      <input class="form-input" type="number" placeholder="Qté" style="width:60px;margin:0;padding:8px 10px" />
+                      <button class="tier-remove">✕</button>
+                    </div>
+                    <div class="tier-row">
+                      <input class="form-input" type="text" placeholder="VIP" style="flex:2;margin:0;padding:8px 10px" />
+                      <input class="form-input" type="number" placeholder="15000" style="flex:1;margin:0;padding:8px 10px" />
+                      <input class="form-input" type="number" placeholder="100" style="width:60px;margin:0;padding:8px 10px" />
+                      <button class="tier-remove">✕</button>
+                    </div>
+                  </div>
+                  <button class="add-tier">+ Ajouter une catégorie</button>
+                </div>
+                <button class="form-submit">🚀 Publier l'Événement</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;color:var(--mid);text-align:center;margin-top:10px;letter-spacing:1px;text-transform:uppercase">C2 · Formulaire de Création d'Événement</div>
+    </div>
+  </div>
+
+  <!-- ===== D: WEB ADMIN ===== -->
+  <div id="web-admin" class="screen" style="flex-direction:column">
+    <div class="stage-title">D. Portail Web — Administration Globale</div>
+    <div class="browser">
+      <div class="browser-bar">
+        <div class="browser-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <div class="browser-url">senguichet.sn/admin/dashboard</div>
+      </div>
+      <div class="web-layout" style="min-height:560px">
+        <!-- Sidebar Admin -->
+        <div class="web-sidebar">
+          <div class="sidebar-logo">SENGUICHET</div>
+          <div style="font-size:9px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:1px;padding:0 8px;margin-bottom:8px">Administration</div>
+          <div class="sidebar-item active"><span class="sidebar-icon">📊</span>Vue Globale</div>
+          <div class="sidebar-item"><span class="sidebar-icon">👥</span>Organisateurs</div>
+          <div class="sidebar-item"><span class="sidebar-icon">🎭</span>Événements</div>
+          <div class="sidebar-item"><span class="sidebar-icon">💸</span>Transactions</div>
+          <div class="sidebar-item"><span class="sidebar-icon">🔒</span>Sécurité</div>
+          <div class="sidebar-item"><span class="sidebar-icon">⚙️</span>Paramètres</div>
+          <div class="sidebar-user" style="margin-top:auto">
+            <div class="sidebar-avatar" style="background:linear-gradient(135deg,#0F172A,#374151)">👑</div>
+            <div class="sidebar-user-info">
+              <div class="sidebar-user-name">Super Admin</div>
+              <div class="sidebar-user-role">Administrateur</div>
+            </div>
+          </div>
+        </div>
+        <!-- Main Admin -->
+        <div class="web-main">
+          <div class="web-content">
+            <div class="dash-header">
+              <div>
+                <div class="dash-title">Dashboard Global ⚙️</div>
+                <div class="dash-sub">Vue d'ensemble de la plateforme SENGUICHET</div>
+              </div>
+              <div style="display:flex;gap:10px">
+                <button style="padding:9px 16px;border-radius:9px;border:1.5px solid #E2E8F0;background:var(--white);font-size:12px;font-weight:600;cursor:pointer;color:var(--slate)">📤 Exporter</button>
+                <button class="new-event-btn">+ Ajouter Organisateur</button>
+              </div>
+            </div>
+            <!-- 4 Admin Stats -->
+            <div class="admin-stats-grid">
+              <div class="admin-stat">
+                <div class="admin-stat-icon">🎫</div>
+                <div class="admin-stat-val">12,847</div>
+                <div class="admin-stat-label">Total tickets vendus</div>
+                <div class="admin-stat-delta">↑ +34%</div>
+              </div>
+              <div class="admin-stat">
+                <div class="admin-stat-icon">💰</div>
+                <div class="admin-stat-val">64,2M</div>
+                <div class="admin-stat-label">Volume FCFA (mois)</div>
+                <div class="admin-stat-delta">↑ +18%</div>
+              </div>
+              <div class="admin-stat">
+                <div class="admin-stat-icon">🏢</div>
+                <div class="admin-stat-val">38</div>
+                <div class="admin-stat-label">Organisateurs actifs</div>
+                <div class="admin-stat-delta">↑ +5</div>
+              </div>
+              <div class="admin-stat">
+                <div class="admin-stat-icon">🎭</div>
+                <div class="admin-stat-val">124</div>
+                <div class="admin-stat-label">Événements ce mois</div>
+                <div class="admin-stat-delta">↑ +12</div>
+              </div>
+            </div>
+            <!-- 2 col -->
+            <div class="admin-grid">
+              <!-- Table organisateurs -->
+              <div class="admin-table-card">
+                <div class="chart-header" style="margin-bottom:14px">
+                  <div class="chart-title">Top Organisateurs</div>
+                  <div style="font-size:11px;color:var(--mid);cursor:pointer;font-weight:600">Voir tout →</div>
+                </div>
+                <table class="admin-table">
+                  <thead><tr>
+                    <th>Organisateur</th><th>Événements</th><th>Recettes</th><th>Statut</th>
+                  </tr></thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="orga-avatar">AB</span>Amina Bâ</td>
+                      <td style="font-weight:600">12</td>
+                      <td style="font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent">18,2M</td>
+                      <td><span class="pill pill-active">Actif</span></td>
+                    </tr>
+                    <tr>
+                      <td><span class="orga-avatar" style="background:linear-gradient(135deg,#0369a1,#0ea5e9)">DS</span>Doudou Seck</td>
+                      <td style="font-weight:600">8</td>
+                      <td style="font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent">11,4M</td>
+                      <td><span class="pill pill-active">Actif</span></td>
+                    </tr>
+                    <tr>
+                      <td><span class="orga-avatar" style="background:linear-gradient(135deg,#065f46,#10b981)">FD</span>Fatou Diallo</td>
+                      <td style="font-weight:600">5</td>
+                      <td style="font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent">7,6M</td>
+                      <td><span class="pill pill-soon">En révision</span></td>
+                    </tr>
+                    <tr>
+                      <td><span class="orga-avatar" style="background:linear-gradient(135deg,#7c2d12,#ea580c)">MN</span>Moussa Ndiaye</td>
+                      <td style="font-weight:600">4</td>
+                      <td style="font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent">3,1M</td>
+                      <td><span class="pill pill-active">Actif</span></td>
+                    </tr>
+                    <tr>
+                      <td><span class="orga-avatar" style="background:linear-gradient(135deg,#4a044e,#a21caf)">KF</span>Kofi Fall</td>
+                      <td style="font-weight:600">3</td>
+                      <td style="font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent">2,8M</td>
+                      <td><span class="pill pill-active">Actif</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!-- Donut chart + quick stats -->
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div class="donut-card">
+                  <div class="chart-title" style="margin-bottom:14px">Paiements par méthode</div>
+                  <div class="donut-wrap">
+                    <svg class="donut-svg" viewBox="0 0 120 120">
+                      <!-- Wave: 52% -->
+                      <circle cx="60" cy="60" r="44" fill="none" stroke="#6366F1" stroke-width="14"
+                        stroke-dasharray="143.7 276.46" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
+                      <!-- Orange Money: 33% -->
+                      <circle cx="60" cy="60" r="44" fill="none" stroke="#F43F5E" stroke-width="14"
+                        stroke-dasharray="91.1 276.46" stroke-dashoffset="-143.7" transform="rotate(-90 60 60)"/>
+                      <!-- Free Money: 15% -->
+                      <circle cx="60" cy="60" r="44" fill="none" stroke="#10B981" stroke-width="14"
+                        stroke-dasharray="41.5 276.46" stroke-dashoffset="-234.8" transform="rotate(-90 60 60)"/>
+                      <text x="60" y="56" text-anchor="middle" font-family="Outfit" font-weight="800" font-size="18" fill="#0F172A">64,2M</text>
+                      <text x="60" y="70" text-anchor="middle" font-family="Plus Jakarta Sans" font-size="8" fill="#64748B">FCFA</text>
+                    </svg>
+                    <div class="donut-legend">
+                      <div class="donut-legend-item"><div class="donut-legend-left"><div class="donut-color" style="background:var(--iris)"></div><div class="donut-label">Wave</div></div><div class="donut-pct">52%</div></div>
+                      <div class="donut-legend-item"><div class="donut-legend-left"><div class="donut-color" style="background:var(--rose)"></div><div class="donut-label">Orange Money</div></div><div class="donut-pct">33%</div></div>
+                      <div class="donut-legend-item"><div class="donut-legend-left"><div class="donut-color" style="background:var(--green)"></div><div class="donut-label">Free Money</div></div><div class="donut-pct">15%</div></div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Security card -->
+                <div class="admin-stat" style="background:linear-gradient(135deg,rgba(15,23,42,.97),rgba(30,41,59,.97));color:#fff">
+                  <div style="font-size:20px;margin-bottom:8px">🛡️</div>
+                  <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:20px;color:#fff">99,7%</div>
+                  <div style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;margin-top:2px">Taux de tickets légitimes</div>
+                  <div style="font-size:10px;font-weight:700;background:rgba(16,185,129,.2);color:var(--green);padding:3px 8px;border-radius:20px;display:inline-flex;margin-top:8px">✓ Sécurité nominale</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;color:var(--mid);text-align:center;margin-top:10px;letter-spacing:1px;text-transform:uppercase">C3 · Dashboard Administrateur Global</div>
+  </div>
+
+</div>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const map = {'mobile-client':0,'mobile-staff':1,'web-orga':2,'web-admin':3};
+  document.querySelectorAll('.tab-btn')[map[id]].classList.add('active');
+}
+// Interactive ticket type selection
+document.querySelectorAll('.ticket-type').forEach(t => {
+  t.addEventListener('click', function() {
+    document.querySelectorAll('.ticket-type').forEach(x => {
+      x.classList.remove('selected');
+      x.querySelector('.tt-radio').classList.remove('checked');
+    });
+    this.classList.add('selected');
+    this.querySelector('.tt-radio').classList.add('checked');
+  });
+});
+</script>
+</body>
+</html>
