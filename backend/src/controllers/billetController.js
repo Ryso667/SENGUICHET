@@ -3,7 +3,6 @@
 // GET /api/billets/mes-billets — liste les billets d'un téléphone
 
 const pool = require("../config/db");
-const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
 const PaymentService = require("../services/PaymentService");
 const { envoyerEmailBillet } = require("../services/EmailService");
@@ -81,7 +80,7 @@ const acheter = async (req, res) => {
       await conn.beginTransaction();
 
       // Créer le billet
-      const uuid = uuidv4();
+      const uuid = crypto.randomUUID();
       const numero = `TKT-${Date.now().toString(36).toUpperCase()}`;
       const timestamp = new Date().toISOString();
 
@@ -101,7 +100,7 @@ const acheter = async (req, res) => {
       // pour éviter une double décrémentation (trigger + code manuel)
 
       // Créer la transaction
-      const reference = 'PAI-' + uuidv4().slice(0, 12).toUpperCase();
+      const reference = 'PAI-' + crypto.randomUUID().slice(0, 12).toUpperCase();
       await conn.query(
         `INSERT INTO transaction (reference, billet_id, montant, frais, devise, statut, moyen_paiement, telephone_payeur)
          VALUES (?, ?, ?, 0, 'FCFA', 'PENDING', ?, ?)`,
