@@ -14,6 +14,7 @@ import { listerMesDemandes } from '../services/eventService'
 // Écrans auth (aucun rôle)
 import AccueilChoixScreen from '../screens/AccueilChoixScreen'
 import SocialAuthScreen from '../screens/auth/SocialAuthScreen'
+import ConnexionControleurScreen from '../screens/auth/ConnexionControleurScreen'
 import ConnexionOrganisateurScreen from '../screens/auth/ConnexionOrganisateurScreen'
 import InscriptionOrganisateurScreen from '../screens/auth/InscriptionOrganisateurScreen'
 import EnAttenteValidationScreen from '../screens/auth/EnAttenteValidationScreen'
@@ -26,6 +27,10 @@ import TicketScreen from '../screens/TicketScreen'
 import MesTicketsScreen from '../screens/MesTicketsScreen'
 import SupportScreen from '../screens/SupportScreen'
 import WebViewWaveScreen from '../screens/WebViewWaveScreen'
+
+// Écrans contrôleur
+import ScannerScreen from '../screens/controleur/ScannerScreen'
+import ScanHistoryScreen from '../screens/controleur/ScanHistoryScreen'
 
 // Écrans organisateur
 import OrganisateurDashboardScreen from '../screens/organisateur/OrganisateurDashboardScreen'
@@ -212,6 +217,58 @@ function OrganisateurLayout() {
   )
 }
 
+// Onglets du contrôleur : Scanner + Historique
+function ControleurTabs() {
+  const { deconnecter } = useAuth()
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: true,
+        headerStyle: { backgroundColor: '#FFFFFF' },
+        headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#0f172a' },
+        headerRight: () => (
+          <TouchableOpacity onPress={deconnecter} style={{ marginRight: 16 }}>
+            <Text style={{ fontSize: 14, color: '#FF4D6D', fontFamily: 'Outfit_600SemiBold' }}>
+              Quitter
+            </Text>
+          </TouchableOpacity>
+        ),
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#edf0f5',
+          height: 60,
+          paddingBottom: 8,
+        },
+        tabBarActiveTintColor: '#00C8FF',
+        tabBarInactiveTintColor: '#94a3b8',
+        tabBarLabelStyle: {
+          fontFamily: 'Outfit_600SemiBold',
+          fontSize: 12,
+        },
+      }}
+    >
+      <Tab.Screen
+        name="Scanner"
+        component={ScannerScreen}
+        options={{
+          tabBarLabel: 'Scanner',
+          tabBarIcon: ({ color }) => <Feather name="maximize" size={20} color={color} />,
+          title: 'Scanner',
+        }}
+      />
+      <Tab.Screen
+        name="Historique"
+        component={ScanHistoryScreen}
+        options={{
+          tabBarLabel: 'Historique',
+          tabBarIcon: ({ color }) => <Feather name="clock" size={20} color={color} />,
+          title: 'Historique',
+        }}
+      />
+    </Tab.Navigator>
+  )
+}
+
 // Point d'entrée de la navigation
 export default function AppNavigator() {
   const { role, chargement } = useAuth()
@@ -233,6 +290,7 @@ export default function AppNavigator() {
           <>
             <Stack.Screen name="AccueilChoix" component={AccueilChoixScreen} />
             <Stack.Screen name="SocialAuth" component={SocialAuthScreen} />
+            <Stack.Screen name="ConnexionControleur" component={ConnexionControleurScreen} />
             <Stack.Screen name="ConnexionOrganisateur" component={ConnexionOrganisateurScreen} />
             <Stack.Screen name="InscriptionOrganisateur" component={InscriptionOrganisateurScreen} />
             <Stack.Screen name="EnAttenteValidation" component={EnAttenteValidationScreen} />
@@ -242,10 +300,10 @@ export default function AppNavigator() {
         {/* Acheteur connecté */}
         {role === 'acheteur' && (
           <>
+            <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="AccueilChoix" component={AccueilChoixScreen}
               options={{ headerShown: true, headerTitle: 'Changer de rôle', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
             />
-            <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="EventSearch" component={EventSearchScreen} />
             <Stack.Screen name="EventDetail" component={EventDetailScreen} />
             <Stack.Screen name="Ticket" component={TicketScreen} />
@@ -256,6 +314,16 @@ export default function AppNavigator() {
               options={{ headerShown: true, headerTitle: 'Profil', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
             />
           </>)}
+
+        {/* Contrôleur connecté */}
+        {role === 'controleur' && (
+          <>
+            <Stack.Screen name="ControleurTabs" component={ControleurTabs} />
+            <Stack.Screen name="Profil" component={ProfilScreen}
+              options={{ headerShown: true, headerTitle: 'Profil', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
+            />
+          </>
+        )}
 
         {/* Organisateur connecté : bottom tabs + stack screens */}
         {role === 'organisateur' && (

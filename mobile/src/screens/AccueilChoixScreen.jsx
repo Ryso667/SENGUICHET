@@ -19,6 +19,14 @@ const ROLES = [
     screen: null,
   },
   {
+    key: 'controleur',
+    title: 'Contrôleur',
+    subtitle: "Scanne les billets\nà l'entrée",
+    icon: 'qrcode-scan',
+    accent: '#00C8FF',
+    screen: 'ConnexionControleur',
+  },
+  {
     key: 'organisateur',
     title: 'Organisateur',
     subtitle: 'Crée et gère\ntes événements',
@@ -45,7 +53,8 @@ export default function AccueilChoixScreen({ navigation }) {
     if (redirection) {
       const target = redirection
       setRedirection(null)
-      navigation.navigate(target)
+      // reset évite les erreurs pendant la transition de stack (changement de rôle)
+      navigation.reset({ index: 0, routes: [{ name: target }] })
     }
   })
 
