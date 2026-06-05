@@ -43,17 +43,6 @@ async function migrate() {
       // Ignorer si colonne existe déjà
     }
 
-    try {
-      await connection.query(`
-        ALTER TABLE billet
-        ADD COLUMN IF NOT EXISTS numero VARCHAR(20) NOT NULL
-        AFTER uuid
-      `);
-      console.log("✅ Colonne numero ajoutée à billet");
-    } catch (e) {
-      // Ignorer si colonne existe déjà
-    }
-
     console.log("✅ Base de données migrée avec succès");
   } catch (err) {
     console.error("❌ Erreur migration:", err.message);
