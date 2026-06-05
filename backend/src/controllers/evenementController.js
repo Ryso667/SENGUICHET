@@ -448,13 +448,7 @@ const regenererScanCode = async (req, res) => {
       [id, req.user.id]
     );
     if (!existing.length) return res.status(404).json({ message: "Événement introuvable" });
-<<<<<<< HEAD
-
-    // Utilise crypto.randomBytes au lieu de Math.random pour une génération cryptographique sécurisée
     const nouveauCode = crypto.randomBytes(3).toString('hex').toUpperCase();
-=======
-    const nouveauCode = Math.random().toString(36).substring(2, 6).toUpperCase();
->>>>>>> origin/main
     await pool.query("UPDATE evenement SET scan_code = ? WHERE id = ?", [nouveauCode, id]);
     res.json({ scan_code: nouveauCode, message: "Code de scan régénéré avec succès" });
   } catch (err) {
