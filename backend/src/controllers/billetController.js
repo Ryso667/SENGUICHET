@@ -7,9 +7,13 @@ const crypto = require("crypto");
 const PaymentService = require("../services/PaymentService");
 const { envoyerEmailBillet } = require("../services/EmailService");
 const { envoyerSMSBillet } = require("../services/smsService");
+const path = require('path');
+const fs = require('fs');
 
 // HMAC_SECRET est validé au démarrage dans server.js — pas besoin de le revalider ici
 const HMAC_SECRET = process.env.HMAC_SECRET;
+const ticketTemplatePath = path.join(__dirname, '..', 'views', 'ticket-vertical.html');
+const ticketTemplate = fs.readFileSync(ticketTemplatePath, 'utf-8');
 const acheter = async (req, res) => {
   try {
     const { evenementId, categorieTicketId, telephone, quantite = 1, provider = 'WAVE', email } = req.body;
@@ -96,8 +100,11 @@ const acheter = async (req, res) => {
 
       const billetId = billetResult.insertId;
 
-      // La décrémentation des places est gérée par le trigger SQL after_billet_insert
-      // pour éviter une double décrémentation (trigger + code manuel)
+      // Décrémente les places disponibles (remplace le trigger SQL after_billet_insert non supporté par TiDB)
+      await conn.query(
+        "UPDATE categorie_ticket SET places_disponibles = places_disponibles - 1 WHERE id = ? AND places_disponibles > 0",
+        [categorieTicketId]
+      );
 
       // Créer la transaction
       const reference = 'PAI-' + crypto.randomUUID().slice(0, 12).toUpperCase();
@@ -266,6 +273,7 @@ const mesBillets = async (req, res) => {
 
 // Affiche une page HTML publique avec les infos du billet
 // GET /api/billets/:uuid
+// Retourne une page HTML au format ticket thermique vertical
 const afficherBillet = async (req, res) => {
   try {
     const { uuid } = req.params;
@@ -293,60 +301,45 @@ const afficherBillet = async (req, res) => {
     const dateEvent = new Date(b.date_debut).toLocaleDateString("fr-FR", {
       day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
     });
-    const dateAchat = new Date(b.date_creation).toLocaleDateString("fr-FR", {
-      day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
-    });
-    const statut = b.statut === "ACTIF" ? "✅ Valide" : "⏳ En attente";
 
-    res.send(`
-      <!DOCTYPE html>
-      <html lang="fr">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Billet ${b.numero} — SENGUICHET</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f8f9fd; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-          .card { background: white; border-radius: 20px; max-width: 420px; width: 100%; box-shadow: 0 4px 24px rgba(99,102,241,0.12); overflow: hidden; }
-          .header { background: linear-gradient(135deg, #6366F1, #EC4899); padding: 32px 24px; text-align: center; }
-          .header h1 { color: white; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.8; margin-bottom: 4px; }
-          .header .numero { color: white; font-size: 22px; font-weight: 700; letter-spacing: 1px; }
-          .body { padding: 24px; }
-          .statut { display: inline-block; background: #dcfce7; color: #166534; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; margin-bottom: 20px; }
-          .field { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
-          .field:last-child { border: none; }
-          .field .label { color: #64748b; font-size: 13px; }
-          .field .value { color: #0f172a; font-size: 14px; font-weight: 600; text-align: right; max-width: 60%; }
-          .footer { text-align: center; padding: 20px 24px; background: #f8f9fd; color: #94a3b8; font-size: 12px; }
-          .qr { text-align: center; margin: 20px 0; }
-          .qr img { width: 160px; height: 160px; border-radius: 12px; }
-          @media print { .card { box-shadow: none; border: 1px solid #e2e8f0; } }
-        </style>
-      </head>
-      <body>
-        <div class="card">
-          <div class="header">
-            <h1>SENGUICHET</h1>
-            <div class="numero">${b.numero}</div>
-          </div>
-          <div class="body">
-            <div class="statut">${statut}</div>
-            <div class="field"><span class="label">Événement</span><span class="value">${b.titre}</span></div>
-            <div class="field"><span class="label">Date</span><span class="value">${dateEvent}</span></div>
-            <div class="field"><span class="label">Lieu</span><span class="value">${b.lieu}</span></div>
-            <div class="field"><span class="label">Catégorie</span><span class="value">${b.categorie}</span></div>
-            <div class="field"><span class="label">Prix</span><span class="value">${b.prix_paye.toLocaleString()} FCFA</span></div>
-            <div class="field"><span class="label">Acheté le</span><span class="value">${dateAchat}</span></div>
-          </div>
-          <div class="footer">
-            SENGUICHET — Billeterie événementielle<br>
-            Présente ce billet à l'entrée depuis l'application.
-          </div>
-        </div>
-      </body>
-      </html>
-    `);
+    // Prépare les données pour le template
+    const numero = `#${b.numero}`;
+    const prix = `${b.prix_paye.toLocaleString()} FCFA`;
+    const codeBarres = b.numero.padStart(16, '0').replace(/(.{4})/g, '$1-').slice(0, 19);
+    const watermark = 'SENGUICHET\nSENGUICHET';
+    const evenement = (b.categorie ? `${b.titre} — ${b.categorie}` : b.titre).toUpperCase();
+    const lieu = b.lieu.toUpperCase();
+    const dateHeure = dateEvent.toUpperCase();
+
+    let statutClass = 'valide';
+    let statutLabel = '✓ VALIDE';
+    if (b.statut === 'UTILISE') {
+      statutClass = 'utilise';
+      statutLabel = '✕ UTILISÉ';
+    } else if (b.statut === 'EXPIRE') {
+      statutClass = 'exire';
+      statutLabel = '⚠ EXPIRE';
+    }
+
+    // QR codes en SVG inline (fallback visuel — sera remplacé par un vrai QR)
+    const qrFallbackA = '<svg width="22mm" height="22mm" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#e2e8f0" rx="4"/><text x="50" y="50" text-anchor="middle" dy=".3em" font-size="8" fill="#94a3b8" font-family="monospace">QR A</text></svg>';
+
+    const qrFallbackC = '<svg width="32mm" height="32mm" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#e2e8f0" rx="4"/><text x="50" y="50" text-anchor="middle" dy=".3em" font-size="8" fill="#94a3b8" font-family="monospace">QR C</text></svg>';
+
+    let html = ticketTemplate
+      .replace(/\{\{NUMERO\}\}/g, numero)
+      .replace(/\{\{PRIX\}\}/g, prix)
+      .replace(/\{\{CODE_BARRES\}\}/g, codeBarres)
+      .replace(/\{\{WATERMARK\}\}/g, watermark)
+      .replace(/\{\{TITRE_EVENEMENT\}\}/g, evenement)
+      .replace(/\{\{LIEU\}\}/g, lieu)
+      .replace(/\{\{DATE_HEURE\}\}/g, dateHeure)
+      .replace(/\{\{STATUT_CLASS\}\}/g, statutClass)
+      .replace(/\{\{STATUT_LABEL\}\}/g, statutLabel)
+      .replace(/\{\{QR_CODE_A\}\}/g, qrFallbackA)
+      .replace(/\{\{QR_CODE_C\}\}/g, qrFallbackC);
+
+    res.send(html);
   } catch (err) {
     console.error("Afficher billet error:", err);
     res.status(500).send("<html><body><p>Erreur serveur</p></body></html>");

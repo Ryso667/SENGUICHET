@@ -1,6 +1,5 @@
-// Écran ticket — affichage complet : logo, QR, infos, prix, perforations
-// Design ticket classique avec habillage glass (fond gradient + carte glass)
-// QR rafraîchi toutes les 30s avec nouveau HMAC (sécurité anti-rejeu)
+// Écran ticket — design vertical thermique avec 4 sections, texte rotatif, double QR
+// Fond sombre, carte ticket blanche type thermique avec souches détachables
 import { useRef, useEffect, useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image } from 'react-native'
 import { Feather } from '@expo/vector-icons'
@@ -16,6 +15,9 @@ import { genererTicketPDF } from '../services/ticketPdfService'
 import { getHMACSecret } from '../services/hmacService'
 
 const QR_REFRESH_INTERVAL = 30
+const QR_SIZE_SMALL = 70
+const QR_SIZE_LARGE = 110
+const FONT_MONO = 'Courier New'
 
 // Génère le payload JSON du QR avec HMAC-SHA256 (uuid, ref, timestamp, event_id, category)
 async function genererQRPayload(ticket) {
@@ -36,10 +38,41 @@ async function genererQRPayload(ticket) {
   })
 }
 
-// Ligne de perforation décorative (tirets)
-function DashLine() {
-  return <Text style={styles.dash}>- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</Text>
+// Ligne de perforation décorative (tirets + points)
+function Perforation() {
+  return (
+    <View style={perfStyles.container}>
+      <View style={perfStyles.line} />
+      <Text style={perfStyles.dots}>{'∘ '.repeat(28)}</Text>
+    </View>
+  )
 }
+
+const perfStyles = StyleSheet.create({
+  container: {
+    width: '100%',
+    height: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  line: {
+    width: '100%',
+    borderTopWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#cbd5e1',
+    position: 'absolute',
+    top: 6,
+  },
+  dots: {
+    fontSize: 5,
+    color: '#94a3b8',
+    letterSpacing: 3,
+    textAlign: 'center',
+    position: 'absolute',
+    top: -1,
+  },
+})
 
 export default function TicketScreen({ route, navigation }) {
   const { ticket } = route.params || {}
@@ -50,18 +83,20 @@ export default function TicketScreen({ route, navigation }) {
   const qrRef = useRef(null)
 
   // Génère le QR payload à l'ouverture et le rafraîchit toutes les 30s
-  // N'actualise pas le QR si le ticket a déjà été scanné (économie batterie)
   useEffect(() => {
-    if (ticket?.statut === 'utilise') {
-      genererQRPayload(ticket).then((v) => { setQrValue(v); setQrReady(true) })
-      return
+    const init = async () => {
+      const v = await genererQRPayload(ticket)
+      setQrValue(v)
+      setQrReady(true)
     }
-    genererQRPayload(ticket).then((v) => { setQrValue(v); setQrReady(true) })
-    const interval = setInterval(async () => {
-      const nouveau = await genererQRPayload(ticket)
-      setQrValue(nouveau)
-    }, QR_REFRESH_INTERVAL * 1000)
-    return () => clearInterval(interval)
+    init()
+    if (ticket?.statut !== 'utilise') {
+      const interval = setInterval(async () => {
+        const nouveau = await genererQRPayload(ticket)
+        setQrValue(nouveau)
+      }, QR_REFRESH_INTERVAL * 1000)
+      return () => clearInterval(interval)
+    }
   }, [ticket])
 
   // Capture le QR en base64 pour l'inclure dans le PDF
@@ -76,14 +111,18 @@ export default function TicketScreen({ route, navigation }) {
   }
 
   const isScanned = ticket?.statut === 'utilise'
-  const organisateurNom = 'SENGUICHET'
-  const eventNom = ticket?.eventNom || ticket?.evenement || 'ÉVÉNEMENT'
+  const numero = ticket?.numero || '—'
+  const prix = ticket?.prix ? `${ticket.prix.toLocaleString()} FCFA` : '—'
+  const codeBarres = (numero || '').padStart(16, '0').replace(/(.{4})/g, '$1-').slice(0, 19)
+  const evenement = ticket?.eventNom || ticket?.evenement || 'ÉVÉNEMENT'
+  const categorie = ticket?.categorie || 'STANDARD'
+  const lieu = ticket?.eventLieu || ''
   const dateStr = ticket?.eventDate ? formaterDateLisible(ticket.eventDate) : ''
   const heureStr = ticket?.eventHeure || ''
-  const lieuStr = ticket?.eventLieu || ''
-  const refStr = ticket?.numero || '—'
-  const catStr = ticket?.categorie || 'STANDARD'
-  const prixStr = ticket?.prix ? `${ticket.prix.toLocaleString()} FCFA` : '—'
+
+  const statusColor = isScanned ? '#991b1b' : '#166534'
+  const statusBg = isScanned ? '#fee2e2' : '#dcfce7'
+  const statusLabel = isScanned ? '✕ UTILISÉ' : '✓ VALIDE'
 
   async function handleExport() {
     if (exporting) return
@@ -101,84 +140,91 @@ export default function TicketScreen({ route, navigation }) {
   return (
     <View style={styles.container}>
       <BlurBackground category={ticket?.categorie} />
-
-      {/* Bouton retour flottant */}
       <TouchableOpacity style={[styles.backBtn, { top: insets.top + 8 }]} onPress={() => navigation.goBack()} activeOpacity={0.7}>
         <Feather name="arrow-left" size={20} color="#fff" />
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 40 }]} showsVerticalScrollIndicator={false}>
-        {/* Titre */}
         <Text style={styles.pageTitle}>Mon billet</Text>
 
-        {/* Carte ticket glass */}
-        <GlassContainer style={styles.ticketCard} blurType="light" intensity={60}>
+        {/* Carte ticket blanc — style thermique */}
+        <View style={styles.ticketCard}>
 
-          {/* 1. En-tête organisateur centré avec logo */}
-          <View style={styles.headerCentered}>
-            <Image
-              source={require('../../assets/logo_mobile.jpeg')}
-              style={styles.logoImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.organisateurText}>{organisateurNom}</Text>
+          {/* Status badge */}
+          <View style={[styles.statusBadge, { backgroundColor: statusBg }]}>
+            <Text style={[styles.statusText, { color: statusColor }]}>{statusLabel}</Text>
           </View>
-          <DashLine />
 
-          {/* 2. Nom de l'événement */}
-          <Text style={styles.eventName}>{eventNom.toUpperCase()}</Text>
-          <DashLine />
-
-          {/* 3. Date, heure et lieu */}
-          {dateStr ? <Text style={styles.infoText}>{dateStr}{heureStr ? ` à ${heureStr}` : ''}</Text> : null}
-          {lieuStr ? <Text style={styles.venueText}>{lieuStr.toUpperCase()}</Text> : null}
-          <DashLine />
-
-          {/* 4. Référence */}
-          <Text style={styles.refText}>REF : {refStr}</Text>
-
-          {/* 5. QR Code avec HMAC (rafraîchi toutes les 30s) */}
-          <View style={styles.qrSection}>
-            <View style={styles.qrWrapper}>
+          {/* Section A — Souche supérieure (rotated 90°) */}
+          <View style={styles.sectionA}>
+            <Text style={styles.numText}>{`#${numero}`}</Text>
+            <View style={styles.qrSmallWrap}>
               {qrReady ? (
                 <QRCode
                   value={qrValue}
-                  size={200}
-                  backgroundColor="rgba(255,255,255,0.1)"
-                  color="#fff"
+                  size={QR_SIZE_SMALL}
+                  backgroundColor="transparent"
+                  color="#0f172a"
                   ecl="H"
-                  quietZone={8}
+                  quietZone={4}
                   getRef={(c) => { qrRef.current = c }}
                 />
               ) : (
-                <View style={styles.qrPlaceholder}>
-                  <ActivityIndicator size="small" color="#fff" />
-                </View>
-              )}
-              {isScanned && (
-                <View style={styles.scannedOverlay}>
-                  <View style={styles.redCircle}>
-                    <Text style={styles.redX}>✕</Text>
-                  </View>
+                <View style={styles.qrPlaceholderSmall}>
+                  <ActivityIndicator size="small" color="#94a3b8" />
                 </View>
               )}
             </View>
+            <Text style={styles.barcodeText}>{codeBarres}</Text>
           </View>
-          {isScanned && (
-            <Text style={styles.scannedText}>Contrôlé le {ticket?.dateScan || ''}</Text>
-          )}
 
-          {/* 6. Catégorie et prix */}
-          <DashLine />
-          <Text style={styles.categorieText}>{catStr.toUpperCase()}</Text>
-          <Text style={styles.prixText}>PRIX: {prixStr}</Text>
-          <DashLine />
+          <Perforation />
 
-          {/* 7. Footer */}
-          <Text style={styles.footerText}>Entrée unique et non transférable</Text>
-        </GlassContainer>
+          {/* Section B — Souche intermédiaire (rotated 270°) */}
+          <View style={styles.sectionB}>
+            <Text style={styles.numText}>{`#${numero}`}</Text>
+            <Text style={styles.priceText}>{prix}</Text>
+            <Text style={styles.barcodeText}>{codeBarres}</Text>
+          </View>
 
-        {/* Actions */}
+          <Perforation />
+
+          {/* Section C — Corps principal */}
+          <View style={styles.sectionC}>
+            <Text style={styles.watermark}>{'SENGUICHET '.repeat(4)}</Text>
+            <View style={styles.qrLargeWrap}>
+              {qrReady ? (
+                <QRCode
+                  value={qrValue}
+                  size={QR_SIZE_LARGE}
+                  backgroundColor="transparent"
+                  color="#0f172a"
+                  ecl="H"
+                  quietZone={6}
+                  getRef={(c) => { qrRef.current = c }}
+                />
+              ) : (
+                <View style={styles.qrPlaceholderLarge}>
+                  <ActivityIndicator size="small" color="#94a3b8" />
+                </View>
+              )}
+            </View>
+            <Text style={styles.priceSide}>{prix}</Text>
+          </View>
+
+          <Perforation />
+
+          {/* Section D — Talon inférieur bleu */}
+          <View style={styles.sectionD}>
+            <Text style={styles.platformText}>S E N G U I C H E T</Text>
+            <Text style={styles.eventTitle}>{(categorie ? `${evenement.toUpperCase()} — ${categorie.toUpperCase()}` : evenement.toUpperCase())}</Text>
+            {lieu ? <Text style={styles.venueText}>{lieu.toUpperCase()}</Text> : null}
+            <Text style={styles.datetimeText}>{(heureStr ? `${dateStr} À ${heureStr}` : dateStr).toUpperCase()}</Text>
+            <Text style={styles.legalText}>Entrée unique et non transférable</Text>
+          </View>
+
+        </View>
+
         <View style={styles.actions}>
           <GlassChip label={exporting ? 'Génération...' : 'Exporter PDF'} icon="file-text" onPress={handleExport} />
         </View>
@@ -207,141 +253,193 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     ...textShadow,
   },
+
+  // Carte ticket blanc
   ticketCard: {
-    width: '100%',
-    paddingVertical: spacing.lg,
+    width: 220,
+    backgroundColor: '#fafafa',
+    borderRadius: 8,
+    paddingVertical: spacing.md,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    position: 'relative',
   },
-  headerCentered: {
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
+  statusBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    zIndex: 5,
   },
-  logoImage: {
-    width: 40, height: 40, borderRadius: 8,
-    marginBottom: 4,
-  },
-  organisateurText: {
+  statusText: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.6)',
+    fontSize: 9,
+    letterSpacing: 0.5,
+  },
+
+  // Section A — rotated 90°
+  sectionA: {
+    height: 80,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ rotate: '90deg' }],
+    marginVertical: 32,
+    width: 180,
+  },
+  numText: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 12,
+    color: '#0f172a',
+    letterSpacing: 1,
+    marginHorizontal: 8,
+  },
+  qrSmallWrap: {
+    width: QR_SIZE_SMALL,
+    height: QR_SIZE_SMALL,
+    marginHorizontal: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f1f5f9',
+    borderRadius: 4,
+  },
+  qrPlaceholderSmall: {
+    width: QR_SIZE_SMALL,
+    height: QR_SIZE_SMALL,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  barcodeText: {
+    fontFamily: FONT_MONO,
+    fontSize: 8,
+    color: '#64748b',
     letterSpacing: 2,
-    ...textShadow,
+    marginHorizontal: 8,
   },
-  dash: {
-    fontFamily: fonts.jakarta.regular,
-    fontSize: 7,
-    color: 'rgba(255,255,255,0.2)',
-    letterSpacing: 0,
-    textAlign: 'center',
-    marginVertical: spacing.sm,
+
+  // Section B — rotated 270°
+  sectionB: {
+    height: 80,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ rotate: '270deg' }],
+    marginVertical: 32,
+    width: 180,
   },
-  eventName: {
+  priceText: {
     fontFamily: fonts.outfit.bold,
     fontSize: 18,
-    color: '#fff',
-    textAlign: 'center',
-    letterSpacing: 0.5,
-    lineHeight: 24,
-    paddingHorizontal: spacing.lg,
-    ...textShadow,
+    color: '#0f172a',
+    marginHorizontal: 8,
   },
-  infoText: {
-    fontFamily: fonts.outfit.semiBold,
+
+  // Section C — Main body
+  sectionC: {
+    width: '100%',
+    minHeight: 160,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    paddingVertical: spacing.md,
+  },
+  watermark: {
+    position: 'absolute',
+    fontSize: 12,
+    color: 'rgba(99, 102, 241, 0.06)',
+    letterSpacing: 4,
+    textAlign: 'center',
+    lineHeight: 20,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    textAlignVertical: 'center',
+    width: '100%',
+  },
+  qrLargeWrap: {
+    width: QR_SIZE_LARGE,
+    height: QR_SIZE_LARGE,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f1f5f9',
+    borderRadius: 6,
+    zIndex: 1,
+  },
+  qrPlaceholderLarge: {
+    width: QR_SIZE_LARGE,
+    height: QR_SIZE_LARGE,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  priceSide: {
+    position: 'absolute',
+    right: 8,
+    fontFamily: fonts.outfit.bold,
+    fontSize: 13,
+    color: '#0f172a',
+    letterSpacing: 1,
+    writingDirection: 'rtl',
+    borderLeftWidth: 1,
+    borderLeftColor: '#cbd5e1',
+    paddingLeft: 6,
+  },
+
+  // Section D — Blue footer
+  sectionD: {
+    width: '100%',
+    backgroundColor: '#2563eb',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    alignItems: 'center',
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+  },
+  platformText: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 9,
+    color: 'rgba(255,255,255,0.7)',
+    letterSpacing: 3,
+    marginBottom: 6,
+  },
+  eventTitle: {
+    fontFamily: fonts.outfit.bold,
     fontSize: 13,
     color: '#fff',
+    letterSpacing: 1,
     textAlign: 'center',
-    paddingHorizontal: spacing.lg,
-    marginBottom: 2,
-    ...textShadow,
+    marginBottom: 4,
   },
   venueText: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.6)',
-    textAlign: 'center',
-    letterSpacing: 1,
-    paddingHorizontal: spacing.lg,
-    ...textShadow,
-  },
-  refText: {
-    fontFamily: fonts.outfit.bold,
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.6)',
-    textAlign: 'center',
+    fontSize: 9,
+    color: 'rgba(255,255,255,0.85)',
     letterSpacing: 0.5,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-    ...textShadow,
-  },
-  qrSection: {
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-  },
-  qrWrapper: {
-    position: 'relative',
-    padding: spacing.sm,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: borderRadius.sm,
-  },
-  qrPlaceholder: {
-    width: 200, height: 200,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  scannedOverlay: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  redCircle: {
-    width: 64, height: 64, borderRadius: 32,
-    backgroundColor: 'rgba(220,38,38,0.9)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  redX: {
-    fontSize: 36, color: '#fff',
-    fontFamily: fonts.outfit.bold,
-    lineHeight: 40,
-  },
-  scannedText: {
-    fontFamily: fonts.outfit.bold,
-    fontSize: 13,
-    color: '#fff',
     textAlign: 'center',
-    letterSpacing: 0.5,
-    marginBottom: spacing.md,
-    ...textShadow,
+    marginBottom: 3,
+    lineHeight: 14,
   },
-  categorieText: {
+  datetimeText: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 15,
-    color: '#fff',
-    textAlign: 'center',
-    letterSpacing: 1.5,
-    paddingHorizontal: spacing.lg,
-    marginBottom: 2,
-    ...textShadow,
-  },
-  prixText: {
-    fontFamily: fonts.outfit.bold,
-    fontSize: 14,
-    color: '#fff',
-    textAlign: 'center',
-    letterSpacing: 0.5,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-    ...textShadow,
-  },
-  footerText: {
-    fontFamily: fonts.jakarta.regular,
     fontSize: 10,
+    color: '#fff',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  legalText: {
+    fontFamily: fonts.jakarta.regular,
+    fontSize: 7,
     color: 'rgba(255,255,255,0.5)',
     textAlign: 'center',
-    fontStyle: 'italic',
-    paddingHorizontal: spacing.lg,
-    lineHeight: 14,
-    ...textShadow,
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(255,255,255,0.3)',
+    paddingTop: 6,
   },
   actions: {
     flexDirection: 'row',
