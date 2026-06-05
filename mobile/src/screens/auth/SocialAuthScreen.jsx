@@ -18,6 +18,7 @@ export default function SocialAuthScreen({ navigation }) {
   const [code, setCode] = useState('')
   const [etape, setEtape] = useState('email') // 'email' | 'otp'
   const [loading, setLoading] = useState(false)
+  const envoiEnCours = useRef(false) // Verrou anti double-tap
   const insets = useSafeAreaInsets()
 
   // Pré-remplit l'email acheteur suggéré depuis la dernière connexion
@@ -29,10 +30,12 @@ export default function SocialAuthScreen({ navigation }) {
 
   // Étape 1 : envoie le code OTP à l'email
   const handleEnvoyerCode = async () => {
+    if (envoiEnCours.current) return // Bloque le double-tap
     if (!emailRegex.test(email)) {
       Alert.alert('Email invalide', 'Veuillez entrer un email valide')
       return
     }
+    envoiEnCours.current = true
     setLoading(true)
     try {
       await envoyerCodeOTP(email)
@@ -41,22 +44,27 @@ export default function SocialAuthScreen({ navigation }) {
     } catch (err) {
       Alert.alert('Erreur', err.message)
     } finally {
+      envoiEnCours.current = false
       setLoading(false)
     }
   }
 
   // Étape 2 : vérifie le code OTP et connecte
   const handleVerifierCode = async () => {
+    if (envoiEnCours.current) return // Bloque le double-tap
     if (code.length !== 6) {
       Alert.alert('Code incomplet', 'Le code fait 6 chiffres')
       return
     }
+    envoiEnCours.current = true
     setLoading(true)
     try {
       await connecterAcheteurOTP(email, code)
     } catch (err) {
-      setLoading(false)
       Alert.alert('Erreur', err.message)
+    } finally {
+      envoiEnCours.current = false
+      setLoading(false)
     }
   }
 

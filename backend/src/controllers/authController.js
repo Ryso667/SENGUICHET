@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const pool = require("../config/db");
 require("dotenv").config();
 const crypto = require("crypto");
-const { STOCKER_CODE, VERIFIER_CODE } = require("../services/otpStore");
+const { STOCKER_CODE, CHECK_CODE, CONSOMMER_CODE } = require("../services/otpStore");
 const { envoyerCodeOTP: envoyerEmail } = require("../services/EmailService");
 
 // Validation stricte : si JWT_SECRET n'est pas défini, le serveur ne démarre pas
@@ -247,11 +247,13 @@ const verifierCodeOTP = async (req, res) => {
       return res.status(400).json({ message: "Email et code requis" });
     }
 
-    const codeValide = await VERIFIER_CODE(email, code);
-    if (!codeValide) {
+    // Vérifie le code OTP sans le consommer (évite de brûler le code si la suite plante)
+    const otpId = await CHECK_CODE(email, code);
+    if (!otpId) {
       return res.status(401).json({ message: "Code invalide ou expiré" });
     }
 
+    // Trouve ou crée l'acheteur AVANT de consommer le code
     let acheteur;
     try {
       const [existants] = await pool.query(
@@ -272,9 +274,11 @@ const verifierCodeOTP = async (req, res) => {
         acheteur = { id: result.insertId, email };
       }
     } catch (dbErr) {
-      // Une erreur DB doit remonter au catch externe pour être traitée, pas créer d'acheteur fictif
       throw dbErr;
     }
+
+    // Consomme le code OTP maintenant que l'acheteur est créé/mis à jour
+    await CONSOMMER_CODE(otpId);
 
     const token = generateToken({ id: acheteur.id, email }, "ACHETEUR");
     res.json({

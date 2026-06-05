@@ -30,12 +30,12 @@ const STOCKER_CODE = async (email, code) => {
 };
 
 /**
- * Vérifie et consomme un code OTP pour un email
+ * Vérifie un code OTP sans le consommer
  * @param {string} email - Email de l'acheteur
  * @param {string} code - Code OTP à vérifier
- * @returns {Promise<boolean>} true si valide et non expiré
+ * @returns {Promise<number|false>} id du code si valide, false sinon
  */
-const VERIFIER_CODE = async (email, code) => {
+const CHECK_CODE = async (email, code) => {
   const emailLower = email.toLowerCase();
   const [rows] = await pool.query(
     `SELECT id FROM code_otp
@@ -44,10 +44,15 @@ const VERIFIER_CODE = async (email, code) => {
      LIMIT 1`,
     [emailLower, code]
   );
-  if (rows.length === 0) return false;
-  // Consomme le code (marque comme utilisé)
-  await pool.query("UPDATE code_otp SET est_utilise = 1 WHERE id = ?", [rows[0].id]);
-  return true;
+  return rows.length > 0 ? rows[0].id : false;
+};
+
+/**
+ * Consomme un code OTP (marque comme utilisé)
+ * @param {number} id - ID du code à consommer
+ */
+const CONSOMMER_CODE = async (id) => {
+  await pool.query("UPDATE code_otp SET est_utilise = 1 WHERE id = ?", [id]);
 };
 
 /**
@@ -62,4 +67,4 @@ const SUPPRIMER_CODE = async (email) => {
   );
 };
 
-module.exports = { STOCKER_CODE, VERIFIER_CODE, SUPPRIMER_CODE };
+module.exports = { STOCKER_CODE, CHECK_CODE, CONSOMMER_CODE, SUPPRIMER_CODE };
