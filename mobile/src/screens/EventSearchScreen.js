@@ -1,8 +1,8 @@
 // Écran de recherche d'événements — version Apple Invites
 // Fond : images Unsplash en mosaïque
 // Barre de recherche glass, chips catégories, grille 2 colonnes
-import { useState, useCallback } from 'react'
-import { View, Text, TextInput, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
+import { View, Text, TextInput, FlatList, StyleSheet, useWindowDimensions, ScrollView } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -31,73 +31,99 @@ export default function EventSearchScreen({ navigation }) {
     })()
   }, []))
 
-  const filtered = events.filter((e) => {
-    const matchCat = activeCat === 'Tout' || e.category === activeCat
-    const matchSearch = !search || e.title?.toLowerCase().includes(search.toLowerCase())
-    return matchCat && matchSearch
-  })
+  const [activeEvent, setActiveEvent] = useState(null)
+
+  const filtered = useMemo(() => {
+    return events.filter((e) => {
+      const matchCat = activeCat === 'Tout' || e.category === activeCat
+      const matchSearch = !search || e.title?.toLowerCase().includes(search.toLowerCase())
+      return matchCat && matchSearch
+    })
+  }, [events, activeCat, search])
+
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 }).current
+
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    if (viewableItems.length > 0) {
+      const topItem = viewableItems[0]
+      setActiveEvent(topItem.item)
+    }
+  }).current
+
+  // Initialisation de l'event actif au changement de filtrage
+  useEffect(() => {
+    if (filtered.length > 0) {
+      setActiveEvent(filtered[0])
+    }
+  }, [filtered])
 
   return (
     <View style={styles.container}>
-      <BlurBackground category={activeCat === 'Tout' ? null : activeCat} />
-      <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.sm }]} showsVerticalScrollIndicator={false}>
-        {/* Barre de recherche */}
-        <GlassContainer style={styles.searchBar} blurType="light" intensity={60}>
-          <Feather name="search" size={16} color="rgba(255,255,255,0.6)" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Concert à Dakar..."
-            placeholderTextColor="rgba(255,255,255,0.5)"
-            value={search}
-            onChangeText={setSearch}
-          />
-          {search.length > 0 && (
-            <Feather name="x" size={16} color="rgba(255,255,255,0.6)" onPress={() => setSearch('')} />
-          )}
-        </GlassContainer>
-
-        {/* Chips catégories */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow} contentContainerStyle={styles.chipsContent}>
-          {CATEGORIES.map((cat) => (
-            <GlassChip
-              key={cat}
-              label={cat}
-              active={activeCat === cat}
-              onPress={() => setActiveCat(cat)}
+      <BlurBackground
+        category={activeEvent?.category || (activeCat === 'Tout' ? null : activeCat)}
+        showImage={!!activeEvent?.affiche_url}
+        afficheUrl={activeEvent?.affiche_url}
+      />
+      <FlatList
+        data={filtered}
+        renderItem={({ item, index }) => (
+          <View style={{ width: (width - spacing.lg * 2 - 12) / 2, marginBottom: 12 }}>
+            <AnimatedEventCard
+              event={item}
+              index={index}
+              cardStyle={{ width: '100%', marginRight: 0 }}
+              onPress={() => navigation.navigate('EventDetail', { eventId: item.id, event: item })}
             />
-          ))}
-        </ScrollView>
-
-        {/* Grille résultats */}
-        <View style={styles.grid}>
-          {filtered.map((event, i) => (
-            <View key={event.id} style={{ width: (width - spacing.lg * 2 - 12) / 2 }}>
-              <AnimatedEventCard
-                event={event}
-                index={i}
-                cardStyle={{ width: '100%', marginRight: 0 }}
-                onPress={() => navigation.navigate('EventDetail', { eventId: event.id, event })}
+          </View>
+        )}
+        numColumns={2}
+        keyExtractor={(item) => item.id?.toString()}
+        columnWrapperStyle={styles.columnWrapper}
+        contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingTop: insets.top + spacing.sm, paddingBottom: spacing.lg }}
+        showsVerticalScrollIndicator={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        ListHeaderComponent={() => (
+          <>
+            <GlassContainer style={styles.searchBar} blurType="light" intensity={60}>
+              <Feather name="search" size={16} color="rgba(255,255,255,0.6)" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Concert à Dakar..."
+                placeholderTextColor="rgba(255,255,255,0.5)"
+                value={search}
+                onChangeText={setSearch}
               />
-            </View>
-          ))}
-        </View>
-
-        {filtered.length === 0 && (
+              {search.length > 0 && (
+                <Feather name="x" size={16} color="rgba(255,255,255,0.6)" onPress={() => setSearch('')} />
+              )}
+            </GlassContainer>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow} contentContainerStyle={styles.chipsContent}>
+              {CATEGORIES.map((cat) => (
+                <GlassChip
+                  key={cat}
+                  label={cat}
+                  active={activeCat === cat}
+                  onPress={() => setActiveCat(cat)}
+                />
+              ))}
+            </ScrollView>
+          </>
+        )}
+        ListEmptyComponent={
           <EmptyState
             icon="search"
             title="Aucun résultat"
             subtitle="Essaie un autre mot-clé ou catégorie"
           />
-        )}
-      </ScrollView>
+        }
+      />
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f0f2a' },
-  scroll: { flex: 1 },
-  scrollContent: { paddingBottom: spacing.lg },
   searchBar: {
     flexDirection: 'row', alignItems: 'center',
     marginHorizontal: spacing.lg, marginTop: spacing.md,
@@ -109,9 +135,7 @@ const styles = StyleSheet.create({
   },
   chipsRow: { marginTop: spacing.md, marginBottom: spacing.sm },
   chipsContent: { paddingHorizontal: spacing.lg, gap: 8 },
-  grid: {
-    flexDirection: 'row', flexWrap: 'wrap',
-    paddingHorizontal: spacing.lg, gap: 12,
-    marginTop: spacing.sm,
+  columnWrapper: {
+    gap: 12,
   },
 })
