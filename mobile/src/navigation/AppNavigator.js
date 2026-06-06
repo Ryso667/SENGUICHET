@@ -42,7 +42,6 @@ import ParametresScreen from '../screens/organisateur/ParametresScreen'
 
 // Nouveaux écrans (gap 2, 3, 5)
 import ChangerMotDePasseScreen from '../screens/organisateur/ChangerMotDePasseScreen'
-import GestionEquipeScreen from '../screens/organisateur/GestionEquipeScreen'
 import ProfilScreen from '../screens/ProfilScreen'
 
 const Stack = createNativeStackNavigator()
@@ -353,11 +352,6 @@ export default function AppNavigator() {
               name="ChangerMotDePasse"
               component={ChangerMotDePasseScreen}
               options={{ headerShown: true, headerTitle: 'Changer le mot de passe', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
-            />
-            <Stack.Screen
-              name="GestionEquipe"
-              component={GestionEquipeScreen}
-              options={{ headerShown: true, headerTitle: 'Gestion équipe', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
             />
           </>
         )}
