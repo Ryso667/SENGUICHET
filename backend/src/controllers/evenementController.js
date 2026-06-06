@@ -359,7 +359,7 @@ const listerPublic = async (req, res) => {
         (SELECT MIN(ct.prix) FROM categorie_ticket ct WHERE ct.evenement_id = e.id) AS prix_min,
         (SELECT MAX(ct.prix) FROM categorie_ticket ct WHERE ct.evenement_id = e.id) AS prix_max
       FROM evenement e
-      WHERE e.statut = 'actif' AND (e.date_fin IS NULL OR e.date_fin >= NOW())
+      WHERE e.statut = 'actif' AND (e.date_fin IS NULL OR e.date_fin >= DATE_SUB(NOW(), INTERVAL 7 DAY))
       ORDER BY e.date_debut ASC`
     );
 
