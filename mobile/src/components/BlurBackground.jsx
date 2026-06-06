@@ -10,9 +10,9 @@ import { categoryGradients } from '../constants/theme'
 import { getCategoryImageUrl } from '../config/images'
 
 // Optimise les URLs Cloudinary pour un chargement plus rapide
-function optimiserUrl(url) {
+export function optimiserUrlCloudinary(url) {
   if (!url || !url.includes('cloudinary')) return url
-  return url.replace('/upload/', '/upload/w_400,q_auto,f_webp/')
+  return url.replace('/upload/', '/upload/w_200,q_auto,f_webp/')
 }
 
 export default function BlurBackground({ category, intensityOverlay = true, showImage = true, afficheUrl }) {
@@ -20,11 +20,16 @@ export default function BlurBackground({ category, intensityOverlay = true, show
   // Priorité : afficheUrl de l'événement → image par catégorie (Unsplash)
   const imageUrl = showImage ? (afficheUrl || (category ? getCategoryImageUrl(category) : null)) : null
   const imageOpacity = useRef(new Animated.Value(0)).current
+  const loadKey = useRef(0)
 
   // Le dégradé s'affiche immédiatement.
   // L'image se télécharge en arrière-plan et apparaît en fondu via onLoad
+  // loadKey incrémenté force le remount même pour une URL déjà vue (cache)
   useEffect(() => {
-    if (imageUrl) imageOpacity.setValue(0)
+    if (imageUrl) {
+      imageOpacity.setValue(0)
+      loadKey.current += 1
+    }
   }, [imageUrl])
 
   return (
@@ -32,8 +37,8 @@ export default function BlurBackground({ category, intensityOverlay = true, show
       <View style={styles.baseBg} />
       {imageUrl && (
         <Animated.Image
-          key={imageUrl}
-          source={{ uri: optimiserUrl(imageUrl) }}
+          key={`bg-${loadKey.current}`}
+          source={{ uri: optimiserUrlCloudinary(imageUrl) }}
           style={[StyleSheet.absoluteFill, { opacity: imageOpacity, transform: [{ scale: 1.1 }] }]}
           resizeMode="cover"
           blurRadius={20}
