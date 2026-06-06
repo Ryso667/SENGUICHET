@@ -167,7 +167,7 @@ const acheter = async (req, res) => {
       // Requis pour Vercel serverless — le processus est coupé après la réponse
       if (ticketEmail) {
         try {
-          const { envoyerEmailBillet } = require("../services/EmailService");
+          const { envoyerEmailBillet } = require("../services/emailService");
           await envoyerEmailBillet(ticketEmail, {
             uuid,
             numero,

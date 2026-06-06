@@ -31,6 +31,7 @@ export default function HomeScreen({ navigation }) {
   const [evenements, setEvenements] = useState([])
   const [tickets, setTickets] = useState([])
   const [category, setCategory] = useState(null)
+  const [activeEvent, setActiveEvent] = useState(null)
   const { deconnecter, numeroTel, profil, email } = useAuth()
   const headerSpring = useRef(new Animated.Value(0)).current
 
@@ -55,6 +56,7 @@ export default function HomeScreen({ navigation }) {
       setEvenements(formatted)
       if (formatted.length > 0) {
         setCategory(formatted[0].category)
+        setActiveEvent(formatted[0])
       }
     })
     return unsubscribe
@@ -67,7 +69,11 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <BlurBackground category={category} showImage={false} />
+      <BlurBackground
+        category={activeEvent?.category || category}
+        showImage={!!activeEvent?.affiche_url}
+        afficheUrl={activeEvent?.affiche_url}
+      />
       <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.sm }]} showsVerticalScrollIndicator={false}>
         {/* Header Bonjour */}
         <Animated.View style={[styles.headerWrap, headerStyle]}>
@@ -107,6 +113,10 @@ export default function HomeScreen({ navigation }) {
             <EventCarousel
               events={evenements}
               onPress={(event) => navigation.navigate('EventDetail', { eventId: event.id, event })}
+              onActiveIndexChange={(index) => {
+                const ev = evenements[index]
+                if (ev) setActiveEvent(ev)
+              }}
             />
           </>
         )}

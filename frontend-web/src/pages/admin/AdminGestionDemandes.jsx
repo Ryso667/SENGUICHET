@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import { adminListerDemandes, adminDetailDemande, adminTraiterDemande, adminCreerEvenementDepuisDemande } from "../../services/eventService";
 import { FileText, Calendar, Edit, X, Check, XCircle, Ticket, Inbox, Loader, Sparkle } from "../../components/Icons";
+import { normalizeImageUrl } from "../../utils/normalizeUrl";
 
 const statutConfig = {
   soumis: { cls: "badge-pending", label: "Soumis" },
@@ -263,7 +264,7 @@ const AdminGestionDemandes = () => {
                   {modal.affiche_url && !modal.affiche_url.startsWith("blob:") && (
                     <div style={{ marginBottom: "1rem" }}>
                       <p className="text-xs font-medium mb-2" style={{ color: "var(--text-secondary)" }}>Affiche</p>
-                      <img src={modal.affiche_url} alt="Affiche événement"
+                      <img src={normalizeImageUrl(modal.affiche_url)} alt="Affiche événement"
                         style={{ width: "100%", maxHeight: 250, objectFit: "contain", borderRadius: "8px", background: "rgba(255,255,255,0.04)" }}
                       />
                     </div>
