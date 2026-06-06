@@ -342,13 +342,7 @@ const Accueil = () => {
 
     let processed = val;
     if (name === "telephone") {
-      const digits = val.replace(/\D/g, "");
-      const maxDigits = digits.substring(0, 9);
-      let formatted = "+221 ";
-      if (maxDigits.length > 0) formatted += maxDigits.substring(0, 2);
-      if (maxDigits.length > 2) formatted += " " + maxDigits.substring(2, 5);
-      if (maxDigits.length > 5) formatted += " " + maxDigits.substring(5, 9);
-      processed = formatted;
+      processed = val.replace(/\D/g, "").substring(0, 9);
     }
 
     setFormData((prev) => ({ ...prev, [name]: processed }));
@@ -359,10 +353,26 @@ const Accueil = () => {
     }
   };
 
+  const formaterTelephone = (digits) => {
+    let formatted = "+221 ";
+    formatted += digits.substring(0, 2);
+    if (digits.length > 2) formatted += " " + digits.substring(2, Math.min(5, digits.length));
+    if (digits.length > 5) formatted += " " + digits.substring(5, Math.min(9, digits.length));
+    return formatted;
+  };
+
   const handleBlur = (e) => {
     const { name } = e.target;
     setTouched((prev) => ({ ...prev, [name]: true }));
-    const err = validateField(name, formData[name]);
+    let value = formData[name];
+    if (name === "telephone" && value) {
+      const digits = value.replace(/\D/g, "");
+      if (digits.length >= 3) {
+        value = formaterTelephone(digits);
+        setFormData((prev) => ({ ...prev, telephone: value }));
+      }
+    }
+    const err = validateField(name, value);
     setFormErrors((prev) => ({ ...prev, [name]: err }));
   };
 
@@ -377,10 +387,11 @@ const Accueil = () => {
     if (!validateStep(3) || !validateStep(2) || !validateStep(1)) return;
     setIsSubmitting(true);
     try {
+      const telephone = formData.telephone?.replace(/\D/g, "");
       await soumettreDemande({
         nom: formData.nom,
         organisation: formData.organisation,
-        telephone: formData.telephone,
+        telephone: telephone ? formaterTelephone(telephone) : "",
         email: formData.email,
         typeEvenement: formData.typeEvenement,
         nbEvenements: formData.nbEvenements,
