@@ -90,21 +90,15 @@ function EventCarousel({ events, onPress, onActiveIndexChange }) {
           [{ nativeEvent: { contentOffset: { x: scrollX } } }],
           { useNativeDriver: true }
         )}
-        onMomentumScrollEnd={Animated.event(
-          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-          {
-            useNativeDriver: true,
-            listener: (event) => {
-              if (!onActiveIndexChange) return
-              const offsetX = event.nativeEvent.contentOffset.x
-              const index = Math.round(offsetX / itemWidth)
-              if (index !== lastIndexRef.current && index >= 0 && index < events.length) {
-                lastIndexRef.current = index
-                onActiveIndexChange(index)
-              }
-            },
+        onMomentumScrollEnd={(event) => {
+          if (!onActiveIndexChange) return
+          const offsetX = event.nativeEvent.contentOffset.x
+          const index = Math.round(offsetX / itemWidth)
+          if (index !== lastIndexRef.current && index >= 0 && index < events.length) {
+            lastIndexRef.current = index
+            onActiveIndexChange(index)
           }
-        )}
+        }}
         scrollEventThrottle={16}
       >
         {events.map((item, index) => renderCard(item, index))}
