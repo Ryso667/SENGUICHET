@@ -64,9 +64,9 @@ export default function EventDetailScreen({ route, navigation }) {
           return
         }
         setEvent(data)
-        // Sera remplacé par API : sélectionne par défaut la 2e catégorie ou la première
+        // Sélectionne par défaut le billet le moins cher
         if (data.tickets.length > 0) {
-          setSelectedTicket(data.tickets[1] || data.tickets[0])
+          setSelectedTicket(data.tickets.reduce((a, b) => a.price < b.price ? a : b))
         }
       } catch (err) {
         setError(err.message || 'Erreur de chargement')
