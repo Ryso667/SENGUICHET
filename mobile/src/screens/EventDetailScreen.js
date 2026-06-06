@@ -223,10 +223,13 @@ export default function EventDetailScreen({ route, navigation }) {
           )}
 
           {!!event.location && (
-            <View style={styles.heroLocationRow}>
-              <Feather name="map-pin" size={14} color="rgba(255,255,255,0.6)" />
-              <Text style={styles.heroLocationText} numberOfLines={2}>{event.location}</Text>
-            </View>
+            <GlassContainer style={styles.heroLocationCard}>
+              <Feather name="map-pin" size={18} color={catColor} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.heroLocationMain} numberOfLines={2}>{event.location}</Text>
+                <Text style={styles.heroLocationSub}>Lieu de l'événement</Text>
+              </View>
+            </GlassContainer>
           )}
         </View>
 
@@ -570,18 +573,26 @@ const styles = StyleSheet.create({
     fontFamily: fonts.jakarta.regular,
     color: 'rgba(255,255,255,0.5)',
   },
-  // Localisation
-  heroLocationRow: {
+  // Carte localisation — mise en avant
+  heroLocationCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingLeft: 4,
+    gap: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: spacing.sm,
   },
-  heroLocationText: {
-    fontSize: 13,
+  heroLocationMain: {
+    fontSize: 16,
+    fontFamily: fonts.outfit.bold,
+    color: '#fff',
+    letterSpacing: 0.5,
+  },
+  heroLocationSub: {
+    fontSize: 11,
     fontFamily: fonts.jakarta.regular,
-    color: 'rgba(255,255,255,0.7)',
-    flex: 1,
+    color: 'rgba(255,255,255,0.4)',
+    marginTop: 2,
   },
   // Carte description — épurée, généreuse
   descCard: {

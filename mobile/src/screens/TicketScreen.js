@@ -1,19 +1,23 @@
-// Écran ticket — format vertical type billet physique
-// Fond blanc, encoches latérales, QR + infos + prix détaché
-// QR rafraîchi toutes les 30s avec nouveau HMAC (sécurité anti-rejeu)
+// Écran ticket — format physique vertical type billet de concert
+// Dimensions fixes (340×640), 3 zones, encoches + perforation
+// QR rafraîchi toutes les 30s (sécurité anti-rejeu HMAC)
 import { useRef, useEffect, useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import QRCode from 'react-native-qrcode-svg'
 import * as Crypto from 'expo-crypto'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { fonts, spacing } from '../constants/theme'
+import { fonts } from '../constants/theme'
 import GlassChip from '../components/GlassChip'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { genererTicketPDF } from '../services/ticketPdfService'
 import { HMAC_SECRET } from '../config'
 
 const QR_REFRESH_INTERVAL = 30
+const TICKET_W = 340
+const ZONE1_H = 260
+const ZONE2_H = 280
+const ZONE3_H = 100
 
 async function genererQRPayload(ticket) {
   const now = new Date().toISOString()
@@ -59,7 +63,6 @@ export default function TicketScreen({ route, navigation }) {
     })
   }
 
-  const isScanned = ticket?.statut === 'utilise'
   const refStr = ticket?.numero || '—'
   const eventNom = (ticket?.eventNom || ticket?.evenement || 'ÉVÉNEMENT').toUpperCase()
   const dateStr = ticket?.eventDate ? formaterDateLisible(ticket.eventDate) : ''
@@ -93,73 +96,66 @@ export default function TicketScreen({ route, navigation }) {
       >
         <Text style={styles.pageTitle}>Mon billet</Text>
 
-        <View style={styles.ticketOuter}>
-          <View style={styles.ticketCard}>
-            {/* ZONE HAUTE : QR Code */}
-            <View style={styles.qrSection}>
-              <View style={styles.qrWrap}>
-                {qrReady ? (
-                  <QRCode
-                    value={qrValue}
-                    size={110}
-                    backgroundColor="#fff"
-                    color="#000"
-                    ecl="H"
-                    quietZone={6}
-                    getRef={(c) => { qrRef.current = c }}
-                  />
-                ) : (
-                  <ActivityIndicator size="small" color="#000" />
-                )}
-              </View>
-              <Text style={styles.refText}>#{refStr}</Text>
-              {isScanned && (
-                <View style={styles.usedBadge}>
-                  <Text style={styles.usedBadgeText}>UTILISÉ</Text>
+        <View style={styles.ticketCard}>
+          {/* ZONE 1 : QR Code + ID (260px) */}
+          <View style={styles.zone1}>
+            <View style={styles.qrWrap}>
+              {qrReady ? (
+                <QRCode
+                  value={qrValue}
+                  size={180}
+                  backgroundColor="#fff"
+                  color="#000"
+                  ecl="H"
+                  quietZone={4}
+                  getRef={(c) => { qrRef.current = c }}
+                />
+              ) : (
+                <View style={styles.qrPlaceholder}>
+                  <ActivityIndicator size="small" color="#999" />
                 </View>
               )}
-              <Text style={styles.serialText}>{refStr}</Text>
             </View>
+            <Text style={styles.refText}>#{refStr}</Text>
 
-            <View style={styles.divider} />
+            {/* Encoches de découpe à cheval sur la perforation */}
+            <View style={styles.cutoutLeft} />
+            <View style={styles.cutoutRight} />
+          </View>
 
-            {/* ZONE INFOS : Événement + Prix */}
-            <View style={styles.infoSection}>
-              <Text style={styles.watermark}>S</Text>
+          {/* ZONE 2 : Infos événement + Prix (280px) */}
+          <View style={styles.zone2}>
+            {/* Filigrane subtil 'S' */}
+            <Text style={styles.watermark}>S</Text>
 
-              <View style={styles.infoRow}>
-                <View style={styles.infoLeft}>
-                  <Text style={styles.eventTitle}>{eventNom}</Text>
-                  <Text style={styles.eventDate}>
-                    {dateStr}{heureStr ? ` à ${heureStr}` : ''}
-                  </Text>
-                  <Text style={styles.eventLieu}>{lieuStr}</Text>
-                </View>
-
-                <View style={styles.verticalDivider} />
-
-                <View style={styles.priceCol}>
-                  <Text style={styles.priceValue}>{prixStr}</Text>
-                </View>
+            <View style={styles.infoRow}>
+              <View style={styles.infoLeft}>
+                <Text style={styles.eventTitle}>{eventNom}</Text>
+                <Text style={styles.eventDate}>
+                  {dateStr}{heureStr ? ` à ${heureStr}` : ''}
+                </Text>
+                <Text style={styles.eventLieu}>{lieuStr}</Text>
               </View>
-            </View>
 
-            <View style={styles.divider} />
+              <View style={styles.verticalDivider} />
 
-            {/* ZONE BASSE : Mentions légales */}
-            <View style={styles.legalSection}>
-              <Text style={styles.legalText}>
-                SENGUICHET - Billetterie événementielle. Entrée unique et non transférable.
-              </Text>
-              {dateAchatStr ? (
-                <Text style={styles.legalDate}>Acheté le {dateAchatStr}</Text>
-              ) : null}
+              <View style={styles.priceCol}>
+                <Text style={styles.priceLabel}>Prix</Text>
+                <Text style={styles.priceValue}>{prixStr}</Text>
+              </View>
             </View>
           </View>
 
-          {/* Encoches latérales */}
-          <View style={styles.cutoutLeft} />
-          <View style={styles.cutoutRight} />
+          {/* ZONE 3 : Mentions légales (100px) */}
+          <View style={styles.zone3}>
+            <Text style={styles.brandText}>SENGUICHET</Text>
+            <Text style={styles.legalText}>
+              Billetterie événementielle • Entrée unique et non transférable
+            </Text>
+            {dateAchatStr ? (
+              <Text style={styles.legalDate}>Acheté le {dateAchatStr}</Text>
+            ) : null}
+          </View>
         </View>
 
         <View style={styles.actions}>
@@ -169,8 +165,6 @@ export default function TicketScreen({ route, navigation }) {
     </View>
   )
 }
-
-const CARD_WIDTH_PCT = '82%'
 
 const styles = StyleSheet.create({
   container: {
@@ -190,198 +184,193 @@ const styles = StyleSheet.create({
   },
   scroll: {
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
   },
   pageTitle: {
     fontFamily: fonts.outfit.bold,
     fontSize: 18,
     color: '#fff',
     letterSpacing: -0.3,
-    marginBottom: spacing.lg,
+    marginBottom: 20,
   },
 
-  // Conteneur ticket + encoches
-  ticketOuter: {
-    width: '100%',
-    alignItems: 'center',
-    position: 'relative',
-  },
+  // Ticket — dimensions fixes (340×640)
   ticketCard: {
-    width: CARD_WIDTH_PCT,
+    width: TICKET_W,
+    height: ZONE1_H + ZONE2_H + ZONE3_H,
     backgroundColor: '#fff',
-    borderRadius: 4,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+
+  // ── ZONE 1 : QR (260px) ──────────────────────
+  zone1: {
+    height: ZONE1_H,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderBottomWidth: 2,
+    borderStyle: 'dashed',
+    borderBottomColor: '#D1D5DB',
+    position: 'relative',
+  },
+  qrWrap: {
+    width: 180,
+    height: 180,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qrPlaceholder: {
+    width: 180,
+    height: 180,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F3F4F6',
+  },
+  refText: {
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    fontSize: 12,
+    color: '#6B7280',
+    letterSpacing: 1.5,
+    marginTop: 8,
   },
 
   // Encoches demi-cercles
   cutoutLeft: {
     position: 'absolute',
-    left: '9%',
-    top: 135,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    bottom: -12,
+    left: -12,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#0f0f2a',
-    marginLeft: -9,
   },
   cutoutRight: {
     position: 'absolute',
-    right: '9%',
-    top: 135,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    bottom: -12,
+    right: -12,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#0f0f2a',
-    marginRight: -9,
   },
 
-  // ZONE QR
-  qrSection: {
-    alignItems: 'center',
-    paddingTop: spacing.xl + 8,
-    paddingBottom: spacing.lg,
-    paddingHorizontal: spacing.lg,
+  // ── ZONE 2 : Infos (280px) ───────────────────
+  zone2: {
+    height: ZONE2_H,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
     position: 'relative',
-  },
-  qrWrap: {
-    backgroundColor: '#fff',
-    borderRadius: 4,
-    padding: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  refText: {
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontSize: 12,
-    color: '#666',
-    letterSpacing: 1.5,
-    marginTop: spacing.md,
-  },
-  serialText: {
-    position: 'absolute',
-    right: spacing.lg,
-    top: spacing.xl + 16,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontSize: 8,
-    color: '#bbb',
-    letterSpacing: 0.5,
-  },
-  usedBadge: {
-    marginTop: spacing.sm,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    borderRadius: 2,
-    backgroundColor: '#f0f0f0',
-  },
-  usedBadgeText: {
-    fontFamily: fonts.jakarta.semiBold,
-    fontSize: 9,
-    color: '#999',
-    letterSpacing: 1.5,
-  },
-
-  // Séparateur horizontal fin
-  divider: {
-    height: 0,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E0E0E0',
-    marginHorizontal: spacing.lg,
-  },
-
-  // ZONE INFOS
-  infoSection: {
-    position: 'relative',
-    overflow: 'hidden',
   },
   watermark: {
     position: 'absolute',
-    right: -5,
-    top: -5,
+    right: 5,
+    top: 30,
     fontFamily: fonts.outfit.black,
-    fontSize: 120,
-    color: 'rgba(0,0,0,0.03)',
-    letterSpacing: 0,
+    fontSize: 140,
+    color: 'rgba(0,0,0,0.02)',
   },
   infoRow: {
+    flex: 1,
     flexDirection: 'row',
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.lg,
-    minHeight: 120,
+    alignItems: 'flex-start',
   },
   infoLeft: {
     flex: 1,
-    justifyContent: 'center',
-    gap: 6,
-    paddingRight: spacing.md,
+    gap: 12,
+    paddingRight: 16,
+    maxWidth: '70%',
   },
   eventTitle: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 15,
-    color: '#1a1a1a',
-    letterSpacing: 0.3,
-    lineHeight: 20,
+    fontSize: 18,
+    color: '#030712',
+    letterSpacing: -0.3,
+    lineHeight: 22,
   },
   eventDate: {
-    fontFamily: fonts.jakarta.regular,
-    fontSize: 13,
-    color: '#555',
+    fontFamily: fonts.jakarta.medium,
+    fontSize: 12,
+    color: '#4B5563',
   },
   eventLieu: {
     fontFamily: fonts.jakarta.regular,
     fontSize: 12,
-    color: '#777',
+    color: '#6B7280',
     lineHeight: 16,
   },
-
-  // Séparateur vertical + prix
   verticalDivider: {
-    width: StyleSheet.hairlineWidth,
-    backgroundColor: '#E0E0E0',
-    marginVertical: 4,
+    width: 1,
+    height: 120,
+    backgroundColor: '#E5E7EB',
+    alignSelf: 'center',
   },
   priceCol: {
     width: 80,
+    paddingLeft: 16,
+    alignItems: 'flex-end',
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingLeft: spacing.md,
+    height: 120,
+    alignSelf: 'center',
+  },
+  priceLabel: {
+    fontFamily: fonts.jakarta.regular,
+    fontSize: 10,
+    color: '#9CA3AF',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 4,
   },
   priceValue: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 16,
-    color: '#1a1a1a',
-    textAlign: 'center',
+    fontSize: 14,
+    color: '#111827',
   },
 
-  // ZONE MENTIONS
-  legalSection: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+  // ── ZONE 3 : Mentions (100px) ───────────────
+  zone3: {
+    height: ZONE3_H,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F9FAFB',
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
     gap: 4,
+  },
+  brandText: {
+    fontFamily: fonts.outfit.bold,
+    fontSize: 10,
+    color: '#9CA3AF',
+    letterSpacing: 3,
+    textTransform: 'uppercase',
   },
   legalText: {
     fontFamily: fonts.jakarta.regular,
     fontSize: 9,
-    color: '#aaa',
+    color: '#9CA3AF',
     textAlign: 'center',
-    lineHeight: 13,
+    lineHeight: 12,
   },
   legalDate: {
     fontFamily: fonts.jakarta.regular,
-    fontSize: 9,
-    color: '#bbb',
-    textAlign: 'center',
+    fontSize: 8,
+    color: '#B0B7C3',
   },
 
-  // Boutons actions
+  // ── Actions ──────────────────────────────────
   actions: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.xl,
+    gap: 12,
+    marginTop: 24,
     width: '100%',
     justifyContent: 'center',
   },
