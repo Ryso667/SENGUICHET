@@ -221,7 +221,7 @@ const envoyerCodeOTP = async (req, res) => {
     const { STOCKER_CODE } = require("../services/otpStore");
     await STOCKER_CODE(email, code);
 
-    const { envoyerCodeOTP: envoyerEmail } = require("../services/EmailService");
+    const { envoyerCodeOTP: envoyerEmail } = require("../services/emailService");
     await envoyerEmail(email, code);
 
     res.json({ message: "Code envoyé", code });
