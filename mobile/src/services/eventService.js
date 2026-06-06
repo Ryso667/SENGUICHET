@@ -157,23 +157,28 @@ export async function fetchEvenementsPublics(filtres = {}) {
   const query = params.toString() ? `?${params.toString()}` : ''
   const data = await appelAPI(`/evenements/public${query}`)
   if (!Array.isArray(data)) return []
-  return data.map(e => ({
-    id: String(e.id),
-    title: e.titre || e.nom || '',
-    affiche_url: normaliserAfficheUrl(e.affiche_url),
-    date: e.date_debut || e.date || '',
-    location: e.lieu || '',
-    category: e.categorie || '',
-    desc: e.description || '',
-    tickets: (e.categories || []).map(c => ({
-      id: String(c.id),
-      name: c.nom,
-      price: c.prix,
-      desc: c.description || '',
-    })),
-    priceMin: e.prix_min || 0,
-    priceMax: e.prix_max || 0,
-  }))
+  const now = new Date()
+  return data.map(e => {
+    const dateFin = e.date_fin ? new Date(e.date_fin) : null
+    return {
+      id: String(e.id),
+      title: e.titre || e.nom || '',
+      affiche_url: normaliserAfficheUrl(e.affiche_url),
+      date: e.date_debut || e.date || '',
+      location: e.lieu || '',
+      category: e.categorie || '',
+      desc: e.description || '',
+      estPasse: dateFin && dateFin < now,
+      tickets: (e.categories || []).map(c => ({
+        id: String(c.id),
+        name: c.nom,
+        price: c.prix,
+        desc: c.description || '',
+      })),
+      priceMin: e.prix_min || 0,
+      priceMax: e.prix_max || 0,
+    }
+  })
 }
 
 // Récupère le détail public d'un événement par son ID
