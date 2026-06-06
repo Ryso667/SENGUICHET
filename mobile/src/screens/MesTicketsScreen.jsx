@@ -25,17 +25,17 @@ export default function MesTicketsScreen({ navigation }) {
   const insets = useSafeAreaInsets()
   const [tickets, setTickets] = useState([])
   const [refreshing, setRefreshing] = useState(false)
-  const { numeroTel, profil } = useAuth()
+  const { numeroTel, profil, email } = useAuth()
   const categoryForBg = tickets[0]?.categorie || null
 
   // Charge les tickets depuis le service billetService
   const loadTickets = useCallback(async () => {
-    const identifiant = numeroTel || profil?.email
+    const identifiant = numeroTel || profil?.email || email
     if (identifiant) {
       const data = await mesBillets(identifiant)
       setTickets(data || [])
     }
-  }, [numeroTel, profil])
+  }, [numeroTel, profil, email])
 
   // Recharge les tickets à chaque focus de l'écran
   useFocusEffect(useCallback(() => { loadTickets() }, [loadTickets]))

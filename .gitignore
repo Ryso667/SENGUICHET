@@ -34,6 +34,11 @@ yarn-error.*
 .env
 .env*.local
 
+# Env générés par Vercel CLI (contiennent OIDC tokens sensibles)
+backend/.env.prod
+backend/.env.tidb
+backend/.env.vercel
+
 # typescript
 *.tsbuildinfo
 
@@ -46,6 +51,7 @@ google-services.json
 GoogleService-Info.plist
 
 .playwright-mcp/
+.superpowers/
 frontend-web/build/
 # Backend data directory (OTP persist)
 backend/data/

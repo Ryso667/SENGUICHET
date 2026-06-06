@@ -8,6 +8,7 @@ import { colors, spacing, borderRadius, fonts, textShadow, categoryGradients } f
 import { LinearGradient } from 'expo-linear-gradient'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
+import { getCategoryImageUrl } from '../../config/images'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
@@ -136,8 +137,8 @@ export default function GestionEvenementsScreen({ navigation }) {
                   <GlassContainer key={evt.id} style={s.eventCard}>
                     {/* Hero image avec gradient overlay */}
                     <View style={s.cardHero}>
-                      {evt.affiche_url ? (
-                        <Image source={{ uri: evt.affiche_url }} style={s.cardHeroBg} resizeMode="cover" />
+                      {evt.affiche_url || evt.categorie ? (
+                        <Image source={{ uri: evt.affiche_url || getCategoryImageUrl(evt.categorie) }} style={s.cardHeroBg} resizeMode="cover" />
                       ) : (
                         <LinearGradient colors={categoryGradients[evt.categorie] || categoryGradients.default} style={s.cardHeroBg}>
                           <MaterialCommunityIcons name="image-outline" size={36} color="rgba(255,255,255,0.15)" />

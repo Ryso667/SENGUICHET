@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/DashboardLayout";
 import { listerEvenements } from "../../services/eventService";
 import { Ticket, Calendar, LayoutGrid } from "../../components/Icons";
+import { normalizeImageUrl } from "../../utils/normalizeUrl";
 
 const DashboardHome = () => {
   const { user } = useAuth();
@@ -107,7 +108,7 @@ const DashboardHome = () => {
                   onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
                 >
                   <div className="relative h-[160px] overflow-hidden">
-                    <img src={ev.img} alt={ev.nom} className="w-full h-full object-cover transition-transform duration-500" style={{ groupHover: "scale-110" }}
+                    <img src={(normalizeImageUrl(ev.affiche_url)) || "/images/event-1.jpg"} alt={ev.nom} className="w-full h-full object-cover transition-transform duration-500" style={{ groupHover: "scale-110" }}
                       onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.1)"}
                       onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
                     />

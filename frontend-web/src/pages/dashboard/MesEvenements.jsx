@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import { listerEvenements } from "../../services/eventService";
+import { normalizeImageUrl } from "../../utils/normalizeUrl";
 
 const badgeConfig = {
   active: { cls: "badge-active", label: "ACTIF" },
@@ -135,7 +136,7 @@ const MesEvenements = () => {
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                            <img src={e.img} alt={e.nom} className="w-full h-full object-cover" />
+                            <img src={normalizeImageUrl(e.affiche_url) || "/images/event-1.jpg"} alt={e.nom} className="w-full h-full object-cover" />
                           </div>
                           <div>
                             <p className="text-sm font-semibold text-white" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 600 }}>{e.nom}</p>
@@ -184,7 +185,7 @@ const MesEvenements = () => {
               {filtered.map((e) => (
                 <div key={e.id} className="glass-card overflow-hidden">
                   <div className="relative h-[120px] overflow-hidden">
-                    <img src={e.img} alt={e.nom} className="w-full h-full object-cover" />
+                    <img src={normalizeImageUrl(e.affiche_url) || "/images/event-1.jpg"} alt={e.nom} className="w-full h-full object-cover" />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(10,11,26,0.9), transparent)" }} />
                     <span className="absolute top-3 right-3">
                       <span className={`badge ${(badgeConfig[e.statut] || badgeConfig.annule).cls}`}>

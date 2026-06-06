@@ -14,6 +14,9 @@ if (!process.env.TICKET_URL && process.env.VERCEL_URL) {
   process.env.TICKET_URL = `https://${process.env.VERCEL_URL}/api/billets`;
 }
 
+// Trust proxy : 1 saut — Vercel se met devant l'app
+app.set("trust proxy", 1);
+
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
@@ -27,8 +30,6 @@ app.use("/api/logo", express.static(path.join(__dirname, "..", "public", "images
 app.get("/api/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
-
-
 
 app.use("/api", routes);
 

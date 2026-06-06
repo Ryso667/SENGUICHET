@@ -1,10 +1,10 @@
 // Navigation principale de l'application
 // 3 piles distinctes selon le rôle : acheteur / controleur / organisateur
 // Les écrans non-connectés (auth) sont affichés quand aucun rôle n'est actif
-import React from 'react'
+import React, { useRef, useEffect } from 'react'
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Platform } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { NavigationContainer, useFocusEffect } from '@react-navigation/native'
+import { NavigationContainer, useFocusEffect, createNavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -42,7 +42,6 @@ import ParametresScreen from '../screens/organisateur/ParametresScreen'
 
 // Nouveaux écrans (gap 2, 3, 5)
 import ChangerMotDePasseScreen from '../screens/organisateur/ChangerMotDePasseScreen'
-import GestionEquipeScreen from '../screens/organisateur/GestionEquipeScreen'
 import ProfilScreen from '../screens/ProfilScreen'
 
 const Stack = createNativeStackNavigator()
@@ -270,9 +269,21 @@ function ControleurTabs() {
   )
 }
 
+const navigationRef = createNavigationContainerRef()
+
 // Point d'entrée de la navigation
 export default function AppNavigator() {
   const { role, chargement } = useAuth()
+
+  // Redirige automatiquement vers l'écran principal du rôle connecté
+  useEffect(() => {
+    if (role && navigationRef.current?.isReady()) {
+      const routeName = role === 'acheteur' ? 'Home'
+        : role === 'controleur' ? 'ControleurTabs'
+        : 'OrganisateurTabs'
+      navigationRef.current.reset({ index: 0, routes: [{ name: routeName }] })
+    }
+  }, [role])
 
   if (chargement) {
     return (
@@ -283,7 +294,7 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator screenOptions={{ headerShown: false, gestureEnabled: true }}>
 
         {/* Pas de session active → écran d'accueil + formulaires auth */}
@@ -301,9 +312,6 @@ export default function AppNavigator() {
         {/* Acheteur connecté */}
         {role === 'acheteur' && (
           <>
-            <Stack.Screen name="AccueilChoix" component={AccueilChoixScreen}
-              options={{ headerShown: true, headerTitle: 'Changer de rôle', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
-            />
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="EventSearch" component={EventSearchScreen} />
             <Stack.Screen name="EventDetail" component={EventDetailScreen} />
@@ -344,11 +352,6 @@ export default function AppNavigator() {
               name="ChangerMotDePasse"
               component={ChangerMotDePasseScreen}
               options={{ headerShown: true, headerTitle: 'Changer le mot de passe', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
-            />
-            <Stack.Screen
-              name="GestionEquipe"
-              component={GestionEquipeScreen}
-              options={{ headerShown: true, headerTitle: 'Gestion équipe', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
             />
           </>
         )}

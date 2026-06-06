@@ -33,7 +33,7 @@ const DEFAULTS = {
   Gala: { bg: '#ca8a04', icon: 'dance-ballroom', emoji: '💃' },
 }
 
-const FALLBACK = { bg: colors.accent, icon: 'calendar', emoji: '📅', poster: '' }
+const FALLBACK = { bg: colors.accent, icon: 'star', emoji: '✨', poster: '' }
 
 // Retourne l'URL de l'image de fond Unsplash pour une catégorie donnée
 export function getCategoryImageUrl(categorie) {

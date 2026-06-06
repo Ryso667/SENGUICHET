@@ -21,7 +21,8 @@ export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle
   const def = event.category ? getDefaultImage(event.category) : null
   const iconName = def?.icon || null
   const [imageError, setImageError] = useState(false)
-  const imageUrl = event.category ? getCategoryImageUrl(event.category) : null
+  // Priorité : affiche_url de l'événement → image par catégorie (Unsplash)
+  const imageUrl = event.affiche_url || (event.category ? getCategoryImageUrl(event.category) : null)
 
   useEffect(() => {
     const delay = index * animations.stagger
@@ -53,17 +54,17 @@ export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle
   return (
     <Animated.View style={[styles.wrapper, { height }, cardStyle, animatedStyle]}>
       <TouchableOpacity
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        activeOpacity={0.9}
+        onPress={event.estPasse ? undefined : onPress}
+        onPressIn={event.estPasse ? undefined : handlePressIn}
+        onPressOut={event.estPasse ? undefined : handlePressOut}
+        activeOpacity={event.estPasse ? 1 : 0.9}
         style={styles.touch}
       >
-        <View style={[styles.card, { backgroundColor: event.bg || '#6366F1' }]}>
+        <View style={[styles.card, { backgroundColor: event.bg || '#6366F1' }, event.estPasse && styles.cardPasse]}>
           {imageUrl && !imageError && (
             <Animated.Image
               source={{ uri: imageUrl }}
-              style={styles.cardImage}
+              style={[styles.cardImage, event.estPasse && styles.imagePasse]}
               onError={() => setImageError(true)}
             />
           )}
@@ -75,6 +76,12 @@ export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle
             <Text style={styles.badgeMonth}>{event.month}</Text>
             <Text style={styles.badgeDay}>{event.day}</Text>
           </View>
+
+          {event.estPasse && (
+            <View style={styles.passeBadge}>
+              <Text style={styles.passeText}>Passé</Text>
+            </View>
+          )}
 
           {iconName ? (
             <MaterialCommunityIcons name={iconName} size={28} color="rgba(255,255,255,0.6)" style={styles.icon} />
@@ -127,7 +134,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: 'rgba(0,0,0,0.45)',
     borderRadius: borderRadius.sm,
     paddingHorizontal: 7,
     paddingVertical: 3,
@@ -179,7 +186,7 @@ const styles = StyleSheet.create({
   },
   priceBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
@@ -189,5 +196,28 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: fonts.jakarta.semiBold,
     color: '#fff',
+  },
+  cardPasse: {
+    opacity: 0.75,
+  },
+  imagePasse: {
+    tintColor: 'grayscale',
+  },
+  passeBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: borderRadius.sm,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    zIndex: 2,
+  },
+  passeText: {
+    fontSize: 9,
+    fontFamily: fonts.jakarta.semiBold,
+    color: '#EF4444',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 })

@@ -64,9 +64,9 @@ export default function EventDetailScreen({ route, navigation }) {
           return
         }
         setEvent(data)
-        // Sera remplacé par API : sélectionne par défaut la 2e catégorie ou la première
+        // Sélectionne par défaut le billet le moins cher
         if (data.tickets.length > 0) {
-          setSelectedTicket(data.tickets[1] || data.tickets[0])
+          setSelectedTicket(data.tickets.reduce((a, b) => a.price < b.price ? a : b))
         }
       } catch (err) {
         setError(err.message || 'Erreur de chargement')
@@ -155,7 +155,7 @@ export default function EventDetailScreen({ route, navigation }) {
   if (error) {
     return (
       <View style={styles.container}>
-        <BlurBackground category={event?.category} />
+        <BlurBackground category={event?.category} afficheUrl={event?.affiche_url} />
         <View style={styles.loadingContainer}>
           <Feather name="alert-circle" size={32} color={colors.textWhiteMuted} />
           <Text style={styles.loadingText}>{error}</Text>
@@ -184,7 +184,7 @@ export default function EventDetailScreen({ route, navigation }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* Fond immersif plein écran */}
-      <BlurBackground category={event?.category} />
+      <BlurBackground category={event?.category} afficheUrl={event?.affiche_url} />
 
       {/* Bouton retour flottant avec cercle glass */}
       <TouchableOpacity style={[styles.floatingBack, { top: insets.top + 8 }]} onPress={() => navigation.goBack()}>
@@ -223,10 +223,13 @@ export default function EventDetailScreen({ route, navigation }) {
           )}
 
           {!!event.location && (
-            <View style={styles.heroLocationRow}>
-              <Feather name="map-pin" size={14} color="rgba(255,255,255,0.6)" />
-              <Text style={styles.heroLocationText} numberOfLines={2}>{event.location}</Text>
-            </View>
+            <GlassContainer style={styles.heroLocationCard}>
+              <Feather name="map-pin" size={18} color={catColor} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.heroLocationMain} numberOfLines={2}>{event.location}</Text>
+                <Text style={styles.heroLocationSub}>Lieu de l'événement</Text>
+              </View>
+            </GlassContainer>
           )}
         </View>
 
@@ -253,9 +256,11 @@ export default function EventDetailScreen({ route, navigation }) {
               <Text style={styles.categorySelectorPrice}>{selectedTicket.price.toLocaleString()} FCFA</Text>
             </View>
             <View style={styles.categorySelectorRight}>
-              <View style={styles.priceChip}>
-                <Text style={styles.priceChipText}>Places limitées</Text>
-              </View>
+              {selectedTicket.placesDisponibles != null && (
+                <View style={styles.priceChip}>
+                  <Text style={styles.priceChipText}>{selectedTicket.placesDisponibles}/{selectedTicket.capacite} places</Text>
+                </View>
+              )}
               <Feather name="chevron-down" size={16} color="rgba(255,255,255,0.5)" />
             </View>
           </GlassContainer>
@@ -347,7 +352,9 @@ export default function EventDetailScreen({ route, navigation }) {
                     </View>
                     <View style={styles.sheetItemRight}>
                       <Text style={styles.sheetItemPrice}>{t.price.toLocaleString()} FCFA</Text>
-                      <Text style={styles.sheetItemPlaces}>Places limitées</Text>
+                      {t.placesDisponibles != null && (
+                        <Text style={styles.sheetItemPlaces}>{t.placesDisponibles}/{t.capacite} places</Text>
+                      )}
                     {selectedTicket.name === t.name && (
                       <View style={[styles.sheetCheck, { backgroundColor: catColor }]}>
                         <Feather name="check" size={12} color="#fff" />
@@ -398,14 +405,14 @@ export default function EventDetailScreen({ route, navigation }) {
             {paymentEtape === 'confirm' && (
               <>
                 {/* Montant uniquement */}
-                <Text style={s.payAmountLabel}>{selectedTicket.name}</Text>
-                <Text style={[s.payAmountValue, { color: catColor }]}>
+                <Text style={styles.payAmountLabel}>{selectedTicket.name}</Text>
+                <Text style={[styles.payAmountValue, { color: catColor }]}>
                   {selectedTicket.price.toLocaleString()} FCFA
                 </Text>
 
                 {/* Bouton de paiement Wave — mobile money */}
                 <TouchableOpacity
-                  style={s.confirmPayBtn}
+                  style={styles.confirmPayBtn}
                   onPress={confirmerPaiement}
                   activeOpacity={0.9}
                 >
@@ -414,10 +421,10 @@ export default function EventDetailScreen({ route, navigation }) {
                     colors={['#1AB3E5', '#0D8ABC']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    style={s.confirmPayGradient}
+                    style={styles.confirmPayGradient}
                   >
-                    <Image source={require('../../assets/wave_logo.png')} style={s.confirmBtnLogo} resizeMode="contain" />
-                    <Text style={s.confirmPayText}>Payer {selectedTicket.price.toLocaleString()} FCFA</Text>
+                    <Image source={require('../../assets/wave_logo.png')} style={styles.confirmBtnLogo} resizeMode="contain" />
+                    <Text style={styles.confirmPayText}>Payer {selectedTicket.price.toLocaleString()} FCFA</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </>
@@ -566,18 +573,26 @@ const styles = StyleSheet.create({
     fontFamily: fonts.jakarta.regular,
     color: 'rgba(255,255,255,0.5)',
   },
-  // Localisation
-  heroLocationRow: {
+  // Carte localisation — mise en avant
+  heroLocationCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingLeft: 4,
+    gap: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: spacing.sm,
   },
-  heroLocationText: {
-    fontSize: 13,
+  heroLocationMain: {
+    fontSize: 16,
+    fontFamily: fonts.outfit.bold,
+    color: '#fff',
+    letterSpacing: 0.5,
+  },
+  heroLocationSub: {
+    fontSize: 11,
     fontFamily: fonts.jakarta.regular,
-    color: 'rgba(255,255,255,0.7)',
-    flex: 1,
+    color: 'rgba(255,255,255,0.4)',
+    marginTop: 2,
   },
   // Carte description — épurée, généreuse
   descCard: {

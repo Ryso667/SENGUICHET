@@ -116,7 +116,7 @@ export function AuthProvider({ children }) {
 
   // Stocke le téléphone après un achat (utilisé par le flow social)
   const definirTelephone = async (tel) => {
-    await AsyncStorage.setItem(STORAGE_KEY_NUMERO, tel)
+    await Securite.SET(STORAGE_KEY_NUMERO, tel)
     setNumeroTel(tel)
   }
 
@@ -153,7 +153,7 @@ export function AuthProvider({ children }) {
     await Securite.SET(STORAGE_KEY_JWT, token)
     await AsyncStorage.setItem(STORAGE_KEY_ACHETEUR_EMAIL_SUGGESTION, email)
     const nom = email.split('@')[0].replace(/\d+$/, '')
-    const profilData = { nom }
+    const profilData = { nom, email }
     await Securite.SET(STORAGE_KEY_PROFIL, JSON.stringify(profilData))
     setEmail(email)
     setJwt(token)

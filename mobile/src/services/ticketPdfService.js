@@ -1,260 +1,80 @@
-// Service de génération de ticket PDF — layout ticket classique
+// Service de génération de ticket PDF — template 100% table inline, zéro classe CSS
+// Dimensions 340×600px, 3 zones : QR 140px, infos+prix (table 70/30), mentions
 import * as Print from 'expo-print'
 import * as Sharing from 'expo-sharing'
-import * as FS from 'expo-file-system'
 import * as FileSystem from 'expo-file-system/legacy'
-import { Asset } from 'expo-asset'
 import { Alert } from 'react-native'
-import { formatDateTicket, formatDatetimeLong } from '../utils/dateUtils'
-
-// Logo en base64 mis en cache côté module (initialisation paresseuse)
-let _logoBase64Promise = null
-function getLogoBase64() {
-  if (!_logoBase64Promise) {
-    _logoBase64Promise = (async () => {
-      try {
-        const asset = Asset.fromModule(require('../../assets/logo_mobile.jpeg'))
-        await asset.downloadAsync()
-        const b64 = await FS.readAsStringAsync(asset.localUri, {
-          encoding: FS.EncodingType.Base64,
-        })
-        return b64
-      } catch {
-        return null
-      }
-    })()
-  }
-  return _logoBase64Promise
-}
 
 function formatPrix(prix) {
   if (prix == null) return '—'
   return `${Number(prix).toLocaleString('fr-FR')} FCFA`
 }
 
-  const DASHES = '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
+function construireHtmlTicket(ticket, qrDataUrl) {
+  const eventNom = (ticket.eventNom || 'ÉVÉNEMENT').toUpperCase()
+  const dateStr = ticket.eventDate
+    ? new Date(ticket.eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+    : ''
+  const heureStr = ticket.eventHeure || ''
+  const lieuStr = (ticket.eventLieu || '').toUpperCase()
+  const categorie = (ticket.categorie || 'STANDARD').toUpperCase()
+  const prixStr = formatPrix(ticket.prix)
+  const refStr = ticket.numero || '—'
 
-function construireHtmlTicket(ticket, qrDataUrl, logoBase64) {
-  const isScanned = ticket.statut === 'utilise'
-  const organisateur = 'SENGUICHET'
-  const dateStr = formatDateTicket(ticket.eventDate)
-  const scannedStr = ticket.dateScan ? formatDatetimeLong(ticket.dateScan) : null
-  const logoSrc = logoBase64 ? `data:image/jpeg;base64,${logoBase64}` : null
+  const qrCell = qrDataUrl
+    ? '<img src="' + qrDataUrl + '" width="140" height="140" style="display:block;margin:0 auto;width:140px;height:140px" />'
+    : '<div style="width:140px;height:140px;background:#f1f5f9;margin:0 auto;font-size:10px;color:#94a3b8;text-align:center;line-height:140px">QR non disponible</div>'
 
-  return `<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=300">
-<title>Billet ${ticket.eventNom} — SENGUICHET</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body {
-    width: 300pt;
-    height: 420pt;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    color: #0f172a;
-    background: #ffffff;
-  }
-  .page {
-    width: 300pt;
-    height: 420pt;
-    padding: 6pt 10pt;
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-    overflow: hidden;
-  }
-  .top-block { flex-shrink: 0; }
-  .bottom-block { flex-shrink: 0; }
+  return '<!DOCTYPE html>'
+    + '<html lang="fr"><head><meta charset="utf-8">'
+    + '<title>Billet ' + eventNom + ' — SENGUICHET</title>'
+    + '</head><body style="margin:0;padding:16px;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;text-align:center">'
 
-  /* En-tête */
-  .header { margin-bottom: 3pt; }
-  .logo-circle {
-    width: 28pt; height: 28pt;
-    border-radius: 50%;
-    background: #E0F7FF;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14pt;
-    margin-bottom: 3pt;
-  }
-  .org-name {
-    font-size: 9pt;
-    font-weight: 800;
-    color: #64748b;
-    letter-spacing: 2px;
-  }
+    + '<table style="width:340px;height:600px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;font-family:Arial,sans-serif;margin:40px auto;border-collapse:collapse;overflow:hidden">'
 
-  /* Ligne de tirets */
-  .dash {
-    font-size: 6pt;
-    color: #cbd5e1;
-    letter-spacing: -1px;
-    margin: 3pt 0;
-    width: 100%;
-  }
+    // Z1 : QR 140px + ref
+    + '<tr><td style="height:220px;text-align:center;vertical-align:middle;padding-top:20px;background:#fff">'
+    +   qrCell
+    +   '<div style="font-family:monospace;font-size:11px;color:#64748b;margin-top:8px;font-weight:bold">#' + refStr + '</div>'
+    + '</td></tr>'
 
-  /* Nom événement */
-  .event-name {
-    font-size: 15pt;
-    font-weight: 800;
-    line-height: 1.3;
-    letter-spacing: 0.5px;
-    width: 100%;
-  }
+    // Perforation
+    + '<tr><td style="height:2px;padding:0 15px">'
+    +   '<div style="border-bottom:2px dashed #cbd5e1;height:1px;font-size:1px;line-height:1px">&nbsp;</div>'
+    + '</td></tr>'
 
-  /* Infos */
-  .info-line {
-    font-size: 11pt;
-    font-weight: 700;
-    color: #0f172a;
-    width: 100%;
-  }
-  .venue {
-    font-size: 10pt;
-    font-weight: 800;
-    color: #64748b;
-    letter-spacing: 1px;
-    width: 100%;
-  }
-  .ref {
-    font-size: 10pt;
-    font-weight: 800;
-    color: #64748b;
-    letter-spacing: 0.5px;
-    width: 100%;
-    margin-bottom: 2pt;
-  }
+    // Z2 : table 70/30
+    + '<tr><td style="height:240px;vertical-align:top;padding:20px 15px">'
+    +   '<table style="width:100%;border-collapse:collapse">'
+    +     '<tr>'
+    +       '<td style="width:70%;vertical-align:top;padding-right:10px">'
+    +         '<div style="font-size:15px;font-weight:bold;color:#0f172a;text-transform:uppercase;line-height:1.3">' + eventNom + '</div>'
+    +         '<div style="font-size:12px;color:#334155;font-weight:bold;margin-top:8px">' + dateStr + (heureStr ? ' à ' + heureStr : '') + '</div>'
+    +         '<div style="font-size:10px;color:#94a3b8;margin-top:4px;line-height:1.2">' + lieuStr + '</div>'
+    +         '<div style="margin-top:25px;font-size:11px;color:#334155;font-weight:bold;text-transform:uppercase">ACCÈS : <span style="color:#0f172a">' + categorie + '</span></div>'
+    +       '</td>'
+    +       '<td style="width:30%;border-left:1px solid #e2e8f0;text-align:right;vertical-align:middle;padding-left:10px">'
+    +         '<div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px">TARIF</div>'
+    +         '<div style="font-size:14px;font-weight:bold;color:#0f172a;margin-top:2px;white-space:nowrap">' + prixStr + '</div>'
+    +       '</td>'
+    +     '</tr>'
+    +   '</table>'
+    + '</td></tr>'
 
-  /* QR */
-  .qr-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-  }
-  .qr-wrap {
-    position: relative;
-    display: inline-block;
-    padding: 1pt;
-    background: #ffffff;
-  }
-  .qr-wrap img {
-    width: 160pt;
-    height: 160pt;
-    image-rendering: pixelated;
-    display: block;
-  }
-  .scanned-overlay {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .red-circle {
-    width: 52pt; height: 52pt;
-    border-radius: 50%;
-    background: rgba(220, 38, 38, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .red-circle span {
-    font-size: 28pt;
-    color: #ffffff;
-    font-weight: 800;
-    line-height: 1;
-  }
-  .scanned-text {
-    font-size: 9pt;
-    font-weight: 800;
-    color: #0f172a;
-    letter-spacing: 0.5px;
-    margin-top: 3pt;
-  }
+    // Z3 : pied gris
+    + '<tr><td style="height:90px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;vertical-align:middle;padding:10px">'
+    +   '<div style="font-size:10px;font-weight:bold;color:#94a3b8;letter-spacing:2px;text-transform:uppercase">SENGUICHET</div>'
+    +   '<div style="font-size:9px;color:#94a3b8;margin-top:4px">Billetterie événementielle • Entrée unique et non transférable</div>'
+    + '</td></tr>'
 
-  /* Catégorie et prix */
-  .categorie {
-    font-size: 13pt;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    width: 100%;
-  }
-  .prix {
-    font-size: 12pt;
-    font-weight: 800;
-    color: #0f172a;
-    letter-spacing: 0.5px;
-    width: 100%;
-    margin-bottom: 3pt;
-  }
-
-  /* Footer */
-  .footer {
-    font-size: 8pt;
-    color: #64748b;
-    font-style: italic;
-    width: 100%;
-    line-height: 1.4;
-  }
-</style>
-</head>
-<body>
-<div class="page">
-
-  <!-- Bloc haut : en-tête, infos, référence -->
-  <div class="top-block">
-    <div class="header">
-      <div class="logo-circle">${logoSrc ? `<img src="${logoSrc}" alt="SENGUICHET" style="width:18pt;height:18pt;border-radius:4pt;display:block" />` : '🎫'}</div>
-      <div class="org-name">${organisateur}</div>
-    </div>
-    <div class="dash">${DASHES}</div>
-    <div class="event-name">${(ticket.eventNom || 'ÉVÉNEMENT').toUpperCase()}</div>
-    <div class="dash">${DASHES}</div>
-    <div class="info-line">${dateStr}${ticket.eventHeure ? ` à ${ticket.eventHeure}` : ''}</div>
-    ${ticket.eventLieu ? `<div class="venue">${ticket.eventLieu.toUpperCase()}</div>` : ''}
-    <div class="dash">${DASHES}</div>
-    <div class="ref">REF : ${ticket.numero || '—'}</div>
-  </div>
-
-  <!-- Bloc milieu : QR Code (flex:1 s'étire pour remplir) -->
-  <div class="qr-section">
-    <div class="qr-wrap">
-      ${qrDataUrl
-        ? `<img src="${qrDataUrl}" alt="QR Code billet" />`
-        : `<div style="width:160pt;height:160pt;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:7pt;color:#94a3b8">QR non disponible</div>`
-      }
-      ${isScanned ? `
-      <div class="scanned-overlay">
-        <div class="red-circle"><span>✕</span></div>
-      </div>` : ''}
-    </div>
-    ${isScanned && scannedStr ? `<div class="scanned-text">Contrôlé le ${scannedStr}</div>` : ''}
-  </div>
-
-  <!-- Bloc bas : catégorie, prix, footer -->
-  <div class="bottom-block">
-    <div class="dash">${DASHES}</div>
-    <div class="categorie">${(ticket.categorie || 'STANDARD').toUpperCase()}</div>
-    <div class="prix">PRIX: ${formatPrix(ticket.prix)}</div>
-    <div class="dash">${DASHES}</div>
-    <div class="footer">Entrée unique et non transférable</div>
-  </div>
-
-</div>
-</body>
-</html>`
+    + '</table>'
+    + '</body></html>'
 }
 
 // Génère un fichier PDF du ticket et ouvre le menu de partage/impression
+// ticket: { eventNom, eventDate, eventHeure, eventLieu, categorie, prix, numero }
 export async function genererTicketPDF(ticket, qrDataUrl) {
-  const logoB64 = await getLogoBase64()
-  const html = construireHtmlTicket(ticket, qrDataUrl, logoB64)
+  const html = construireHtmlTicket(ticket, qrDataUrl)
 
   const nomEvent = (ticket.eventNom || 'billet')
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -275,22 +95,22 @@ export async function genererTicketPDF(ticket, qrDataUrl) {
       dateStr = ticket.eventDate
     }
   }
-  const nomFichier = `Billet - ${nomEvent}${dateStr ? ` - ${dateStr}` : ''}.pdf`
+  const nomFichier = 'Billet - ' + nomEvent + (dateStr ? ' - ' + dateStr : '') + '.pdf'
 
   const { uri } = await Print.printToFileAsync({
     html,
-    width: 300,
-    height: 420,
+    width: 340,
+    height: 620,
   })
 
-  const pdfPath = `${FileSystem.cacheDirectory}${nomFichier}`
+  const pdfPath = FileSystem.cacheDirectory + nomFichier
   await FileSystem.moveAsync({ from: uri, to: pdfPath })
 
   const disponible = await Sharing.isAvailableAsync()
   if (disponible) {
     await Sharing.shareAsync(pdfPath, {
       mimeType: 'application/pdf',
-      dialogTitle: `Billet ${ticket.eventNom}`,
+      dialogTitle: 'Billet ' + ticket.eventNom,
       UTI: 'com.adobe.pdf',
     })
   } else {

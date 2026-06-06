@@ -1,23 +1,50 @@
-// Fond d'écran plein écran avec image de fête par catégorie + dégradé (style Apple Music)
-// Affiche l'image Unsplash de la catégorie derrière un dégradé + overlay de lisibilité
-// Props : category, intensityOverlay, showImage
-import { View, Image, StyleSheet } from 'react-native'
+// Fond d'écran plein écran avec image par catégorie + dégradé (style Apple Music)
+// Affiche l'image derrière un dégradé + overlay de lisibilité
+// Le dégradé s'affiche immédiatement, l'image se superpose en fondu dès qu'elle est chargée
+// Les URLs Cloudinary sont optimisées (w_400,q_auto,f_webp) pour un chargement rapide
+// Props : category, intensityOverlay, showImage, afficheUrl
+import { useEffect, useRef } from 'react'
+import { View, Animated, Image, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { categoryGradients } from '../constants/theme'
 import { getCategoryImageUrl } from '../config/images'
 
-export default function BlurBackground({ category, intensityOverlay = true, showImage = true }) {
+// Optimise les URLs Cloudinary pour un chargement plus rapide
+export function optimiserUrlCloudinary(url) {
+  if (!url || !url.includes('cloudinary')) return url
+  return url.replace('/upload/', '/upload/w_200,q_auto,f_webp/')
+}
+
+export default function BlurBackground({ category, intensityOverlay = true, showImage = true, afficheUrl }) {
   const gradient = categoryGradients[category] || categoryGradients.default
-  const imageUrl = showImage && category ? getCategoryImageUrl(category) : null
+  // Priorité : afficheUrl de l'événement → image par catégorie (Unsplash)
+  const imageUrl = showImage ? (afficheUrl || (category ? getCategoryImageUrl(category) : null)) : null
+  const imageOpacity = useRef(new Animated.Value(0)).current
+
+  // Le dégradé s'affiche immédiatement.
+  // L'opacité de l'image s'anime de 0 à 1 à chaque changement d'URL
+  // Pas de onLoad : l'image en cache s'affiche aussi bien que l'image chargée depuis le réseau
+  // Pas de key remount : pas de re-décodage blur coûteux sur retour arrière
+  useEffect(() => {
+    if (imageUrl) {
+      imageOpacity.setValue(0)
+      Animated.timing(imageOpacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }).start()
+    }
+  }, [imageUrl])
 
   return (
     <View style={StyleSheet.absoluteFill}>
       <View style={styles.baseBg} />
       {imageUrl && (
-        <Image
-          source={{ uri: imageUrl }}
-          style={StyleSheet.absoluteFill}
+        <Animated.Image
+          source={{ uri: optimiserUrlCloudinary(imageUrl) }}
+          style={[StyleSheet.absoluteFill, { opacity: imageOpacity, transform: [{ scale: 1.1 }] }]}
           resizeMode="cover"
+
         />
       )}
       <LinearGradient

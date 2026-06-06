@@ -3,6 +3,7 @@ import DashboardLayout from "../../components/DashboardLayout";
 import { listerMesDemandes, soumettreDemandeEvenement } from "../../services/eventService";
 import { useAuth } from "../../context/AuthContext";
 import { FileText, Inbox, Check, Calendar, Edit, X, Send, Loader } from "../../components/Icons";
+import { normalizeImageUrl } from "../../utils/normalizeUrl";
 
 const CATEGORIES = ["Concert", "Festival", "Soirée", "Sport", "Conférence", "Théâtre", "Autre"];
 const VILLES = ["Dakar", "Thiès", "Saint-Louis", "Ziguinchor", "Autre"];
@@ -216,6 +217,11 @@ const MesDemandes = () => {
                   className="glass-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                   style={{ animation: `fadeInUp 0.3s ease-out ${i * 0.08}s both` }}
                 >
+                  {d.affiche_url && (
+                    <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <img src={normalizeImageUrl(d.affiche_url)} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="text-sm font-semibold text-white truncate" style={{ fontFamily: "Outfit, sans-serif" }}>
@@ -280,7 +286,7 @@ const MesDemandes = () => {
 
                   {viewingDemande.affiche_url && (
                     <div className="rounded-xl overflow-hidden">
-                      <img src={viewingDemande.affiche_url} alt="Affiche" className="w-full object-cover" style={{ maxHeight: "200px" }} />
+                      <img src={normalizeImageUrl(viewingDemande.affiche_url)} alt="Affiche" className="w-full object-cover" style={{ maxHeight: "200px" }} />
                     </div>
                   )}
 
