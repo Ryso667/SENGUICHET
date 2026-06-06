@@ -7,7 +7,8 @@ const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
 const PaymentService = require("../services/PaymentService");
 
-const HMAC_SECRET = process.env.HMAC_SECRET || 'senguichet-cle-secrete-hmac';
+const HMAC_SECRET = process.env.HMAC_SECRET;
+if (!HMAC_SECRET) console.warn('⚠️  HMAC_SECRET non défini — les signatures QR échoueront');
 
 const acheter = async (req, res) => {
   try {
