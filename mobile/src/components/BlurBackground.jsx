@@ -13,19 +13,18 @@ export default function BlurBackground({ category, intensityOverlay = true, show
   const imageUrl = showImage ? (afficheUrl || (category ? getCategoryImageUrl(category) : null)) : null
   const imageOpacity = useRef(new Animated.Value(0)).current
 
-  // Remet l'opacité à 0 quand l'image change (attends le chargement)
+  // Transition fondu immédiate dès que l'URL change
+  // L'image est déjà préchargée via Image.prefetch → s'affiche quasi-instantanément
   useEffect(() => {
-    if (imageUrl) imageOpacity.setValue(0)
+    if (imageUrl) {
+      imageOpacity.setValue(0)
+      Animated.timing(imageOpacity, {
+        toValue: 1,
+        duration: 350,
+        useNativeDriver: true,
+      }).start()
+    }
   }, [imageUrl])
-
-  // Transition fondu uniquement quand l'image est chargée
-  const handleLoad = () => {
-    Animated.timing(imageOpacity, {
-      toValue: 1,
-      duration: 400,
-      useNativeDriver: true,
-    }).start()
-  }
 
   return (
     <View style={StyleSheet.absoluteFill}>
@@ -36,7 +35,6 @@ export default function BlurBackground({ category, intensityOverlay = true, show
           source={{ uri: imageUrl }}
           style={[StyleSheet.absoluteFill, { opacity: imageOpacity }]}
           resizeMode="cover"
-          onLoad={handleLoad}
         />
       )}
       <LinearGradient

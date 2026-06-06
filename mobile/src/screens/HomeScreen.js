@@ -57,8 +57,8 @@ export default function HomeScreen({ navigation }) {
       if (formatted.length > 0) {
         setCategory(formatted[0].category)
         setActiveEvent(formatted[0])
-        // Précharge l'image du 1er événement pour éviter le délai au premier affichage
-        if (formatted[0].affiche_url) Image.prefetch(formatted[0].affiche_url)
+        // Précharge TOUTES les images dès le chargement pour éviter le délai au swipe
+        formatted.forEach(ev => { if (ev.affiche_url) Image.prefetch(ev.affiche_url) })
       }
     })
     return unsubscribe
@@ -117,10 +117,7 @@ export default function HomeScreen({ navigation }) {
               onPress={(event) => navigation.navigate('EventDetail', { eventId: event.id, event })}
               onActiveIndexChange={(index) => {
                 const ev = evenements[index]
-                if (ev) {
-                  setActiveEvent(ev)
-                  if (ev.affiche_url) Image.prefetch(ev.affiche_url)
-                }
+                if (ev) setActiveEvent(ev)
               }}
             />
           </>
