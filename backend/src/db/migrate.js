@@ -39,9 +39,16 @@ async function migrate() {
         AFTER est_utilise
       `);
       console.log("✅ Colonne statut ajoutée à billet");
-    } catch (e) {
-      // Ignorer si colonne existe déjà
-    }
+    } catch (e) {}
+
+    try {
+      await connection.query(`
+        ALTER TABLE billet
+        ADD COLUMN IF NOT EXISTS email_acheteur VARCHAR(255) DEFAULT NULL
+        AFTER telephone_acheteur
+      `);
+      console.log("✅ Colonne email_acheteur ajoutée à billet");
+    } catch (e) {}
 
     console.log("✅ Base de données migrée avec succès");
   } catch (err) {
