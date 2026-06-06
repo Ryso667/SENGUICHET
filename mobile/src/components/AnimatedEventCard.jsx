@@ -21,7 +21,8 @@ export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle
   const def = event.category ? getDefaultImage(event.category) : null
   const iconName = def?.icon || null
   const [imageError, setImageError] = useState(false)
-  const imageUrl = event.category ? getCategoryImageUrl(event.category) : null
+  // Priorité : affiche_url de l'événement → image par catégorie (Unsplash)
+  const imageUrl = event.affiche_url || (event.category ? getCategoryImageUrl(event.category) : null)
 
   useEffect(() => {
     const delay = index * animations.stagger
