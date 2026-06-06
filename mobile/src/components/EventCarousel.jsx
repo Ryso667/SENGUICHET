@@ -12,9 +12,10 @@ const CARD_HEIGHT = 400
 const SCALE_INACTIVE = 0.92
 const TILT_ANGLE = 3
 
-function EventCarousel({ events, onPress }) {
+function EventCarousel({ events, onPress, onActiveIndexChange }) {
   const { width: screenWidth } = useWindowDimensions()
   const scrollX = useRef(new Animated.Value(0)).current
+  const lastIndexRef = useRef(-1)
 
   const cardWidth = screenWidth * CARD_WIDTH_RATIO
   const itemWidth = cardWidth + screenWidth * SIDE_PEEK
@@ -88,6 +89,21 @@ function EventCarousel({ events, onPress }) {
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { x: scrollX } } }],
           { useNativeDriver: true }
+        )}
+        onMomentumScrollEnd={Animated.event(
+          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+          {
+            useNativeDriver: true,
+            listener: (event) => {
+              if (!onActiveIndexChange) return
+              const offsetX = event.nativeEvent.contentOffset.x
+              const index = Math.round(offsetX / itemWidth)
+              if (index !== lastIndexRef.current && index >= 0 && index < events.length) {
+                lastIndexRef.current = index
+                onActiveIndexChange(index)
+              }
+            },
+          }
         )}
         scrollEventThrottle={16}
       >
