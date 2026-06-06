@@ -1,5 +1,5 @@
-// Service de génération de ticket PDF — template table-based compatible PDF
-// Dimensions 340×620px, 3 zones : QR 140px, infos+prix (table 70/30), mentions
+// Service de génération de ticket PDF — template 100% table inline, zéro classe CSS
+// Dimensions 340×600px, 3 zones : QR 140px, infos+prix (table 70/30), mentions
 import * as Print from 'expo-print'
 import * as Sharing from 'expo-sharing'
 import * as FileSystem from 'expo-file-system/legacy'
@@ -7,7 +7,7 @@ import { Alert } from 'react-native'
 
 function formatPrix(prix) {
   if (prix == null) return '—'
-  return `${Number(prix).toLocaleString('fr-FR')} FCFA'
+  return `${Number(prix).toLocaleString('fr-FR')} FCFA`
 }
 
 function construireHtmlTicket(ticket, qrDataUrl) {
@@ -21,78 +21,53 @@ function construireHtmlTicket(ticket, qrDataUrl) {
   const prixStr = formatPrix(ticket.prix)
   const refStr = ticket.numero || '—'
 
+  const qrCell = qrDataUrl
+    ? '<img src="' + qrDataUrl + '" width="140" height="140" style="display:block;margin:0 auto;width:140px;height:140px" />'
+    : '<div style="width:140px;height:140px;background:#f1f5f9;margin:0 auto;font-size:10px;color:#94a3b8;text-align:center;line-height:140px">QR non disponible</div>'
+
   return '<!DOCTYPE html>'
     + '<html lang="fr"><head><meta charset="utf-8">'
     + '<title>Billet ' + eventNom + ' — SENGUICHET</title>'
-    + '<style>'
-    + '*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}'
-    + 'body{font-family:Helvetica,Arial,sans-serif;background:#f0f2f5;display:flex;align-items:center;justify-content:center;padding:16px}'
-    + '.tk{width:340px;height:620px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin:0 auto}'
+    + '</head><body style="margin:0;padding:16px;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;text-align:center">'
+
+    + '<table style="width:340px;height:600px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;font-family:Arial,sans-serif;margin:40px auto;border-collapse:collapse;overflow:hidden">'
 
     // Z1 : QR 140px + ref
-    + '.z1{height:230px;text-align:center;padding-top:20px}'
-    + '.qr{width:140px;height:140px;margin:0 auto}'
-    + '.qr img{width:140px;height:140px;image-rendering:pixelated}'
-    + '.ref{font-family:monospace;font-size:11px;color:#64748b;margin-top:10px}'
+    + '<tr><td style="height:220px;text-align:center;vertical-align:middle;padding-top:20px;background:#fff">'
+    +   qrCell
+    +   '<div style="font-family:monospace;font-size:11px;color:#64748b;margin-top:8px;font-weight:bold">#' + refStr + '</div>'
+    + '</td></tr>'
 
     // Perforation
-    + '.perf{border-bottom:2px dashed #cbd5e1;margin:0 15px;height:1px}'
+    + '<tr><td style="height:2px;padding:0 15px">'
+    +   '<div style="border-bottom:2px dashed #cbd5e1;height:1px;font-size:1px;line-height:1px">&nbsp;</div>'
+    + '</td></tr>'
 
     // Z2 : table 70/30
-    + '.z2{height:240px;padding:20px}'
-    + 'table{width:100%;border-collapse:collapse}'
-    + 'td.left{width:70%;vertical-align:top;padding-right:10px}'
-    + 'td.right{width:30%;border-left:1px solid #e2e8f0;text-align:right;vertical-align:middle;padding-left:10px}'
-    + '.ev{font-size:16px;font-weight:bold;color:#0f172a;text-transform:uppercase;line-height:1.2}'
-    + '.dt{font-size:12px;color:#334155;font-weight:600;margin-top:8px}'
-    + '.loc{font-size:11px;color:#94a3b8;margin-top:4px}'
-    + '.cat{font-size:11px;color:#475569;font-weight:bold;margin-top:15px;text-transform:uppercase}'
-    + '.pl{font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px}'
-    + '.pr{font-size:15px;font-weight:bold;color:#0f172a;margin-top:2px}'
+    + '<tr><td style="height:240px;vertical-align:top;padding:20px 15px">'
+    +   '<table style="width:100%;border-collapse:collapse">'
+    +     '<tr>'
+    +       '<td style="width:70%;vertical-align:top;padding-right:10px">'
+    +         '<div style="font-size:15px;font-weight:bold;color:#0f172a;text-transform:uppercase;line-height:1.3">' + eventNom + '</div>'
+    +         '<div style="font-size:12px;color:#334155;font-weight:bold;margin-top:8px">' + dateStr + (heureStr ? ' à ' + heureStr : '') + '</div>'
+    +         '<div style="font-size:10px;color:#94a3b8;margin-top:4px;line-height:1.2">' + lieuStr + '</div>'
+    +         '<div style="margin-top:25px;font-size:11px;color:#334155;font-weight:bold;text-transform:uppercase">ACCÈS : <span style="color:#0f172a">' + categorie + '</span></div>'
+    +       '</td>'
+    +       '<td style="width:30%;border-left:1px solid #e2e8f0;text-align:right;vertical-align:middle;padding-left:10px">'
+    +         '<div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px">TARIF</div>'
+    +         '<div style="font-size:14px;font-weight:bold;color:#0f172a;margin-top:2px;white-space:nowrap">' + prixStr + '</div>'
+    +       '</td>'
+    +     '</tr>'
+    +   '</table>'
+    + '</td></tr>'
 
     // Z3 : pied gris
-    + '.z3{height:100px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;padding-top:15px}'
-    + '.br{font-size:10px;font-weight:bold;color:#94a3b8;letter-spacing:2px}'
-    + '.lg{font-size:9px;color:#94a3b8;margin-top:4px}'
+    + '<tr><td style="height:90px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;vertical-align:middle;padding:10px">'
+    +   '<div style="font-size:10px;font-weight:bold;color:#94a3b8;letter-spacing:2px;text-transform:uppercase">SENGUICHET</div>'
+    +   '<div style="font-size:9px;color:#94a3b8;margin-top:4px">Billetterie événementielle • Entrée unique et non transférable</div>'
+    + '</td></tr>'
 
-    + '@media print{body{background:#fff;padding:0}.tk{box-shadow:none;border-radius:0}@page{margin:0}}'
-    + '</style></head><body>'
-
-    + '<div class="tk">'
-    + '  <div class="z1">'
-    + '    <div class="qr">'
-    + (qrDataUrl
-      ? '<img src="' + qrDataUrl + '" alt="QR" />'
-      : '<div style="width:140px;height:140px;background:#f1f5f9;margin:0 auto;font-size:10px;color:#94a3b8;display:flex;align-items:center;justify-content:center">QR non disponible</div>')
-    + '    </div>'
-    + '    <div class="ref">#' + refStr + '</div>'
-    + '  </div>'
-
-    + '  <div class="perf"></div>'
-
-    + '  <div class="z2">'
-    + '    <table>'
-    + '      <tr>'
-    + '        <td class="left">'
-    + '          <div class="ev">' + eventNom + '</div>'
-    + '          <div class="dt">' + dateStr + (heureStr ? ' à ' + heureStr : '') + '</div>'
-    + '          <div class="loc">' + lieuStr + '</div>'
-    + '          <div class="cat">Type : ' + categorie + '</div>'
-    + '        </td>'
-    + '        <td class="right">'
-    + '          <div class="pl">Tarif</div>'
-    + '          <div class="pr">' + prixStr + '</div>'
-    + '        </td>'
-    + '      </tr>'
-    + '    </table>'
-    + '  </div>'
-
-    + '  <div class="z3">'
-    + '    <div class="br">SENGUICHET</div>'
-    + '    <div class="lg">Billetterie événementielle • Entrée unique et non transférable</div>'
-    + '  </div>'
-    + '</div>'
-
+    + '</table>'
     + '</body></html>'
 }
 
