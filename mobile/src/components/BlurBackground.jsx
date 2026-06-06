@@ -1,7 +1,8 @@
-// Fond d'écran plein écran avec image de fête par catégorie + dégradé (style Apple Music)
-// Affiche l'image Unsplash de la catégorie derrière un dégradé + overlay de lisibilité
-// Props : category, intensityOverlay, showImage
-import { View, Image, StyleSheet } from 'react-native'
+// Fond d'écran plein écran avec image par catégorie + dégradé (style Apple Music)
+// Affiche l'image (Cloudinary ou Unsplash) derrière un dégradé + overlay de lisibilité
+// Props : category, intensityOverlay, showImage, afficheUrl
+import { useEffect, useRef } from 'react'
+import { View, Animated, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { categoryGradients } from '../constants/theme'
 import { getCategoryImageUrl } from '../config/images'
@@ -10,14 +11,25 @@ export default function BlurBackground({ category, intensityOverlay = true, show
   const gradient = categoryGradients[category] || categoryGradients.default
   // Priorité : afficheUrl de l'événement → image par catégorie (Unsplash)
   const imageUrl = showImage ? (afficheUrl || (category ? getCategoryImageUrl(category) : null)) : null
+  const imageOpacity = useRef(new Animated.Value(imageUrl ? 1 : 0)).current
+
+  // Transition fondu quand l'URL change
+  useEffect(() => {
+    imageOpacity.setValue(0)
+    Animated.timing(imageOpacity, {
+      toValue: 1,
+      duration: 400,
+      useNativeDriver: true,
+    }).start()
+  }, [imageUrl])
 
   return (
     <View style={StyleSheet.absoluteFill}>
       <View style={styles.baseBg} />
       {imageUrl && (
-        <Image
+        <Animated.Image
           source={{ uri: imageUrl }}
-          style={StyleSheet.absoluteFill}
+          style={[StyleSheet.absoluteFill, { opacity: imageOpacity }]}
           resizeMode="cover"
         />
       )}

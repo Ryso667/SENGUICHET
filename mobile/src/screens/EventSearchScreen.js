@@ -2,7 +2,7 @@
 // Fond : images Unsplash en mosaïque
 // Barre de recherche glass, chips catégories, grille 2 colonnes
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
-import { View, Text, TextInput, FlatList, StyleSheet, useWindowDimensions, ScrollView } from 'react-native'
+import { View, Text, TextInput, FlatList, StyleSheet, useWindowDimensions, ScrollView, Image } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -60,7 +60,10 @@ export default function EventSearchScreen({ navigation }) {
       const data = await fetchEvenementsPublics()
       const formatted = data.map(formaterPourEventCard)
       setEvents(formatted)
-      if (formatted.length > 0) setActiveEvent(formatted[0])
+      if (formatted.length > 0) {
+        setActiveEvent(formatted[0])
+        if (formatted[0].affiche_url) Image.prefetch(formatted[0].affiche_url)
+      }
     })()
   }, []))
 
@@ -83,6 +86,13 @@ export default function EventSearchScreen({ navigation }) {
       setActiveEvent(sorted[0].item)
     }
   }).current
+
+  // Précharge l'image de l'événement actif pour éviter le délai
+  useEffect(() => {
+    if (activeEvent?.affiche_url) {
+      Image.prefetch(activeEvent.affiche_url)
+    }
+  }, [activeEvent])
 
   // Initialisation de l'event actif au changement de filtrage
   useEffect(() => {

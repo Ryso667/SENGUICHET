@@ -5,7 +5,7 @@
 // Section : tickets récents en glass
 // CTA : Explorer les événements en glass button
 import { useEffect, useState, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, Animated, StyleSheet } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, Animated, Image, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, colors, spacing, borderRadius, glass, animations, textShadow } from '../constants/theme'
@@ -57,6 +57,8 @@ export default function HomeScreen({ navigation }) {
       if (formatted.length > 0) {
         setCategory(formatted[0].category)
         setActiveEvent(formatted[0])
+        // Précharge l'image du 1er événement pour éviter le délai au premier affichage
+        if (formatted[0].affiche_url) Image.prefetch(formatted[0].affiche_url)
       }
     })
     return unsubscribe
@@ -115,7 +117,10 @@ export default function HomeScreen({ navigation }) {
               onPress={(event) => navigation.navigate('EventDetail', { eventId: event.id, event })}
               onActiveIndexChange={(index) => {
                 const ev = evenements[index]
-                if (ev) setActiveEvent(ev)
+                if (ev) {
+                  setActiveEvent(ev)
+                  if (ev.affiche_url) Image.prefetch(ev.affiche_url)
+                }
               }}
             />
           </>
