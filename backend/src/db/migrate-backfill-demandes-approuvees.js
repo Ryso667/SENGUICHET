@@ -9,19 +9,27 @@ const mysql = require("mysql2/promise");
 require("dotenv").config();
 
 async function migrate() {
+  const sslConfig = process.env.DB_SSL === "true"
+    ? { rejectUnauthorized: false }
+    : undefined;
+
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST || "localhost",
     port: parseInt(process.env.DB_PORT) || 3306,
     user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "",
+    database: process.env.DB_NAME || "senguichet",
+    ssl: sslConfig,
   });
+
+  const db = (db) => process.env.DB_NAME ? `${process.env.DB_NAME}.${db}` : db;
 
   try {
     // Récupère les demandes CREATION approuvées sans evenement_id
     const [demandes] = await connection.query(`
       SELECT d.id, d.organisateur_id, d.titre, d.description, d.lieu,
              d.date_debut, d.date_fin, d.capacite, d.affiche_url, d.payload
-      FROM senguichet.demande_evenement d
+      FROM ${db("demande_evenement")} d
       WHERE d.type_action = 'CREATION'
         AND d.statut = 'approuve'
         AND (d.evenement_id IS NULL)
@@ -42,7 +50,7 @@ async function migrate() {
       const categorie = payload?.categorie || null;
 
       const [result] = await connection.query(
-        `INSERT INTO senguichet.evenement
+        `INSERT INTO ${db("evenement")}
            (organisateur_id, titre, description, lieu, ville, categorie,
             date_debut, date_fin, capacite_totale, affiche_url, scan_code, statut)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'actif')`,
@@ -60,7 +68,7 @@ async function migrate() {
           evenementId, t.nom, null, parseInt(t.prix), parseInt(t.places), parseInt(t.places)
         ]);
         await connection.query(
-          `INSERT INTO senguichet.categorie_ticket
+          `INSERT INTO ${db("categorie_ticket")}
              (evenement_id, nom, description, prix, capacite, places_disponibles)
            VALUES ?`,
           [ticketValues]
@@ -69,7 +77,7 @@ async function migrate() {
 
       // Met à jour la demande avec l'ID du nouvel événement
       await connection.query(
-        "UPDATE senguichet.demande_evenement SET evenement_id = ? WHERE id = ?",
+        `UPDATE ${db("demande_evenement")} SET evenement_id = ? WHERE id = ?`,
         [evenementId, demande.id]
       );
 
