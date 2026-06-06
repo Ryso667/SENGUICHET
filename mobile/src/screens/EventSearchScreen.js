@@ -7,7 +7,7 @@ import { useFocusEffect } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, spacing, glass } from '../constants/theme'
-import BlurBackground from '../components/BlurBackground'
+import BlurBackground, { optimiserUrlCloudinary } from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
 import EmptyState from '../components/EmptyState'
@@ -63,7 +63,7 @@ export default function EventSearchScreen({ navigation }) {
       if (formatted.length > 0) {
         setActiveEvent(formatted[0])
         // Précharge toutes les images pour éviter le délai au scroll
-        formatted.forEach(ev => { if (ev.affiche_url) Image.prefetch(ev.affiche_url) })
+        formatted.forEach(ev => { if (ev.affiche_url) Image.prefetch(optimiserUrlCloudinary(ev.affiche_url)) })
       }
     })()
   }, []))
@@ -90,7 +90,7 @@ export default function EventSearchScreen({ navigation }) {
 
   // Précharge toutes les images filtrées dès que la liste change
   useEffect(() => {
-    filtered.forEach(ev => { if (ev.affiche_url) Image.prefetch(ev.affiche_url) })
+    filtered.forEach(ev => { if (ev.affiche_url) Image.prefetch(optimiserUrlCloudinary(ev.affiche_url)) })
   }, [filtered])
 
   // Initialisation de l'event actif au changement de filtrage

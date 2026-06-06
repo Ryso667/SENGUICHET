@@ -10,7 +10,7 @@ import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, colors, spacing, borderRadius, glass, animations, textShadow } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
-import BlurBackground from '../components/BlurBackground'
+import BlurBackground, { optimiserUrlCloudinary } from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassButton from '../components/GlassButton'
 import EventCarousel from '../components/EventCarousel'
@@ -58,7 +58,7 @@ export default function HomeScreen({ navigation }) {
         setCategory(formatted[0].category)
         setActiveEvent(formatted[0])
         // Précharge TOUTES les images dès le chargement pour éviter le délai au swipe
-        formatted.forEach(ev => { if (ev.affiche_url) Image.prefetch(ev.affiche_url) })
+        formatted.forEach(ev => { if (ev.affiche_url) Image.prefetch(optimiserUrlCloudinary(ev.affiche_url)) })
       }
     })
     return unsubscribe
