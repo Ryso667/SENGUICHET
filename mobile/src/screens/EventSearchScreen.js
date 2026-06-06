@@ -62,7 +62,8 @@ export default function EventSearchScreen({ navigation }) {
       setEvents(formatted)
       if (formatted.length > 0) {
         setActiveEvent(formatted[0])
-        if (formatted[0].affiche_url) Image.prefetch(formatted[0].affiche_url)
+        // Précharge toutes les images pour éviter le délai au scroll
+        formatted.forEach(ev => { if (ev.affiche_url) Image.prefetch(ev.affiche_url) })
       }
     })()
   }, []))
@@ -87,12 +88,10 @@ export default function EventSearchScreen({ navigation }) {
     }
   }).current
 
-  // Précharge l'image de l'événement actif pour éviter le délai
+  // Précharge toutes les images filtrées dès que la liste change
   useEffect(() => {
-    if (activeEvent?.affiche_url) {
-      Image.prefetch(activeEvent.affiche_url)
-    }
-  }, [activeEvent])
+    filtered.forEach(ev => { if (ev.affiche_url) Image.prefetch(ev.affiche_url) })
+  }, [filtered])
 
   // Initialisation de l'event actif au changement de filtrage
   useEffect(() => {
