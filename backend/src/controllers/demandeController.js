@@ -221,8 +221,9 @@ const adminTraiterDemande = async (req, res) => {
     // Si approuvé, exécuter l'action
     if (action === "approuve") {
       if (demande.type_action === "CREATION") {
-        // Pour CREATION : approuver seulement, l'admin créera l'événement plus tard via un bouton dédié
-        // L'événement n'est pas créé automatiquement
+        // Créer automatiquement l'événement lors de l'approbation
+        // Ainsi l'acheteur voit immédiatement l'événement sans action admin supplémentaire
+        evenementId = await creerEvenementDepuisDemande(conn, demande);
       } else if (demande.type_action === "MODIFICATION" && demande.evenement_id) {
         const payload = typeof demande.payload === "string"
           ? JSON.parse(demande.payload) : demande.payload;

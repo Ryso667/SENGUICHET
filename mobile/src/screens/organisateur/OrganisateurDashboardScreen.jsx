@@ -9,6 +9,7 @@ import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import { LinearGradient } from 'expo-linear-gradient'
+import { getCategoryImageUrl } from '../../config/images'
 import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
@@ -151,8 +152,8 @@ export default function OrganisateurDashboardScreen({ navigation }) {
                       <GlassContainer key={ev.id} style={s.eventCard}>
                         {/* Hero image avec dégradé de catégorie + overlay */}
                         <View style={s.eventHero}>
-                          {ev.affiche_url ? (
-                            <Image source={{ uri: ev.affiche_url }} style={s.eventHeroBg} resizeMode="cover" />
+                          {ev.affiche_url || ev.categorie ? (
+                            <Image source={{ uri: ev.affiche_url || getCategoryImageUrl(ev.categorie) }} style={s.eventHeroBg} resizeMode="cover" />
                           ) : (
                             <LinearGradient colors={categoryGradients[ev.categorie] || categoryGradients.default} style={s.eventHeroBg}>
                               <MaterialCommunityIcons name="image-outline" size={40} color="rgba(255,255,255,0.15)" />
