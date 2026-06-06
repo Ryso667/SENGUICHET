@@ -17,6 +17,37 @@ import { formaterPourEventCard } from '../utils/eventUtils'
 
 const CATEGORIES = ['Tout', 'Concert', 'Festival', 'Sport', 'Theatre', 'Conference']
 
+// Composant stable pour le header de la FlatList — évite les remounts sur chaque render
+function SearchHeader({ search, setSearch, activeCat, setActiveCat }) {
+  return (
+    <>
+      <GlassContainer style={styles.searchBar} blurType="light" intensity={60}>
+        <Feather name="search" size={16} color="rgba(255,255,255,0.6)" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Concert à Dakar..."
+          placeholderTextColor="rgba(255,255,255,0.5)"
+          value={search}
+          onChangeText={setSearch}
+        />
+        {search.length > 0 && (
+          <Feather name="x" size={16} color="rgba(255,255,255,0.6)" onPress={() => setSearch('')} />
+        )}
+      </GlassContainer>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow} contentContainerStyle={styles.chipsContent}>
+        {CATEGORIES.map((cat) => (
+          <GlassChip
+            key={cat}
+            label={cat}
+            active={activeCat === cat}
+            onPress={() => setActiveCat(cat)}
+          />
+        ))}
+      </ScrollView>
+    </>
+  )
+}
+
 export default function EventSearchScreen({ navigation }) {
   const insets = useSafeAreaInsets()
   const [search, setSearch] = useState('')
@@ -45,8 +76,9 @@ export default function EventSearchScreen({ navigation }) {
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems.length > 0) {
-      const topItem = viewableItems[0]
-      setActiveEvent(topItem.item)
+      // Trier par pourcentage de visibilité — meilleur event actif avec grille 2 colonnes
+      const sorted = [...viewableItems].sort((a, b) => b.percent - a.percent)
+      setActiveEvent(sorted[0].item)
     }
   }).current
 
@@ -83,33 +115,7 @@ export default function EventSearchScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
-        ListHeaderComponent={() => (
-          <>
-            <GlassContainer style={styles.searchBar} blurType="light" intensity={60}>
-              <Feather name="search" size={16} color="rgba(255,255,255,0.6)" />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Concert à Dakar..."
-                placeholderTextColor="rgba(255,255,255,0.5)"
-                value={search}
-                onChangeText={setSearch}
-              />
-              {search.length > 0 && (
-                <Feather name="x" size={16} color="rgba(255,255,255,0.6)" onPress={() => setSearch('')} />
-              )}
-            </GlassContainer>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow} contentContainerStyle={styles.chipsContent}>
-              {CATEGORIES.map((cat) => (
-                <GlassChip
-                  key={cat}
-                  label={cat}
-                  active={activeCat === cat}
-                  onPress={() => setActiveCat(cat)}
-                />
-              ))}
-            </ScrollView>
-          </>
-        )}
+        ListHeaderComponent={<SearchHeader search={search} setSearch={setSearch} activeCat={activeCat} setActiveCat={setActiveCat} />}
         ListEmptyComponent={
           <EmptyState
             icon="search"
