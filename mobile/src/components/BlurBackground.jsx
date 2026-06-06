@@ -11,26 +11,32 @@ export default function BlurBackground({ category, intensityOverlay = true, show
   const gradient = categoryGradients[category] || categoryGradients.default
   // Priorité : afficheUrl de l'événement → image par catégorie (Unsplash)
   const imageUrl = showImage ? (afficheUrl || (category ? getCategoryImageUrl(category) : null)) : null
-  const imageOpacity = useRef(new Animated.Value(imageUrl ? 1 : 0)).current
+  const imageOpacity = useRef(new Animated.Value(0)).current
 
-  // Transition fondu quand l'URL change
+  // Remet l'opacité à 0 quand l'image change (attends le chargement)
   useEffect(() => {
-    imageOpacity.setValue(0)
+    if (imageUrl) imageOpacity.setValue(0)
+  }, [imageUrl])
+
+  // Transition fondu uniquement quand l'image est chargée
+  const handleLoad = () => {
     Animated.timing(imageOpacity, {
       toValue: 1,
       duration: 400,
       useNativeDriver: true,
     }).start()
-  }, [imageUrl])
+  }
 
   return (
     <View style={StyleSheet.absoluteFill}>
       <View style={styles.baseBg} />
       {imageUrl && (
         <Animated.Image
+          key={imageUrl}
           source={{ uri: imageUrl }}
           style={[StyleSheet.absoluteFill, { opacity: imageOpacity }]}
           resizeMode="cover"
+          onLoad={handleLoad}
         />
       )}
       <LinearGradient
