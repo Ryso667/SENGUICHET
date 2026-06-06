@@ -44,7 +44,7 @@ export default function BlurBackground({ category, intensityOverlay = true, show
           source={{ uri: optimiserUrlCloudinary(imageUrl) }}
           style={[StyleSheet.absoluteFill, { opacity: imageOpacity, transform: [{ scale: 1.1 }] }]}
           resizeMode="cover"
-          blurRadius={20}
+
         />
       )}
       <LinearGradient
