@@ -33,9 +33,9 @@
 
 ## Déploiement
 - **API** : Vercel — https://backend-rust-sigma-64.vercel.app
-- **Base de données** : Aiven MySQL (SSL requis)
-  - Host: `mysql-364674f7-muhamedndiaye00-1360.l.aivencloud.com:12444`
-  - DB: `defaultdb`, User: `avnadmin`
+- **Base de données** : TiDB Cloud Serverless (SSL requis)
+  - Host: `gateway01.eu-central-1.prod.aws.tidbcloud.com:4000`
+  - DB: `test`, User: `3Xf3xDmifk7jajp.root`
 - **Variables d'env Vercel** : DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, DB_SSL=true, SMTP_USER, SMTP_PASS, ORANGE_CLIENT_ID, ORANGE_CLIENT_SECRET, ORANGE_SANDBOX
 - `TICKET_URL` auto-détecté via `VERCEL_URL`
 
@@ -72,7 +72,7 @@ expo-camera, expo-sqlite, expo-crypto, @vercel/node, nodemailer
 - **Branche de travail** : `feature/mouhtada` — NE JAMAIS modifier `main`
 - **bcrypt pour organisateur** : backend hash avec bcrypt work factor 10
 - **Authentification** : 3 rôles (Acheteur OTP email, Contrôleur code 4 chiffres, Organisateur email+bcrypt)
-- **API déployée** sur Vercel avec base Aiven — ne pas écraser les infos de connexion
+- **API déployée** sur Vercel avec base TiDB — ne pas écraser les infos de connexion
 - **OTP store** : utilise la table `code_otp` en MySQL (plus de fichier JSON) — nécessaire pour Vercel serverless
 - **Billet** : colonne `numero` VARCHAR(20) NOT NULL ajoutée (absent du schema initial)
 - **Evenement** : les colonnes sont `affiche_url` (pas `image_url`), `titre` (pas `nom`), `capacite_totale` (pas `capacite`)
