@@ -253,9 +253,11 @@ export default function EventDetailScreen({ route, navigation }) {
               <Text style={styles.categorySelectorPrice}>{selectedTicket.price.toLocaleString()} FCFA</Text>
             </View>
             <View style={styles.categorySelectorRight}>
-              <View style={styles.priceChip}>
-                <Text style={styles.priceChipText}>Places limitées</Text>
-              </View>
+              {selectedTicket.placesDisponibles != null && (
+                <View style={styles.priceChip}>
+                  <Text style={styles.priceChipText}>{selectedTicket.placesDisponibles}/{selectedTicket.capacite} places</Text>
+                </View>
+              )}
               <Feather name="chevron-down" size={16} color="rgba(255,255,255,0.5)" />
             </View>
           </GlassContainer>
@@ -347,7 +349,9 @@ export default function EventDetailScreen({ route, navigation }) {
                     </View>
                     <View style={styles.sheetItemRight}>
                       <Text style={styles.sheetItemPrice}>{t.price.toLocaleString()} FCFA</Text>
-                      <Text style={styles.sheetItemPlaces}>Places limitées</Text>
+                      {t.placesDisponibles != null && (
+                        <Text style={styles.sheetItemPlaces}>{t.placesDisponibles}/{t.capacite} places</Text>
+                      )}
                     {selectedTicket.name === t.name && (
                       <View style={[styles.sheetCheck, { backgroundColor: catColor }]}>
                         <Feather name="check" size={12} color="#fff" />
