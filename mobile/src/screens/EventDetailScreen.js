@@ -155,7 +155,7 @@ export default function EventDetailScreen({ route, navigation }) {
   if (error) {
     return (
       <View style={styles.container}>
-        <BlurBackground category={event?.category} />
+        <BlurBackground category={event?.category} afficheUrl={event?.affiche_url} />
         <View style={styles.loadingContainer}>
           <Feather name="alert-circle" size={32} color={colors.textWhiteMuted} />
           <Text style={styles.loadingText}>{error}</Text>
@@ -184,7 +184,7 @@ export default function EventDetailScreen({ route, navigation }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* Fond immersif plein écran */}
-      <BlurBackground category={event?.category} />
+      <BlurBackground category={event?.category} afficheUrl={event?.affiche_url} />
 
       {/* Bouton retour flottant avec cercle glass */}
       <TouchableOpacity style={[styles.floatingBack, { top: insets.top + 8 }]} onPress={() => navigation.goBack()}>
