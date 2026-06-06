@@ -3,6 +3,18 @@
 import { getDefaultImage } from '../config/images'
 import { appelAPI } from './apiService'
 
+// URL racine du backend (sans /api) pour reconstruire les URLs d'affiche relatives
+const API_ORIGIN = 'https://backend-rust-sigma-64.vercel.app'
+
+// Transforme une URL d'affiche relative en URL absolue
+// Retourne null si aucune URL fournie
+function normaliserAfficheUrl(url) {
+  if (!url) return null
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  if (url.startsWith('/')) return `${API_ORIGIN}${url}`
+  return url
+}
+
 // ===== Fonctions organisateur =====
 
 // Récupère la liste des événements depuis le backend
@@ -18,7 +30,7 @@ export async function fetchEvenementsAPI() {
     return {
       id: String(e.id),
       nom: e.nom || '',
-      affiche_url: e.affiche_url || null,
+      affiche_url: normaliserAfficheUrl(e.affiche_url),
       date: e.date || '',
       lieu: e.lieu || '',
       categorie: e.categorie || '',
@@ -45,6 +57,7 @@ export async function creerEvenementAPI(data) {
     dateFin: data.dateFin || data.date,
     heureDebut: data.heure || '00:00',
     capacite,
+    affiche_url: data.poster || null,
     ticketTypes: data.categories.map(c => ({
       nom: c.nom,
       description: '',
@@ -65,7 +78,7 @@ export async function fetchEvenementDetailAPI(id) {
     evenement: {
       id: String(e.id),
       nom: e.titre || '',
-      affiche_url: e.affiche_url || null,
+      affiche_url: normaliserAfficheUrl(e.affiche_url),
       date: e.date_debut || '',
       lieu: e.lieu || '',
       categorie: e.categorie || '',
@@ -104,6 +117,7 @@ export async function modifierEvenementAPI(id, data) {
     dateFin: data.dateFin || data.date,
     heureDebut: data.heure || '00:00',
     capacite,
+    affiche_url: data.poster || null,
     ticketTypes: data.categories.map(c => ({
       nom: c.nom,
       description: '',
@@ -146,7 +160,7 @@ export async function fetchEvenementsPublics(filtres = {}) {
   return data.map(e => ({
     id: String(e.id),
     title: e.titre || e.nom || '',
-    affiche_url: e.affiche_url || null,
+    affiche_url: normaliserAfficheUrl(e.affiche_url),
     date: e.date_debut || e.date || '',
     location: e.lieu || '',
     category: e.categorie || '',

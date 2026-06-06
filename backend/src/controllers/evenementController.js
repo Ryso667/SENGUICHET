@@ -28,7 +28,8 @@ const creer = async (req, res) => {
 
     const dateDebutFull = `${dateDebut} ${heureDebut}:00`;
     const dateFinFull = dateFin ? `${dateFin} 23:59:00` : null;
-    const afficheUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    // Accepte l'affiche soit via upload multer (multipart) soit via URL directe (JSON)
+    const afficheUrl = req.file ? `/uploads/${req.file.filename}` : (req.body.affiche_url || null);
 
     const scanCode = Math.random().toString(36).substring(2, 6).toUpperCase();
 
@@ -176,7 +177,8 @@ const modifier = async (req, res) => {
 
     const dateDebutFull = `${dateDebut} ${heureDebut}:00`;
     const dateFinFull = dateFin ? `${dateFin} 23:59:00` : null;
-    const afficheUrl = req.file ? `/uploads/${req.file.filename}` : existing[0].affiche_url;
+    // Accepte l'affiche via upload multer, body JSON, ou conserve l'existante
+    const afficheUrl = req.file ? `/uploads/${req.file.filename}` : (req.body.affiche_url || existing[0].affiche_url);
 
     const conn = await pool.getConnection();
     try {

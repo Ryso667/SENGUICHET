@@ -6,9 +6,10 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { categoryGradients } from '../constants/theme'
 import { getCategoryImageUrl } from '../config/images'
 
-export default function BlurBackground({ category, intensityOverlay = true, showImage = true }) {
+export default function BlurBackground({ category, intensityOverlay = true, showImage = true, afficheUrl }) {
   const gradient = categoryGradients[category] || categoryGradients.default
-  const imageUrl = showImage && category ? getCategoryImageUrl(category) : null
+  // Priorité : afficheUrl de l'événement → image par catégorie (Unsplash)
+  const imageUrl = showImage ? (afficheUrl || (category ? getCategoryImageUrl(category) : null)) : null
 
   return (
     <View style={StyleSheet.absoluteFill}>
