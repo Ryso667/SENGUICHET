@@ -88,19 +88,36 @@ const DetailEvenement = () => {
     <DashboardLayout title={ev.titre}>
       <div className="max-w-4xl mx-auto">
         <div className="glass-card p-6 sm:p-8 mb-6" style={{ animation: "fadeInUp 0.4s ease" }}>
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold" style={{ fontFamily: "Outfit, sans-serif", color: "#F1F5F9" }}>{ev.titre}</h1>
-              {ev.categorie && <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>{ev.categorie}</p>}
+          {ev.affiche_url ? (
+            <div className="relative w-full overflow-hidden rounded-xl mb-6" style={{ height: "360px" }}>
+              <img
+                src={normalizeImageUrl(ev.affiche_url)}
+                alt={ev.titre}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0" style={{
+                background: "linear-gradient(to top, rgba(10,11,26,0.95) 0%, rgba(10,11,26,0.25) 45%, transparent 65%)"
+              }} />
+              <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`badge ${ev.statut === "actif" ? "badge-active" : ev.statut === "en_attente" ? "badge-pending" : "badge-sold-out"}`}>
+                    {ev.statut === "actif" ? <><Calendar size={14} /> ACTIF</> : ev.statut === "en_attente" ? <><Ticket size={14} /> ATTENTE</> : ev.statut === "suspendu" ? <><X size={14} /> ANNULÉ</> : <><X size={14} /> TERMINÉ</>}
+                  </span>
+                  {ev.categorie && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)" }}>{ev.categorie}</span>}
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white" style={{ fontFamily: "Outfit, sans-serif" }}>{ev.titre}</h1>
+                <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.65)" }}>{dateStr} à {timeStr}{ev.lieu ? ` · ${ev.lieu}${ev.ville ? `, ${ev.ville}` : ""}` : ""}</p>
+              </div>
             </div>
-            <span className={`badge ${ev.statut === "actif" ? "badge-active" : ev.statut === "en_attente" ? "badge-pending" : "badge-sold-out"}`}>
-              {ev.statut === "actif" ? <><Calendar size={14} /> ACTIF</> : ev.statut === "en_attente" ? <><Ticket size={14} /> ATTENTE</> : ev.statut === "suspendu" ? <><X size={14} /> ANNULÉ</> : <><X size={14} /> TERMINÉ</>}
-            </span>
-          </div>
-
-          {ev.affiche_url && (
-            <div className="mb-6 rounded-xl overflow-hidden" style={{ maxHeight: "320px" }}>
-              <img src={normalizeImageUrl(ev.affiche_url)} alt={ev.titre} className="w-full h-full object-cover" />
+          ) : (
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-2xl font-bold" style={{ fontFamily: "Outfit, sans-serif", color: "#F1F5F9" }}>{ev.titre}</h1>
+                {ev.categorie && <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>{ev.categorie}</p>}
+              </div>
+              <span className={`badge ${ev.statut === "actif" ? "badge-active" : ev.statut === "en_attente" ? "badge-pending" : "badge-sold-out"}`}>
+                {ev.statut === "actif" ? <><Calendar size={14} /> ACTIF</> : ev.statut === "en_attente" ? <><Ticket size={14} /> ATTENTE</> : ev.statut === "suspendu" ? <><X size={14} /> ANNULÉ</> : <><X size={14} /> TERMINÉ</>}
+              </span>
             </div>
           )}
 
