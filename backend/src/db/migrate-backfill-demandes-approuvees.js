@@ -22,10 +22,9 @@ async function migrate() {
     ssl: sslConfig,
   });
 
-  const db = (db) => process.env.DB_NAME ? `${process.env.DB_NAME}.${db}` : db;
+  const db = (table) => process.env.DB_NAME ? `${process.env.DB_NAME}.${table}` : table;
 
   try {
-    // Récupère les demandes CREATION approuvées sans evenement_id
     const [demandes] = await connection.query(`
       SELECT d.id, d.organisateur_id, d.titre, d.description, d.lieu,
              d.date_debut, d.date_fin, d.capacite, d.affiche_url, d.payload
@@ -62,7 +61,6 @@ async function migrate() {
 
       const evenementId = result.insertId;
 
-      // Crée les catégories de tickets depuis le payload
       if (payload?.categories_tickets?.length) {
         const ticketValues = payload.categories_tickets.map(t => [
           evenementId, t.nom, null, parseInt(t.prix), parseInt(t.places), parseInt(t.places)
@@ -75,7 +73,6 @@ async function migrate() {
         );
       }
 
-      // Met à jour la demande avec l'ID du nouvel événement
       await connection.query(
         `UPDATE ${db("demande_evenement")} SET evenement_id = ? WHERE id = ?`,
         [evenementId, demande.id]
