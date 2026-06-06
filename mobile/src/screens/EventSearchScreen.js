@@ -58,7 +58,9 @@ export default function EventSearchScreen({ navigation }) {
   useFocusEffect(useCallback(() => {
     (async () => {
       const data = await fetchEvenementsPublics()
-      setEvents(data.map(formaterPourEventCard))
+      const formatted = data.map(formaterPourEventCard)
+      setEvents(formatted)
+      if (formatted.length > 0) setActiveEvent(formatted[0])
     })()
   }, []))
 
@@ -86,6 +88,8 @@ export default function EventSearchScreen({ navigation }) {
   useEffect(() => {
     if (filtered.length > 0) {
       setActiveEvent(filtered[0])
+    } else {
+      setActiveEvent(null)
     }
   }, [filtered])
 
