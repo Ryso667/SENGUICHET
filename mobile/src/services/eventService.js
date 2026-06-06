@@ -201,6 +201,8 @@ export async function fetchEvenementDetailPublic(eventId) {
       name: c.nom,
       price: c.prix,
       desc: c.description || '',
+      capacite: c.capacite,
+      placesDisponibles: c.places_disponibles,
     })),
     time: e.date_debut ? e.date_debut.slice(11, 16) : '',
     priceMin: e.prix_min || 0,

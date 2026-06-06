@@ -89,9 +89,9 @@ const acheter = async (req, res) => {
       const payload_signature = crypto.createHmac('sha256', HMAC_SECRET).update(signaturePayload).digest('hex');
 
       const [billetResult] = await conn.query(
-        `INSERT INTO billet (uuid, numero, evenement_id, categorie_ticket_id, telephone_acheteur, payload_signature, prix_paye, statut)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'EN_ATTENTE')`,
-        [uuid, numero, evenementId, categorieTicketId, telephone, payload_signature, montantTotal]
+        `INSERT INTO billet (uuid, numero, evenement_id, categorie_ticket_id, telephone_acheteur, email_acheteur, payload_signature, prix_paye, statut)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'EN_ATTENTE')`,
+        [uuid, numero, evenementId, categorieTicketId, telephone, ticketEmail || null, payload_signature, montantTotal]
       );
 
       const billetId = billetResult.insertId;
@@ -198,6 +198,16 @@ const acheter = async (req, res) => {
         console.error("SMS error:", e.message);
       }
 
+      // Lier l'acheteur au téléphone pour que la recherche par email fonctionne
+      if (ticketEmail && telephone) {
+        try {
+          await pool.query(
+            "UPDATE acheteur SET telephone = ? WHERE email = ? AND telephone IS NULL",
+            [telephone, ticketEmail]
+          );
+        } catch {}
+      }
+
       res.status(201).json({
         billet: {
           id: billetId,
@@ -247,7 +257,10 @@ const mesBillets = async (req, res) => {
         [telephone]
       );
     } else {
-      // Recherche par email de l'acheteur social
+      // Recherche par email de l'acheteur
+      // 1) email_acheteur sur le billet (nouveaux achats)
+      // 2) telephone via la table acheteur (si renseigné)
+      // 3) téléphone direct (legacy)
       [rows] = await pool.query(
         `SELECT b.id, b.uuid, b.numero, b.prix_paye, b.statut, b.payload_signature, b.date_creation, b.telephone_acheteur,
           e.titre AS evenement_titre, e.lieu AS evenement_lieu, e.date_debut,
@@ -255,10 +268,8 @@ const mesBillets = async (req, res) => {
         FROM billet b
         JOIN evenement e ON e.id = b.evenement_id
         JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
-        LEFT JOIN acheteur a ON a.telephone = b.telephone_acheteur
-        WHERE a.email = ? OR b.telephone_acheteur IN (
-          SELECT telephone FROM acheteur WHERE email = ?
-        )
+        WHERE b.email_acheteur = ?
+           OR b.telephone_acheteur IN (SELECT telephone FROM acheteur WHERE email = ? AND telephone IS NOT NULL)
         ORDER BY b.date_creation DESC`,
         [email, email]
       );
