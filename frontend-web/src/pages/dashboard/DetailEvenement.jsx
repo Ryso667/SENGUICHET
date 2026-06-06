@@ -4,6 +4,7 @@ import DashboardLayout from "../../components/DashboardLayout";
 import { detailEvenement } from "../../services/eventService";
 import { soumettreDemandeEvenement } from "../../services/eventService";
 import { Ticket, Calendar, Edit, X, Send, Loader, Check } from "../../components/Icons";
+import { normalizeImageUrl } from "../../utils/normalizeUrl";
 
 const DetailEvenement = () => {
   const { id } = useParams();
@@ -99,7 +100,7 @@ const DetailEvenement = () => {
 
           {ev.affiche_url && (
             <div className="mb-6 rounded-xl overflow-hidden" style={{ maxHeight: "320px" }}>
-              <img src={ev.affiche_url} alt={ev.titre} className="w-full h-full object-cover" />
+              <img src={normalizeImageUrl(ev.affiche_url)} alt={ev.titre} className="w-full h-full object-cover" />
             </div>
           )}
 
