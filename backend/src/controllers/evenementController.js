@@ -108,7 +108,7 @@ const lister = async (req, res) => {
         revenus: `${parseInt(r.revenus || 0).toLocaleString()} FCFA`,
         statut,
         code: r.scan_code || '',
-        img: r.affiche_url || `/images/event-${(r.id % 3) + 1}.jpg`,
+        affiche_url: r.affiche_url || `/images/event-${(r.id % 3) + 1}.jpg`,
       };
     });
 
