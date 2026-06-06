@@ -1,11 +1,19 @@
 // Fond d'écran plein écran avec image par catégorie + dégradé (style Apple Music)
-// Affiche l'image (Cloudinary ou Unsplash) derrière un dégradé + overlay de lisibilité
+// Affiche l'image derrière un dégradé + overlay de lisibilité
+// Le dégradé s'affiche immédiatement, l'image se superpose en fondu dès qu'elle est chargée
+// Les URLs Cloudinary sont optimisées (w_400,q_auto,f_webp) pour un chargement rapide
 // Props : category, intensityOverlay, showImage, afficheUrl
 import { useEffect, useRef } from 'react'
-import { View, Animated, StyleSheet } from 'react-native'
+import { View, Animated, Image, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { categoryGradients } from '../constants/theme'
 import { getCategoryImageUrl } from '../config/images'
+
+// Optimise les URLs Cloudinary pour un chargement plus rapide
+function optimiserUrl(url) {
+  if (!url || !url.includes('cloudinary')) return url
+  return url.replace('/upload/', '/upload/w_400,q_auto,f_webp/')
+}
 
 export default function BlurBackground({ category, intensityOverlay = true, showImage = true, afficheUrl }) {
   const gradient = categoryGradients[category] || categoryGradients.default
@@ -13,17 +21,10 @@ export default function BlurBackground({ category, intensityOverlay = true, show
   const imageUrl = showImage ? (afficheUrl || (category ? getCategoryImageUrl(category) : null)) : null
   const imageOpacity = useRef(new Animated.Value(0)).current
 
-  // Transition fondu immédiate dès que l'URL change
-  // L'image est déjà préchargée via Image.prefetch → s'affiche quasi-instantanément
+  // Le dégradé s'affiche immédiatement.
+  // L'image se télécharge en arrière-plan et apparaît en fondu via onLoad
   useEffect(() => {
-    if (imageUrl) {
-      imageOpacity.setValue(0)
-      Animated.timing(imageOpacity, {
-        toValue: 1,
-        duration: 350,
-        useNativeDriver: true,
-      }).start()
-    }
+    if (imageUrl) imageOpacity.setValue(0)
   }, [imageUrl])
 
   return (
@@ -32,10 +33,13 @@ export default function BlurBackground({ category, intensityOverlay = true, show
       {imageUrl && (
         <Animated.Image
           key={imageUrl}
-          source={{ uri: imageUrl }}
+          source={{ uri: optimiserUrl(imageUrl) }}
           style={[StyleSheet.absoluteFill, { opacity: imageOpacity, transform: [{ scale: 1.1 }] }]}
           resizeMode="cover"
           blurRadius={20}
+          onLoad={() => {
+            Animated.timing(imageOpacity, { toValue: 1, duration: 300, useNativeDriver: true }).start()
+          }}
         />
       )}
       <LinearGradient
