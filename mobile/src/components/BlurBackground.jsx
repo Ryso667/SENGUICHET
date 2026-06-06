@@ -33,8 +33,9 @@ export default function BlurBackground({ category, intensityOverlay = true, show
         <Animated.Image
           key={imageUrl}
           source={{ uri: imageUrl }}
-          style={[StyleSheet.absoluteFill, { opacity: imageOpacity }]}
+          style={[StyleSheet.absoluteFill, { opacity: imageOpacity, transform: [{ scale: 1.1 }] }]}
           resizeMode="cover"
+          blurRadius={20}
         />
       )}
       <LinearGradient
