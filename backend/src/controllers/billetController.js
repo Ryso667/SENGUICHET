@@ -282,8 +282,8 @@ const mesBillets = async (req, res) => {
   }
 };
 
-// Affiche une page HTML publique avec le billet imprimable (design 4 sections)
-// Sections : A-souche dégradé + QR vertical, B-infos événement, C-corps QR+filigrane, D-talon gris
+// Affiche une page HTML publique du billet (design épuré type ticket physique)
+// Dimensions 340×640px, 3 zones : QR 180px, infos+prix, mentions légales
 // GET /api/billets/:uuid
 const afficherBillet = async (req, res) => {
   try {
@@ -301,40 +301,20 @@ const afficherBillet = async (req, res) => {
     );
 
     if (!rows.length) {
-      return res.status(404).send(`
-        <html><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#f8f9fd">
-          <h1 style="color:#6366F1;">SENGUICHET</h1>
-          <p style="color:#94a3b8;">Billet introuvable</p>
-        </body></html>
-      `);
+      return res.status(404).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Billet introuvable — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#f8f9fd"><h1 style="color:#6366F1;">SENGUICHET</h1><p style="color:#94a3b8;">Billet introuvable</p></body></html>`);
     }
 
     const b = rows[0];
-    const dateEvent = new Date(b.date_debut).toLocaleDateString("fr-FR", {
-      day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
-    });
-    const dateAchat = new Date(b.date_creation).toLocaleDateString("fr-FR", {
-      day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
-    });
-    const statut = b.statut;
-    const statutLabel = statut === "ACTIF" ? "Valide" : statut === "UTILISE" ? "Utilisé" : "En attente";
-    const statutColor = statut === "ACTIF" ? "#00E5A0" : statut === "UTILISE" ? "#94A3B8" : "#F97316";
-
-    // QR via API publique (utilisable en impression)
-    const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(uuid)}`;
-
-    // Palette de la catégorie ou défaut
-    const catColor = b.couleur_hex || "#6366F1";
-
-    const [
-      debutDate, debutHeure
-    ] = b.date_debut ? b.date_debut.toISOString().replace('T', ' ').split(' ') : ['', ''];
     const dateFormatted = new Date(b.date_debut).toLocaleDateString("fr-FR", {
       day: "numeric", month: "short", year: "numeric"
     });
     const heureFormatted = new Date(b.date_debut).toLocaleTimeString("fr-FR", {
       hour: "2-digit", minute: "2-digit"
     });
+    const dateAchat = new Date(b.date_creation).toLocaleDateString("fr-FR", {
+      day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
+    });
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(uuid)}`;
 
     res.send(`<!DOCTYPE html>
 <html lang="fr">
@@ -344,14 +324,6 @@ const afficherBillet = async (req, res) => {
 <title>Billet ${b.numero} — SENGUICHET</title>
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-  :root {
-    --cat-color: ${catColor};
-    --statut-color: ${statutColor};
-    --w: 55mm;
-    --h: 160mm;
-  }
-
   body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     background: #f0f2f5;
@@ -361,417 +333,121 @@ const afficherBillet = async (req, res) => {
     justify-content: center;
     padding: 16px;
   }
-
-  /* Conteneur ticket */
-  .ticket {
-    width: var(--w);
-    height: var(--h);
-    background: #fff;
-    border-radius: 4mm;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+  .tk {
+    width: 340px; height: 640px;
+    background: #fff; border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    display: flex; flex-direction: column;
+    overflow: hidden; position: relative;
+    border: 1px solid #E5E7EB;
+  }
+  /* Z1: QR + ID */
+  .z1 {
+    height: 260px; background: #fff;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
     position: relative;
+    border-bottom: 2px dashed #D1D5DB;
   }
-
-  /* ===================== SECTION A : Souche dégradé ===================== */
-  .section-a {
-    height: 38mm;
-    background: linear-gradient(135deg, #6366F1, var(--cat-color), #EC4899);
-    padding: 3mm 4mm;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-    flex-shrink: 0;
+  .z1 img { width: 180px; height: 180px; }
+  .z1 .ref { font-family: monospace; font-size: 12px; color: #6B7280; letter-spacing: 1.5px; margin-top: 8px; }
+  .z1 .notch { position: absolute; bottom: -12px; width: 24px; height: 24px; border-radius: 50%; background: #f0f2f5; }
+  .z1 .nl { left: -12px; }
+  .z1 .nr { right: -12px; }
+  /* Z2: Infos + prix */
+  .z2 {
+    height: 280px; padding: 24px;
+    display: flex; align-items: center; position: relative;
   }
-  .section-a::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 3mm,
-      rgba(255,255,255,0.03) 3mm,
-      rgba(255,255,255,0.03) 6mm
-    );
-    pointer-events: none;
+  .z2 .wm {
+    position: absolute; right: 5px; top: 30px;
+    font-size: 140px; font-weight: 900; color: rgba(0,0,0,0.02);
+    pointer-events: none; user-select: none;
   }
-  .section-a-left {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2mm;
-    z-index: 1;
+  .z2 .body {
+    display: flex; width: 100%; align-items: flex-start; z-index: 1;
   }
-  .section-a-left .qr-stub {
-    width: 22mm;
-    height: 22mm;
-    background: #fff;
-    border-radius: 1.5mm;
-    padding: 1.5mm;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .z2 .left {
+    flex: 1; max-width: 70%; padding-right: 16px;
   }
-  .section-a-left .qr-stub img {
-    width: 100%;
-    height: 100%;
-    image-rendering: pixelated;
+  .z2 .left h2 {
+    font-size: 18px; font-weight: 800; color: #030712;
+    letter-spacing: -0.3px; line-height: 1.3; margin: 0 0 8px; text-transform: uppercase;
   }
-  .section-a-left .ref-stub {
-    color: rgba(255,255,255,0.85);
-    font-size: 2.5mm;
-    font-weight: 700;
-    letter-spacing: 0.5mm;
+  .z2 .left .dt { font-size: 12px; color: #4B5563; margin: 0 0 4px; }
+  .z2 .left .loc { font-size: 12px; color: #6B7280; margin: 0; }
+  .z2 .sep {
+    width: 1px; height: 120px; background: #E5E7EB;
+    align-self: center; flex-shrink: 0;
+  }
+  .z2 .right {
+    width: 80px; padding-left: 16px;
+    display: flex; flex-direction: column; align-items: flex-end;
+    justify-content: center; height: 120px; align-self: center;
+  }
+  .z2 .right .lb { font-size: 10px; color: #9CA3AF; letter-spacing: 1px; text-transform: uppercase; margin: 0 0 4px; }
+  .z2 .right .pr { font-size: 14px; font-weight: 700; color: #111827; white-space: nowrap; }
+  /* Z3: Mentions */
+  .z3 {
+    height: 100px; padding: 16px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: #F9FAFB; border-top: 1px solid #F3F4F6;
     text-align: center;
   }
-
-  /* Marque verticale */
-  .section-a-right {
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    color: rgba(255,255,255,0.15);
-    font-size: 5mm;
-    font-weight: 900;
-    letter-spacing: 2mm;
-    text-transform: uppercase;
-    z-index: 1;
-    margin-left: auto;
-    user-select: none;
-    line-height: 1;
+  .z3 .br { font-size: 10px; font-weight: 700; color: #9CA3AF; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 4px; }
+  .z3 .lg { font-size: 9px; color: #9CA3AF; margin: 0 0 2px; line-height: 1.3; }
+  .z3 .dt { font-size: 8px; color: #B0B7C3; margin: 0; }
+  @media (max-width: 380px) {
+    .tk { width: 90vw; height: auto; min-height: 170vw; }
+    .z1 { height: auto; min-height: 70vw; padding: 4vw; }
+    .z1 img { width: 50vw; height: 50vw; }
+    .z2 { height: auto; min-height: 80vw; padding: 4vw; }
+    .z2 .left h2 { font-size: 4.5vw; }
+    .z3 { height: auto; min-height: 25vw; padding: 3vw; }
+    .z1 .notch { display: none; }
   }
-
-  /* Perforation entre A et B */
-  .perf {
-    height: 3mm;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    flex-shrink: 0;
-    position: relative;
-  }
-  .perf-dot {
-    width: 1.2mm;
-    height: 1.2mm;
-    border-radius: 50%;
-    background: #f0f2f5;
-    flex-shrink: 0;
-  }
-  .perf-line {
-    flex: 1;
-    height: 0;
-    border-top: 0.3mm dashed #cbd5e1;
-    margin: 0 0.5mm;
-  }
-
-  /* ===================== SECTION B : Infos événement ===================== */
-  .section-b {
-    height: 30mm;
-    padding: 2.5mm 4mm;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.8mm;
-    flex-shrink: 0;
-    position: relative;
-  }
-  .section-b .event-title {
-    font-size: 3.8mm;
-    font-weight: 800;
-    color: #0f172a;
-    line-height: 1.2;
-    letter-spacing: 0.2mm;
-    max-width: 100%;
-  }
-  .section-b .event-date {
-    font-size: 2.6mm;
-    color: #475569;
-    font-weight: 600;
-  }
-  .section-b .event-lieu {
-    font-size: 2.4mm;
-    color: #94a3b8;
-    font-weight: 700;
-    letter-spacing: 0.3mm;
-    text-transform: uppercase;
-  }
-  .section-b .event-meta {
-    display: flex;
-    gap: 4mm;
-    font-size: 2.4mm;
-    font-weight: 700;
-    color: var(--cat-color);
-    margin-top: 1mm;
-  }
-  .section-b .event-meta span {
-    background: rgba(99,102,241,0.08);
-    padding: 0.5mm 2mm;
-    border-radius: 1mm;
-  }
-
-  /* ===================== SECTION C : Corps QR + filigrane ===================== */
-  .section-c {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2mm 4mm;
-    position: relative;
-    overflow: hidden;
-    flex-shrink: 0;
-    min-height: 0;
-  }
-  .section-c-watermark {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    user-select: none;
-    z-index: 0;
-  }
-  .section-c-watermark span {
-    font-size: 14mm;
-    font-weight: 900;
-    color: rgba(99,102,241,0.04);
-    letter-spacing: 3mm;
-    text-transform: uppercase;
-    transform: rotate(-20deg);
-    white-space: nowrap;
-  }
-  .section-c .qr-main {
-    width: 48%;
-    aspect-ratio: 1;
-    background: #fff;
-    border-radius: 2mm;
-    padding: 1.5mm;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1;
-    box-shadow: 0 1mm 4mm rgba(0,0,0,0.06);
-  }
-  .section-c .qr-main img {
-    width: 100%;
-    height: 100%;
-    image-rendering: pixelated;
-  }
-  .section-c .statut-badge {
-    z-index: 1;
-    margin-top: 2mm;
-    padding: 0.5mm 3mm;
-    border-radius: 2mm;
-    font-size: 2.4mm;
-    font-weight: 700;
-    color: #fff;
-    background: var(--statut-color);
-  }
-  .section-c .acheteur-info {
-    z-index: 1;
-    font-size: 2mm;
-    color: #94a3b8;
-    margin-top: 1mm;
-  }
-
-  /* ===================== SECTION D : Talon gris ===================== */
-  .section-d {
-    height: 30mm;
-    background: #f8fafc;
-    padding: 2.5mm 4mm;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1mm;
-    flex-shrink: 0;
-    border-top: 0.3mm solid #e2e8f0;
-  }
-  .section-d .d-logo {
-    font-size: 3mm;
-    font-weight: 800;
-    color: #0f172a;
-    letter-spacing: 1mm;
-  }
-  .section-d .d-line {
-    font-size: 2mm;
-    color: #94a3b8;
-    line-height: 1.5;
-    text-align: center;
-  }
-  .section-d .d-barcode {
-    width: 80%;
-    height: 3mm;
-    background: repeating-linear-gradient(
-      90deg,
-      #0f172a,
-      #0f172a 0.3mm,
-      transparent 0.3mm,
-      transparent 0.8mm
-    );
-    margin-top: 1mm;
-    opacity: 0.3;
-  }
-
-  /* État scanné */
-  .scanned-stamp {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%) rotate(-25deg);
-    font-size: 8mm;
-    font-weight: 900;
-    color: ${statut === "UTILISE" ? "#ef4444" : "transparent"};
-    border: ${statut === "UTILISE" ? "0.5mm solid #ef4444" : "none"};
-    padding: 1mm 3mm;
-    border-radius: 1mm;
-    z-index: 10;
-    pointer-events: none;
-    opacity: ${statut === "UTILISE" ? 0.7 : 0};
-    letter-spacing: 0.5mm;
-  }
-
-  /* ===================== RESPONSIVE ===================== */
-  @media screen and (max-width: 400px) {
-    :root {
-      --w: 90vw;
-      --h: auto;
-    }
-    .ticket {
-      height: auto;
-      min-height: 140vw;
-      border-radius: 3mm;
-    }
-    .section-a { height: 30vw; padding: 2vw 3vw; }
-    .section-a-left .qr-stub { width: 18vw; height: 18vw; }
-    .section-a-right { font-size: 4vw; }
-    .section-b { height: auto; padding: 3vw; min-height: 24vw; }
-    .section-b .event-title { font-size: 4.5vw; }
-    .perf { height: 2.5vw; }
-    .section-c { min-height: 45vw; padding: 3vw; }
-    .section-c .qr-main { width: 40%; }
-    .section-d { height: auto; padding: 3vw; min-height: 22vw; }
-    .section-d .d-barcode { height: 2vw; }
-    .scanned-stamp { font-size: 6vw; }
-  }
-
-  @media screen and (min-width: 401px) and (max-width: 700px) {
-    .ticket { transform: scale(0.85); transform-origin: center center; }
-  }
-
-  /* ===================== PRINT ===================== */
   @media print {
-    body {
-      padding: 0;
-      background: #fff;
-      display: block;
-    }
-    .ticket {
-      box-shadow: none;
-      border-radius: 0;
-      width: 55mm;
-      height: 160mm;
-      page-break-after: always;
-      margin: 0 auto;
-    }
-    .section-a { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .section-d { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .section-c .statut-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .scanned-stamp { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  }
-
-  @page {
-    size: 55mm 160mm;
-    margin: 0;
+    body { background: #fff; padding: 0; }
+    .tk { box-shadow: none; border-radius: 0; margin: 0 auto; }
+    @page { margin: 0; size: 340px 640px; }
   }
 </style>
 </head>
 <body>
-<div class="ticket">
-
-  <!-- Tampon scanné si utilisé -->
-  <div class="scanned-stamp">UTILISÉ</div>
-
-  <!-- ===== SECTION A : Souche dégradé ===== -->
-  <div class="section-a">
-    <div class="section-a-left">
-      <div class="qr-stub">
-        <img src="${qrApi}" alt="QR billet" />
+<div class="tk">
+  <div class="z1">
+    <img src="${qrUrl}" alt="QR billet" />
+    <div class="ref">#${b.numero}</div>
+    <div class="notch nl"></div>
+    <div class="notch nr"></div>
+  </div>
+  <div class="z2">
+    <div class="wm">S</div>
+    <div class="body">
+      <div class="left">
+        <h2>${b.titre.toUpperCase()}</h2>
+        <p class="dt">${dateFormatted} à ${heureFormatted}</p>
+        <p class="loc">${b.lieu ? b.lieu.toUpperCase() : ''}</p>
       </div>
-      <div class="ref-stub">#${b.numero}</div>
-    </div>
-    <div class="section-a-right">SENGUICHET</div>
-  </div>
-
-  <!-- Perforation -->
-  <div class="perf">
-    <div class="perf-dot"></div>
-    <div class="perf-line"></div>
-    <div class="perf-dot"></div>
-    <div class="perf-line"></div>
-    <div class="perf-dot"></div>
-    <div class="perf-line"></div>
-    <div class="perf-dot"></div>
-  </div>
-
-  <!-- ===== SECTION B : Infos événement ===== -->
-  <div class="section-b">
-    <div class="event-title">${b.titre.toUpperCase()}</div>
-    <div class="event-date">${dateFormatted} à ${heureFormatted}</div>
-    <div class="event-lieu">${b.lieu ? b.lieu.toUpperCase() : ''}</div>
-    <div class="event-meta">
-      <span>${b.categorie}</span>
-      <span>${b.prix_paye.toLocaleString()} FCFA</span>
+      <div class="sep"></div>
+      <div class="right">
+        <p class="lb">Prix</p>
+        <p class="pr">${b.prix_paye.toLocaleString()} FCFA</p>
+      </div>
     </div>
   </div>
-
-  <!-- Perforation -->
-  <div class="perf">
-    <div class="perf-dot"></div>
-    <div class="perf-line"></div>
-    <div class="perf-dot"></div>
-    <div class="perf-line"></div>
-    <div class="perf-dot"></div>
-    <div class="perf-line"></div>
-    <div class="perf-dot"></div>
+  <div class="z3">
+    <p class="br">SENGUICHET</p>
+    <p class="lg">Billetterie événementielle • Entrée unique et non transférable</p>
+    <p class="dt">Acheté le ${dateAchat}</p>
   </div>
-
-  <!-- ===== SECTION C : Corps QR + filigrane ===== -->
-  <div class="section-c">
-    <div class="section-c-watermark">
-      <span>SENGUICHET</span>
-    </div>
-    <div class="qr-main">
-      <img src="${qrApi}" alt="QR billet" />
-    </div>
-    <div class="statut-badge">${statutLabel}</div>
-    <div class="acheteur-info">${b.telephone_acheteur || ''}</div>
-  </div>
-
-  <!-- ===== SECTION D : Talon gris ===== -->
-  <div class="section-d">
-    <div class="d-logo">SENGUICHET</div>
-    <div class="d-line">Billeterie événementielle</div>
-    <div class="d-line">Entrée unique et non transférable</div>
-    <div class="d-line">Acheté le ${dateAchat}</div>
-    <div class="d-barcode"></div>
-  </div>
-
 </div>
 </body>
 </html>`);
   } catch (err) {
     console.error("Afficher billet error:", err);
-    res.status(500).send("<html><body><p>Erreur serveur</p></body></html>");
+    res.status(500).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Erreur — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#f8f9fd"><h1 style="color:#6366F1;">SENGUICHET</h1><p style="color:#94a3b8;">Erreur serveur</p></body></html>`);
   }
 };
 
