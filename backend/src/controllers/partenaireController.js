@@ -6,7 +6,7 @@
  */
 const pool = require("../config/db");
 const bcrypt = require("bcryptjs");
-const { envoyerConfirmationDemandeur, envoyerNotificationAdmin, envoyerStatutDemande, envoyerIdentifiantsPartenaire } = require("../services/emailService");
+const { envoyerConfirmationDemandeur, envoyerNotificationAdmin, envoyerStatutDemande, envoyerIdentifiantsPartenaire } = require("../services/EmailService");
 
 /**
  * Soumet une nouvelle demande de partenariat (public)
