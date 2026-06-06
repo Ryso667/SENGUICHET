@@ -20,15 +20,19 @@ export default function BlurBackground({ category, intensityOverlay = true, show
   // Priorité : afficheUrl de l'événement → image par catégorie (Unsplash)
   const imageUrl = showImage ? (afficheUrl || (category ? getCategoryImageUrl(category) : null)) : null
   const imageOpacity = useRef(new Animated.Value(0)).current
-  const loadKey = useRef(0)
 
   // Le dégradé s'affiche immédiatement.
-  // L'image se télécharge en arrière-plan et apparaît en fondu via onLoad
-  // loadKey incrémenté force le remount même pour une URL déjà vue (cache)
+  // L'opacité de l'image s'anime de 0 à 1 à chaque changement d'URL
+  // Pas de onLoad : l'image en cache s'affiche aussi bien que l'image chargée depuis le réseau
+  // Pas de key remount : pas de re-décodage blur coûteux sur retour arrière
   useEffect(() => {
     if (imageUrl) {
       imageOpacity.setValue(0)
-      loadKey.current += 1
+      Animated.timing(imageOpacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }).start()
     }
   }, [imageUrl])
 
@@ -37,14 +41,10 @@ export default function BlurBackground({ category, intensityOverlay = true, show
       <View style={styles.baseBg} />
       {imageUrl && (
         <Animated.Image
-          key={`bg-${loadKey.current}`}
           source={{ uri: optimiserUrlCloudinary(imageUrl) }}
           style={[StyleSheet.absoluteFill, { opacity: imageOpacity, transform: [{ scale: 1.1 }] }]}
           resizeMode="cover"
           blurRadius={20}
-          onLoad={() => {
-            Animated.timing(imageOpacity, { toValue: 1, duration: 300, useNativeDriver: true }).start()
-          }}
         />
       )}
       <LinearGradient
