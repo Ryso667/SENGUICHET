@@ -74,53 +74,29 @@ const envoyerEmail = async (destinataire, sujet, html) => {
   return { success: true, messageId: info.messageId };
 };
 
-// Envoie un email de confirmation de billet à l'acheteur
+// Envoie un email de confirmation de billet simple avec lien vers le ticket
 // ticket: { uuid, numero, evenement, categorie, prix, dateAchat, lieu, dateDebut }
-// Template ticket 4 sections (adapté email)
+// Format épuré : minimum d'infos + lien vers la page publique du billet
 const envoyerEmailBillet = async (destinataire, ticket) => {
   const baseUrl = process.env.TICKET_URL || `${SITE_URL}/api/billets`;
   const lienBillet = `${baseUrl}/${ticket.uuid}`;
-  const catColor = ticket.couleurHex || '#6366F1';
+  const dateFormatee = ticket.dateDebut
+    ? new Date(ticket.dateDebut).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : '';
 
   const content = `
-    <div style="background:white;border-radius:12px;padding:0;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;">
-
-      <!-- Section A : En-tête dégradé -->
-      <div style="background:linear-gradient(135deg,#6366F1,${catColor},#EC4899);padding:20px 24px;text-align:center;">
-        <div style="background:white;border-radius:8px;width:80px;height:80px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;">
-          <div style="width:70px;height:70px;background:#f1f5f9;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#94a3b8;text-align:center;line-height:1.3;">
-            QR${ticket.numero ? `<br/>#${ticket.numero}` : ''}
-          </div>
-        </div>
-        <div style="color:rgba(255,255,255,0.85);font-size:11px;font-weight:700;letter-spacing:2px;">RÉFÉRENCE ${ticket.numero || ''}</div>
-      </div>
-
-      <!-- Section B : Infos -->
-      <div style="padding:16px 24px;text-align:center;border-bottom:2px dashed #e2e8f0;">
-        <h2 style="color:#0D1B2A;font-size:16px;margin:0 0 6px;letter-spacing:0.5px;">${ticket.evenement.toUpperCase()}</h2>
-        <p style="color:#475569;font-size:12px;margin:0 0 2px;">${ticket.dateDebut ? new Date(ticket.dateDebut).toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) : ''}</p>
-        ${ticket.lieu ? `<p style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin:0 0 8px;">${ticket.lieu}</p>` : ''}
-        <div style="display:inline-block;background:rgba(99,102,241,0.08);color:${catColor};font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;margin:4px 2px;">${ticket.categorie}</div>
-        <div style="display:inline-block;background:rgba(99,102,241,0.08);color:${catColor};font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;margin:4px 2px;">${ticket.prix.toLocaleString()} FCFA</div>
-      </div>
-
-      <!-- Section C : Bouton CTA -->
-      <div style="padding:20px 24px;text-align:center;background:#f8fafc;border-bottom:2px dashed #e2e8f0;">
-        <p style="color:#64748b;font-size:12px;margin:0 0 12px;">Présente ce QR code à l'entrée</p>
-        <a href="${lienBillet}"
-           style="display:inline-block;background:#00C8FF;color:#0D1B2A;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;font-size:14px;">
-          Voir mon billet →
-        </a>
-      </div>
-
-      <!-- Section D : Talon -->
-      <div style="padding:12px 24px;text-align:center;background:#f1f5f9;">
-        <p style="color:#0D1B2A;font-size:10px;font-weight:700;letter-spacing:2px;margin:0 0 2px;">SENGUICHET</p>
-        <p style="color:#94a3b8;font-size:9px;margin:0;">Billeterie événementielle • Entrée unique</p>
-      </div>
+    <div style="background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <p style="color:#0D1B2A;font-size:16px;font-weight:700;margin:0 0 4px;">${ticket.evenement}</p>
+      <p style="color:#64748b;font-size:13px;margin:0 0 2px;">${dateFormatee}</p>
+      ${ticket.lieu ? `<p style="color:#94a3b8;font-size:12px;margin:0 0 12px;">${ticket.lieu}</p>` : `<p style="margin:0 0 12px;"></p>`}
+      <p style="color:#94a3b8;font-size:11px;margin:0 0 16px;">Réf : ${ticket.numero || ''} • ${ticket.categorie || ''} • ${ticket.prix ? ticket.prix.toLocaleString() + ' FCFA' : ''}</p>
+      <a href="${lienBillet}" style="display:inline-block;background:#6366F1;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;">
+        Voir mon billet
+      </a>
+      <p style="color:#CBD5E1;font-size:11px;margin:16px 0 0;">Ce billet est disponible en ligne via le lien ci-dessus.</p>
     </div>`;
 
-  return envoyerEmail(destinataire, `Ton billet ${ticket.numero} — ${ticket.evenement}`, emailLayout(content, { preheader: `Ton billet pour ${ticket.evenement} est confirmé !` }));
+  return envoyerEmail(destinataire, `Billet ${ticket.numero} — ${ticket.evenement}`, emailLayout(content, { preheader: `Ton billet pour ${ticket.evenement}` }));
 };
 
 // Envoie un code OTP à l'acheteur pour confirmer son email
