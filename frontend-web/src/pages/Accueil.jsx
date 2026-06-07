@@ -265,7 +265,11 @@ const Accueil = () => {
   const savedStep = typeof window !== "undefined" ? parseInt(sessionStorage.getItem("partenaire_form_step") || "1") : 1;
   const savedTouched = typeof window !== "undefined" ? JSON.parse(sessionStorage.getItem("partenaire_form_touched") || "{}") : {};
 
-  const [formData, setFormData] = useState(savedData || {
+  const [formData, setFormData] = useState((() => {
+    if (savedData?.telephone) {
+      savedData.telephone = savedData.telephone.replace(/\D/g, "");
+    }
+    return savedData || {
     nom: "",
     organisation: "",
     telephone: "",
@@ -275,7 +279,8 @@ const Accueil = () => {
     siteWeb: "",
     description: "",
     accepteRGPD: false,
-  });
+  };
+  })());
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formStep, setFormStep] = useState(savedStep);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -341,15 +346,6 @@ const Accueil = () => {
     const val = type === "checkbox" ? checked : value;
 
     let processed = val;
-    if (name === "telephone") {
-      const digits = val.replace(/\D/g, "");
-      const maxDigits = digits.substring(0, 9);
-      let formatted = "+221 ";
-      if (maxDigits.length > 0) formatted += maxDigits.substring(0, 2);
-      if (maxDigits.length > 2) formatted += " " + maxDigits.substring(2, 5);
-      if (maxDigits.length > 5) formatted += " " + maxDigits.substring(5, 9);
-      processed = formatted;
-    }
 
     setFormData((prev) => ({ ...prev, [name]: processed }));
 

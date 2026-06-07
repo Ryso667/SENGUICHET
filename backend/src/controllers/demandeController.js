@@ -34,9 +34,9 @@ const soumettreDemande = async (req, res) => {
         date_debut, date_fin, capacite, categorie, affiche_url, payload)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [req.user.id, type_action, evenement_id || null, titre || null,
-       description || null, lieu || null, ville || null, dateDebut, dateFin,
-       capacite || 0, categorie || null, affiche_url || null,
-       (payload || categories_tickets) ? JSON.stringify(payload || { categories_tickets }) : null]
+        description || null, lieu || null, ville || null, dateDebut, dateFin,
+        capacite || 0, categorie || null, affiche_url || null,
+        (payload || categories_tickets) ? JSON.stringify(payload || { categories_tickets }) : null]
     );
 
     // Notification email à l'admin

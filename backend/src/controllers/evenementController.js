@@ -101,6 +101,7 @@ const lister = async (req, res) => {
         date_debut: r.date_debut,
         date_fin: r.date_fin,
         lieu: r.lieu,
+        ville: r.ville,
         remplis: remplies,
         capacite: r.capacite_billets || r.capacite_totale,
         revenus: `${parseInt(r.revenus || 0).toLocaleString()} FCFA`,

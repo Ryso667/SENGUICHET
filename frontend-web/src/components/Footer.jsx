@@ -4,7 +4,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.jpg";
-import sdpLogo from "../assets/sdp-logo.jpg";
+import sdpLogo from "../assets/sdp-logo.jpeg";
 
 const Footer = () => {
   return (
