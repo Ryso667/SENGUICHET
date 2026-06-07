@@ -1,13 +1,14 @@
 // Mes demandes — liste + création + détail (calqué sur l'app web)
 // Design glass (Apple Invites) — modale création avec upload Cloudinary
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput, Alert, Animated, ActivityIndicator } from 'react-native'
-import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput, Alert, Animated, ActivityIndicator, Keyboard, Modal, FlatList } from 'react-native'
+import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
 import { listerMesDemandes, soumettreDemandeEvenement } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
+import * as ImagePicker from 'expo-image-picker'
 import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
@@ -29,6 +30,15 @@ const DEMANDE_TYPES = [
   { value: 'CREATION', label: 'Créer un nouvel événement' },
   { value: 'MODIFICATION', label: 'Modifier un événement' },
   { value: 'SUPPRESSION', label: 'Supprimer un événement' },
+]
+
+const CATEGORIES = [
+  'Concert', 'Festival', 'Théâtre', 'Sport', 'Conférence',
+  'Atelier', 'Exposition', 'Club / Soirée', 'Gala', 'Autres / Divers',
+]
+
+const VILLES = [
+  'Dakar', 'Thiès', 'Saint-Louis', 'Ziguinchor', 'Touba', 'Kaolack', 'Autre',
 ]
 
 export default function MesDemandesScreen({ navigation }) {
@@ -56,6 +66,23 @@ export default function MesDemandesScreen({ navigation }) {
   const [uploading, setUploading] = useState(false)
   const [afficheUrl, setAfficheUrl] = useState(null)
   const [affichePreview, setAffichePreview] = useState(null)
+  const [categorie, setCategorie] = useState('')
+  const [ville, setVille] = useState('')
+  const [catVisible, setCatVisible] = useState(false)
+  const [villeVisible, setVilleVisible] = useState(false)
+  const [dateExpanded, setDateExpanded] = useState(false)
+  const [dateFinExpanded, setDateFinExpanded] = useState(false)
+  const [browseYear, setBrowseYear] = useState(new Date().getFullYear())
+  const [browseMonth, setBrowseMonth] = useState(new Date().getMonth())
+  const [browseYearFin, setBrowseYearFin] = useState(new Date().getFullYear())
+  const [browseMonthFin, setBrowseMonthFin] = useState(new Date().getMonth())
+  const [kbPadding, setKbPadding] = useState(0)
+
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', (e) => setKbPadding(e.endCoordinates.height))
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKbPadding(0))
+    return () => { show.remove(); hide.remove() }
+  }, [])
 
   const fadeAnim = useRef(new Animated.Value(0)).current
 
@@ -94,6 +121,10 @@ export default function MesDemandesScreen({ navigation }) {
     setUploading(false)
     setAfficheUrl(null)
     setAffichePreview(null)
+    setCategorie('')
+    setVille('')
+    setDateExpanded(false)
+    setDateFinExpanded(false)
     setDemandeSent(false)
     setError('')
     setModalVisible(true)
@@ -121,8 +152,7 @@ export default function MesDemandesScreen({ navigation }) {
 
   const pickImage = async () => {
     try {
-      const { launchImageLibraryAsync, MediaTypeOptions } = await import('expo-image-picker')
-      const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.Images, quality: 0.7 })
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8, allowsEditing: true })
       if (!result.canceled && result.assets?.[0]) {
         setAffichePreview(result.assets[0].uri)
         setUploading(true)
@@ -150,14 +180,16 @@ export default function MesDemandesScreen({ navigation }) {
     try {
       const payload = { type_action: typeAction, description: message }
       if (typeAction === 'CREATION') {
-        if (!titre.trim() || !lieu.trim() || !dateDebut || !capacite) {
+        if (!titre.trim() || !lieu.trim() || !dateDebut || !capacite || !categorie) {
           Alert.alert('Champs requis', 'Veuillez remplir tous les champs obligatoires.')
           setSending(false)
           return
         }
         payload.titre = titre
         payload.description = `${description}\n\n${message}`
-        payload.lieu = lieu
+        payload.categorie = categorie
+        payload.lieu = ville ? `${lieu}, ${ville}` : lieu
+        payload.ville = ville || ''
         payload.date_debut = dateDebut
         payload.date_fin = dateFin || null
         payload.capacite = parseInt(capacite) || 0
@@ -178,6 +210,68 @@ export default function MesDemandesScreen({ navigation }) {
     }
   }
 
+  // Assistance — constantes et helpers pour le calendrier
+  const DAYS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+  const MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
+  const getDaysInMonth = (y, m) => new Date(y, m + 1, 0).getDate()
+  const getFirstDay = (y, m) => new Date(y, m, 1).getDay()
+  const pad = (n) => n.toString().padStart(2, '0')
+
+  // Calendrier interactif pour le choix des dates
+  const renderCalendar = (target) => {
+    const isDate = target === 'date'
+    const expanded = isDate ? dateExpanded : dateFinExpanded
+    const year = isDate ? browseYear : browseYearFin
+    const month = isDate ? browseMonth : browseMonthFin
+    const selected = isDate ? dateDebut : dateFin
+    const setBrowseYearFn = isDate ? setBrowseYear : setBrowseYearFin
+    const setBrowseMonthFn = isDate ? setBrowseMonth : setBrowseMonthFin
+    const setDateFn = isDate ? setDateDebut : setDateFin
+    const setExpandedFn = isDate ? setDateExpanded : setDateFinExpanded
+
+    if (!expanded) return null
+    return (
+      <GlassContainer blurType="light" style={f.calendar} intensity={30}>
+        <View style={f.calHeader}>
+          <TouchableOpacity onPress={() => {
+            if (month === 0) { setBrowseMonthFn(11); setBrowseYearFn(year - 1) }
+            else setBrowseMonthFn(month - 1)
+          }}>
+            <Feather name="chevron-left" size={22} color="#fff" />
+          </TouchableOpacity>
+          <Text style={f.calHeaderText}>{MONTHS[month]} {year}</Text>
+          <TouchableOpacity onPress={() => {
+            if (month === 11) { setBrowseMonthFn(0); setBrowseYearFn(year + 1) }
+            else setBrowseMonthFn(month + 1)
+          }}>
+            <Feather name="chevron-right" size={22} color="#fff" />
+          </TouchableOpacity>
+        </View>
+        <View style={f.calWeek}>
+          {DAYS.map(d => <Text key={d} style={f.calWeekDay}>{d}</Text>)}
+        </View>
+        <View style={f.calGrid}>
+          {[...Array(getFirstDay(year, month))].map((_, i) => (
+            <View key={`e${i}`} style={f.calDay} />
+          ))}
+          {[...Array(getDaysInMonth(year, month))].map((_, i) => {
+            const day = i + 1
+            const dateStr = `${year}-${pad(month + 1)}-${pad(day)}`
+            const sel = selected === dateStr
+            return (
+              <TouchableOpacity
+                key={day} style={[f.calDay, sel && f.calDaySelected]}
+                onPress={() => { setDateFn(dateStr); setExpandedFn(false) }}
+              >
+                <Text style={[f.calDayText, sel && f.calDayTextSelected]}>{day}</Text>
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+      </GlassContainer>
+    )
+  }
+
   const renderTypeSelect = () => (
     <View style={f.selectRow}>
       {DEMANDE_TYPES.map(t => (
@@ -192,9 +286,12 @@ export default function MesDemandesScreen({ navigation }) {
     <Text style={f.label}>{text}{required ? <Text style={{ color: '#FF4D6D' }}> *</Text> : null}</Text>
   )
 
-  const renderInput = (placeholder, value, onChange, extra) => (
-    <TextInput style={[f.input, extra?.style]} placeholder={placeholder} placeholderTextColor="rgba(255,255,255,0.3)" value={value} onChangeText={onChange} {...extra} />
-  )
+  const renderInput = (placeholder, value, onChange, extra) => {
+    const { style: extraStyle, ...rest } = extra || {}
+    return (
+      <TextInput style={[f.input, extraStyle]} placeholder={placeholder} placeholderTextColor="rgba(255,255,255,0.3)" value={value} onChangeText={onChange} selectionColor="rgba(255,255,255,0.5)" {...rest} />
+    )
+  }
 
   return (
     <View style={s.container}>
@@ -204,7 +301,7 @@ export default function MesDemandesScreen({ navigation }) {
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor="#fff" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00C8FF', '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}
         >
           {/* Header */}
           <View style={s.header}>
@@ -216,6 +313,10 @@ export default function MesDemandesScreen({ navigation }) {
               </LinearGradient>
             </TouchableOpacity>
           </View>
+
+          {!loading && demandes.length > 0 && (
+            <Text style={s.refreshHint}>↓ Tirer vers le bas pour actualiser</Text>
+          )}
 
           {loading ? (
             <Skeleton type="card" count={3} />
@@ -360,22 +461,57 @@ export default function MesDemandesScreen({ navigation }) {
                     <>
                       {renderLabel("Titre de l'événement", true)}
                       {renderInput('Ex: Concert de Dakar', titre, setTitre)}
+
+                      {/* Catégorie */}
+                      {renderLabel('Catégorie', true)}
+                      <TouchableOpacity style={f.pickerBtn} onPress={() => setCatVisible(true)}>
+                        <Text style={[f.pickerBtnText, !categorie && { color: 'rgba(255,255,255,0.3)' }]}>
+                          {categorie || 'Sélectionner une catégorie'}
+                        </Text>
+                        <Feather name="chevron-down" size={16} color="rgba(255,255,255,0.4)" />
+                      </TouchableOpacity>
+
                       {renderLabel('Description', true)}
                       {renderInput('Décrivez votre événement...', description, setDescription, { multiline: true, style: { height: 80, textAlignVertical: 'top' } })}
-                      {renderLabel('Lieu', true)}
-                      {renderInput('Ex: Place de l\'Indépendance', lieu, setLieu)}
+
                       <View style={f.twoCol}>
                         <View style={{ flex: 1 }}>
-                          {renderLabel('Date début', true)}
-                          {renderInput('AAAA-MM-JJ', dateDebut, setDateDebut)}
+                          {renderLabel('Lieu', true)}
+                          {renderInput('Monument Renaissance...', lieu, setLieu)}
                         </View>
                         <View style={{ flex: 1 }}>
-                          {renderLabel('Date fin')}
-                          {renderInput('AAAA-MM-JJ (optionnel)', dateFin, setDateFin)}
+                          {renderLabel('Ville', true)}
+                          <TouchableOpacity style={f.pickerBtn} onPress={() => setVilleVisible(true)}>
+                            <Text style={[f.pickerBtnText, !ville && { color: 'rgba(255,255,255,0.3)' }]}>
+                              {ville || 'Ville'}
+                            </Text>
+                            <Feather name="chevron-down" size={16} color="rgba(255,255,255,0.4)" />
+                          </TouchableOpacity>
                         </View>
                       </View>
+
+                      {/* Date début */}
+                      {renderLabel('Date début', true)}
+                      <TouchableOpacity style={f.pickerBtn} onPress={() => setDateExpanded(!dateExpanded)}>
+                        <Text style={[f.pickerBtnText, !dateDebut && { color: 'rgba(255,255,255,0.3)' }]}>
+                          {dateDebut || 'Sélectionner une date'}
+                        </Text>
+                        <Feather name={dateExpanded ? 'chevron-up' : 'chevron-down'} size={16} color="rgba(255,255,255,0.4)" />
+                      </TouchableOpacity>
+                      {renderCalendar('date')}
+
+                      {/* Date fin */}
+                      {renderLabel('Date fin')}
+                      <TouchableOpacity style={f.pickerBtn} onPress={() => setDateFinExpanded(!dateFinExpanded)}>
+                        <Text style={[f.pickerBtnText, !dateFin && { color: 'rgba(255,255,255,0.3)' }]}>
+                          {dateFin || 'Même jour (par défaut)'}
+                        </Text>
+                        <Feather name={dateFinExpanded ? 'chevron-up' : 'chevron-down'} size={16} color="rgba(255,255,255,0.4)" />
+                      </TouchableOpacity>
+                      {renderCalendar('dateFin')}
+
                       {renderLabel('Capacité', true)}
-                      {renderInput('Ex: 500', capacite, setCapacite, { keyboardType: 'numeric' })}
+                      {renderInput('Ex: 1000', capacite, setCapacite, { keyboardType: 'numeric' })}
 
                       {/* Affiche */}
                       {renderLabel('Affiche de l\'événement')}
@@ -383,14 +519,11 @@ export default function MesDemandesScreen({ navigation }) {
                         {uploading ? (
                           <ActivityIndicator color="#fff" />
                         ) : affichePreview ? (
-                          <View style={{ width: '100%', alignItems: 'center' }}>
-                            <MaterialCommunityIcons name="image-check" size={32} color="#00E5A0" />
-                            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>Affiche ajoutée</Text>
-                          </View>
+                          <Image source={{ uri: affichePreview }} style={f.affichePreview} />
                         ) : (
                           <>
-                            <MaterialCommunityIcons name="image-plus-outline" size={32} color="rgba(255,255,255,0.3)" />
-                            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4, textAlign: 'center' }}>Appuyez pour ajouter une affiche</Text>
+                            <MaterialCommunityIcons name="image-plus-outline" size={28} color="rgba(255,255,255,0.3)" />
+                            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>Ajouter une affiche</Text>
                           </>
                         )}
                       </TouchableOpacity>
@@ -444,10 +577,53 @@ export default function MesDemandesScreen({ navigation }) {
                 </>
               )}
               <View style={{ height: 20 }} />
+              {kbPadding > 0 && <View style={{ height: kbPadding }} />}
             </ScrollView>
           </Animated.View>
         </Animated.View>
       )}
+
+      {/* Modale catégorie */}
+      <Modal visible={catVisible} transparent animationType="fade">
+        <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setCatVisible(false)}>
+          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+            <Text style={s.pickerTitle}>Catégorie d'événement</Text>
+            <FlatList
+              data={CATEGORIES}
+              keyExtractor={i => i}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[s.pickerItem, categorie === item && s.pickerItemActive]}
+                  onPress={() => { setCategorie(item); setCatVisible(false) }}
+                >
+                  <Text style={[s.pickerItemText, categorie === item && s.pickerItemTextActive]}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </GlassContainer>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Modale ville */}
+      <Modal visible={villeVisible} transparent animationType="fade">
+        <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setVilleVisible(false)}>
+          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+            <Text style={s.pickerTitle}>Ville</Text>
+            <FlatList
+              data={VILLES}
+              keyExtractor={i => i}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[s.pickerItem, ville === item && s.pickerItemActive]}
+                  onPress={() => { setVille(item); setVilleVisible(false) }}
+                >
+                  <Text style={[s.pickerItemText, ville === item && s.pickerItemTextActive]}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </GlassContainer>
+        </TouchableOpacity>
+      </Modal>
     </View>
   )
 }
@@ -465,6 +641,7 @@ const s = StyleSheet.create({
 
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
   headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
+  refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginBottom: spacing.sm },
   newBtn: { borderRadius: 12, overflow: 'hidden' },
   newBtnGrad: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 9 },
   newBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff' },
@@ -525,6 +702,15 @@ const s = StyleSheet.create({
   /* Erreur */
   errorBox: { padding: spacing.sm, marginBottom: spacing.md },
   errorText: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: '#FF4D6D' },
+
+  /* Picker modals */
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 },
+  picker: { padding: 20, maxHeight: 400 },
+  pickerTitle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: '#fff', marginBottom: 16, textAlign: 'center' },
+  pickerItem: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 12, marginBottom: 4 },
+  pickerItemActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
+  pickerItemText: { fontFamily: fonts.outfit.regular, fontSize: 16, color: '#fff' },
+  pickerItemTextActive: { fontFamily: fonts.outfit.semiBold, color: '#fff' },
 })
 
 const f = StyleSheet.create({
@@ -557,4 +743,29 @@ const f = StyleSheet.create({
   detailField: { marginBottom: spacing.sm },
   detailLabel: { fontSize: 10, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.4)', marginBottom: 2 },
   detailValue: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: '#fff' },
+
+  /* Picker bouton */
+  pickerBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10,
+    paddingHorizontal: 14, height: 44,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)',
+    marginBottom: spacing.sm,
+  },
+  pickerBtnText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: '#fff', flex: 1 },
+
+  /* Affiche preview */
+  affichePreview: { width: '100%', height: 140, borderRadius: 10, resizeMode: 'cover' },
+
+  /* Calendrier */
+  calendar: { padding: 12, marginBottom: spacing.sm },
+  calHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  calHeaderText: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#fff' },
+  calWeek: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 8 },
+  calWeekDay: { width: 32, textAlign: 'center', fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' },
+  calGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  calDay: { width: '14.28%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center' },
+  calDaySelected: { backgroundColor: '#00C8FF', borderRadius: 20 },
+  calDayText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
+  calDayTextSelected: { color: '#fff', fontFamily: fonts.outfit.semiBold },
 })

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { inscription, connexionOrganisateur, connexionAdmin, connexionPartenaire, adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur, connexionSociale, envoyerCodeOTP, verifierCodeOTP, changerMotDePasse } = require("../controllers/authController");
+const { inscription, connexionOrganisateur, connexionAdmin, connexionPartenaire, connexionControleur, adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur, connexionSociale, envoyerCodeOTP, verifierCodeOTP, changerMotDePasse } = require("../controllers/authController");
 const authMiddleware = require("../middleware/auth");
 const { limiteEnvoiOTP, limiteVerifOTP } = require("../middleware/rateLimiter");
 
@@ -13,6 +13,7 @@ router.put("/admin/organisateurs/:id/reinitialiser-mot-de-passe", authMiddleware
 router.post("/social", connexionSociale);
 router.post("/acheteur/envoyer-code", limiteEnvoiOTP, envoyerCodeOTP);
 router.post("/acheteur/verifier-code", limiteVerifOTP, verifierCodeOTP);
+router.post("/controleur/connexion", connexionControleur);
 router.put("/organisateur/changer-mot-de-passe", authMiddleware(["ORGANISATEUR"]), changerMotDePasse);
 
 module.exports = router;

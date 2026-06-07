@@ -95,7 +95,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
       <OrganisateurLayout />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor="#fff" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00C8FF', '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}
       >
         {/* Greeting — calqué sur le web : "Bonjour, {nom}" + date */}
         <GlassContainer blurType="light" style={s.greeting}>
@@ -105,6 +105,10 @@ export default function OrganisateurDashboardScreen({ navigation }) {
           </View>
           <Text style={s.dateText}>{today}</Text>
         </GlassContainer>
+
+        {!loading && events.length > 0 && (
+          <Text style={s.refreshHint}>↓ Tirer vers le bas pour actualiser</Text>
+        )}
 
         {loading ? (
           <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.lg }}>
@@ -168,7 +172,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
                           <View style={s.eventHeroBottom}>
                             <Text style={s.eventName} numberOfLines={1}>{ev.nom}</Text>
                             <Text style={s.eventMeta} numberOfLines={1}>
-                              {ev.date} · {ev.lieu || 'Non spécifié'}
+                              {formaterDateLisible(ev.date)} · {ev.lieu || 'Non spécifié'}
                             </Text>
                           </View>
                         </View>
@@ -217,6 +221,7 @@ const s = StyleSheet.create({
     fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)',
     marginTop: spacing.xs, textTransform: 'capitalize',
   },
+  refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginTop: spacing.sm, marginBottom: 0 },
   // Stats
   statGradient: { padding: spacing.md, borderRadius: 16, minHeight: 80, justifyContent: 'space-between' },
   statsColumn: { paddingHorizontal: spacing.lg, gap: spacing.sm, marginTop: spacing.lg },

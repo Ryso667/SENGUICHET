@@ -17,16 +17,16 @@ import { HMAC_SECRET } from '../config'
 
 const QR_REFRESH_INTERVAL = 30
 
-// Génère le payload JSON du QR avec HMAC-SHA256 (uuid, ref, timestamp, event_id, category)
+// Génère le payload JSON du QR avec SHA256(data+secret) (uuid, ref, timestamp, event_id, category)
 async function genererQRPayload(ticket) {
   const now = new Date().toISOString()
-  const payload = `${ticket.id}|${ticket.numero}|${now}|${ticket.eventId}|${ticket.categorie}`
+  const payload = `${ticket.uuid}|${ticket.numero}|${now}|${ticket.eventId}|${ticket.categorie}`
   const signature = await Crypto.digestStringAsync(
     Crypto.CryptoDigestAlgorithm.SHA256,
     payload + HMAC_SECRET
   )
   return JSON.stringify({
-    uuid: ticket.id,
+    uuid: ticket.uuid,
     hmac: signature,
     event_id: ticket.eventId,
     category: ticket.categorie,

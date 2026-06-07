@@ -19,7 +19,7 @@ export async function fetchEvenementsAPI() {
       id: String(e.id),
       nom: e.nom || '',
       affiche_url: e.affiche_url || null,
-      date: e.date || '',
+      date: e.date_debut || '',
       lieu: e.lieu || '',
       categorie: e.categorie || '',
       code: e.code || '',

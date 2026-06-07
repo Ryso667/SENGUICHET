@@ -8,8 +8,8 @@ const { envoyerNotificationDemandeEvenement } = require("../services/emailServic
 
 const soumettreDemande = async (req, res) => {
   try {
-    const { type_action, evenement_id, titre, description, lieu,
-      date_debut, date_fin, capacite, affiche_url, payload, categories_tickets } = req.body;
+    const { type_action, evenement_id, titre, description, lieu, ville,
+      date_debut, date_fin, capacite, categorie, affiche_url, payload, categories_tickets } = req.body;
 
     if (!type_action || !["CREATION", "MODIFICATION", "SUPPRESSION"].includes(type_action)) {
       return res.status(400).json({ message: "Type d'action invalide" });
@@ -30,12 +30,12 @@ const soumettreDemande = async (req, res) => {
 
     const [result] = await pool.query(
       `INSERT INTO demande_evenement
-       (organisateur_id, type_action, evenement_id, titre, description, lieu,
-        date_debut, date_fin, capacite, affiche_url, payload)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (organisateur_id, type_action, evenement_id, titre, description, lieu, ville,
+        date_debut, date_fin, capacite, categorie, affiche_url, payload)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [req.user.id, type_action, evenement_id || null, titre || null,
-       description || null, lieu || null, dateDebut, dateFin,
-       capacite || 0, affiche_url || null,
+       description || null, lieu || null, ville || null, dateDebut, dateFin,
+       capacite || 0, categorie || null, affiche_url || null,
        (payload || categories_tickets) ? JSON.stringify(payload || { categories_tickets }) : null]
     );
 
@@ -153,11 +153,11 @@ const adminDetailDemande = async (req, res) => {
 const creerEvenementDepuisDemande = async (conn, demande) => {
   const scanCode = Math.random().toString(36).substring(2, 6).toUpperCase();
 
-  // Extraire ville et categorie du payload JSON de la demande
+  // Extraire ville et categorie (colonne directe ou payload JSON pour rétrocompatibilité)
   const payload = typeof demande.payload === "string"
     ? JSON.parse(demande.payload) : demande.payload;
-  const ville = payload?.ville || null;
-  const categorie = payload?.categorie || null;
+  const ville = demande.ville || payload?.ville || null;
+  const categorie = demande.categorie || payload?.categorie || null;
 
   const [evResult] = await conn.query(
     `INSERT INTO evenement (organisateur_id, titre, description, lieu, ville, categorie, date_debut, date_fin, capacite_totale, affiche_url, scan_code, statut)

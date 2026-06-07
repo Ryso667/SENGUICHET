@@ -36,17 +36,27 @@ export const connecterOrganisateur = async (email, motDePasse) => {
 }
 
 // Connexion contrôleur via code d'accès à 4 chiffres
-// Vérifie le code contre un hash bcrypt stocké localement
-// Au premier démarrage, initialise avec un code par défaut
+// Essaie d'abord l'API (vrai JWT), fallback local si hors-ligne
 export const connecterControleur = async (codeAcces) => {
-  let storedHash = await AsyncStorage.getItem(STORAGE_KEY_CTRL_CODE)
-  if (!storedHash) {
-    storedHash = await bcrypt.hash('1234', SALT_ROUNDS)
-    await AsyncStorage.setItem(STORAGE_KEY_CTRL_CODE, storedHash)
+  try {
+    const data = await appelAPI('/auth/controleur/connexion', {
+      method: 'POST',
+      body: { codeAcces },
+    })
+    return { token: data.token, user: data.user }
+  } catch (err) {
+    // Fallback local si API inaccessible
+    let storedHash = await AsyncStorage.getItem(STORAGE_KEY_CTRL_CODE)
+    if (!storedHash) {
+      const bcrypt = require('bcryptjs')
+      storedHash = await bcrypt.hash('1234', SALT_ROUNDS)
+      await AsyncStorage.setItem(STORAGE_KEY_CTRL_CODE, storedHash)
+    }
+    const { compare } = require('bcryptjs')
+    const valide = await compare(codeAcces, storedHash)
+    if (!valide) throw new Error("Code d'accès invalide")
+    return { token: 'jwt-ctrl-' + Date.now(), role: 'controleur' }
   }
-  const valide = await bcrypt.compare(codeAcces, storedHash)
-  if (!valide) throw new Error('Code d\'accès invalide')
-  return { token: 'jwt-ctrl-' + Date.now(), role: 'controleur' }
 }
 
 // Envoie un code OTP à l'email de l'acheteur via le backend

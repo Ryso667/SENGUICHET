@@ -1,0 +1,112 @@
+// Contrôleur scan : téléchargement offline et validation en ligne des QR tickets
+// GET /api/scans/tickets/:eventId — télécharge les billets d'un événement pour le scan offline
+// POST /api/scans/valider — valide un QR code côté serveur (HMAC + statut)
+
+const pool = require("../config/db");
+const crypto = require("crypto");
+
+const HMAC_SECRET = process.env.HMAC_SECRET;
+if (!HMAC_SECRET) console.warn("⚠️  HMAC_SECRET non défini — validation QR impossible");
+
+/** Télécharge les billets actifs d'un événement pour le scan offline
+ *  Retourne un tableau de tickets avec uuid, hmac, event_id, category, timestamp_gen
+ *  Utilisé par scanService.telechargerTickets() côté mobile */
+const telechargerTickets = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const [rows] = await pool.query(
+      `SELECT b.uuid, b.payload_signature AS hmac, b.evenement_id AS event_id,
+              ct.nom AS category, b.date_creation AS timestamp_gen
+       FROM billet b
+       JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+       WHERE b.evenement_id = ? AND b.statut = 'ACTIF'`,
+      [eventId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("telechargerTickets error:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+/** Valide un QR code côté serveur
+ *  Vérifie HMAC, expiration, existence et statut du billet en base
+ *  Retourne { valide, statut, message } */
+const validerBillet = async (req, res) => {
+  try {
+    const { uuid, hmac, event_id, category, timestamp, transaction_ref } = req.body;
+
+    if (!uuid || !hmac) {
+      return res.status(400).json({ valide: false, message: "Données QR incomplètes" });
+    }
+
+    // Vérifier la signature SHA256(data+secret)
+    const donnees = `${uuid}|${transaction_ref || ''}|${timestamp || ''}|${event_id || ''}|${category || ''}`;
+    const calcule = crypto.createHash('sha256').update(donnees + HMAC_SECRET).digest('hex');
+    if (calcule !== hmac) {
+      return res.json({ valide: false, statut: 'FRAUDE', message: 'Signature invalide' });
+    }
+
+    // Vérifier l'expiration (tolérance 60s pour le délai réseau)
+    if (timestamp) {
+      const age = Date.now() - new Date(timestamp).getTime();
+      if (age > 60000) {
+        return res.json({ valide: false, statut: 'EXPIRE', message: 'QR code expiré' });
+      }
+    }
+
+    // Chercher le billet en base
+    const [rows] = await pool.query(
+      "SELECT id, statut FROM billet WHERE uuid = ?",
+      [uuid]
+    );
+    if (!rows.length) {
+      return res.json({ valide: false, statut: 'INCONNU', message: 'Billet introuvable' });
+    }
+
+    const billet = rows[0];
+    if (billet.statut !== 'ACTIF') {
+      return res.json({ valide: false, statut: 'DEJA_UTILISE', message: 'Billet déjà utilisé ou annulé' });
+    }
+
+    res.json({ valide: true, statut: 'VALIDE', message: 'Entrée autorisée' });
+  } catch (err) {
+    console.error("validerBillet error:", err);
+    res.status(500).json({ valide: false, message: "Erreur serveur" });
+  }
+};
+
+/** Synchronise les scans offline vers le serveur
+ *  Reçoit un tableau de scans [{ uuid_billet, hmac, timestamp_scan, resultat }]
+ *  Insère dans scan_billet avec résolution billet_id et evenement_id */
+const synchroniserScans = async (req, res) => {
+  try {
+    const scans = req.body;
+    if (!Array.isArray(scans) || scans.length === 0) {
+      return res.status(400).json({ sync: false, message: "Données de scan invalides" });
+    }
+
+    const controleurId = req.user.id;
+    const statutMap = { VALIDE: "VALIDE", DEJA_UTILISE: "DEJA_UTILISE", FRAUDE: "INVALIDE", INCONNU: "INVALIDE", EXPIRE: "INVALIDE" };
+
+    let compteur = 0;
+    for (const s of scans) {
+      const statutDB = statutMap[s.resultat] || "INVALIDE";
+      await pool.query(
+        `INSERT INTO scan_billet (billet_id, controleur_id, evenement_id, statut, horodatage_scan, horodatage_local, est_offline, date_synchronisation)
+         SELECT b.id, ?, b.evenement_id, ?, ?, ?, 1, NOW()
+         FROM billet b
+         WHERE b.uuid = ?`,
+        [controleurId, statutDB, s.timestamp_scan, s.timestamp_scan, s.uuid_billet]
+      );
+      compteur++;
+    }
+
+    res.json({ sync: true, message: `${compteur} scan(s) synchronisé(s)` });
+  } catch (err) {
+    console.error("synchroniserScans error:", err);
+    res.status(500).json({ sync: false, message: "Erreur serveur" });
+  }
+};
+
+module.exports = { telechargerTickets, validerBillet, synchroniserScans };
