@@ -77,23 +77,29 @@ const regenerer = async (req, res) => {
     while (!insere) {
       nouveauCode = genererCode4();
       try {
-        await pool.query(
-          "INSERT INTO code_controleur (code, evenement_id, statut) VALUES (?, ?, 'ACTIF')",
-          [nouveauCode, evenementId]
+        const [existing] = await pool.query(
+          "SELECT id FROM code_controleur WHERE evenement_id = ? LIMIT 1",
+          [evenementId]
         );
+        if (existing.length) {
+          await pool.query(
+            "UPDATE code_controleur SET code = ?, statut = 'ACTIF' WHERE evenement_id = ?",
+            [nouveauCode, evenementId]
+          );
+        } else {
+          await pool.query(
+            "INSERT INTO code_controleur (code, evenement_id, statut) VALUES (?, ?, 'ACTIF')",
+            [nouveauCode, evenementId]
+          );
+        }
         insere = true;
       } catch (e) {
         if (e.code !== 'ER_DUP_ENTRY') throw e;
       }
     }
 
-    await pool.query(
-      "UPDATE code_controleur SET statut = 'INACTIF' WHERE evenement_id = ? AND id != (SELECT id FROM (SELECT id FROM code_controleur WHERE evenement_id = ? ORDER BY id DESC LIMIT 1) AS tmp) AND statut = 'ACTIF'",
-      [evenementId, evenementId]
-    );
-
     const [codes] = await pool.query(
-      "SELECT id, code, statut, date_creation FROM code_controleur WHERE evenement_id = ? AND statut = 'ACTIF' LIMIT 1",
+      "SELECT id, code, statut, date_creation FROM code_controleur WHERE evenement_id = ? LIMIT 1",
       [evenementId]
     );
 
