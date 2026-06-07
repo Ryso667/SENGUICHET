@@ -10,7 +10,7 @@ import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import { getCategoryImageUrl } from '../../config/images'
 import { formaterDateLisible } from '../../utils/dateUtils'
-import BlurBackground from '../../components/BlurBackground'
+import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 
@@ -64,7 +64,7 @@ export default function GestionEvenementsScreen({ navigation }) {
 
   return (
     <View style={s.container}>
-      <BlurBackground category="Conference" />
+      <OrganisateurLayout />
       <View style={{ paddingTop: insets.top, flex: 1 }}>
         <ScrollView
           contentContainerStyle={s.content}
@@ -118,7 +118,7 @@ export default function GestionEvenementsScreen({ navigation }) {
             </View>
           ) : filtered.length === 0 ? (
             /* État vide — calqué sur le web */
-            <GlassContainer style={s.emptyState}>
+            <GlassContainer blurType="light" style={s.emptyState}>
               <MaterialCommunityIcons name="ticket-outline" size={56} color="rgba(255,255,255,0.3)" />
               <Text style={s.emptyTitle}>Aucun événement trouvé</Text>
               <Text style={s.emptySub}>Vous n'avez pas encore d'événement. Faites une demande à l'équipe SENGUICHET.</Text>
@@ -134,7 +134,7 @@ export default function GestionEvenementsScreen({ navigation }) {
                 const capa = evt.capacite || 1
                 const pct = Math.min(100, Math.round(((evt.remplis || 0) / capa) * 100))
                 return (
-                  <GlassContainer key={evt.id} style={s.eventCard}>
+                  <GlassContainer blurType="light" key={evt.id} style={s.eventCard}>
                     {/* Hero image avec gradient overlay */}
                     <View style={s.cardHero}>
                       {evt.affiche_url || evt.categorie ? (

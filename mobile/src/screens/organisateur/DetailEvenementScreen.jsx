@@ -7,7 +7,7 @@ import { spacing, fonts, textShadow, borderRadius } from '../../constants/theme'
 import { fetchEvenementDetailAPI } from '../../services/eventService'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import Skeleton from '../../components/Skeleton'
-import BlurBackground from '../../components/BlurBackground'
+import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import GlassButton from '../../components/GlassButton'
 
@@ -43,7 +43,7 @@ export default function DetailEvenementScreen({ route }) {
   if (loading) {
     return (
       <View style={s.container}>
-        <BlurBackground category="Conference" />
+        <OrganisateurLayout />
         <View style={{ padding: spacing.lg, paddingTop: insets.top }}>
           <Skeleton type="card" count={4} />
         </View>
@@ -54,7 +54,7 @@ export default function DetailEvenementScreen({ route }) {
   if (!evenement) {
     return (
       <View style={s.center}>
-        <BlurBackground category="Conference" />
+        <OrganisateurLayout />
         <Text style={s.errorText}>Événement introuvable</Text>
       </View>
     )
@@ -65,9 +65,9 @@ export default function DetailEvenementScreen({ route }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <BlurBackground category="Conference" />
+      <OrganisateurLayout />
       <ScrollView showsVerticalScrollIndicator={false}>
-        <GlassContainer style={s.header} intensity={35}>
+        <GlassContainer blurType="light" style={s.header} intensity={35}>
           <Text style={s.title}>{evenement.nom}</Text>
           <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
             <Text style={[s.statusText, { color: cfg.color }]}>{cfg.label}</Text>
@@ -75,25 +75,25 @@ export default function DetailEvenementScreen({ route }) {
         </GlassContainer>
 
         <View style={s.infoGrid}>
-          <GlassContainer style={s.infoCard} intensity={30}>
+          <GlassContainer blurType="light" style={s.infoCard} intensity={30}>
             <Text style={s.infoLabel}>Date</Text>
             <Text style={s.infoValue}>{formaterDateLisible(evenement.date)}</Text>
           </GlassContainer>
-          <GlassContainer style={s.infoCard} intensity={30}>
+          <GlassContainer blurType="light" style={s.infoCard} intensity={30}>
             <Text style={s.infoLabel}>Lieu</Text>
             <Text style={s.infoValue}>{evenement.lieu || 'Non spécifié'}</Text>
           </GlassContainer>
-          <GlassContainer style={s.infoCard} intensity={30}>
+          <GlassContainer blurType="light" style={s.infoCard} intensity={30}>
             <Text style={s.infoLabel}>Capacité</Text>
             <Text style={s.infoValue}>{evenement.capacite || 0} places</Text>
           </GlassContainer>
-          <GlassContainer style={s.infoCard} intensity={30}>
+          <GlassContainer blurType="light" style={s.infoCard} intensity={30}>
             <Text style={s.infoLabel}>Code</Text>
             <Text style={s.infoValue}>{evenement.code || '-'}</Text>
           </GlassContainer>
         </View>
 
-        <GlassContainer style={s.fillSection} intensity={35}>
+        <GlassContainer blurType="light" style={s.fillSection} intensity={35}>
           <Text style={s.fillTitle}>Remplissage</Text>
           <View style={s.barRow}>
             <View style={s.barBg}>
@@ -105,14 +105,14 @@ export default function DetailEvenementScreen({ route }) {
         </GlassContainer>
 
         {evenement.description ? (
-          <GlassContainer style={s.section} intensity={30}>
+          <GlassContainer blurType="light" style={s.section} intensity={30}>
             <Text style={s.sectionTitle}>Description</Text>
             <Text style={s.description}>{evenement.description}</Text>
           </GlassContainer>
         ) : null}
 
 
-        <GlassContainer style={s.section} intensity={30}>
+        <GlassContainer blurType="light" style={s.section} intensity={30}>
           <Text style={s.sectionTitle}>Billets ({tickets.length})</Text>
           {tickets.length === 0 ? (
             <Text style={s.empty}>Aucun billet vendu</Text>

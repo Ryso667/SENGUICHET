@@ -11,9 +11,11 @@ import {
 } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
+import MaskedView from '@react-native-masked-view/masked-view'
 import { fonts, colors, spacing, borderRadius, glass, categoryGradients, textShadow } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
+import { BlurView } from 'expo-blur'
 import GlassButton from '../components/GlassButton'
 import { getDefaultImage } from '../config/images'
 import { fetchEvenementDetailPublic } from '../services/eventService'
@@ -27,8 +29,27 @@ export default function EventDetailScreen({ route, navigation }) {
   const { definirTelephone, numeroTel, email } = useAuth()
   const insets = useSafeAreaInsets()
   const { height: screenHeight } = useWindowDimensions()
+
+  // Convertit une couleur hex (#RRGGBB) en rgba — React Native ne supporte pas #RRGGBBAA
+  const hexToRgba = (hex, alpha) => {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r},${g},${b},${alpha})`
+  }
+
+  // Éclaircit une couleur hex (#RRGGBB) — factor 0 = original, 1 = blanc
+  const lightenColor = (hex, factor) => {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    const lr = Math.round(r + (255 - r) * factor)
+    const lg = Math.round(g + (255 - g) * factor)
+    const lb = Math.round(b + (255 - b) * factor)
+    return `rgb(${lr},${lg},${lb})`
+  }
+
   const [event, setEvent] = useState(null)
-  const catColor = event?.category ? getDefaultImage(event.category).bg : colors.accent
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [showCategorySheet, setShowCategorySheet] = useState(false)
   const [error, setError] = useState(null)
@@ -52,6 +73,11 @@ export default function EventDetailScreen({ route, navigation }) {
   const [selectedProvider, setSelectedProvider] = useState('WAVE')
   const spinAnim = useRef(new Animated.Value(0)).current
   const scaleAnim = useRef(new Animated.Value(0)).current
+  const scrollY = useRef(new Animated.Value(0)).current
+  const heroFade = useRef(new Animated.Value(0)).current
+  const dateParts = event?.date ? formaterDateLisible(event.date).split(' ') : null
+  const dayNumber = dateParts?.[0]
+  const monthYear = dateParts?.slice(1).join(' ')
 
   // Charge les détails de l'événement au montage ou lors d'un retry
   useEffect(() => {
@@ -64,6 +90,8 @@ export default function EventDetailScreen({ route, navigation }) {
           return
         }
         setEvent(data)
+        // Animation d'entrée du hero
+        Animated.spring(heroFade, { toValue: 1, friction: 7, tension: 40, useNativeDriver: true }).start()
         // Sélectionne par défaut le billet le moins cher
         if (data.tickets.length > 0) {
           setSelectedTicket(data.tickets.reduce((a, b) => a.price < b.price ? a : b))
@@ -183,35 +211,55 @@ export default function EventDetailScreen({ route, navigation }) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Fond immersif plein écran */}
-      <BlurBackground category={event?.category} afficheUrl={event?.affiche_url} />
+      {/* Fond immersif plein écran avec parallax */}
+      <BlurBackground category={event?.category} afficheUrl={event?.affiche_url} parallaxOffset={scrollY.interpolate({
+        inputRange: [-100, 0, 200],
+        outputRange: [-30, 0, 60],
+        extrapolate: 'clamp',
+      })} />
 
       {/* Bouton retour flottant avec cercle glass */}
       <TouchableOpacity style={[styles.floatingBack, { top: insets.top + 8 }]} onPress={() => navigation.goBack()}>
         <Feather name="arrow-left" size={20} color="#fff" />
       </TouchableOpacity>
 
-      <ScrollView
+      <Animated.ScrollView
         style={styles.flex}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 60 }]}
         showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
       >
 
         {/* Hero invitation — titre XXL + date mise en avant */}
+        <Animated.View style={{
+          opacity: heroFade,
+          transform: [{ translateY: heroFade.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
+        }}>
         <View style={styles.heroSection}>
-          <Text style={[styles.heroCategory, { color: catColor }]}>{event.category || 'ÉVÉNEMENT'}</Text>
-          <Text style={styles.heroTitle}>{event.title}</Text>
+          <Text style={[styles.heroCategory, { color: '#06B6D4' }]}>{event.category || 'ÉVÉNEMENT'}</Text>
+          <MaskedView maskElement={<Text style={styles.heroTitle}>{event.title}</Text>}>
+            <LinearGradient colors={['#2563EB', '#06B6D4']} start={{x:0,y:0}} end={{x:1,y:0}}>
+              <Text style={[styles.heroTitle, { opacity: 0 }]}>{event.title}</Text>
+            </LinearGradient>
+          </MaskedView>
 
-          <View style={[styles.heroDivider, { backgroundColor: catColor }]} />
+          <View style={[styles.heroDivider, { backgroundColor: '#2563EB' }]} />
 
           {event.date && (
             <GlassContainer style={styles.heroDateCard}>
-              <Feather name="calendar" size={18} color={catColor} />
-              <View>
-                <Text style={styles.heroDateDay}>
-                  {formaterDateLisible(event.date).toUpperCase()}
-                </Text>
+              <View style={[styles.heroIconBadge, { backgroundColor: hexToRgba('#2563EB', 0.15) }]}>
+                <Feather name="calendar" size={22} color="#fff" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={styles.heroDateRow}>
+                  <Text style={styles.heroDateDayNum}>{dayNumber}</Text>
+                  <Text style={styles.heroDateMonth}>{monthYear?.toUpperCase()}</Text>
+                </View>
                 {!!event.time && (
                   <View style={styles.heroTimeRow}>
                     <Feather name="clock" size={11} color="rgba(255,255,255,0.5)" />
@@ -224,7 +272,9 @@ export default function EventDetailScreen({ route, navigation }) {
 
           {!!event.location && (
             <GlassContainer style={styles.heroLocationCard}>
-              <Feather name="map-pin" size={18} color={catColor} />
+              <View style={[styles.heroIconBadge, { backgroundColor: hexToRgba('#2563EB', 0.15) }]}>
+                <Feather name="map-pin" size={22} color="#fff" />
+              </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.heroLocationMain} numberOfLines={2}>{event.location}</Text>
                 <Text style={styles.heroLocationSub}>Lieu de l'événement</Text>
@@ -232,6 +282,7 @@ export default function EventDetailScreen({ route, navigation }) {
             </GlassContainer>
           )}
         </View>
+        </Animated.View>
 
         {/* Description — carte large */}
         {!!event.desc && (
@@ -281,21 +332,21 @@ export default function EventDetailScreen({ route, navigation }) {
           />
         </GlassContainer>
 
-        </ScrollView>
+        </Animated.ScrollView>
 
-        {/* Barre d'achat fixe en bas */}
-        <View style={styles.bottomBar}>
-          <View style={styles.bottomBarTotal}>
+        {/* Barre d'achat fixe en bas — effet glass */}
+        <BlurView tint="dark" intensity={90} style={styles.bottomBar}>
+          <GlassContainer style={styles.bottomBarTotal}>
             <Text style={styles.bottomBarTotalLabel}>Total</Text>
             <Text style={styles.bottomBarTotalPrice}>{selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
-          </View>
+          </GlassContainer>
           <TouchableOpacity
             onPress={handleBuy}
             activeOpacity={0.9}
             style={styles.buyBtnWrap}
           >
             <LinearGradient
-              colors={[catColor, `${catColor}88`]}
+              colors={['#2563EB', '#06B6D4']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.buyBtnGradient}
@@ -304,7 +355,7 @@ export default function EventDetailScreen({ route, navigation }) {
               <Feather name="arrow-right" size={16} color="#fff" />
             </LinearGradient>
           </TouchableOpacity>
-        </View>
+        </BlurView>
 
       {/* Modal de sélection de catégorie */}
       <Modal
@@ -341,8 +392,8 @@ export default function EventDetailScreen({ route, navigation }) {
                     style={[
                       styles.sheetItem,
                       selectedTicket.name === t.name && {
-                        backgroundColor: `${catColor}33`,
-                        borderColor: catColor,
+                        backgroundColor: 'rgba(37,99,235,0.2)',
+                        borderColor: '#2563EB',
                       },
                     ]}
                   >
@@ -356,7 +407,7 @@ export default function EventDetailScreen({ route, navigation }) {
                         <Text style={styles.sheetItemPlaces}>{t.placesDisponibles}/{t.capacite} places</Text>
                       )}
                     {selectedTicket.name === t.name && (
-                      <View style={[styles.sheetCheck, { backgroundColor: catColor }]}>
+                      <View style={[styles.sheetCheck, { backgroundColor: '#2563EB' }]}>
                         <Feather name="check" size={12} color="#fff" />
                       </View>
                     )}
@@ -406,9 +457,11 @@ export default function EventDetailScreen({ route, navigation }) {
               <>
                 {/* Montant uniquement */}
                 <Text style={styles.payAmountLabel}>{selectedTicket.name}</Text>
-                <Text style={[styles.payAmountValue, { color: catColor }]}>
-                  {selectedTicket.price.toLocaleString()} FCFA
-                </Text>
+                <GlassContainer style={[styles.payAmountCard, { borderColor: hexToRgba('#2563EB', 0.27) }]}>
+                  <Text style={[styles.payAmountValue, { color: '#1AB3E5' }]}>
+                    {selectedTicket.price.toLocaleString()} FCFA
+                  </Text>
+                </GlassContainer>
 
                 {/* Bouton de paiement Wave — mobile money */}
                 <TouchableOpacity
@@ -471,8 +524,8 @@ export default function EventDetailScreen({ route, navigation }) {
                     <Feather name="refresh-cw" size={14} color="#fff" />
                     <Text style={styles.payRetryText}>Réessayer</Text>
                   </LinearGradient>
-                </TouchableOpacity>
-              </View>
+          </TouchableOpacity>
+        </View>
             )}
           </GlassContainer>
           </KeyboardAvoidingView>
@@ -547,20 +600,42 @@ const styles = StyleSheet.create({
     borderRadius: 1,
     marginVertical: 20,
   },
+  // Badge icône dans les cartes hero — rond translucide teinté
+  heroIconBadge: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   // Carte date mise en avant
   heroDateCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    gap: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
     marginBottom: spacing.sm,
   },
-  heroDateDay: {
-    fontSize: 16,
-    fontFamily: fonts.outfit.bold,
+  heroDateRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 10,
+  },
+  // Jour en énorme — style billet de concert
+  heroDateDayNum: {
+    fontSize: 42,
+    fontFamily: fonts.outfit.extraBold,
     color: '#fff',
-    letterSpacing: 1,
+    letterSpacing: -2,
+    lineHeight: 46,
+    ...textShadow,
+  },
+  heroDateMonth: {
+    fontSize: 14,
+    fontFamily: fonts.outfit.semiBold,
+    color: 'rgba(255,255,255,0.6)',
+    letterSpacing: 2,
   },
   heroTimeRow: {
     flexDirection: 'row',
@@ -778,23 +853,32 @@ const styles = StyleSheet.create({
     fontFamily: fonts.outfit.bold,
     fontSize: 40,
     letterSpacing: -1.5,
-    marginBottom: spacing.xl,
     ...textShadow,
   },
-  // Barre d'achat en bas — premium
+  // Carte prix dans le modal paiement avec bordure teintée
+  payAmountCard: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    marginBottom: spacing.xl,
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  // Barre d'achat en bas — effet glass premium
   bottomBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: spacing.lg,
     paddingBottom: Platform.OS === 'ios' ? 34 : spacing.lg,
-    backgroundColor: 'rgba(15,15,42,0.92)',
+    backgroundColor: glass.darkBgHeavy,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255,255,255,0.08)',
+    borderTopColor: glass.border,
     gap: 16,
   },
   bottomBarTotal: {
-    gap: 2,
+    gap: 4,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
   bottomBarTotalLabel: {
     fontSize: 10,
@@ -804,8 +888,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   bottomBarTotalPrice: {
-    fontSize: 22,
-    fontFamily: fonts.outfit.bold,
+    fontSize: 28,
+    fontFamily: fonts.outfit.extraBold,
     color: '#fff',
     letterSpacing: -0.5,
   },
@@ -822,11 +906,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    paddingVertical: 18,
+    paddingVertical: 20,
   },
   buyBtnText: {
-    fontSize: 16,
-    fontFamily: fonts.outfit.semiBold,
+    fontSize: 18,
+    fontFamily: fonts.outfit.bold,
     color: '#fff',
     letterSpacing: -0.2,
   },

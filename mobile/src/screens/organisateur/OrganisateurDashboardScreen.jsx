@@ -10,7 +10,7 @@ import { useAuth } from '../../context/AuthContext'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import { LinearGradient } from 'expo-linear-gradient'
 import { getCategoryImageUrl } from '../../config/images'
-import BlurBackground from '../../components/BlurBackground'
+import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 
@@ -92,13 +92,13 @@ export default function OrganisateurDashboardScreen({ navigation }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <BlurBackground category="Conference" />
+      <OrganisateurLayout />
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor="#fff" />}
       >
         {/* Greeting — calqué sur le web : "Bonjour, {nom}" + date */}
-        <GlassContainer style={s.greeting}>
+        <GlassContainer blurType="light" style={s.greeting}>
           <View style={s.headerRow}>
             <MaterialCommunityIcons name="view-grid-outline" size={22} color="#fff" />
             <Text style={s.bonjour}>Bonjour, {user?.nom || 'Organisateur'}</Text>
@@ -116,7 +116,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
             <View style={s.statsColumn}>
               {stats.map((st, i) => (
                 <Animated.View key={st.label} style={{ opacity: fadeAnims[i], transform: [{ translateY: slideAnims[i] }] }}>
-                  <GlassContainer style={[s.statCard, { borderLeftWidth: 3, borderLeftColor: statColors[i][0].replace('0.25', '1') }]} intensity={40}>
+                  <GlassContainer blurType="light" style={[s.statCard, { borderLeftWidth: 3, borderLeftColor: statColors[i][0].replace('0.25', '1') }]} intensity={40}>
                     <LinearGradient colors={[statColors[i][0], statColors[i][1]]} style={s.statGradient}>
                       <View style={s.statTop}>
                         <MaterialCommunityIcons name={st.icon} size={20} color="#fff" />
@@ -131,7 +131,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
 
             {/* Section événements récents — calquée sur le web */}
             <Animated.View style={{ opacity: fadeAnims[4], transform: [{ translateY: slideAnims[4] }] }}>
-            <GlassContainer style={s.recentSection}>
+            <GlassContainer blurType="light" style={s.recentSection}>
               <View style={s.recentHeader}>
                 <Text style={s.recentTitle}>Mes événements récents</Text>
                 {events.length > 3 && (
@@ -149,7 +149,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
                     const cfg = STATUT_CONFIG[ev.statut] || STATUT_CONFIG.en_attente
                     const pct = Math.min(100, Math.round(((ev.remplis || 0) / (ev.capacite || 1)) * 100))
                     return (
-                      <GlassContainer key={ev.id} style={s.eventCard}>
+                      <GlassContainer blurType="light" key={ev.id} style={s.eventCard}>
                         {/* Hero image avec dégradé de catégorie + overlay */}
                         <View style={s.eventHero}>
                           {ev.affiche_url || ev.categorie ? (

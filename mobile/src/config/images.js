@@ -26,7 +26,7 @@ const DEFAULTS = {
   Festival: { bg: '#059669', icon: 'tent', emoji: '🎪' },
   Théâtre: { bg: '#b91c1c', icon: 'theater-masks', emoji: '🎭' },
   Sport: { bg: '#2563eb', icon: 'soccer', emoji: '⚽' },
-  Conférence: { bg: '#1e293b', icon: 'microphone', emoji: '🎤' },
+  Conférence: { bg: '#1e293b', icon: 'laptop', emoji: '🎤' },
   Atelier: { bg: '#d97706', icon: 'wrench', emoji: '🔧' },
   Exposition: { bg: '#7c3aed', icon: 'image-frame', emoji: '🖼️' },
   'Club / Soirée': { bg: '#db2777', icon: 'star', emoji: '✨' },

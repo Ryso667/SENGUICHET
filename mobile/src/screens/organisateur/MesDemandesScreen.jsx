@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
 import { listerMesDemandes, soumettreDemandeEvenement } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
-import BlurBackground from '../../components/BlurBackground'
+import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 
@@ -198,7 +198,7 @@ export default function MesDemandesScreen({ navigation }) {
 
   return (
     <View style={s.container}>
-      <BlurBackground category="Conference" />
+      <OrganisateurLayout />
       <View style={{ paddingTop: insets.top, flex: 1 }}>
         <ScrollView
           contentContainerStyle={s.content}
@@ -220,7 +220,7 @@ export default function MesDemandesScreen({ navigation }) {
           {loading ? (
             <Skeleton type="card" count={3} />
           ) : demandes.length === 0 ? (
-            <GlassContainer style={s.emptyState}>
+            <GlassContainer blurType="light" style={s.emptyState}>
               <MaterialCommunityIcons name="inbox-outline" size={56} color="rgba(255,255,255,0.2)" />
               <Text style={s.emptyTitle}>Aucune demande</Text>
               <Text style={s.emptySub}>Vous n'avez encore fait aucune demande.</Text>
@@ -234,7 +234,7 @@ export default function MesDemandesScreen({ navigation }) {
               {demandes.map((d, i) => {
                 const cfg = STATUT_CONFIG[d.statut] || STATUT_CONFIG.soumis
                 return (
-                  <GlassContainer key={d.id} style={s.card}>
+                  <GlassContainer blurType="light" key={d.id} style={s.card}>
                     <View style={s.cardTop}>
                       <View style={s.cardInfo}>
                         <View style={s.cardTitleRow}>
@@ -346,7 +346,7 @@ export default function MesDemandesScreen({ navigation }) {
                   </View>
 
                   {error ? (
-                    <GlassContainer style={s.errorBox}>
+                    <GlassContainer blurType="light" style={s.errorBox}>
                       <Text style={s.errorText}>{error}</Text>
                     </GlassContainer>
                   ) : null}
