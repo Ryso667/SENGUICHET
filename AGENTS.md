@@ -69,7 +69,7 @@ expo-camera, expo-sqlite, expo-crypto, @vercel/node, nodemailer
 - Ne pas logger mots de passe ou tokens
 
 ## Contexte mémorisé (Juin 2026)
-- **Branche de travail** : `feature/mouhtada` — NE JAMAIS modifier `main`
+- **Branche de travail** : `feature/Sory`
 - **bcrypt pour organisateur** : backend hash avec bcrypt work factor 10
 - **Authentification** : 3 rôles (Acheteur OTP email, Contrôleur code 4 chiffres, Organisateur email+bcrypt)
 - **API déployée** sur Vercel avec base TiDB — ne pas écraser les infos de connexion

@@ -28,8 +28,7 @@ const creer = async (req, res) => {
 
     const dateDebutFull = `${dateDebut} ${heureDebut}:00`;
     const dateFinFull = dateFin ? `${dateFin} 23:59:00` : null;
-    // Accepte l'affiche soit via upload multer (multipart) soit via URL directe (JSON)
-    const afficheUrl = req.file ? `/uploads/${req.file.filename}` : (req.body.affiche_url || null);
+    const afficheUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
     const scanCode = Math.random().toString(36).substring(2, 6).toUpperCase();
 
@@ -106,7 +105,7 @@ const lister = async (req, res) => {
         revenus: `${parseInt(r.revenus || 0).toLocaleString()} FCFA`,
         statut,
         code: r.scan_code || '',
-        affiche_url: r.affiche_url,
+        img: r.affiche_url || `/images/event-${(r.id % 3) + 1}.jpg`,
       };
     });
 
@@ -175,8 +174,7 @@ const modifier = async (req, res) => {
 
     const dateDebutFull = `${dateDebut} ${heureDebut}:00`;
     const dateFinFull = dateFin ? `${dateFin} 23:59:00` : null;
-    // Accepte l'affiche via upload multer, body JSON, ou conserve l'existante
-    const afficheUrl = req.file ? `/uploads/${req.file.filename}` : (req.body.affiche_url || existing[0].affiche_url);
+    const afficheUrl = req.file ? `/uploads/${req.file.filename}` : existing[0].affiche_url;
 
     const conn = await pool.getConnection();
     try {
@@ -357,7 +355,7 @@ const listerPublic = async (req, res) => {
         (SELECT MIN(ct.prix) FROM categorie_ticket ct WHERE ct.evenement_id = e.id) AS prix_min,
         (SELECT MAX(ct.prix) FROM categorie_ticket ct WHERE ct.evenement_id = e.id) AS prix_max
       FROM evenement e
-      WHERE e.statut = 'actif' AND (e.date_fin IS NULL OR e.date_fin >= DATE_SUB(NOW(), INTERVAL 7 DAY))
+      WHERE e.statut = 'actif' AND (e.date_fin IS NULL OR e.date_fin >= NOW())
       ORDER BY e.date_debut ASC`
     );
 

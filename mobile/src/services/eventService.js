@@ -3,18 +3,6 @@
 import { getDefaultImage } from '../config/images'
 import { appelAPI } from './apiService'
 
-// URL racine du backend (sans /api) pour reconstruire les URLs d'affiche relatives
-const API_ORIGIN = 'https://backend-rust-sigma-64.vercel.app'
-
-// Transforme une URL d'affiche relative en URL absolue
-// Retourne null si aucune URL fournie
-function normaliserAfficheUrl(url) {
-  if (!url) return null
-  if (url.startsWith('http://') || url.startsWith('https://')) return url
-  if (url.startsWith('/')) return `${API_ORIGIN}${url}`
-  return url
-}
-
 // ===== Fonctions organisateur =====
 
 // Récupère la liste des événements depuis le backend
@@ -30,7 +18,7 @@ export async function fetchEvenementsAPI() {
     return {
       id: String(e.id),
       nom: e.nom || '',
-      affiche_url: normaliserAfficheUrl(e.affiche_url),
+      affiche_url: e.affiche_url || null,
       date: e.date || '',
       lieu: e.lieu || '',
       categorie: e.categorie || '',
@@ -57,7 +45,6 @@ export async function creerEvenementAPI(data) {
     dateFin: data.dateFin || data.date,
     heureDebut: data.heure || '00:00',
     capacite,
-    affiche_url: data.poster || null,
     ticketTypes: data.categories.map(c => ({
       nom: c.nom,
       description: '',
@@ -78,7 +65,7 @@ export async function fetchEvenementDetailAPI(id) {
     evenement: {
       id: String(e.id),
       nom: e.titre || '',
-      affiche_url: normaliserAfficheUrl(e.affiche_url),
+      affiche_url: e.affiche_url || null,
       date: e.date_debut || '',
       lieu: e.lieu || '',
       categorie: e.categorie || '',
@@ -117,7 +104,6 @@ export async function modifierEvenementAPI(id, data) {
     dateFin: data.dateFin || data.date,
     heureDebut: data.heure || '00:00',
     capacite,
-    affiche_url: data.poster || null,
     ticketTypes: data.categories.map(c => ({
       nom: c.nom,
       description: '',
@@ -157,28 +143,23 @@ export async function fetchEvenementsPublics(filtres = {}) {
   const query = params.toString() ? `?${params.toString()}` : ''
   const data = await appelAPI(`/evenements/public${query}`)
   if (!Array.isArray(data)) return []
-  const now = new Date()
-  return data.map(e => {
-    const dateFin = e.date_fin ? new Date(e.date_fin) : null
-    return {
-      id: String(e.id),
-      title: e.titre || e.nom || '',
-      affiche_url: normaliserAfficheUrl(e.affiche_url),
-      date: e.date_debut || e.date || '',
-      location: e.lieu || '',
-      category: e.categorie || '',
-      desc: e.description || '',
-      estPasse: dateFin && dateFin < now,
-      tickets: (e.categories || []).map(c => ({
-        id: String(c.id),
-        name: c.nom,
-        price: c.prix,
-        desc: c.description || '',
-      })),
-      priceMin: e.prix_min || 0,
-      priceMax: e.prix_max || 0,
-    }
-  })
+  return data.map(e => ({
+    id: String(e.id),
+    title: e.titre || e.nom || '',
+    affiche_url: e.affiche_url || null,
+    date: e.date_debut || e.date || '',
+    location: e.lieu || '',
+    category: e.categorie || '',
+    desc: e.description || '',
+    tickets: (e.categories || []).map(c => ({
+      id: String(c.id),
+      name: c.nom,
+      price: c.prix,
+      desc: c.description || '',
+    })),
+    priceMin: e.prix_min || 0,
+    priceMax: e.prix_max || 0,
+  }))
 }
 
 // Récupère le détail public d'un événement par son ID
@@ -193,7 +174,6 @@ export async function fetchEvenementDetailPublic(eventId) {
     location: e.lieu || '',
     category: e.categorie || '',
     desc: e.description || '',
-    affiche_url: normaliserAfficheUrl(e.affiche_url),
     bg: e.categorie ? getDefaultImage(e.categorie).bg : '#E0F7FF',
     emoji: e.categorie ? getDefaultImage(e.categorie).emoji : '🎉',
     tickets: (data.categories || []).map(c => ({
@@ -201,8 +181,6 @@ export async function fetchEvenementDetailPublic(eventId) {
       name: c.nom,
       price: c.prix,
       desc: c.description || '',
-      capacite: c.capacite,
-      placesDisponibles: c.places_disponibles,
     })),
     time: e.date_debut ? e.date_debut.slice(11, 16) : '',
     priceMin: e.prix_min || 0,
