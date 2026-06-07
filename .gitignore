@@ -57,3 +57,4 @@ frontend-web/build/
 # Backend data directory (OTP persist)
 backend/data/
 node_modules_old/
+.vercel
