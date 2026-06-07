@@ -100,12 +100,13 @@ const lister = async (req, res) => {
         categorie: r.categorie,
         date: new Date(r.date_debut).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }),
         lieu: r.lieu,
+        ville: r.ville,
         remplis: remplies,
         capacite: r.capacite_billets || r.capacite_totale,
         revenus: `${parseInt(r.revenus || 0).toLocaleString()} FCFA`,
         statut,
         code: r.scan_code || '',
-        img: r.affiche_url || `/images/event-${(r.id % 3) + 1}.jpg`,
+        affiche_url: r.affiche_url || `/images/event-${(r.id % 3) + 1}.jpg`,
       };
     });
 
