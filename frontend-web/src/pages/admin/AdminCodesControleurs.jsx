@@ -2,19 +2,19 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
 import {
-  adminListerCodesControleur,
-  adminRegenererCodes,
-  adminDesactiverCodes,
+  adminListerCodeControleur,
+  adminRegenererCode,
+  adminDesactiverCode,
 } from "../../services/controleurService";
-import { ArrowLeft, Clipboard, Check, X, Loader } from "../../components/Icons";
+import { ArrowLeft, Clipboard, Check, Loader } from "../../components/Icons";
 
 const AdminCodesControleurs = () => {
   const { evenementId } = useParams();
   const navigate = useNavigate();
   const [evenement, setEvenement] = useState(null);
-  const [codes, setCodes] = useState([]);
+  const [codeData, setCodeData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [copiedIndex, setCopiedIndex] = useState(null);
+  const [copied, setCopied] = useState(false);
   const [showRegenModal, setShowRegenModal] = useState(false);
   const [showDesactModal, setShowDesactModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -25,13 +25,13 @@ const AdminCodesControleurs = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const fetchCodes = useCallback(async () => {
+  const fetchCode = useCallback(async () => {
     try {
-      const data = await adminListerCodesControleur(evenementId);
+      const data = await adminListerCodeControleur(evenementId);
       setEvenement(data.evenement);
-      setCodes(data.codes);
+      setCodeData(data.code);
     } catch (err) {
-      console.error("Erreur chargement codes:", err);
+      console.error("Erreur chargement code:", err);
       showToast("Erreur lors du chargement", "error");
     } finally {
       setLoading(false);
@@ -39,14 +39,14 @@ const AdminCodesControleurs = () => {
   }, [evenementId]);
 
   useEffect(() => {
-    fetchCodes();
-  }, [fetchCodes]);
+    fetchCode();
+  }, [fetchCode]);
 
-  const copyCode = async (code, index) => {
+  const copyCode = async (code) => {
     try {
       await navigator.clipboard.writeText(code);
-      setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), 2000);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
       showToast("Erreur de copie", "error");
     }
@@ -55,10 +55,10 @@ const AdminCodesControleurs = () => {
   const handleRegenerer = async () => {
     setActionLoading(true);
     try {
-      const data = await adminRegenererCodes(evenementId);
-      setCodes(data.codes);
+      const data = await adminRegenererCode(evenementId);
+      setCodeData(data.code);
       setShowRegenModal(false);
-      showToast("5 nouveaux codes générés avec succès");
+      showToast("Nouveau code généré avec succès");
     } catch (err) {
       showToast(err.message || "Erreur", "error");
     } finally {
@@ -69,10 +69,10 @@ const AdminCodesControleurs = () => {
   const handleDesactiver = async () => {
     setActionLoading(true);
     try {
-      await adminDesactiverCodes(evenementId);
-      setCodes((prev) => prev.map((c) => ({ ...c, statut: "INACTIF" })));
+      await adminDesactiverCode(evenementId);
+      setCodeData((prev) => prev ? { ...prev, statut: "INACTIF" } : prev);
       setShowDesactModal(false);
-      showToast("Tous les codes ont été désactivés");
+      showToast("Code désactivé avec succès");
     } catch (err) {
       showToast(err.message || "Erreur", "error");
     } finally {
@@ -142,7 +142,7 @@ const AdminCodesControleurs = () => {
 
         <div className="mb-6">
           <h1 className="text-2xl font-bold" style={{ fontFamily: "Outfit, sans-serif", color: "#F1F5F9" }}>
-            Codes contrôleurs
+            Code contrôleur
           </h1>
           {evenement && (
             <p className="text-sm mt-1" style={{ color: "#00C8FF" }}>
@@ -153,7 +153,7 @@ const AdminCodesControleurs = () => {
 
         <div className="mb-6 p-4 rounded-xl" style={{ background: "rgba(0,200,255,0.08)", borderLeft: "4px solid #00C8FF" }}>
           <p className="text-sm" style={{ color: "#A0B4C8" }}>
-            Ces codes permettent aux contrôleurs d'accéder au scanner de cet événement. Chaque code est unique et personnel.
+            Ce code permet aux contrôleurs d'accéder au scanner de cet événement. Chaque code est unique et personnel à un événement.
           </p>
         </div>
 
@@ -161,66 +161,66 @@ const AdminCodesControleurs = () => {
           <div className="flex items-center justify-center py-16">
             <Loader size={24} style={{ color: "#00C8FF" }} />
           </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              {codes.map((c, i) => (
-                <div
-                  key={c.id}
-                  className="rounded-xl p-5 relative transition-all"
+        ) : codeData ? (
+          <div className="max-w-md mx-auto">
+            <div
+              className="rounded-xl p-8 relative transition-all"
+              style={{
+                background: "#152232",
+                border: "1px solid rgba(0,200,255,0.15)",
+                animation: "fadeIn 0.3s ease",
+              }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "#A0B4C8" }}>
+                  Code d'accès
+                </span>
+                <span
+                  className="text-xs font-medium px-3 py-1 rounded-full"
                   style={{
-                    background: "#152232",
-                    border: "1px solid rgba(0,200,255,0.15)",
-                    animation: "fadeIn 0.3s ease",
+                    background: codeData.statut === "ACTIF" ? "rgba(0,229,160,0.15)" : "rgba(107,114,128,0.15)",
+                    color: codeData.statut === "ACTIF" ? "#00E5A0" : "#6B7280",
                   }}
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "#A0B4C8" }}>
-                      Contrôleur N°{c.index_controleur + 1}
-                    </span>
-                    <span
-                      className="text-xs font-medium px-2 py-0.5 rounded-full"
-                      style={{
-                        background: c.statut === "ACTIF" ? "rgba(0,229,160,0.15)" : "rgba(107,114,128,0.15)",
-                        color: c.statut === "ACTIF" ? "#00E5A0" : "#6B7280",
-                      }}
-                    >
-                      {c.statut}
-                    </span>
-                  </div>
+                  {codeData.statut}
+                </span>
+              </div>
 
-                  <p className="text-center" style={{
-                    fontSize: "36px",
-                    fontWeight: 800,
-                    color: "#00C8FF",
-                    letterSpacing: "8px",
-                    fontFamily: "monospace",
-                    margin: "12px 0",
-                  }}>
-                    {c.code}
-                  </p>
+              <p className="text-center" style={{
+                fontSize: "48px",
+                fontWeight: 800,
+                color: "#00C8FF",
+                letterSpacing: "12px",
+                fontFamily: "monospace",
+                margin: "20px 0",
+              }}>
+                {codeData.code}
+              </p>
 
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => copyCode(c.code, i)}
-                      className="p-2 rounded-lg transition-all"
-                      style={{ color: copiedIndex === i ? "#00E5A0" : "#A0B4C8" }}
-                    >
-                      {copiedIndex === i ? <Check size={18} /> : <Clipboard size={18} />}
-                    </button>
-                  </div>
-                </div>
-              ))}
+              <div className="flex justify-center">
+                <button
+                  onClick={() => copyCode(codeData.code)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all"
+                  style={{
+                    background: "rgba(0,200,255,0.1)",
+                    border: "1px solid rgba(0,200,255,0.2)",
+                    color: copied ? "#00E5A0" : "#A0B4C8",
+                  }}
+                >
+                  {copied ? <Check size={16} /> : <Clipboard size={16} />}
+                  {copied ? "Copié !" : "Copier le code"}
+                </button>
+              </div>
             </div>
 
             <button
               onClick={() => setShowRegenModal(true)}
-              className="w-full py-3.5 rounded-lg text-sm font-bold text-white transition-all mb-3"
+              className="w-full py-3.5 rounded-lg text-sm font-bold text-white transition-all mt-6 mb-3"
               style={{
                 background: "linear-gradient(135deg, #00C8FF, #0077FF)",
               }}
             >
-              🔄 Régénérer les codes
+              🔄 Régénérer le code
             </button>
 
             <div className="text-center">
@@ -229,18 +229,22 @@ const AdminCodesControleurs = () => {
                 className="text-sm transition-all"
                 style={{ color: "#FF4D6D" }}
               >
-                Désactiver tous les codes
+                Désactiver le code
               </button>
             </div>
-          </>
+          </div>
+        ) : (
+          <div className="max-w-md mx-auto rounded-xl p-12 text-center" style={{ background: "#152232", border: "1px solid rgba(0,200,255,0.15)" }}>
+            <p style={{ color: "#A0B4C8" }}>Aucun code trouvé.</p>
+          </div>
         )}
 
         <Modal
           show={showRegenModal}
           onClose={() => setShowRegenModal(false)}
           onConfirm={handleRegenerer}
-          title="Régénérer les codes ?"
-          message="Les 5 codes actuels seront immédiatement désactivés. Les contrôleurs qui utilisent ces codes perdront leur accès."
+          title="Régénérer le code ?"
+          message="Le code actuel sera immédiatement désactivé. Les contrôleurs qui utilisent ce code perdront leur accès."
           confirmLabel="Confirmer"
         />
 
@@ -248,8 +252,8 @@ const AdminCodesControleurs = () => {
           show={showDesactModal}
           onClose={() => setShowDesactModal(false)}
           onConfirm={handleDesactiver}
-          title="Désactiver tous les codes ?"
-          message="Tous les codes seront désactivés. Les contrôleurs ne pourront plus accéder au scanner de cet événement."
+          title="Désactiver le code ?"
+          message="Le code sera désactivé. Les contrôleurs ne pourront plus accéder au scanner de cet événement."
           confirmLabel="Confirmer"
         />
 

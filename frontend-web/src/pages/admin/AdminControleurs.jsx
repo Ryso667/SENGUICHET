@@ -44,7 +44,7 @@ const AdminControleurs = () => {
 
         <div className="mb-6 p-4 rounded-xl" style={{ background: "rgba(0,200,255,0.08)", borderLeft: "4px solid #00C8FF" }}>
           <p className="text-sm" style={{ color: "#A0B4C8" }}>
-            Gérez les codes d'accès des contrôleurs pour chaque événement. Chaque événement dispose de 5 codes uniques à 4 chiffres.
+            Gérez les codes d'accès des contrôleurs pour chaque événement. Chaque événement dispose d'un code unique à 4 chiffres.
           </p>
         </div>
 
@@ -70,18 +70,23 @@ const AdminControleurs = () => {
                     <p className="text-base font-semibold truncate" style={{ fontFamily: "Outfit, sans-serif", color: "#F1F5F9" }}>
                       {e.nom}
                     </p>
-                    <div className="flex items-center gap-3 mt-1.5">
+                    <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                       <span className="text-xs" style={{ color: "#A0B4C8" }}>{e.date}</span>
                       <span className="text-xs" style={{ color: "#6B7280" }}>•</span>
                       <span className="text-xs" style={{ color: "#A0B4C8" }}>{e.lieu}</span>
                       <span className="text-xs" style={{ color: "#6B7280" }}>•</span>
                       <span className="text-xs" style={{ color: cfg.color }}>{cfg.label}</span>
-                      {e.codes_total > 0 && (
+                      {e.code ? (
                         <>
                           <span className="text-xs" style={{ color: "#6B7280" }}>•</span>
-                          <span className="text-xs" style={{ color: "#00C8FF" }}>
-                            {e.codes_actifs}/{e.codes_total} codes actifs
+                          <span className="text-xs font-mono font-bold" style={{ color: "#00C8FF", letterSpacing: "2px" }}>
+                            Code : {e.code}
                           </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-xs" style={{ color: "#6B7280" }}>•</span>
+                          <span className="text-xs" style={{ color: "#6B7280" }}>Pas de code</span>
                         </>
                       )}
                     </div>
@@ -97,7 +102,7 @@ const AdminControleurs = () => {
                     onMouseEnter={(el) => { el.currentTarget.style.background = "rgba(0,200,255,0.1)"; }}
                     onMouseLeave={(el) => { el.currentTarget.style.background = "transparent"; }}
                   >
-                    Gérer les contrôleurs
+                    Gérer le code
                   </button>
                 </div>
               );

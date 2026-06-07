@@ -3,14 +3,14 @@ const router = express.Router();
 const authMiddleware = require("../middleware/auth");
 const {
   listerEvenements,
-  listerCodes,
+  listerCode,
   regenerer,
-  desactiverTous,
+  desactiver,
 } = require("../controllers/controleurController");
 
 router.get("/evenements", authMiddleware(["ADMIN"]), listerEvenements);
-router.get("/:evenementId", authMiddleware(["ADMIN"]), listerCodes);
+router.get("/:evenementId", authMiddleware(["ADMIN"]), listerCode);
 router.post("/:evenementId/regenerer", authMiddleware(["ADMIN"]), regenerer);
-router.post("/:evenementId/desactiver", authMiddleware(["ADMIN"]), desactiverTous);
+router.post("/:evenementId/desactiver", authMiddleware(["ADMIN"]), desactiver);
 
 module.exports = router;

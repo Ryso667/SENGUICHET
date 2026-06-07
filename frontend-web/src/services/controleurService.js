@@ -1,12 +1,11 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
-const headers = () => {
-  const token = localStorage.getItem("token");
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-};
+const getToken = () => localStorage.getItem("jwt_token");
+
+const headers = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${getToken()}`,
+});
 
 const handleResponse = async (res) => {
   const data = await res.json();
@@ -19,17 +18,17 @@ export const adminListerEvenementsControleurs = async () => {
   return handleResponse(res);
 };
 
-export const adminListerCodesControleur = async (evenementId) => {
+export const adminListerCodeControleur = async (evenementId) => {
   const res = await fetch(`${API_URL}/api/controleurs/${evenementId}`, { headers: headers() });
   return handleResponse(res);
 };
 
-export const adminRegenererCodes = async (evenementId) => {
+export const adminRegenererCode = async (evenementId) => {
   const res = await fetch(`${API_URL}/api/controleurs/${evenementId}/regenerer`, { method: "POST", headers: headers() });
   return handleResponse(res);
 };
 
-export const adminDesactiverCodes = async (evenementId) => {
+export const adminDesactiverCode = async (evenementId) => {
   const res = await fetch(`${API_URL}/api/controleurs/${evenementId}/desactiver`, { method: "POST", headers: headers() });
   return handleResponse(res);
 };
