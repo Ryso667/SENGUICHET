@@ -22,6 +22,8 @@ import AdminEvenements from "./pages/admin/AdminEvenements";
 import AdminPartenaires from "./pages/admin/AdminPartenaires";
 import AdminGestionPartenaires from "./pages/admin/AdminGestionPartenaires";
 import AdminGestionDemandes from "./pages/admin/AdminGestionDemandes";
+import AdminControleurs from "./pages/admin/AdminControleurs";
+import AdminCodesControleurs from "./pages/admin/AdminCodesControleurs";
 import EnAttenteValidation from "./pages/EnAttenteValidation";
 import Unauthorized from "./pages/Unauthorized";
 
@@ -57,6 +59,8 @@ function App() {
             <Route path="/admin/partenaires" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminPartenaires /></ProtectedRoute>} />
             <Route path="/admin/partenaires/gestion" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminGestionPartenaires /></ProtectedRoute>} />
             <Route path="/admin/demandes" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminGestionDemandes /></ProtectedRoute>} />
+            <Route path="/admin/controleurs" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminControleurs /></ProtectedRoute>} />
+            <Route path="/admin/controleurs/:evenementId" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminCodesControleurs /></ProtectedRoute>} />
 
             <Route path="*" element={<Navigate to="/connexion" replace />} />
           </Routes>

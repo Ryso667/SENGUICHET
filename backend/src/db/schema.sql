@@ -294,6 +294,20 @@ CREATE TABLE synchronisation_offline (
   INDEX idx_sync_horodatage (horodatage_sync)
 ) ENGINE=InnoDB;
 
+-- 5.2 CodeControleur (codes d'accès à 4 chiffres pour contrôleurs)
+CREATE TABLE IF NOT EXISTS code_controleur (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(4) NOT NULL,
+  evenement_id INT NOT NULL,
+  index_controleur TINYINT NOT NULL DEFAULT 0,
+  statut ENUM('ACTIF','INACTIF') NOT NULL DEFAULT 'ACTIF',
+  date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (evenement_id) REFERENCES evenement(id) ON DELETE CASCADE,
+  UNIQUE KEY uk_code_evenement (code, evenement_id),
+  INDEX idx_cc_evenement (evenement_id),
+  INDEX idx_cc_statut (statut)
+) ENGINE=InnoDB;
+
 -- ============================================================
 -- 6. TABLES ANNEXES
 -- ============================================================
