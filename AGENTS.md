@@ -32,7 +32,7 @@
 - Page publique `GET /api/billets/:uuid` avec HTML responsive
 
 ## Déploiement
-- **API** : Vercel — https://backend-rust-sigma-64.vercel.app
+- **API** : Vercel — https://backend-beta-six-39.vercel.app
 - **Base de données** : TiDB Cloud Serverless (SSL requis)
   - Host: `gateway01.eu-central-1.prod.aws.tidbcloud.com:4000`
   - DB: `test`, User: `3Xf3xDmifk7jajp.root`

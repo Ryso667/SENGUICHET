@@ -174,6 +174,7 @@ export async function fetchEvenementDetailPublic(eventId) {
     location: e.lieu || '',
     category: e.categorie || '',
     desc: e.description || '',
+    affiche_url: e.affiche_url || null,
     bg: e.categorie ? getDefaultImage(e.categorie).bg : '#E0F7FF',
     emoji: e.categorie ? getDefaultImage(e.categorie).emoji : '🎉',
     tickets: (data.categories || []).map(c => ({

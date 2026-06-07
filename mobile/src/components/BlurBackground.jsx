@@ -62,7 +62,7 @@ export default function BlurBackground({ category, intensityOverlay = true, show
       />
       {intensityOverlay && (
         <LinearGradient
-          colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.6)']}
+          colors={['rgba(0,0,0,0.75)', 'rgba(0,0,0,0.35)', 'rgba(0,0,0,0.35)', 'rgba(0,0,0,0.7)']}
           locations={[0, 0.25, 0.6, 1]}
           style={StyleSheet.absoluteFill}
           pointerEvents="none"

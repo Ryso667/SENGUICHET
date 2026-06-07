@@ -1,7 +1,7 @@
 // Mes demandes — liste + création + détail (calqué sur l'app web)
 // Design glass (Apple Invites) — modale création avec upload Cloudinary
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput, Alert, Animated, ActivityIndicator } from 'react-native'
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput, Alert, Animated, ActivityIndicator } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -299,7 +299,8 @@ export default function MesDemandesScreen({ navigation }) {
 
                   {viewingDemande.affiche_url && (
                     <View style={s.detailImageWrap}>
-                      <MaterialCommunityIcons name="image-outline" size={40} color="rgba(255,255,255,0.15)" />
+                      <Image source={{ uri: viewingDemande.affiche_url }} style={s.detailImage} resizeMode="cover" />
+                      <View style={s.detailImageOverlay} />
                     </View>
                   )}
 
@@ -506,7 +507,9 @@ const s = StyleSheet.create({
   detailTypeBadge: { backgroundColor: 'rgba(0,200,255,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
   detailSub: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', marginBottom: spacing.md },
-  detailImageWrap: { height: 120, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md },
+  detailImageWrap: { height: 160, borderRadius: 12, overflow: 'hidden', marginBottom: spacing.md },
+  detailImage: { width: '100%', height: '100%' },
+  detailImageOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.15)' },
   detailTwoCol: { flexDirection: 'row', gap: spacing.md },
   commentBox: { padding: spacing.md, borderRadius: 12, borderWidth: 1, marginTop: spacing.sm },
   commentLabel: { fontSize: 10, fontFamily: fonts.outfit.semiBold, marginBottom: 4 },
