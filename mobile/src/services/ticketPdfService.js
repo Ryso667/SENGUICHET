@@ -1,5 +1,5 @@
-// Service de génération de ticket PDF — template 100% table inline, zéro classe CSS
-// Dimensions 340×600px, 3 zones : QR 140px, infos+prix (table 70/30), mentions
+// Service de génération de ticket PDF — template premium charte SENGUICHET
+// Fond #0D1B2A, carte #152232, header gradient, QR zone, footer catégorie+prix
 import * as Print from 'expo-print'
 import * as Sharing from 'expo-sharing'
 import * as FileSystem from 'expo-file-system/legacy'
@@ -21,58 +21,84 @@ function construireHtmlTicket(ticket, qrDataUrl) {
   const prixStr = formatPrix(ticket.prix)
   const refStr = ticket.numero || '—'
 
-  const qrCell = qrDataUrl
-    ? '<img src="' + qrDataUrl + '" width="140" height="140" style="display:block;margin:0 auto;width:140px;height:140px" />'
-    : '<div style="width:140px;height:140px;background:#f1f5f9;margin:0 auto;font-size:10px;color:#94a3b8;text-align:center;line-height:140px">QR non disponible</div>'
+  const qrHtml = qrDataUrl
+    ? `<img src="${qrDataUrl}" width="150" height="150" style="display:block;margin:0 auto;width:150px;height:150px" />`
+    : '<div style="width:150px;height:150px;background:rgba(0,200,255,0.05);border-radius:8px;margin:0 auto;font-size:11px;color:#5A7090;text-align:center;line-height:150px">QR non disponible</div>'
 
-  return '<!DOCTYPE html>'
-    + '<html lang="fr"><head><meta charset="utf-8">'
-    + '<title>Billet ' + eventNom + ' — SENGUICHET</title>'
-    + '</head><body style="margin:0;padding:16px;background:#f0f2f5;font-family:Arial,Helvetica,sans-serif;text-align:center">'
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Billet ${eventNom} — SENGUICHET</title>
+</head>
+<body style="margin:0;padding:20px;background:#0D1B2A;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;text-align:center">
 
-    + '<table style="width:340px;height:600px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;font-family:Arial,sans-serif;margin:40px auto;border-collapse:collapse;overflow:hidden">'
+  <table style="width:340px;border-collapse:collapse;margin:0 auto;background:#152232;border:1px solid #1E3448;border-radius:16px;overflow:hidden;font-family:'Helvetica Neue',Arial,sans-serif">
 
-    // Z1 : QR 140px + ref
-    + '<tr><td style="height:220px;text-align:center;vertical-align:middle;padding-top:20px;background:#fff">'
-    +   qrCell
-    +   '<div style="font-family:monospace;font-size:11px;color:#64748b;margin-top:8px;font-weight:bold">#' + refStr + '</div>'
-    + '</td></tr>'
+    <!-- HEADER GRADIENT -->
+    <tr>
+      <td style="background:linear-gradient(135deg,#00C8FF,#0077FF);text-align:center;padding:24px 16px;">
+        <div style="width:48px;height:48px;border-radius:12px;margin:0 auto 6px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:bold">S</div>
+        <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-weight:700;font-size:11px;color:#FFFFFF;letter-spacing:3px;text-transform:uppercase">SENGUICHET</div>
+      </td>
+    </tr>
 
-    // Perforation
-    + '<tr><td style="height:2px;padding:0 15px">'
-    +   '<div style="border-bottom:2px dashed #cbd5e1;height:1px;font-size:1px;line-height:1px">&nbsp;</div>'
-    + '</td></tr>'
+    <!-- PERFORATION -->
+    <tr>
+      <td style="padding:0 8px;height:14px;position:relative">
+        <div style="border-bottom:2px dashed #1E3448;height:1px;font-size:1px;line-height:1px">&nbsp;</div>
+      </td>
+    </tr>
 
-    // Z2 : table 70/30
-    + '<tr><td style="height:240px;vertical-align:top;padding:20px 15px">'
-    +   '<table style="width:100%;border-collapse:collapse">'
-    +     '<tr>'
-    +       '<td style="width:70%;vertical-align:top;padding-right:10px">'
-    +         '<div style="font-size:15px;font-weight:bold;color:#0f172a;text-transform:uppercase;line-height:1.3">' + eventNom + '</div>'
-    +         '<div style="font-size:12px;color:#334155;font-weight:bold;margin-top:8px">' + dateStr + (heureStr ? ' à ' + heureStr : '') + '</div>'
-    +         '<div style="font-size:10px;color:#94a3b8;margin-top:4px;line-height:1.2">' + lieuStr + '</div>'
-    +         '<div style="margin-top:25px;font-size:11px;color:#334155;font-weight:bold;text-transform:uppercase">ACCÈS : <span style="color:#0f172a">' + categorie + '</span></div>'
-    +       '</td>'
-    +       '<td style="width:30%;border-left:1px solid #e2e8f0;text-align:right;vertical-align:middle;padding-left:10px">'
-    +         '<div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px">TARIF</div>'
-    +         '<div style="font-size:14px;font-weight:bold;color:#0f172a;margin-top:2px;white-space:nowrap">' + prixStr + '</div>'
-    +       '</td>'
-    +     '</tr>'
-    +   '</table>'
-    + '</td></tr>'
+    <!-- CORPS -->
+    <tr>
+      <td style="text-align:center;padding:20px 24px">
 
-    // Z3 : pied gris
-    + '<tr><td style="height:90px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;vertical-align:middle;padding:10px">'
-    +   '<div style="font-size:10px;font-weight:bold;color:#94a3b8;letter-spacing:2px;text-transform:uppercase">SENGUICHET</div>'
-    +   '<div style="font-size:9px;color:#94a3b8;margin-top:4px">Billetterie événementielle • Entrée unique et non transférable</div>'
-    + '</td></tr>'
+        <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-weight:900;font-size:18px;color:#FFFFFF;letter-spacing:1px;line-height:1.3;margin-bottom:6px">${eventNom}</div>
 
-    + '</table>'
-    + '</body></html>'
+        ${dateStr ? `<div style="font-family:'Helvetica Neue',Arial,sans-serif;font-weight:600;font-size:12px;color:#A0B4C8;margin-bottom:3px">${dateStr}${heureStr ? ' à ' + heureStr : ''}</div>` : ''}
+
+        ${lieuStr ? `<div style="font-family:'Helvetica Neue',Arial,sans-serif;font-weight:700;font-size:11px;color:#00C8FF;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">${lieuStr}</div>` : ''}
+
+        <div style="width:60%;height:0;border-top:1px solid #1E3448;margin:10px auto"></div>
+
+        <div style="font-family:'Courier New',monospace;font-size:11px;color:#5A7090;margin-bottom:14px">REF : ${refStr}</div>
+
+        <div style="background:rgba(0,200,255,0.05);border:1px solid rgba(0,200,255,0.15);border-radius:12px;padding:14px;text-align:center">
+          ${qrHtml}
+        </div>
+
+      </td>
+    </tr>
+
+    <!-- PERFORATION -->
+    <tr>
+      <td style="padding:0 8px;height:14px;position:relative">
+        <div style="border-bottom:2px dashed #1E3448;height:1px;font-size:1px;line-height:1px">&nbsp;</div>
+      </td>
+    </tr>
+
+    <!-- FOOTER -->
+    <tr>
+      <td style="background:rgba(0,0,0,0.2);text-align:center;padding:16px 24px">
+
+        <div style="display:inline-block;background:linear-gradient(135deg,#00C8FF,#0077FF);padding:5px 18px;border-radius:9999px;margin-bottom:8px">
+          <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-weight:700;font-size:11px;color:#FFFFFF;letter-spacing:2px">${categorie}</div>
+        </div>
+
+        <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-weight:900;font-size:20px;color:#FFFFFF;margin-bottom:4px">${prixStr}</div>
+
+        <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:9px;color:#5A7090;font-style:italic">Entrée unique et non transférable</div>
+
+      </td>
+    </tr>
+
+  </table>
+
+</body>
+</html>`
 }
 
-// Génère un fichier PDF du ticket et ouvre le menu de partage/impression
-// ticket: { eventNom, eventDate, eventHeure, eventLieu, categorie, prix, numero }
 export async function genererTicketPDF(ticket, qrDataUrl) {
   const html = construireHtmlTicket(ticket, qrDataUrl)
 
