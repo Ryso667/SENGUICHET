@@ -409,13 +409,118 @@ const envoyerIdentifiantsPartenaire = async (identifiants) => {
   return envoyerEmail(identifiants.email, "Vos acc\u00e8s SENGUICHET sont pr\u00eats", emailLayout(content));
 };
 
-// Notifie l'admin d'une demande d'événement (création, modification, suppression)
+// Notifie l'admin ou l'organisateur selon le contexte d'une demande d'événement
+// - Sans destinataire → admin : notification de nouvelle demande
+// - destinataire "organisateur" + statut "approuve" : demande approuvée
+// - destinataire "organisateur" + statut "refuse" : demande refusée
+// - destinataire "organisateur" + statut "evenement_cree" : événement créé
 const envoyerNotificationDemandeEvenement = async (demande) => {
   const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
-  const action = demande.type_action === "CREATION" ? "Cr\u00e9ation"
+  const action = demande.type_action === "CREATION" ? "Création"
     : demande.type_action === "MODIFICATION" ? "Modification"
     : "Suppression";
 
+  const estPourOrganisateur = demande.destinataire === "organisateur";
+
+  // Cas 1 : Notification à l'organisateur — sa demande a été approuvée
+  if (estPourOrganisateur && demande.statut === "approuve") {
+    const content = `
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#152232" style="background:#152232;border-radius:16px;mso-border-radius:16px;">
+        <tr>
+          <td bgcolor="#152232" style="padding:32px;background:#152232;">
+            <p style="color:#FFFFFF;font-size:16px;margin:0 0 24px 0;font-family:Arial,Helvetica,sans-serif;font-weight:700;">Demande approuv\u00e9e \u2713</p>
+            <p style="color:#A0B4C8;font-size:14px;margin:0 0 12px 0;font-family:Arial,Helvetica,sans-serif;">Bonjour <strong style="color:#FFFFFF;">${demande.nom}</strong>,</p>
+            <p style="color:#A0B4C8;font-size:14px;margin:0 0 16px 0;font-family:Arial,Helvetica,sans-serif;">
+              Votre demande de <strong style="color:#FFFFFF;">${action.toLowerCase()}</strong> pour l\u2019\u00e9v\u00e9nement
+              <strong style="color:#FFFFFF;">${demande.titre || "N/A"}</strong> a \u00e9t\u00e9
+              <strong style="color:#00E5A0;">approuv\u00e9e</strong> \u2713
+            </p>
+            <p style="color:#A0B4C8;font-size:14px;margin:0 0 16px 0;font-family:Arial,Helvetica,sans-serif;">L\u2019\u00e9quipe SENGUICHET va proc\u00e9der \u00e0 la cr\u00e9ation de votre \u00e9v\u00e9nement. Vous recevrez une confirmation sous peu.</p>
+            ${demande.commentaire ? `
+              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-left:3px solid #00C8FF;">
+                <tr>
+                  <td bgcolor="#0F1C2E" style="padding:12px 16px;background:#0F1C2E;">
+                    <p style="color:#6B7280;font-size:11px;letter-spacing:2px;margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;text-transform:uppercase;">Message de l\u2019\u00e9quipe</p>
+                    <p style="color:#FFFFFF;font-size:13px;margin:0;font-family:Arial,Helvetica,sans-serif;">${demande.commentaire}</p>
+                  </td>
+                </tr>
+              </table>` : ""
+            }
+          </td>
+        </tr>
+      </table>`;
+    return envoyerEmail(demande.email, "Votre demande a \u00e9t\u00e9 approuv\u00e9e \u2014 SENGUICHET", emailLayout(content));
+  }
+
+  // Cas 2 : Notification à l'organisateur — sa demande a été refusée
+  if (estPourOrganisateur && demande.statut === "refuse") {
+    const content = `
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#152232" style="background:#152232;border-radius:16px;mso-border-radius:16px;">
+        <tr>
+          <td bgcolor="#152232" style="padding:32px;background:#152232;">
+            <p style="color:#FFFFFF;font-size:16px;margin:0 0 24px 0;font-family:Arial,Helvetica,sans-serif;font-weight:700;">Demande non retenue \u2717</p>
+            <p style="color:#A0B4C8;font-size:14px;margin:0 0 12px 0;font-family:Arial,Helvetica,sans-serif;">Bonjour <strong style="color:#FFFFFF;">${demande.nom}</strong>,</p>
+            <p style="color:#A0B4C8;font-size:14px;margin:0 0 16px 0;font-family:Arial,Helvetica,sans-serif;">
+              Votre demande de <strong style="color:#FFFFFF;">${action.toLowerCase()}</strong> pour l\u2019\u00e9v\u00e9nement
+              <strong style="color:#FFFFFF;">${demande.titre || "N/A"}</strong> n\u2019a pas \u00e9t\u00e9
+              <strong style="color:#FF4D6D;">retenue</strong> \u2717
+            </p>
+            ${demande.commentaire ? `
+              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-left:3px solid #FF4D6D;">
+                <tr>
+                  <td bgcolor="#0F1C2E" style="padding:12px 16px;background:#0F1C2E;">
+                    <p style="color:#6B7280;font-size:11px;letter-spacing:2px;margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;text-transform:uppercase;">Motif</p>
+                    <p style="color:#FF4D6D;font-size:13px;margin:0;font-family:Arial,Helvetica,sans-serif;">${demande.commentaire}</p>
+                  </td>
+                </tr>
+              </table>` : ""
+            }
+            <p style="color:#6B7280;font-size:12px;margin:16px 0 0 0;font-family:Arial,Helvetica,sans-serif;">Pour toute question, contactez-nous \u00e0 <a href="mailto:contact@senguichet.sn" style="color:#00C8FF;text-decoration:none;">contact@senguichet.sn</a></p>
+          </td>
+        </tr>
+      </table>`;
+    return envoyerEmail(demande.email, "Votre demande n\u2019a pas \u00e9t\u00e9 retenue \u2014 SENGUICHET", emailLayout(content));
+  }
+
+  // Cas 3 : Notification à l'organisateur — son événement a été créé
+  if (estPourOrganisateur && demande.statut === "evenement_cree") {
+    const content = `
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#152232" style="background:#152232;border-radius:16px;mso-border-radius:16px;">
+        <tr>
+          <td bgcolor="#152232" style="padding:32px;background:#152232;">
+            <p style="color:#FFFFFF;font-size:16px;margin:0 0 24px 0;font-family:Arial,Helvetica,sans-serif;font-weight:700;">Votre \u00e9v\u00e9nement est en ligne ! &#127881;</p>
+            <p style="color:#A0B4C8;font-size:14px;margin:0 0 12px 0;font-family:Arial,Helvetica,sans-serif;">Bonjour <strong style="color:#FFFFFF;">${demande.nom}</strong>,</p>
+            <p style="color:#A0B4C8;font-size:14px;margin:0 0 16px 0;font-family:Arial,Helvetica,sans-serif;">
+              Votre \u00e9v\u00e9nement <strong style="color:#FFFFFF;">${demande.titre || "N/A"}</strong> a \u00e9t\u00e9
+              <strong style="color:#00C8FF;">cr\u00e9\u00e9 avec succ\u00e8s</strong> sur SENGUICHET.
+            </p>
+            <p style="color:#A0B4C8;font-size:14px;margin:0 0 16px 0;font-family:Arial,Helvetica,sans-serif;">Vous pouvez d\u00e8s \u00e0 pr\u00e9sent g\u00e9rer vos billets, suivre les ventes et consulter les statistiques depuis votre tableau de bord.</p>
+            <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#0F1C2E" style="background:#0F1C2E;border-radius:12px;mso-border-radius:12px;">
+              <tr>
+                <td bgcolor="#0F1C2E" style="padding:20px;background:#0F1C2E;">
+                  <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                    <tr>
+                      <td style="padding:4px 0;color:#6B7280;font-size:13px;font-family:Arial,Helvetica,sans-serif;">\u00c9v\u00e9nement</td>
+                      <td style="padding:4px 0;color:#00C8FF;font-size:13px;font-weight:700;text-align:right;font-family:Arial,Helvetica,sans-serif;">${demande.titre || "N/A"}</td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td align="center" style="padding:24px 0 0 0;">
+                  ${boutonCTA("https://senguichet-frontend-web.vercel.app/dashboard/evenements", "Voir mes \u00e9v\u00e9nements \u2192")}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>`;
+    return envoyerEmail(demande.email, "Votre \u00e9v\u00e9nement est cr\u00e9\u00e9 \u2014 SENGUICHET", emailLayout(content));
+  }
+
+  // Cas 4 (défaut) : Notification à l'admin d'une nouvelle demande (comportement actuel)
   const content = `
     <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#152232" style="background:#152232;border-radius:16px;mso-border-radius:16px;">
       <tr>
