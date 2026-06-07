@@ -11,5 +11,6 @@ router.use("/paiements", require("./paiements"));
 router.use("/partenaires", require("./partenaires"));
 router.use("/demandes", require("./demandes"));
 router.use("/scans", require("./scans"));
+router.use("/controleurs", require("./controleur"));
 
 module.exports = router;

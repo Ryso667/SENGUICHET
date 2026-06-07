@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { LayoutGrid, Users, Calendar, FileText, Star, Ticket, LogOut } from "../components/Icons";
+import { LayoutGrid, Users, Calendar, FileText, Star, Ticket, LogOut, Shield } from "../components/Icons";
 import logo from "../assets/logo.jpg";
 
 const adminNavItems = [
@@ -11,6 +11,7 @@ const adminNavItems = [
   { icon: <FileText size={18} />, label: "Demandes", path: "/admin/demandes" },
   { icon: <Star size={18} />, label: "Partenaires", path: "/admin/partenaires" },
   { icon: "⚙", label: "Gest. partenaires", path: "/admin/partenaires/gestion" },
+  { icon: <Shield size={18} />, label: "Contrôleurs", path: "/admin/controleurs" },
 ];
 
 const AdminSidebar = () => {

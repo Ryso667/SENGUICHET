@@ -142,6 +142,20 @@ export const XCircle = ({ size = 18, className, style }) => (
   </svg>
 );
 
+export const Shield = ({ size = 18, className, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...strokeProps} className={className} style={style}>
+    <path d="M12 2l7 4v5c0 5-3.5 9.73-7 11-3.5-1.27-7-6-7-11V6l7-4z" />
+    <path d="M9 12l2 2 4-4" />
+  </svg>
+);
+
+export const ArrowLeft = ({ size = 18, className, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...strokeProps} className={className} style={style}>
+    <line x1="19" y1="12" x2="5" y2="12" />
+    <polyline points="12 19 5 12 12 5" />
+  </svg>
+);
+
 export const Lock = ({ size = 18, className, style }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" {...strokeProps} className={className} style={style}>
     <rect x="3" y="11" width="18" height="11" rx="2" />
@@ -188,6 +202,8 @@ const iconMap = {
   loader: Loader,
   clipboard: Clipboard,
   lock: Lock,
+  shield: Shield,
+  arrowleft: ArrowLeft,
 };
 
 const Icon = ({ name, size, className, style, ...props }) => {
