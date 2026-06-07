@@ -85,8 +85,9 @@ const acheter = async (req, res) => {
       const timestamp = new Date().toISOString();
 
       // Générer la signature HMAC (identique au format utilisé par le scan offline)
+      // Utilise SHA256(data+secret) car expo-crypto ne supporte pas HMAC natif
       const signaturePayload = `${uuid}|${numero}|${timestamp}|${evenementId}|${cat.nom}`;
-      const payload_signature = crypto.createHmac('sha256', HMAC_SECRET).update(signaturePayload).digest('hex');
+      const payload_signature = crypto.createHash('sha256').update(signaturePayload + HMAC_SECRET).digest('hex');
 
       const [billetResult] = await conn.query(
         `INSERT INTO billet (uuid, numero, evenement_id, categorie_ticket_id, telephone_acheteur, email_acheteur, payload_signature, prix_paye, statut)
@@ -160,7 +161,7 @@ const acheter = async (req, res) => {
         event_id: evenementId,
         category: cat.nom,
         timestamp,
-        transaction_ref: reference,
+        transaction_ref: numero,
       });
 
       // Envoyer les notifications (email + SMS) avant de répondre
@@ -247,7 +248,7 @@ const mesBillets = async (req, res) => {
     if (telephone) {
       [rows] = await pool.query(
         `SELECT b.id, b.uuid, b.numero, b.prix_paye, b.statut, b.payload_signature, b.date_creation, b.telephone_acheteur,
-          e.titre AS evenement_titre, e.lieu AS evenement_lieu, e.date_debut,
+          b.evenement_id, e.titre AS evenement_titre, e.lieu AS evenement_lieu, e.date_debut,
           ct.nom AS categorie_nom, ct.prix AS categorie_prix
         FROM billet b
         JOIN evenement e ON e.id = b.evenement_id
@@ -263,7 +264,7 @@ const mesBillets = async (req, res) => {
       // 3) téléphone direct (legacy)
       [rows] = await pool.query(
         `SELECT b.id, b.uuid, b.numero, b.prix_paye, b.statut, b.payload_signature, b.date_creation, b.telephone_acheteur,
-          e.titre AS evenement_titre, e.lieu AS evenement_lieu, e.date_debut,
+          b.evenement_id, e.titre AS evenement_titre, e.lieu AS evenement_lieu, e.date_debut,
           ct.nom AS categorie_nom, ct.prix AS categorie_prix
         FROM billet b
         JOIN evenement e ON e.id = b.evenement_id
@@ -291,7 +292,7 @@ const afficherBillet = async (req, res) => {
 
     const [rows] = await pool.query(
       `SELECT b.uuid, b.numero, b.prix_paye, b.statut, b.date_creation, b.telephone_acheteur,
-        b.payload_signature, e.titre, e.lieu, e.date_debut, e.affiche_url, ct.nom AS categorie,
+        b.payload_signature, b.evenement_id, e.titre, e.lieu, e.date_debut, e.affiche_url, ct.nom AS categorie,
         ct.couleur_hex
       FROM billet b
       JOIN evenement e ON e.id = b.evenement_id
@@ -314,7 +315,15 @@ const afficherBillet = async (req, res) => {
     const dateAchat = new Date(b.date_creation).toLocaleDateString("fr-FR", {
       day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
     });
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(uuid)}`;
+    const qrPayload = JSON.stringify({
+      uuid: b.uuid,
+      hmac: b.payload_signature,
+      event_id: b.evenement_id,
+      category: b.categorie,
+      timestamp: b.date_creation,
+      transaction_ref: b.numero,
+    });
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrPayload)}`;
 
     res.send(`<!DOCTYPE html>
 <html lang="fr">

@@ -34,6 +34,7 @@ export async function mesBillets(identifiant) {
   return data.map(b => ({
     id: String(b.id),
     uuid: b.uuid || '',
+    eventId: b.evenement_id,
     eventNom: b.evenement_titre || '',
     eventDate: b.date_debut || '',
     eventLieu: b.evenement_lieu || '',

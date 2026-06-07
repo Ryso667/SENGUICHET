@@ -45,6 +45,7 @@ CREATE TABLE organisateur (
 CREATE TABLE controleur (
   id INT AUTO_INCREMENT PRIMARY KEY,
   telephone VARCHAR(20) NOT NULL UNIQUE,
+  code_acces VARCHAR(255) DEFAULT NULL,
   nom VARCHAR(100) DEFAULT NULL,
   acces_actif TINYINT(1) NOT NULL DEFAULT 1,
   date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -75,9 +76,11 @@ CREATE TABLE IF NOT EXISTS demande_evenement (
   titre VARCHAR(200) DEFAULT NULL,
   description TEXT DEFAULT NULL,
   lieu VARCHAR(200) DEFAULT NULL,
+  ville VARCHAR(100) DEFAULT NULL,
   date_debut DATETIME DEFAULT NULL,
   date_fin DATETIME DEFAULT NULL,
   capacite INT NOT NULL DEFAULT 0,
+  categorie VARCHAR(100) DEFAULT NULL,
   affiche_url VARCHAR(500) DEFAULT NULL,
   payload JSON DEFAULT NULL,
   statut ENUM('soumis', 'en_analyse', 'approuve', 'refuse') NOT NULL DEFAULT 'soumis',

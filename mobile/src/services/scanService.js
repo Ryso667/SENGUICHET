@@ -54,7 +54,7 @@ function estExpire(timestamp) {
 export async function telechargerTickets(eventId, zone) {
   try {
     const { appelAPI } = await import('./apiService')
-    const tickets = await appelAPI(`/evenements/${eventId}/tickets?zone=${zone}`)
+    const tickets = await appelAPI(`/scans/tickets/${eventId}`)
     await insererTickets(tickets)
     return tickets.length
   } catch {

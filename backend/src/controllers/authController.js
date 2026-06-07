@@ -355,4 +355,38 @@ const changerMotDePasse = async (req, res) => {
   }
 };
 
-module.exports = { inscription, connexionOrganisateur, connexionAdmin, connexionPartenaire, adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur, connexionSociale, envoyerCodeOTP, verifierCodeOTP, changerMotDePasse };
+const connexionControleur = async (req, res) => {
+  try {
+    const { codeAcces } = req.body;
+    if (!codeAcces) {
+      return res.status(400).json({ message: "Code d'accès requis" });
+    }
+
+    const [rows] = await pool.query(
+      "SELECT id, telephone, nom, code_acces FROM controleur WHERE acces_actif = 1"
+    );
+
+    for (const c of rows) {
+      if (!c.code_acces) continue;
+      const valid = await bcrypt.compare(codeAcces, c.code_acces);
+      if (valid) {
+        const token = jwt.sign(
+          { id: c.id, email: c.nom || c.telephone, role: "CONTROLEUR" },
+          JWT_SECRET,
+          { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+        );
+        return res.status(200).json({
+          token,
+          user: { id: c.id, telephone: c.telephone, nom: c.nom, role: "CONTROLEUR" },
+        });
+      }
+    }
+
+    return res.status(401).json({ message: "Code d'accès invalide" });
+  } catch (err) {
+    console.error("Connexion controleur error:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+module.exports = { inscription, connexionOrganisateur, connexionAdmin, connexionPartenaire, connexionControleur, adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur, connexionSociale, envoyerCodeOTP, verifierCodeOTP, changerMotDePasse };

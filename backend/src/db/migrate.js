@@ -109,6 +109,57 @@ async function migrate() {
     console.error("⚠️  Impossible de lier téléphone aux acheteurs:", e.message);
   }
 
+  // Ajout des colonnes categorie et ville à demande_evenement si absentes
+  try {
+    const [cols] = await connection.query("SHOW COLUMNS FROM demande_evenement LIKE 'categorie'");
+    if (cols.length === 0) {
+      await connection.query(`
+        ALTER TABLE demande_evenement
+        ADD COLUMN categorie VARCHAR(100) DEFAULT NULL AFTER capacite,
+        ADD COLUMN ville VARCHAR(100) DEFAULT NULL AFTER lieu
+      `);
+      console.log("✅ Colonnes categorie/ville ajoutées à demande_evenement");
+    } else {
+      console.log("ℹ️  Colonnes categorie/ville existent déjà");
+    }
+  } catch (e) {
+    console.error("⚠️  Impossible de vérifier/ajouter categorie/ville:", e.message);
+  }
+
+  // Ajout de la colonne code_acces à controleur si absente
+  try {
+    const [cols] = await connection.query("SHOW COLUMNS FROM controleur LIKE 'code_acces'");
+    if (cols.length === 0) {
+      await connection.query(`
+        ALTER TABLE controleur
+        ADD COLUMN code_acces VARCHAR(255) DEFAULT NULL AFTER telephone
+      `);
+      console.log("✅ Colonne code_acces ajoutée à controleur");
+    } else {
+      console.log("ℹ️  Colonne code_acces existe déjà");
+    }
+  } catch (e) {
+    console.error("⚠️  Impossible de vérifier/ajouter code_acces:", e.message);
+  }
+
+  // Seed d'un contrôleur par défaut (code: 1234) si aucun n'existe
+  try {
+    const [existants] = await connection.query("SELECT COUNT(*) AS total FROM controleur");
+    if (existants[0].total === 0) {
+      const bcrypt = require("bcryptjs");
+      const hash = await bcrypt.hash("1234", 10);
+      await connection.query(
+        "INSERT INTO controleur (telephone, code_acces, nom) VALUES (?, ?, ?)",
+        ["771234567", hash, "Contrôleur par défaut"]
+      );
+      console.log("✅ Contrôleur par défaut créé (code: 1234, téléphone: 771234567)");
+    } else {
+      console.log("ℹ️  Contrôleurs existants, seed ignoré");
+    }
+  } catch (e) {
+    console.error("⚠️  Impossible de créer le contrôleur par défaut:", e.message);
+  }
+
   console.log("✅ Migration terminée");
   await connection.end();
 }

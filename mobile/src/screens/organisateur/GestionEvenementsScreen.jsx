@@ -70,7 +70,7 @@ export default function GestionEvenementsScreen({ navigation }) {
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor="#fff" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00C8FF', '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}
         >
           {/* Header : titre + bouton demander — calqué sur le web */}
           <View style={s.header}>
@@ -80,6 +80,10 @@ export default function GestionEvenementsScreen({ navigation }) {
               <Text style={s.demanderBtnText}>Demander</Text>
             </TouchableOpacity>
           </View>
+
+          {!loading && filtered.length > 0 && (
+            <Text style={s.refreshHint}>↓ Tirer vers le bas pour actualiser</Text>
+          )}
 
           {/* Tabs — calquées sur le web */}
           <View style={s.tabsBar}>
@@ -154,7 +158,7 @@ export default function GestionEvenementsScreen({ navigation }) {
                       {/* Overlay infos en bas */}
                       <View style={s.cardHeroBottom}>
                         <Text style={s.cardName} numberOfLines={1}>{evt.nom}</Text>
-                        <Text style={s.cardMeta} numberOfLines={1}>{evt.date} · {evt.lieu || 'Non spécifié'}</Text>
+                        <Text style={s.cardMeta} numberOfLines={1}>{formaterDateLisible(evt.date)} · {evt.lieu || 'Non spécifié'}</Text>
                       </View>
                     </View>
                     {/* Corps : places + revenus + bouton */}
@@ -199,6 +203,7 @@ const s = StyleSheet.create({
   /* Header */
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
   headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
+  refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginBottom: spacing.sm },
   demanderBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12,
