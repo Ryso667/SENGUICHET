@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
 import { useAuth } from '../../context/AuthContext'
-import BlurBackground from '../../components/BlurBackground'
+import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 
 const NOTIF_KEYS = {
@@ -32,9 +32,9 @@ export default function ParametresScreen({ navigation }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <BlurBackground category="Conference" />
+      <OrganisateurLayout />
       <ScrollView showsVerticalScrollIndicator={false}>
-        <GlassContainer style={s.section} intensity={35}>
+        <GlassContainer blurType="light" style={s.section} intensity={35}>
           <Text style={s.sectionTitle}>Mon profil</Text>
           <View style={s.row}>
             <Text style={s.label}>Nom</Text>
@@ -52,14 +52,14 @@ export default function ParametresScreen({ navigation }) {
           </View>
         </GlassContainer>
 
-        <GlassContainer style={s.section} intensity={35}>
+        <GlassContainer blurType="light" style={s.section} intensity={35}>
           <Text style={s.sectionTitle}>Sécurité</Text>
           <TouchableOpacity style={s.securityBtn} onPress={() => navigation.navigate('ChangerMotDePasse')}>
             <Text style={s.securityBtnText}>Modifier le mot de passe →</Text>
           </TouchableOpacity>
         </GlassContainer>
 
-        <GlassContainer style={s.section} intensity={35}>
+        <GlassContainer blurType="light" style={s.section} intensity={35}>
           <Text style={s.sectionTitle}>Notifications</Text>
           <View style={s.row}>
             <Text style={s.label}>SMS à chaque vente</Text>

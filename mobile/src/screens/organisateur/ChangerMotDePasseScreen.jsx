@@ -7,7 +7,7 @@ import { Feather } from '@expo/vector-icons'
 import { colors, spacing, borderRadius, fonts, textShadow, glass } from '../../constants/theme'
 import { useAuth } from '../../context/AuthContext'
 import { appelAPI } from '../../services/apiService'
-import BlurBackground from '../../components/BlurBackground'
+import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 
 export default function ChangerMotDePasseScreen({ navigation }) {
@@ -65,7 +65,7 @@ export default function ChangerMotDePasseScreen({ navigation }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <BlurBackground category="Conference" />
+      <OrganisateurLayout />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
           <Feather name="arrow-left" size={22} color="#fff" />
@@ -74,7 +74,7 @@ export default function ChangerMotDePasseScreen({ navigation }) {
         <View style={{ width: 40 }} />
       </View>
       <Animated.View style={[s.formWrapper, { opacity: opacityAnim, transform: [{ translateY: slideAnim }] }]}>
-        <GlassContainer style={s.form} intensity={35}>
+        <GlassContainer blurType="light" style={s.form} intensity={35}>
           <View style={s.fieldGroup}>
             <Text style={s.label}>Mot de passe actuel</Text>
             <View style={s.inputRow}>

@@ -12,7 +12,7 @@ import * as ImagePicker from 'expo-image-picker'
 import { colors, fonts, textShadow } from '../../constants/theme'
 import { creerEvenementAPI } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
-import BlurBackground from '../../components/BlurBackground'
+import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import GlassButton from '../../components/GlassButton'
 
@@ -274,7 +274,7 @@ export default function CreerEvenementScreen({ navigation }) {
 
       <Text style={s.label}>Catégories de billets</Text>
       {categories.map((cat, i) => (
-        <GlassContainer key={i} style={{ marginBottom: 12, padding: spacing.sm }} intensity={30}>
+        <GlassContainer blurType="light" key={i} style={{ marginBottom: 12, padding: spacing.sm }} intensity={30}>
           <TouchableOpacity style={s.input} onPress={() => setBilletCatIndex(i)}>
             <Text style={[s.inputText, !cat.nom && { color: 'rgba(255,255,255,0.5)' }]}>
               {cat.nom || 'Choisir une catégorie'}
@@ -303,7 +303,7 @@ export default function CreerEvenementScreen({ navigation }) {
       </TouchableOpacity>
 
       {promoActif && (
-        <GlassContainer style={s.promoSection} intensity={30}>
+        <GlassContainer blurType="light" style={s.promoSection} intensity={30}>
           <TextInput style={s.input} placeholder="Code (ex: PROMO20)"
             value={promo.code} onChangeText={v => setPromo(p => ({...p, code: v}))}
             placeholderTextColor="rgba(255,255,255,0.5)" autoCapitalize="characters" />
@@ -338,7 +338,7 @@ export default function CreerEvenementScreen({ navigation }) {
     <>
       <Text style={s.sectionTitle}>Récapitulatif</Text>
 
-      <GlassContainer style={s.recapCard} intensity={35}>
+      <GlassContainer blurType="light" style={s.recapCard} intensity={35}>
         <View style={s.recapRow}>
           <Text style={s.recapLabel}>Nom</Text>
           <Text style={s.recapValue}>{nom}</Text>
@@ -392,7 +392,7 @@ export default function CreerEvenementScreen({ navigation }) {
         )}
       </GlassContainer>
 
-      <GlassContainer style={s.warningCard} intensity={30} blurType="dark">
+      <GlassContainer blurType="dark" style={s.warningCard} intensity={30}>
         <Feather name="clock" size={18} color="#F97316" />
         <View style={{ flex: 1 }}>
           <Text style={s.warningTitle}>Votre événement sera soumis à l'administrateur</Text>
@@ -428,7 +428,7 @@ export default function CreerEvenementScreen({ navigation }) {
 
     if (!expanded) return null
     return (
-      <GlassContainer style={s.calendar} intensity={30}>
+      <GlassContainer blurType="light" style={s.calendar} intensity={30}>
         <View style={s.calHeader}>
           <TouchableOpacity onPress={() => {
             if (month === 0) { setBrowseMonthFn(11); setBrowseYearFn(year - 1) }
@@ -470,7 +470,7 @@ export default function CreerEvenementScreen({ navigation }) {
   }
 
   const renderTimePicker = () => (
-    <GlassContainer style={s.timePicker} intensity={30}>
+    <GlassContainer blurType="light" style={s.timePicker} intensity={30}>
       <View style={s.timeCol}>
         <TouchableOpacity style={s.timeBtn} onPress={() => {
           const h = editHour === 23 ? 0 : editHour + 1
@@ -507,7 +507,7 @@ export default function CreerEvenementScreen({ navigation }) {
 
   return (
     <View style={s.safe}>
-      <BlurBackground category="Conference" />
+      <OrganisateurLayout />
       <KeyboardAvoidingView
         style={s.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -535,7 +535,7 @@ export default function CreerEvenementScreen({ navigation }) {
 
       <Modal visible={catVisible} transparent animationType="fade">
         <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setCatVisible(false)}>
-          <GlassContainer style={s.picker} intensity={50} blurType="dark">
+          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
             <Text style={s.pickerTitle}>Catégorie d'événement</Text>
             <FlatList
               data={CATEGORIES}
@@ -555,7 +555,7 @@ export default function CreerEvenementScreen({ navigation }) {
 
       <Modal visible={billetCatIndex !== null} transparent animationType="fade">
         <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setBilletCatIndex(null)}>
-          <GlassContainer style={s.picker} intensity={50} blurType="dark">
+          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
             <Text style={s.pickerTitle}>Type de billet</Text>
             <FlatList
               data={BILLET_CATEGORIES}
@@ -578,7 +578,7 @@ export default function CreerEvenementScreen({ navigation }) {
 
       <Modal visible={villeVisible} transparent animationType="fade">
         <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setVilleVisible(false)}>
-          <GlassContainer style={s.picker} intensity={50} blurType="dark">
+          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
             <Text style={s.pickerTitle}>Ville</Text>
             <FlatList
               data={VILLES}

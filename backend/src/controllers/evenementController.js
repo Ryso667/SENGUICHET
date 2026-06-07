@@ -80,13 +80,11 @@ const lister = async (req, res) => {
       `SELECT e.id, e.organisateur_id, e.titre, e.description, e.categorie, e.lieu, e.ville,
         e.date_debut, e.date_fin, e.capacite_totale, e.affiche_url, e.scan_code, e.est_actif,
         e.statut, e.date_creation, e.commentaire_admin,
-        COALESCE(SUM(ct.places_disponibles), 0) AS places_restantes,
-        COALESCE(SUM(ct.capacite), 0) AS capacite_billets,
+        COALESCE((SELECT SUM(ct.places_disponibles) FROM categorie_ticket ct WHERE ct.evenement_id = e.id), 0) AS places_restantes,
+        COALESCE((SELECT SUM(ct.capacite) FROM categorie_ticket ct WHERE ct.evenement_id = e.id), 0) AS capacite_billets,
         (SELECT COALESCE(SUM(b.prix_paye), 0) FROM billet b JOIN categorie_ticket ct2 ON b.categorie_ticket_id = ct2.id WHERE ct2.evenement_id = e.id AND b.est_utilise = 0) AS revenus
       FROM evenement e
-      LEFT JOIN categorie_ticket ct ON ct.evenement_id = e.id
       WHERE e.organisateur_id = ? AND e.statut != 'annule'
-      GROUP BY e.id
       ORDER BY e.date_creation DESC`,
       [req.user.id]
     );

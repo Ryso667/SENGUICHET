@@ -8,7 +8,7 @@ import { BarChart, PieChart } from 'react-native-chart-kit'
 import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import Skeleton from '../../components/Skeleton'
-import BlurBackground from '../../components/BlurBackground'
+import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import GlassChip from '../../components/GlassChip'
 
@@ -91,7 +91,7 @@ export default function StatistiquesScreen() {
   if (loading) {
     return (
       <View style={s.container}>
-        <BlurBackground category="Conference" />
+        <OrganisateurLayout />
         <View style={{ padding: spacing.lg, paddingTop: insets.top }}>
           <Skeleton type="card" count={4} />
         </View>
@@ -101,7 +101,7 @@ export default function StatistiquesScreen() {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <BlurBackground category="Conference" />
+      <OrganisateurLayout />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={s.header}>
           <Text style={s.title}>Performances</Text>
@@ -124,7 +124,7 @@ export default function StatistiquesScreen() {
           <StatCard label="Événements" value={stats.nbEvents} icon="calendar-star" color="#0077FF" />
         </View>
 
-        <GlassContainer style={s.section} intensity={30}>
+        <GlassContainer blurType="light" style={s.section} intensity={30}>
           <Text style={s.sectionTitle}>Top 5 Événements (Ventes)</Text>
           <View style={s.chartWrapper}>
             {barData.datasets[0].data.length > 0 ? (
@@ -144,7 +144,7 @@ export default function StatistiquesScreen() {
           </View>
         </GlassContainer>
 
-        <GlassContainer style={s.section} intensity={30}>
+        <GlassContainer blurType="light" style={s.section} intensity={30}>
           <Text style={s.sectionTitle}>Répartition des ventes</Text>
           <View style={s.chartWrapper}>
             {pieData.length > 0 ? (
@@ -173,7 +173,7 @@ export default function StatistiquesScreen() {
 // Sera remplacé par API — composant de carte statistique
 function StatCard({ label, value, icon, color }) {
   return (
-    <GlassContainer style={[s.card, { borderLeftColor: color, borderLeftWidth: 4 }]} intensity={40}>
+    <GlassContainer blurType="light" style={[s.card, { borderLeftColor: color, borderLeftWidth: 4 }]} intensity={40}>
       <MaterialCommunityIcons name={icon} size={20} color={color} />
       <Text style={s.cardValue}>{value}</Text>
       <Text style={s.cardLabel}>{label}</Text>

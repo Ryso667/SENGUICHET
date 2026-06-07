@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
 import { fetchEvenementDetailAPI } from '../../services/eventService'
 import Skeleton from '../../components/Skeleton'
-import BlurBackground from '../../components/BlurBackground'
+import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 
 const STATUS_BADGE = {
@@ -39,7 +39,7 @@ export default function VoirTicketsScreen({ route }) {
   if (loading) {
     return (
       <View style={s.container}>
-        <BlurBackground category="Conference" />
+        <OrganisateurLayout />
         <View style={{ padding: spacing.lg, paddingTop: insets.top }}>
           <Skeleton type="card" count={5} />
         </View>
@@ -49,11 +49,11 @@ export default function VoirTicketsScreen({ route }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <BlurBackground category="Conference" />
+      <OrganisateurLayout />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={s.content}>
           {evenement && (
-            <GlassContainer style={s.eventInfo} intensity={35}>
+            <GlassContainer blurType="light" style={s.eventInfo} intensity={35}>
               <Text style={s.eventName}>{evenement.nom}</Text>
               <Text style={s.ticketCount}>{tickets.length} billet(s)</Text>
             </GlassContainer>
@@ -65,7 +65,7 @@ export default function VoirTicketsScreen({ route }) {
             tickets.map(t => {
               const badge = STATUS_BADGE[t.statut] || STATUS_BADGE.valide
               return (
-                <GlassContainer key={t.id} style={s.ticketRow} intensity={40}>
+                <GlassContainer blurType="light" key={t.id} style={s.ticketRow} intensity={40}>
                   <View style={{ flex: 1 }}>
                     <Text style={s.ticketNumero}>{t.numero || t.id?.toString()?.slice(0, 8) || '-'}</Text>
                     <Text style={s.ticketCategorie}>{t.categorie || 'Standard'}</Text>

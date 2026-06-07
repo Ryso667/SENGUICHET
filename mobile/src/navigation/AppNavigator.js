@@ -70,11 +70,11 @@ const headerStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#0D1B2A',
+    backgroundColor: '#1E1B4B',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,200,255,0.15)',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   left: {
     width: 36,
@@ -134,9 +134,9 @@ function OrganisateurTabs() {
       screenOptions={{
         header: () => null,
         tabBarStyle: {
-          backgroundColor: '#0D1B2A',
-          borderTopColor: 'rgba(0,200,255,0.15)',
+          backgroundColor: '#1E1B4B',
           borderTopWidth: 1,
+          borderTopColor: 'rgba(255,255,255,0.08)',
           height: 64,
           paddingBottom: 8,
           paddingTop: 6,
@@ -210,7 +210,7 @@ function OrganisateurTabs() {
 function OrganisateurLayout() {
   const { deconnecter } = useAuth()
   return (
-    <View style={{ flex: 1, backgroundColor: '#0D1B2A' }}>
+    <View style={{ flex: 1 }}>
       <OrganisateurHeader title="SENGUICHET" deconnecter={deconnecter} />
       <OrganisateurTabs />
     </View>

@@ -15,7 +15,7 @@ export function optimiserUrlCloudinary(url) {
   return url.replace('/upload/', '/upload/w_200,q_auto,f_webp/')
 }
 
-export default function BlurBackground({ category, intensityOverlay = true, showImage = true, afficheUrl }) {
+export default function BlurBackground({ category, intensityOverlay = true, showImage = true, afficheUrl, parallaxOffset }) {
   const gradient = categoryGradients[category] || categoryGradients.default
   // Priorité : afficheUrl de l'événement → image par catégorie (Unsplash)
   const imageUrl = showImage ? (afficheUrl || (category ? getCategoryImageUrl(category) : null)) : null
@@ -42,7 +42,13 @@ export default function BlurBackground({ category, intensityOverlay = true, show
       {imageUrl && (
         <Animated.Image
           source={{ uri: optimiserUrlCloudinary(imageUrl) }}
-          style={[StyleSheet.absoluteFill, { opacity: imageOpacity, transform: [{ scale: 1.1 }] }]}
+          style={[StyleSheet.absoluteFill, {
+            opacity: imageOpacity,
+            transform: [
+              { scale: 1.1 },
+              { translateY: parallaxOffset || 0 },
+            ],
+          }]}
           resizeMode="cover"
 
         />
