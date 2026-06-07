@@ -15,7 +15,7 @@ const CategorySelect = ({ value, onChange, options, label }) => (
       className="input-premium appearance-none cursor-pointer"
       style={{ paddingRight: "40px" }}
     >
-      <option value="" disabled style={{ color: "#1a1a2e" }}>{label}</option>
+      <option value="" style={{ color: "#1a1a2e" }}>{label}</option>
       {options.map((o) => (
         <option key={o} value={o} style={{ color: "#1a1a2e" }}>{o}</option>
       ))}

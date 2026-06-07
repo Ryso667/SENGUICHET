@@ -9,7 +9,8 @@ const { envoyerNotificationDemandeEvenement } = require("../services/emailServic
 const soumettreDemande = async (req, res) => {
   try {
     const { type_action, evenement_id, titre, description, lieu,
-      date_debut, date_fin, capacite, affiche_url, payload, categories_tickets } = req.body;
+      date_debut, date_fin, capacite, affiche_url, payload, categories_tickets,
+      ville, categorie } = req.body;
 
     if (!type_action || !["CREATION", "MODIFICATION", "SUPPRESSION"].includes(type_action)) {
       return res.status(400).json({ message: "Type d'action invalide" });
@@ -36,7 +37,9 @@ const soumettreDemande = async (req, res) => {
       [req.user.id, type_action, evenement_id || null, titre || null,
        description || null, lieu || null, dateDebut, dateFin,
        capacite || 0, affiche_url || null,
-       (payload || categories_tickets) ? JSON.stringify(payload || { categories_tickets }) : null]
+       (payload || categories_tickets || ville || categorie)
+         ? JSON.stringify({ ...(payload || {}), ...(categories_tickets ? { categories_tickets } : {}), ...(ville ? { ville } : {}), ...(categorie ? { categorie } : {}) })
+         : null]
     );
 
     // Notification email à l'admin
