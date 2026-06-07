@@ -265,7 +265,11 @@ const Accueil = () => {
   const savedStep = typeof window !== "undefined" ? parseInt(sessionStorage.getItem("partenaire_form_step") || "1") : 1;
   const savedTouched = typeof window !== "undefined" ? JSON.parse(sessionStorage.getItem("partenaire_form_touched") || "{}") : {};
 
-  const [formData, setFormData] = useState(savedData || {
+  const [formData, setFormData] = useState((() => {
+    if (savedData?.telephone) {
+      savedData.telephone = savedData.telephone.replace(/\D/g, "");
+    }
+    return savedData || {
     nom: "",
     organisation: "",
     telephone: "",
@@ -275,7 +279,8 @@ const Accueil = () => {
     siteWeb: "",
     description: "",
     accepteRGPD: false,
-  });
+  };
+  })());
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formStep, setFormStep] = useState(savedStep);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -341,9 +346,6 @@ const Accueil = () => {
     const val = type === "checkbox" ? checked : value;
 
     let processed = val;
-    if (name === "telephone") {
-      processed = val.replace(/\D/g, "").substring(0, 9);
-    }
 
     setFormData((prev) => ({ ...prev, [name]: processed }));
 
@@ -353,26 +355,10 @@ const Accueil = () => {
     }
   };
 
-  const formaterTelephone = (digits) => {
-    let formatted = "+221 ";
-    formatted += digits.substring(0, 2);
-    if (digits.length > 2) formatted += " " + digits.substring(2, Math.min(5, digits.length));
-    if (digits.length > 5) formatted += " " + digits.substring(5, Math.min(9, digits.length));
-    return formatted;
-  };
-
   const handleBlur = (e) => {
     const { name } = e.target;
     setTouched((prev) => ({ ...prev, [name]: true }));
-    let value = formData[name];
-    if (name === "telephone" && value) {
-      const digits = value.replace(/\D/g, "");
-      if (digits.length >= 3) {
-        value = formaterTelephone(digits);
-        setFormData((prev) => ({ ...prev, telephone: value }));
-      }
-    }
-    const err = validateField(name, value);
+    const err = validateField(name, formData[name]);
     setFormErrors((prev) => ({ ...prev, [name]: err }));
   };
 
@@ -387,11 +373,10 @@ const Accueil = () => {
     if (!validateStep(3) || !validateStep(2) || !validateStep(1)) return;
     setIsSubmitting(true);
     try {
-      const telephone = formData.telephone?.replace(/\D/g, "");
       await soumettreDemande({
         nom: formData.nom,
         organisation: formData.organisation,
-        telephone: telephone ? formaterTelephone(telephone) : "",
+        telephone: formData.telephone,
         email: formData.email,
         typeEvenement: formData.typeEvenement,
         nbEvenements: formData.nbEvenements,
