@@ -139,44 +139,86 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
         <td bgcolor="#152232" style="padding:24px;background-color:#152232;">
           <h2 style="color:#FFFFFF;font-size:20px;margin:0 0 8px 0;font-family:Arial,Helvetica,sans-serif;text-align:center;">Votre billet est confirme !</h2>
 
-          <!-- TICKET CARD -->
-          <table cellpadding="0" cellspacing="0" border="0" width="340" align="center" bgcolor="#FFFFFF" style="background-color:#FFFFFF;border-radius:16px;mso-border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.15);">
+          <!-- TICKET CARD — design vert émeraude -->
+          <table cellpadding="0" cellspacing="0" border="0" width="340" align="center" style="border-radius:20px;mso-border-radius:20px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.15);">
             <tr>
               <td style="padding:0;">
 
-                <!-- HEADER: abstract shapes + logo -->
-                <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#FFFFFF" style="background-color:#FFFFFF;height:120px;mso-height:120px;">
+                <!-- HEADER — vert forêt #1B4332 -->
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1B4332" style="background-color:#1B4332;">
                   <tr>
-                    <td bgcolor="#FFFFFF" style="background-color:#FFFFFF;padding:20px;position:relative;vertical-align:bottom;">
-                      <table cellpadding="0" cellspacing="0" border="0" align="left">
+                    <td style="padding:24px;">
+                      <!-- Logo row -->
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%">
                         <tr>
                           <td style="padding:0;">
-                            <table cellpadding="0" cellspacing="0" border="0" bgcolor="#00C8FF" style="background:linear-gradient(135deg,#00C8FF,#0077FF);background-color:#00C8FF;border-radius:10px;mso-border-radius:10px;width:48px;height:48px;mso-width:48px;mso-height:48px;">
+                            <table cellpadding="0" cellspacing="0" border="0" align="left">
                               <tr>
-                                <td align="center" valign="middle" style="font-size:20px;font-weight:700;color:#FFFFFF;font-family:Arial,sans-serif;text-align:center;">S</td>
+                                <td style="padding:0;">
+                                  <table cellpadding="0" cellspacing="0" border="0" style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);">
+                                    <tr>
+                                      <td align="center" valign="middle" style="font-size:16px;font-weight:700;color:#D4AF37;font-family:Arial,sans-serif;text-align:center;">S</td>
+                                    </tr>
+                                  </table>
+                                </td>
+                                <td style="padding:0 0 0 10px;vertical-align:middle;">
+                                  <p style="font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.7);margin:0;font-family:Arial,sans-serif;">SENGUICHET</p>
+                                </td>
                               </tr>
                             </table>
-                            <p style="font-size:10px;font-weight:700;color:#0D1B2A;letter-spacing:3px;margin:4px 0 0 0;font-family:Arial,sans-serif;">SENGUICHET</p>
                           </td>
+                        </tr>
+                      </table>
+                      <!-- Ligne dorée -->
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:16px 0;">
+                        <tr><td style="border-top:1px solid #D4AF37;font-size:0;line-height:0;opacity:.6;">&nbsp;</td></tr>
+                      </table>
+                      <!-- Nom événement -->
+                      <p style="font-size:22px;font-weight:700;color:#fff;text-align:center;letter-spacing:.5px;line-height:28px;margin:0;font-family:Arial,sans-serif;">${(ticket.evenement || '').toUpperCase()}</p>
+                      <!-- Catégorie -->
+                      <p style="font-size:10px;color:rgba(255,255,255,.5);text-align:center;letter-spacing:2px;margin:6px 0 0 0;font-family:Arial,sans-serif;">${(ticket.categorie || 'STANDARD').toUpperCase()}</p>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- PERFORATION HAUTE -->
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td style="height:22px;position:relative;background:linear-gradient(to bottom,#1B4332,#F9F6EE);">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="position:absolute;top:10px;left:0;">
+                        <tr>
+                          <td style="width:11px;font-size:0;">&nbsp;</td>
+                          <td style="border-top:2px dashed rgba(27,67,50,.2);font-size:0;line-height:0;">&nbsp;</td>
+                          <td style="width:11px;font-size:0;">&nbsp;</td>
                         </tr>
                       </table>
                     </td>
                   </tr>
                 </table>
 
-                <!-- BODY: event info + QR -->
-                <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#FFFFFF" style="background-color:#FFFFFF;">
+                <!-- BODY — crème #F9F6EE -->
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F9F6EE" style="background-color:#F9F6EE;">
                   <tr>
-                    <td style="padding:0 24px 20px 24px;text-align:center;">
+                    <td style="padding:20px 24px 8px;">
+                      <!-- Date/Heure row -->
                       <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                        <tr><td style="border-bottom:1px dashed #E0E0E0;font-size:0;line-height:0;">&nbsp;</td></tr>
-                      </table>
-                      <p style="font-size:20px;font-weight:900;color:#0D1B2A;text-align:center;letter-spacing:.5px;line-height:1.3;margin:12px 0 6px 0;font-family:Arial,sans-serif;">${(ticket.evenement || '').toUpperCase()}</p>
-                      <p style="font-size:12px;font-weight:600;color:#5A7090;text-align:center;margin:0 0 6px 0;font-family:Arial,sans-serif;">${dateAchat || ''}</p>
-                      <div style="height:6px;font-size:0;">&nbsp;</div>
-                      <table cellpadding="0" cellspacing="0" border="0" align="center" style="border:1px solid #E8E8E8;border-radius:8px;mso-border-radius:8px;padding:8px;">
                         <tr>
-                          <td align="center" style="padding:8px;">
+                          <td style="padding:0;">
+                            <p style="font-size:8px;font-weight:700;letter-spacing:2px;color:#40916C;margin:0;font-family:Arial,sans-serif;">DATE</p>
+                            <p style="font-size:12px;font-weight:600;color:#1B4332;margin:2px 0 0 0;font-family:Arial,sans-serif;">${dateAchat || ''}</p>
+                          </td>
+                        </tr>
+                      </table>
+                      <!-- Séparateur -->
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:14px 0;">
+                        <tr><td style="border-top:1px solid rgba(27,67,50,.1);font-size:0;line-height:0;">&nbsp;</td></tr>
+                      </table>
+                      <!-- REF -->
+                      <p style="font-size:9px;color:#40916C;letter-spacing:2px;text-align:center;margin:0 0 4px 0;font-family:Arial,sans-serif;">REF · ${ticket.numero}</p>
+                      <!-- QR -->
+                      <table cellpadding="0" cellspacing="0" border="0" align="center" style="background:#fff;border-radius:12px;mso-border-radius:12px;padding:12px;margin:14px 0;border:1px solid rgba(27,67,50,.08);">
+                        <tr>
+                          <td align="center" style="padding:0;">
                             <img src="${qrUrl}" alt="QR" width="160" height="160" style="display:block;width:160px;height:160px;" />
                           </td>
                         </tr>
@@ -185,40 +227,32 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
                   </tr>
                 </table>
 
-                <!-- PERFORATION -->
+                <!-- PERFORATION BASSE -->
                 <table cellpadding="0" cellspacing="0" border="0" width="100%">
                   <tr>
-                    <td style="padding:0 10px;">
-                      <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                    <td style="height:22px;position:relative;background:linear-gradient(to bottom,#F9F6EE,#F0EAD6);">
+                      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="position:absolute;top:10px;left:0;">
                         <tr>
-                          <td width="10" style="width:10px;">
-                            <table cellpadding="0" cellspacing="0" border="0" width="14" height="14" style="border-radius:7px;background-color:#152232;">
-                              <tr><td style="font-size:0;">&nbsp;</td></tr>
-                            </table>
-                          </td>
-                          <td style="border-bottom:1.5px dashed #CCCCCC;font-size:0;line-height:0;">&nbsp;</td>
-                          <td width="10" style="width:10px;">
-                            <table cellpadding="0" cellspacing="0" border="0" width="14" height="14" style="border-radius:7px;background-color:#152232;">
-                              <tr><td style="font-size:0;">&nbsp;</td></tr>
-                            </table>
-                          </td>
+                          <td style="width:11px;font-size:0;">&nbsp;</td>
+                          <td style="border-top:2px dashed rgba(27,67,50,.2);font-size:0;line-height:0;">&nbsp;</td>
+                          <td style="width:11px;font-size:0;">&nbsp;</td>
                         </tr>
                       </table>
                     </td>
                   </tr>
                 </table>
 
-                <!-- FOOTER / SOUCHE -->
-                <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F7F8FA" style="background-color:#F7F8FA;">
+                <!-- FOOTER — beige #F0EAD6 -->
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F0EAD6" style="background-color:#F0EAD6;border-radius:0 0 20px 20px;">
                   <tr>
-                    <td style="padding:16px 24px;text-align:center;">
-                      <table cellpadding="4" cellspacing="0" border="0" align="center" bgcolor="#0D1B2A" style="background-color:#0D1B2A;border-radius:9999px;mso-border-radius:9999px;">
+                    <td style="padding:16px;text-align:center;">
+                      <table cellpadding="5" cellspacing="0" border="0" align="center" bgcolor="#1B4332" style="background-color:#1B4332;border-radius:999px;mso-border-radius:999px;">
                         <tr>
-                          <td style="padding:4px 16px;font-size:10px;font-weight:700;color:#FFFFFF;letter-spacing:2px;text-transform:uppercase;font-family:Arial,sans-serif;">${(ticket.categorie || 'STANDARD').toUpperCase()}</td>
+                          <td style="padding:5px 20px;font-size:9px;font-weight:700;letter-spacing:2.5px;color:#D4AF37;font-family:Arial,sans-serif;">${(ticket.categorie || 'STANDARD').toUpperCase()}</td>
                         </tr>
                       </table>
-                      <p style="font-size:22px;font-weight:900;color:#0D1B2A;text-align:center;margin:8px 0 4px 0;font-family:Arial,sans-serif;">${ticket.prix.toLocaleString()} FCFA</p>
-                      <p style="font-size:9px;color:#A0B4C8;font-style:italic;text-align:center;margin:0;font-family:Arial,sans-serif;">Entree unique et non transferable</p>
+                      <p style="font-size:28px;font-weight:700;color:#1B4332;text-align:center;letter-spacing:-.5px;margin:8px 0 4px 0;font-family:Arial,sans-serif;">${ticket.prix.toLocaleString()} FCFA</p>
+                      <p style="font-size:9px;color:#40916C;font-style:italic;text-align:center;margin:0;font-family:Arial,sans-serif;">Entree unique et non transferable</p>
                     </td>
                   </tr>
                 </table>
