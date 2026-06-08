@@ -334,59 +334,74 @@ const afficherBillet = async (req, res) => {
 <title>Billet ${b.numero} - SENGUICHET</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#9AD8D8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
-.t{width:340px;background:#E8F5F0;border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.15);position:relative}
-.hd{height:140px;background:#fff;position:relative;overflow:hidden}
-.s1{position:absolute;top:-20px;right:-30px;width:160px;height:160px;border-radius:80px;background:#00C8FF;opacity:.15}
-.s2{position:absolute;top:10px;right:20px;width:100px;height:100px;border-radius:50px;background:#0077FF;opacity:.2}
-.s3{position:absolute;top:40px;right:-10px;width:70px;height:70px;border-radius:35px;background:#00E5A0;opacity:.15}
-.s4{position:absolute;top:-10px;right:60px;width:50px;height:50px;border-radius:25px;background:#0077FF;opacity:.1}
-.hc{position:absolute;left:20px;bottom:16px}
-.lo{width:64px;height:64px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
-.ht{font-size:10px;font-weight:700;color:#0D1B2A;letter-spacing:3px;margin-top:4px}
-.bd{padding:20px 28px;display:flex;flex-direction:column;align-items:center}
-.rv{position:absolute;left:0;top:140px;bottom:0;width:20px;display:flex;align-items:center;justify-content:center;z-index:5}
-.rt{font-size:9px;color:#5A7090;letter-spacing:1px;transform:rotate(-90deg);white-space:nowrap;font-family:'Courier New',monospace}
-.bs{width:100%;border-bottom:1px dashed #E0E0E0;margin-bottom:16px}
-.en{font-size:22px;font-weight:900;color:#0D1B2A;text-align:center;letter-spacing:.5px;line-height:1.3;margin-bottom:8px}
-.ed{font-size:13px;font-weight:600;color:#5A7090;text-align:center;margin-bottom:4px}
-.el{font-size:12px;font-weight:700;color:#00C8FF;text-align:center;letter-spacing:1.5px;text-transform:uppercase}
-.sp{height:8px}
-.qz{width:100%;display:flex;justify-content:center;border:1px solid #E8E8E8;border-radius:8px;padding:12px;background:#fff}
-.pf{height:20px;position:relative}
-.pc{position:absolute;top:0;width:20px;height:20px;border-radius:10px;background:#0D1B2A;z-index:2}
-.pc:first-child{left:-10px}
-.pc:last-child{right:-10px}
-.pl{height:0;border-bottom:1.5px dashed #CCC;margin:9px 20px}
-.ft{background:#F7F8FA;padding:20px 28px;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
-.cp{background:#0D1B2A;padding:6px 20px;border-radius:9999px}
-.ct{font-size:10px;font-weight:700;color:#fff;letter-spacing:2px;text-transform:uppercase}
-.pr{font-size:26px;font-weight:900;color:#0D1B2A;text-align:center}
-.ll{font-size:10px;color:#A0B4C8;font-style:italic;text-align:center}
-.wm{position:absolute;bottom:8px;right:16px;font-size:8px;font-weight:700;color:#CCC;letter-spacing:1px}
-@media print{body{background:#fff;padding:0}.t{box-shadow:none;border-radius:0}}
+body{background:#0F1A0F;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+.t{width:340px;border-radius:20px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.15);position:relative}
+/* HEADER vert foret */
+.hd{background:#1B4332;padding:24px;position:relative;overflow:hidden}
+.o1{position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:60px;background:rgba(64,145,108,.35)}
+.o2{position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:40px;background:rgba(212,175,55,.15)}
+.hr{display:flex;align-items:center;gap:10px}
+.lb{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center}
+.lb img{width:28px;height:28px;border-radius:6px}
+.ht{font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.7)}
+.gl{height:1px;background:#D4AF37;opacity:.6;margin:16px 0}
+.en{font-size:22px;font-weight:700;color:#fff;text-align:center;letter-spacing:.5px;line-height:28px}
+.ec{font-size:10px;color:rgba(255,255,255,.5);text-align:center;letter-spacing:2px;margin-top:6px}
+/* PERFORATION */
+.pf{height:22px;position:relative;background:linear-gradient(to bottom,#1B4332,#F9F6EE);display:flex;align-items:center;justify-content:center}
+.pl{position:absolute;left:22px;right:22px;border-top:2px dashed rgba(27,67,50,.2)}
+.pc{position:absolute;width:22px;height:22px;border-radius:11px;background:#0F1A0F;z-index:2}
+.pc.l{left:-11px}
+.pc.r{right:-11px}
+/* BODY creme */
+.bd{background:#F9F6EE;padding:20px 24px 8px}
+.br{display:flex;justify-content:space-between}
+.bl{font-size:8px;font-weight:700;letter-spacing:2px;color:#40916C;margin-bottom:2px}
+.bv{font-size:12px;font-weight:600;color:#1B4332}
+.ll{font-size:12px;font-weight:600;color:#40916C;letter-spacing:.5px;margin-top:2px}
+.bs{height:1px;background:rgba(27,67,50,.1);margin:14px 0}
+.rf{font-size:9px;color:#40916C;letter-spacing:2px;text-align:center;margin-bottom:4px}
+.qz{background:#fff;border-radius:12px;padding:12px;margin:14px 0;border:1px solid rgba(27,67,50,.08);display:flex;justify-content:center}
+/* PERFO BASSE */
+.pb{height:22px;position:relative;background:linear-gradient(to bottom,#F9F6EE,#F0EAD6);display:flex;align-items:center;justify-content:center}
+/* FOOTER beige */
+.ft{background:#F0EAD6;border-radius:0 0 20px 20px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
+.cp{background:#1B4332;border-radius:999px;padding:5px 20px}
+.ct{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#D4AF37}
+.pr{font-size:28px;font-weight:700;color:#1B4332;letter-spacing:-.5px;text-align:center}
+.ll2{font-size:9px;color:#40916C;font-style:italic;text-align:center}
+.wm{font-size:8px;color:rgba(27,67,50,.3);letter-spacing:2px;align-self:flex-end;margin-right:4px}
+@media print{body{background:#fff;padding:0}.t{box-shadow:none}}
 </style>
 </head>
 <body>
 <div class="t">
   <div class="hd">
-    <div class="s1"></div><div class="s2"></div><div class="s3"></div><div class="s4"></div>
-    <div class="hc"><img class="lo" src="/public/logo_mobile.jpeg" alt="SENGUICHET" /><div class="ht">SENGUICHET</div></div>
-  </div>
-    <div class="bd">
-    <div class="rv"><div class="rt">REF | ${b.numero}</div></div>
-    <div class="bs"></div>
+    <div class="o1"></div><div class="o2"></div>
+    <div class="hr">
+      <div class="lb"><img src="/public/logo_mobile.jpeg" alt="S" /></div>
+      <div class="ht">SENGUICHET</div>
+    </div>
+    <div class="gl"></div>
     <div class="en">${(b.titre || '').toUpperCase()}</div>
-    <div class="ed">${dateFormatted} a ${heureFormatted}</div>
-    <div class="el">${(b.lieu || '').toUpperCase()}</div>
-    <div class="sp"></div>
+    <div class="ec">${(b.categorie || 'STANDARD').toUpperCase()}</div>
+  </div>
+  <div class="pf"><div class="pl"></div><div class="pc l"></div><div class="pc r"></div></div>
+  <div class="bd">
+    <div class="br">
+      <div><div class="bl">DATE</div><div class="bv">${dateFormatted}</div></div>
+      <div style="text-align:right"><div class="bl">HEURE</div><div class="bv">${heureFormatted}</div></div>
+    </div>
+    <div style="margin-top:10px"><div class="bl">LIEU</div><div class="ll">${(b.lieu || '').toUpperCase()}</div></div>
+    <div class="bs"></div>
+    <div class="rf">REF · ${b.numero}</div>
     <div class="qz">${qrHtml}</div>
   </div>
-  <div class="pf"><div class="pc"></div><div class="pl"></div><div class="pc"></div></div>
+  <div class="pb"><div class="pl"></div><div class="pc l"></div><div class="pc r"></div></div>
   <div class="ft">
     <div class="cp"><div class="ct">${(b.categorie || 'STANDARD').toUpperCase()}</div></div>
     <div class="pr">${Number(b.prix_paye).toLocaleString()} FCFA</div>
-    <div class="ll">Entree unique et non transferable</div>
+    <div class="ll2">Entree unique et non transferable</div>
     <div class="wm">SENGUICHET</div>
   </div>
 </div>
