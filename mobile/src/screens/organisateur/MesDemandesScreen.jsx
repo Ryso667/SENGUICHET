@@ -6,7 +6,7 @@ import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
-import { listerMesDemandes, soumettreDemandeEvenement } from '../../services/eventService'
+import { listerMesDemandes, soumettreDemandeEvenement, fetchEvenementsAPI } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
 import * as ImagePicker from 'expo-image-picker'
 import OrganisateurLayout from '../../components/OrganisateurLayout'
@@ -81,6 +81,10 @@ export default function MesDemandesScreen({ navigation }) {
   const [browseYearFin, setBrowseYearFin] = useState(new Date().getFullYear())
   const [browseMonthFin, setBrowseMonthFin] = useState(new Date().getMonth())
   const [kbPadding, setKbPadding] = useState(0)
+  const [evenementId, setEvenementId] = useState(null)
+  const [organisateurEvents, setOrganisateurEvents] = useState([])
+  const [eventsLoading, setEventsLoading] = useState(false)
+  const [eventsVisible, setEventsVisible] = useState(false)
 
   useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', (e) => setKbPadding(e.endCoordinates.height))
@@ -134,11 +138,22 @@ export default function MesDemandesScreen({ navigation }) {
       setAffichePreview(null)
       setCategorie('')
       setVille('')
+      setEvenementId(null)
       setDateExpanded(false)
       setDateFinExpanded(false)
       setDemandeSent(false)
     }
     setError('')
+    setEvenementId(null)
+    // Charger les événements de l'organisateur pour la liste déroulante
+    setEventsLoading(true)
+    fetchEvenementsAPI().then((events) => {
+      setOrganisateurEvents(events || [])
+    }).catch(() => {
+      setOrganisateurEvents([])
+    }).finally(() => {
+      setEventsLoading(false)
+    })
     setModalVisible(true)
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start()
   }
@@ -211,6 +226,12 @@ export default function MesDemandesScreen({ navigation }) {
           .filter(c => c.nom.trim() && c.places && c.prix)
           .map(c => ({ nom: c.nom.trim(), places: parseInt(c.places) || 0, prix: parseInt(c.prix) || 0 }))
       } else {
+        if (!evenementId) {
+          Alert.alert('Champs requis', 'Veuillez sélectionner un événement.')
+          setSending(false)
+          return
+        }
+        payload.evenement_id = evenementId
         payload.titre = titre
       }
       await soumettreDemandeEvenement(payload)
@@ -229,6 +250,46 @@ export default function MesDemandesScreen({ navigation }) {
   const getDaysInMonth = (y, m) => new Date(y, m + 1, 0).getDate()
   const getFirstDay = (y, m) => new Date(y, m, 1).getDay()
   const pad = (n) => n.toString().padStart(2, '0')
+
+  // Liste déroulante des événements de l'organisateur pour MODIFICATION/SUPPRESSION
+  const renderEventPicker = () => (
+    <Modal visible={eventsVisible} transparent animationType="fade">
+      <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setEventsVisible(false)}>
+        <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+          <Text style={s.pickerTitle}>Sélectionner un événement</Text>
+          {eventsLoading ? (
+            <ActivityIndicator color="#fff" style={{ marginVertical: 20 }} />
+          ) : organisateurEvents.length === 0 ? (
+            <Text style={{ fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginVertical: 20 }}>
+              Aucun événement trouvé
+            </Text>
+          ) : (
+            <FlatList
+              data={organisateurEvents}
+              keyExtractor={(item) => String(item.id)}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[s.pickerItem, evenementId === item.id && s.pickerItemActive]}
+                  onPress={() => {
+                    setEvenementId(item.id)
+                    setTitre(item.nom || item.titre)
+                    setEventsVisible(false)
+                  }}
+                >
+                  <Text style={[s.pickerItemText, evenementId === item.id && s.pickerItemTextActive]}>
+                    {item.nom || item.titre}
+                  </Text>
+                  <Text style={{ fontSize: 10, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>
+                    {item.categorie || ''}{item.date_debut ? ` · ${new Date(item.date_debut).toLocaleDateString('fr-FR')}` : ''}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          )}
+        </GlassContainer>
+      </TouchableOpacity>
+    </Modal>
+  )
 
   // Calendrier interactif pour le choix des dates
   const renderCalendar = (target) => {
@@ -617,8 +678,13 @@ export default function MesDemandesScreen({ navigation }) {
 
                   {typeAction !== 'CREATION' && (
                     <>
-                      {renderLabel('Titre / Événement concerné')}
-                      {renderInput('Nom de l\'événement concerné', titre, setTitre)}
+                      {renderLabel('Événement concerné', true)}
+                      <TouchableOpacity style={f.pickerBtn} onPress={() => setEventsVisible(true)}>
+                        <Text style={[f.pickerBtnText, !titre && { color: 'rgba(255,255,255,0.3)' }]} numberOfLines={1}>
+                          {titre || 'Sélectionner un événement'}
+                        </Text>
+                        <Feather name="chevron-down" size={16} color="rgba(255,255,255,0.4)" />
+                      </TouchableOpacity>
                     </>
                   )}
 
@@ -689,6 +755,8 @@ export default function MesDemandesScreen({ navigation }) {
           </GlassContainer>
         </TouchableOpacity>
       </Modal>
+
+      {renderEventPicker()}
     </View>
   )
 }
