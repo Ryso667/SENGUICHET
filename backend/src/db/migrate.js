@@ -110,20 +110,38 @@ async function migrate() {
   }
 
   // Ajout des colonnes categorie et ville à demande_evenement si absentes
+  // NB: TiDB ne supporte pas plusieurs ADD COLUMN dans un seul ALTER TABLE,
+  // donc on exécute deux ALTER séparés
   try {
     const [cols] = await connection.query("SHOW COLUMNS FROM demande_evenement LIKE 'categorie'");
     if (cols.length === 0) {
-      await connection.query(`
-        ALTER TABLE demande_evenement
-        ADD COLUMN categorie VARCHAR(100) DEFAULT NULL AFTER capacite,
-        ADD COLUMN ville VARCHAR(100) DEFAULT NULL AFTER lieu
-      `);
-      console.log("✅ Colonnes categorie/ville ajoutées à demande_evenement");
+      try {
+        await connection.query("ALTER TABLE demande_evenement ADD COLUMN categorie VARCHAR(100) DEFAULT NULL AFTER capacite");
+        console.log("✅ Colonne categorie ajoutée à demande_evenement");
+      } catch (e2) {
+        console.error("⚠️  Impossible d'ajouter categorie:", e2.message);
+      }
     } else {
-      console.log("ℹ️  Colonnes categorie/ville existent déjà");
+      console.log("ℹ️  Colonne categorie existe déjà");
     }
   } catch (e) {
-    console.error("⚠️  Impossible de vérifier/ajouter categorie/ville:", e.message);
+    console.error("⚠️  Impossible de vérifier categorie:", e.message);
+  }
+
+  try {
+    const [cols] = await connection.query("SHOW COLUMNS FROM demande_evenement LIKE 'ville'");
+    if (cols.length === 0) {
+      try {
+        await connection.query("ALTER TABLE demande_evenement ADD COLUMN ville VARCHAR(100) DEFAULT NULL AFTER lieu");
+        console.log("✅ Colonne ville ajoutée à demande_evenement");
+      } catch (e2) {
+        console.error("⚠️  Impossible d'ajouter ville:", e2.message);
+      }
+    } else {
+      console.log("ℹ️  Colonne ville existe déjà");
+    }
+  } catch (e) {
+    console.error("⚠️  Impossible de vérifier ville:", e.message);
   }
 
   // Ajout de la colonne code_acces à controleur si absente

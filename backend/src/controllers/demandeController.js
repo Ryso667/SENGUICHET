@@ -63,7 +63,7 @@ const soumettreDemande = async (req, res) => {
     });
   } catch (err) {
     console.error("Erreur soumettre demande:", err);
-    res.status(500).json({ message: "Erreur lors de la soumission", detail: err.message });
+    res.status(500).json({ message: "Erreur lors de la soumission" });
   }
 };
 
