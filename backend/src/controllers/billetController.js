@@ -302,7 +302,7 @@ const afficherBillet = async (req, res) => {
     );
 
     if (!rows.length) {
-      return res.status(404).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Billet introuvable — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#f8f9fd"><h1 style="color:#6366F1;">SENGUICHET</h1><p style="color:#94a3b8;">Billet introuvable</p></body></html>`);
+      return res.status(404).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Billet introuvable — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#1B4332;">SENGUICHET</h1><p style="color:#40916C;">Billet introuvable</p></body></html>`);
     }
 
     const b = rows[0];
@@ -409,7 +409,7 @@ body{background:#0F1A0F;min-height:100vh;display:flex;align-items:center;justify
 </html>`);
   } catch (err) {
     console.error("Afficher billet error:", err);
-    res.status(500).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Erreur — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#f8f9fd"><h1 style="color:#6366F1;">SENGUICHET</h1><p style="color:#94a3b8;">Erreur serveur</p></body></html>`);
+    res.status(500).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Erreur — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#1B4332;">SENGUICHET</h1><p style="color:#40916C;">Erreur serveur</p></body></html>`);
   }
 };
 
