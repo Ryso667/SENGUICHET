@@ -20,6 +20,7 @@ import GlassButton from '../components/GlassButton'
 import { getDefaultImage } from '../config/images'
 import { fetchEvenementDetailPublic } from '../services/eventService'
 import { acheterBillet } from '../services/billetService'
+import { sauvegarderTicketAcheteur } from '../database/database'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { useAuth } from '../context/AuthContext'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -151,6 +152,19 @@ export default function EventDetailScreen({ route, navigation }) {
 
       await definirTelephone(telComplet)
 
+      // Construit l'objet ticket avec les infos événement pour le stockage local
+      const ticketData = {
+        ...resultat.billet,
+        eventId: event.id,
+        eventNom: event.title || resultat.billet.evenement,
+        eventDate: event.date,
+        eventHeure: event.time,
+        eventLieu: event.location,
+        telephone: telComplet,
+        statut: 'actif',
+      }
+      await sauvegarderTicketAcheteur(ticketData)
+
       // Redirection vers WebView de paiement ou succès direct
       if (resultat.paiement?.redirectUrl) {
         setShowPaymentSheet(false)
@@ -158,14 +172,14 @@ export default function EventDetailScreen({ route, navigation }) {
           redirectUrl: resultat.paiement.redirectUrl,
           transactionReference: resultat.paiement.reference,
           eventId: event.id,
-          ticket: { ...resultat.billet, eventId: event.id },
+          ticket: ticketData,
         })
       } else {
-        setPaymentResult({ ...resultat.billet, eventId: event.id })
+        setPaymentResult(ticketData)
         setPaymentEtape('success')
         setTimeout(() => {
           setShowPaymentSheet(false)
-          navigation.replace('Ticket', { ticket: { ...resultat.billet, eventId: event.id } })
+          navigation.replace('Ticket', { ticket: ticketData })
         }, 2000)
       }
     } catch (err) {

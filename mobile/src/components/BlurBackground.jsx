@@ -1,7 +1,7 @@
 // Fond d'écran plein écran avec image par catégorie + dégradé (style Apple Music)
 // Affiche l'image derrière un dégradé + overlay de lisibilité
 // Le dégradé s'affiche immédiatement, l'image se superpose en fondu dès qu'elle est chargée
-// Les URLs Cloudinary sont optimisées (w_400,q_auto,f_webp) pour un chargement rapide
+// Les URLs Cloudinary sont optimisées (w_1080,q_auto,f_webp) pour un chargement rapide
 // Props : category, intensityOverlay, showImage, afficheUrl
 import { useEffect, useRef } from 'react'
 import { View, Animated, Image, StyleSheet } from 'react-native'
@@ -12,11 +12,11 @@ import { getCategoryImageUrl } from '../config/images'
 // Optimise les URLs Cloudinary pour un chargement plus rapide
 export function optimiserUrlCloudinary(url) {
   if (!url || !url.includes('cloudinary')) return url
-  return url.replace('/upload/', '/upload/w_200,q_auto,f_webp/')
+  return url.replace('/upload/', '/upload/w_1080,q_auto,f_webp/')
 }
 
-export default function BlurBackground({ category, intensityOverlay = true, showImage = true, afficheUrl, parallaxOffset }) {
-  const gradient = categoryGradients[category] || categoryGradients.default
+export default function BlurBackground({ category, intensityOverlay = true, showImage = true, afficheUrl, parallaxOffset, gradientOverride }) {
+  const gradient = gradientOverride || categoryGradients[category] || categoryGradients.default
   // Priorité : afficheUrl de l'événement → image par catégorie (Unsplash)
   const imageUrl = showImage ? (afficheUrl || (category ? getCategoryImageUrl(category) : null)) : null
   const imageOpacity = useRef(new Animated.Value(0)).current
