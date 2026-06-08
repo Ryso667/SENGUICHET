@@ -9,7 +9,7 @@ const { envoyerNotificationDemandeEvenement } = require("../services/emailServic
 const soumettreDemande = async (req, res) => {
   try {
     const { type_action, evenement_id, titre, description, lieu, ville,
-      date_debut, date_fin, capacite, categorie, affiche_url, payload, categories_tickets } = req.body;
+      date_debut, date_fin, capacite, categorie, affiche_url, payload, categories_tickets, heure } = req.body;
 
     if (!type_action || !["CREATION", "MODIFICATION", "SUPPRESSION"].includes(type_action)) {
       return res.status(400).json({ message: "Type d'action invalide" });
@@ -25,10 +25,11 @@ const soumettreDemande = async (req, res) => {
       return res.status(400).json({ message: "ID événement requis" });
     }
 
-    // Passer les dates en chaîne YYYY-MM-DD directement, car mysql2 convertit les objets Date
-    // en format ISO (T00:00:00.000Z) que TiDB Serverless rejette pour les colonnes DATETIME
-    const dateDebut = date_debut ? date_debut + ' 00:00:00' : null;
-    const dateFin = date_fin ? date_fin + ' 00:00:00' : null;
+    // Passer les dates en chaîne YYYY-MM-DD avec l'heure fournie (ou 00:00 par défaut)
+    // Les objets Date JS sont rejetés par TiDB Serverless pour les colonnes DATETIME
+    const timePart = heure || '00:00';
+    const dateDebut = date_debut ? date_debut + ' ' + timePart + ':00' : null;
+    const dateFin = date_fin ? date_fin + ' ' + timePart + ':00' : null;
 
     const [result] = await pool.query(
       `INSERT INTO demande_evenement
