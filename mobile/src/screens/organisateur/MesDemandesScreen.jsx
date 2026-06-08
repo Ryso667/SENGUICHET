@@ -60,6 +60,10 @@ export default function MesDemandesScreen({ navigation }) {
   const [lieu, setLieu] = useState('')
   const [dateDebut, setDateDebut] = useState('')
   const [dateFin, setDateFin] = useState('')
+  const [heure, setHeure] = useState('')
+  const [heureExpanded, setHeureExpanded] = useState(false)
+  const [editHour, setEditHour] = useState(12)
+  const [editMinute, setEditMinute] = useState(0)
   const [capacite, setCapacite] = useState('')
   const [message, setMessage] = useState('')
   const [categories, setCategories] = useState([{ nom: '', places: '', prix: '' }])
@@ -109,23 +113,31 @@ export default function MesDemandesScreen({ navigation }) {
   const openNewDemande = () => {
     setModalMode('create')
     setViewingDemande(null)
-    setTypeAction('CREATION')
-    setTitre('')
-    setDescription('')
-    setLieu('')
-    setDateDebut('')
-    setDateFin('')
-    setCapacite('')
-    setMessage('')
-    setCategories([{ nom: '', places: '', prix: '' }])
-    setUploading(false)
-    setAfficheUrl(null)
-    setAffichePreview(null)
-    setCategorie('')
-    setVille('')
-    setDateExpanded(false)
-    setDateFinExpanded(false)
-    setDemandeSent(false)
+    // Si la dernière demande a été envoyée avec succès, réinitialiser le formulaire
+    // Sinon, conserver les champs saisis (reprise après erreur ou fermeture accidentelle)
+    if (demandeSent) {
+      setTypeAction('CREATION')
+      setTitre('')
+      setDescription('')
+      setLieu('')
+      setDateDebut('')
+      setDateFin('')
+      setHeure('')
+      setHeureExpanded(false)
+      setEditHour(12)
+      setEditMinute(0)
+      setCapacite('')
+      setMessage('')
+      setCategories([{ nom: '', places: '', prix: '' }])
+      setUploading(false)
+      setAfficheUrl(null)
+      setAffichePreview(null)
+      setCategorie('')
+      setVille('')
+      setDateExpanded(false)
+      setDateFinExpanded(false)
+      setDemandeSent(false)
+    }
     setError('')
     setModalVisible(true)
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start()
@@ -190,6 +202,7 @@ export default function MesDemandesScreen({ navigation }) {
         payload.categorie = categorie
         payload.lieu = ville ? `${lieu}, ${ville}` : lieu
         payload.ville = ville || ''
+        payload.heure = heure || null
         payload.date_debut = dateDebut
         payload.date_fin = dateFin || null
         payload.capacite = parseInt(capacite) || 0
@@ -268,6 +281,48 @@ export default function MesDemandesScreen({ navigation }) {
             )
           })}
         </View>
+      </GlassContainer>
+    )
+  }
+
+  // Sélecteur d'heure inline (calqué sur CreerEvenementScreen)
+  const renderTimePicker = () => {
+    const hours = Array.from({ length: 24 }, (_, i) => i)
+    return (
+      <GlassContainer blurType="light" style={f.timePicker} intensity={30}>
+        <View style={f.timeRow}>
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={f.timeLabel}>Heure</Text>
+            <View style={f.timeCol}>
+              <TouchableOpacity onPress={() => setEditHour(editHour === 23 ? 0 : editHour + 1)}>
+                <Feather name="chevron-up" size={20} color="rgba(255,255,255,0.5)" />
+              </TouchableOpacity>
+              <Text style={f.timeValue}>{editHour.toString().padStart(2, '0')}</Text>
+              <TouchableOpacity onPress={() => setEditHour(editHour === 0 ? 23 : editHour - 1)}>
+                <Feather name="chevron-down" size={20} color="rgba(255,255,255,0.5)" />
+              </TouchableOpacity>
+            </View>
+          </View>
+          <Text style={{ fontSize: 24, color: '#fff', fontFamily: fonts.outfit.bold, alignSelf: 'center', paddingBottom: 8 }}>:</Text>
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={f.timeLabel}>Minutes</Text>
+            <View style={f.timeCol}>
+              <TouchableOpacity onPress={() => setEditMinute(editMinute === 55 ? 0 : editMinute + 5)}>
+                <Feather name="chevron-up" size={20} color="rgba(255,255,255,0.5)" />
+              </TouchableOpacity>
+              <Text style={f.timeValue}>{editMinute.toString().padStart(2, '0')}</Text>
+              <TouchableOpacity onPress={() => setEditMinute(editMinute === 0 ? 55 : editMinute - 5)}>
+                <Feather name="chevron-down" size={20} color="rgba(255,255,255,0.5)" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        <TouchableOpacity style={f.timeConfirmBtn} onPress={() => {
+          setHeure(`${editHour.toString().padStart(2, '0')}:${editMinute.toString().padStart(2, '0')}`)
+          setHeureExpanded(false)
+        }}>
+          <Text style={f.timeConfirmText}>Confirmer l'heure</Text>
+        </TouchableOpacity>
       </GlassContainer>
     )
   }
@@ -509,6 +564,16 @@ export default function MesDemandesScreen({ navigation }) {
                         <Feather name={dateFinExpanded ? 'chevron-up' : 'chevron-down'} size={16} color="rgba(255,255,255,0.4)" />
                       </TouchableOpacity>
                       {renderCalendar('dateFin')}
+
+                      {/* Horaire */}
+                      {renderLabel('Horaire')}
+                      <TouchableOpacity style={f.pickerBtn} onPress={() => setHeureExpanded(!heureExpanded)}>
+                        <Text style={[f.pickerBtnText, !heure && { color: 'rgba(255,255,255,0.3)' }]}>
+                          {heure || 'Sélectionner l\'heure (optionnel)'}
+                        </Text>
+                        <Feather name={heureExpanded ? 'chevron-up' : 'chevron-down'} size={16} color="rgba(255,255,255,0.4)" />
+                      </TouchableOpacity>
+                      {heureExpanded && renderTimePicker()}
 
                       {renderLabel('Capacité', true)}
                       {renderInput('Ex: 1000', capacite, setCapacite, { keyboardType: 'numeric' })}
@@ -768,4 +833,16 @@ const f = StyleSheet.create({
   calDaySelected: { backgroundColor: '#00C8FF', borderRadius: 20 },
   calDayText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
   calDayTextSelected: { color: '#fff', fontFamily: fonts.outfit.semiBold },
+
+  /* Time picker */
+  timePicker: { padding: 12, marginBottom: spacing.sm },
+  timeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  timeLabel: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.4)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 },
+  timeCol: { alignItems: 'center', gap: 4 },
+  timeValue: { fontSize: 28, fontFamily: fonts.outfit.bold, color: '#fff', paddingVertical: 4 },
+  timeConfirmBtn: {
+    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 10,
+    paddingVertical: 10, alignItems: 'center',
+  },
+  timeConfirmText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
 })
