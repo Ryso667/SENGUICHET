@@ -37,6 +37,8 @@ const CATEGORIES = [
   'Atelier', 'Exposition', 'Club / Soirée', 'Gala', 'Autres / Divers',
 ]
 
+const BILLET_CATEGORIES = ['Standard', 'VIP', 'Premium', 'Carré Or', 'Fosse', 'Autres / Divers']
+
 const VILLES = [
   'Dakar', 'Thiès', 'Saint-Louis', 'Ziguinchor', 'Touba', 'Kaolack', 'Autre',
 ]
@@ -72,6 +74,7 @@ export default function MesDemandesScreen({ navigation }) {
   const [affichePreview, setAffichePreview] = useState(null)
   const [categorie, setCategorie] = useState('')
   const [ville, setVille] = useState('')
+  const [billetCatIndex, setBilletCatIndex] = useState(null)
   const [catVisible, setCatVisible] = useState(false)
   const [villeVisible, setVilleVisible] = useState(false)
   const [dateExpanded, setDateExpanded] = useState(false)
@@ -663,7 +666,14 @@ export default function MesDemandesScreen({ navigation }) {
                       </View>
                       {categories.map((cat, i) => (
                         <View key={i} style={f.catRow}>
-                          {renderInput('Nom', cat.nom, (v) => updateCategory(i, 'nom', v), { style: { flex: 1, marginRight: 4 } })}
+                          <View style={{ flex: 1, marginRight: 4 }}>
+                            <TouchableOpacity style={f.catPickerBtn} onPress={() => setBilletCatIndex(i)}>
+                              <Text style={[f.catPickerText, !cat.nom && { color: 'rgba(255,255,255,0.3)' }]} numberOfLines={1}>
+                                {cat.nom || 'Catégorie'}
+                              </Text>
+                              <Feather name="chevron-down" size={14} color="rgba(255,255,255,0.4)" />
+                            </TouchableOpacity>
+                          </View>
                           {renderInput('Places', cat.places, (v) => updateCategory(i, 'places', v), { style: { flex: 1, marginHorizontal: 4 }, keyboardType: 'numeric' })}
                           {renderInput('Prix', cat.prix, (v) => updateCategory(i, 'prix', v), { style: { flex: 1, marginLeft: 4 }, keyboardType: 'numeric' })}
                           {categories.length > 1 && (
@@ -728,6 +738,30 @@ export default function MesDemandesScreen({ navigation }) {
                   onPress={() => { setCategorie(item); setCatVisible(false) }}
                 >
                   <Text style={[s.pickerItemText, categorie === item && s.pickerItemTextActive]}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </GlassContainer>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Modale catégorie billet */}
+      <Modal visible={billetCatIndex !== null} transparent animationType="fade">
+        <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setBilletCatIndex(null)}>
+          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+            <Text style={s.pickerTitle}>Type de billet</Text>
+            <FlatList
+              data={BILLET_CATEGORIES}
+              keyExtractor={i => i}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[s.pickerItem, billetCatIndex !== null && categories[billetCatIndex]?.nom === item && s.pickerItemActive]}
+                  onPress={() => {
+                    if (billetCatIndex !== null) updateCategory(billetCatIndex, 'nom', item)
+                    setBilletCatIndex(null)
+                  }}
+                >
+                  <Text style={[s.pickerItemText, billetCatIndex !== null && categories[billetCatIndex]?.nom === item && s.pickerItemTextActive]}>{item}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -886,6 +920,15 @@ const f = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   pickerBtnText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: '#fff', flex: 1 },
+
+  /* Catégorie billet picker dans la row */
+  catPickerBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10,
+    paddingHorizontal: 10, height: 40,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)',
+  },
+  catPickerText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: '#fff', flex: 1 },
 
   /* Affiche preview */
   affichePreview: { width: '100%', height: 140, borderRadius: 10, resizeMode: 'cover' },
