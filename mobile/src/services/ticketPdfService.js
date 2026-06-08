@@ -1,15 +1,30 @@
-// Service de génération de ticket PDF — style billet physique (identique à l'app)
+// Service de génération de ticket PDF — format paysage, design vert émeraude, 3 colonnes
 import * as Print from 'expo-print'
 import * as Sharing from 'expo-sharing'
 import * as FileSystem from 'expo-file-system/legacy'
+import { Asset } from 'expo-asset'
 import { Alert } from 'react-native'
+
+// Charge le logo et le convertit en base64 pour injection dans le HTML du PDF
+async function chargerLogoBase64() {
+  try {
+    const asset = Asset.fromModule(require('../../assets/logo_mobile.jpeg'))
+    await asset.downloadAsync()
+    const b64 = await FileSystem.readAsStringAsync(asset.localUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    })
+    return `data:image/jpeg;base64,${b64}`
+  } catch {
+    return null
+  }
+}
 
 function formatPrix(prix) {
   if (prix == null) return '—'
   return `${Number(prix).toLocaleString('fr-FR')} FCFA`
 }
 
-function construireHtmlTicket(ticket, qrDataUrl) {
+function construireHtmlTicket(ticket, qrDataUrl, logoBase64) {
   const eventNom = (ticket.eventNom || 'ÉVÉNEMENT').toUpperCase()
   const dateFormatted = ticket.eventDate
     ? new Date(ticket.eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -20,216 +35,296 @@ function construireHtmlTicket(ticket, qrDataUrl) {
   const prixStr = formatPrix(ticket.prix)
   const refStr = ticket.numero || '—'
 
-  const qrImg = qrDataUrl
-    ? `<img src="${qrDataUrl}" style="width:180px;height:180px;display:block" />`
-    : '<div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#999">QR</div>'
+  const catStr = ticket.categorie || 'STANDARD'
 
-  // Design vert émeraude premium (identique à l'app mobile)
+  const logoImg = logoBase64
+    ? `<img src="${logoBase64}" style="width:48px;height:48px;border-radius:10px;border:2px solid rgba(255,255,255,0.2);display:block" />`
+    : '<div style="width:48px;height:48px;border-radius:10px;background:#1B4332;border:2px solid rgba(255,255,255,0.2)"></div>'
+
+  const qrImg = qrDataUrl
+    ? `<img src="${qrDataUrl}" style="width:160px;height:160px;display:block" />`
+    : '<div style="width:160px;height:160px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#999">QR</div>'
+
+  const statutOverlay = ticket.statut === 'utilise'
+    ? '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,77,109,0.9);border-radius:50%;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff;font-weight:700;">✕</div>'
+    : ''
+
+  // Design paysage 3 colonnes — palette vert émeraude #1B4332 / #40916C / #D4AF37 / #F9F6EE / #F0EAD6
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
 <title>Billet ${eventNom}</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   @page { margin: 0; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
     background: #0F1A0F;
     display: flex;
-    align-items: center;
     justify-content: center;
-    min-height: 100vh;
-    padding: 20px;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
+    align-items: center;
+    height: 100vh;
+    padding: 24px;
+    font-family: 'Outfit', 'Helvetica Neue', Arial, sans-serif;
   }
   .ticket {
-    width: 340px;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    max-width: 780px;
+    height: 480px;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
     position: relative;
   }
-  /* HEADER — vert forêt */
-  .header {
+
+  /* ===== COLONNE GAUCHE — HEADER ===== */
+  .col-left {
+    width: 25%;
     background: #1B4332;
-    padding: 24px;
+    border-radius: 20px 0 0 20px;
     position: relative;
     overflow: hidden;
-  }
-  .orbe1 { position:absolute; top:-30px; right:-30px; width:120px; height:120px; border-radius:60px; background:rgba(64,145,108,0.35); }
-  .orbe2 { position:absolute; bottom:-20px; left:-20px; width:80px; height:80px; border-radius:40px; background:rgba(212,175,55,0.15); }
-  .header-row { display:flex; align-items:center; gap:10px; }
-  .logo-box {
-    width:38px; height:38px; border-radius:10px;
-    background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2);
-    display:flex; align-items:center; justify-content:center;
-  }
-  .logo-box img { width:28px; height:28px; border-radius:6px; }
-  .header-title {
-    font-size:10px; font-weight:700; letter-spacing:3px; color:rgba(255,255,255,0.7);
-  }
-  .gold-line { height:1px; background:#D4AF37; opacity:0.6; margin:16px 0; }
-  .event-name {
-    font-size:22px; font-weight:700; color:#fff; text-align:center;
-    letter-spacing:0.5px; line-height:28px;
-  }
-  .event-cat {
-    font-size:10px; color:rgba(255,255,255,0.5); text-align:center;
-    letter-spacing:2px; margin-top:6px;
-  }
-  /* PERFORATION */
-  .perf {
-    height:22px; position:relative;
-    background: linear-gradient(to bottom, #1B4332, #F9F6EE);
-    display:flex; align-items:center; justify-content:center;
-  }
-  .perf-line {
-    position:absolute; left:22px; right:22px;
-    border-top:2px dashed rgba(27,67,50,0.2);
-  }
-  .perf-c {
-    position:absolute; width:22px; height:22px; border-radius:11px;
-    background:#0F1A0F; z-index:2;
-  }
-  .perf-c.left { left:-11px; }
-  .perf-c.right { right:-11px; }
-  /* BODY — crème */
-  .body {
-    background: #F9F6EE;
-    padding: 20px 24px 8px;
-  }
-  .body-row { display:flex; justify-content:space-between; }
-  .body-label {
-    font-size:8px; font-weight:700; letter-spacing:2px; color:#40916C;
-    margin-bottom:2px;
-  }
-  .body-val {
-    font-size:12px; font-weight:600; color:#1B4332;
-  }
-  .body-lieu {
-    font-size:12px; font-weight:600; color:#40916C; letter-spacing:0.5px;
-    margin-top:2px;
-  }
-  .body-sep { height:1px; background:rgba(27,67,50,0.1); margin:14px 0; }
-  .body-ref {
-    font-size:9px; color:#40916C; letter-spacing:2px; text-align:center;
-    margin-bottom:4px;
-  }
-  .qr-zone {
-    background:#fff; border-radius:12px; padding:12px; margin:14px 0;
-    border:1px solid rgba(27,67,50,0.08);
-    display:flex; justify-content:center;
-  }
-  /* PERFORATION BASSE */
-  .perf-bot {
-    height:22px; position:relative;
-    background: linear-gradient(to bottom, #F9F6EE, #F0EAD6);
-    display:flex; align-items:center; justify-content:center;
-  }
-  /* FOOTER — beige */
-  .footer {
-    background: #F0EAD6;
-    border-radius: 0 0 20px 20px;
-    padding: 16px;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: 8px;
-    position: relative;
+    gap: 12px;
+    padding: 32px 20px;
+    flex-shrink: 0;
   }
-  .badge {
+  .col-left .orbe1 {
+    position: absolute; top: -40px; right: -40px;
+    width: 140px; height: 140px; border-radius: 50%;
+    background: rgba(64,145,108,0.35);
+  }
+  .col-left .orbe2 {
+    position: absolute; bottom: -30px; left: -30px;
+    width: 100px; height: 100px; border-radius: 50%;
+    background: rgba(212,175,55,0.15);
+  }
+  .col-left .brand {
+    font-size: 10px; letter-spacing: 3px; color: rgba(255,255,255,0.7);
+    font-weight: 600; text-transform: uppercase;
+    position: relative; z-index: 1;
+  }
+  .col-left .gold-line {
+    width: 60px; height: 1px; background: #D4AF37; opacity: 0.7;
+    position: relative; z-index: 1;
+  }
+  .col-left .event-name {
+    font-size: 22px; font-weight: 800; color: #fff;
+    text-align: center; line-height: 1.25;
+    position: relative; z-index: 1;
+  }
+  .col-left .event-sub {
+    font-size: 9px; color: rgba(255,255,255,0.5);
+    letter-spacing: 2px; text-transform: uppercase;
+    position: relative; z-index: 1;
+  }
+  .col-left .logo-wrap {
+    position: relative; z-index: 1;
+  }
+
+  /* ===== SÉPARATEUR PERFORÉ VERTICAL ===== */
+  .sep {
+    width: 24px;
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sep.dark-cream {
+    background: linear-gradient(to right, #1B4332, #F9F6EE);
+  }
+  .sep.cream-beige {
+    background: linear-gradient(to right, #F9F6EE, #F0EAD6);
+  }
+  .sep .dash {
+    position: absolute; left: 50%; top: 0; bottom: 0;
+    border-left: 2px dashed rgba(27,67,50,0.2);
+  }
+  .sep .sc {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #0F1A0F; z-index: 2;
+  }
+  .sep .sc.top { top: -12px; }
+  .sep .sc.bot { bottom: -12px; }
+
+  /* ===== COLONNE CENTRALE — CORPS ===== */
+  .col-center {
+    width: 45%;
+    background: #F9F6EE;
+    padding: 36px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .col-center .row2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .col-center .lbl {
+    font-size: 8px; letter-spacing: 2px; color: #40916C;
+    font-weight: 600; text-transform: uppercase; margin-bottom: 3px;
+  }
+  .col-center .val {
+    font-size: 13px; color: #1B4332;
+    font-weight: 600; font-family: 'Outfit', sans-serif;
+  }
+  .col-center .lieu {
+    color: #40916C; letter-spacing: 0.5px;
+    font-weight: 700; font-size: 13px;
+  }
+  .col-center .sep-line {
+    height: 1px; background: rgba(27,67,50,0.1);
+  }
+  .col-center .ref {
+    font-size: 9px; color: #40916C; letter-spacing: 2px;
+    text-align: center; font-family: monospace;
+  }
+  .col-center .qr-wrap {
+    background: #fff; border-radius: 12px; padding: 12px;
+    border: 1px solid rgba(27,67,50,0.08);
+    display: flex; justify-content: center; align-items: center;
+    align-self: center; position: relative;
+  }
+
+  /* ===== COLONNE DROITE — SOUCHE ===== */
+  .col-right {
+    width: 30%;
+    background: #F0EAD6;
+    border-radius: 0 20px 20px 0;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .col-right .badge {
     background: #1B4332;
     border-radius: 999px;
-    padding: 5px 20px;
+    padding: 6px 24px;
   }
-  .badge-text {
+  .col-right .badge-text {
     font-size: 9px; font-weight: 700; letter-spacing: 2.5px;
-    color: #D4AF37;
+    color: #D4AF37; text-transform: uppercase;
+    font-family: 'Outfit', sans-serif;
   }
-  .price {
-    font-size: 28px; font-weight: 700; color: #1B4332;
-    letter-spacing: -0.5px; text-align: center;
+  .col-right .price {
+    font-size: 32px; font-weight: 800; color: #1B4332;
+    font-family: 'Outfit', sans-serif; letter-spacing: -0.5px;
+    text-align: center;
   }
-  .legal {
+  .col-right .legal {
     font-size: 9px; color: #40916C; font-style: italic; text-align: center;
   }
-  .watermark {
-    font-size: 8px; color: rgba(27,67,50,0.3); letter-spacing: 2px;
-    align-self: flex-end; margin-right: 4px;
+  .col-right .thin-sep {
+    width: 40px; height: 1px; background: rgba(27,67,50,0.15);
   }
-  @media print {
-    body { background: #fff; padding: 0; }
-    .ticket { box-shadow: none; }
+  .col-right .info {
+    text-align: center;
+  }
+  .col-right .info .ilbl {
+    font-size: 8px; letter-spacing: 2px; color: #40916C;
+    font-weight: 600; text-transform: uppercase; margin-bottom: 2px;
+  }
+  .col-right .info .ival {
+    font-size: 11px; font-weight: 700; color: #1B4332;
+  }
+  .col-right .info .iref {
+    font-size: 9px; color: #40916C; font-family: monospace; letter-spacing: 1px;
+  }
+  .col-right .wm {
+    font-size: 8px; color: rgba(27,67,50,0.25);
+    letter-spacing: 3px; position: absolute; bottom: 16px; right: 16px;
   }
 </style>
 </head>
 <body>
 <div class="ticket">
 
-  <!-- HEADER -->
-  <div class="header">
+  <!-- COLONNE GAUCHE : Header -->
+  <div class="col-left">
     <div class="orbe1"></div>
     <div class="orbe2"></div>
-    <div class="header-row">
-      <div class="logo-box">
-        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' fill='%23D4AF37' rx='4'/%3E%3Ctext x='14' y='20' text-anchor='middle' font-size='16' font-weight='bold' fill='%231B4332'%3ES%3C/text%3E%3C/svg%3E" alt="S" />
-      </div>
-      <div class="header-title">SENGUICHET</div>
-    </div>
+    <div class="logo-wrap">${logoImg}</div>
+    <div class="brand">SENGUICHET</div>
     <div class="gold-line"></div>
     <div class="event-name">${eventNom}</div>
-    <div class="event-cat">${categorie}</div>
+    <div class="event-sub">${categorie}</div>
   </div>
 
-  <!-- PERFORATION HAUTE -->
-  <div class="perf">
-    <div class="perf-line"></div>
-    <div class="perf-c left"></div>
-    <div class="perf-c right"></div>
+  <!-- SÉPARATEUR PERFORÉ -->
+  <div class="sep dark-cream">
+    <div class="dash"></div>
+    <div class="sc top"></div>
+    <div class="sc bot"></div>
   </div>
 
-  <!-- CORPS -->
-  <div class="body">
-    <div class="body-row">
+  <!-- COLONNE CENTRALE : Corps -->
+  <div class="col-center">
+    <div class="row2">
       <div>
-        <div class="body-label">DATE</div>
-        <div class="body-val">${dateFormatted}</div>
+        <div class="lbl">DATE</div>
+        <div class="val">${dateFormatted}</div>
       </div>
       ${heureStr ? '<div style="text-align:right">' +
-        '<div class="body-label">HEURE</div>' +
-        '<div class="body-val">' + heureStr + '</div>' +
+        '<div class="lbl">HEURE</div>' +
+        '<div class="val">' + heureStr + '</div>' +
       '</div>' : ''}
     </div>
 
-    ${lieuStr ? '<div style="margin-top:10px">' +
-      '<div class="body-label">LIEU</div>' +
-      '<div class="body-lieu">' + lieuStr + '</div>' +
+    ${lieuStr ? '<div>' +
+      '<div class="lbl">LIEU</div>' +
+      '<div class="lieu">' + lieuStr + '</div>' +
     '</div>' : ''}
 
-    <div class="body-sep"></div>
+    <div class="sep-line"></div>
 
-    <div class="body-ref">REF · ${refStr}</div>
+    <div class="ref">REF · ${refStr}</div>
 
-    <div class="qr-zone">
+    <div class="qr-wrap" style="${statutOverlay ? 'position:relative' : ''}">
       ${qrImg}
+      ${statutOverlay}
     </div>
   </div>
 
-  <!-- PERFORATION BASSE -->
-  <div class="perf-bot">
-    <div class="perf-line"></div>
-    <div class="perf-c left"></div>
-    <div class="perf-c right"></div>
+  <!-- SÉPARATEUR PERFORÉ -->
+  <div class="sep cream-beige">
+    <div class="dash"></div>
+    <div class="sc top"></div>
+    <div class="sc bot"></div>
   </div>
 
-  <!-- FOOTER -->
-  <div class="footer">
+  <!-- COLONNE DROITE : Souche -->
+  <div class="col-right">
     <div class="badge">
       <div class="badge-text">${categorie}</div>
     </div>
     <div class="price">${prixStr}</div>
     <div class="legal">Entrée unique et non transférable</div>
-    <div class="watermark">SENGUICHET</div>
+    <div class="thin-sep"></div>
+    <div class="info">
+      <div class="ilbl">Catégorie</div>
+      <div class="ival">${catStr}</div>
+      <div style="margin-top:6px">
+        <div class="ilbl">Billet N°</div>
+        <div class="iref">${refStr}</div>
+      </div>
+    </div>
+    <div class="wm">SENGUICHET</div>
   </div>
 
 </div>
@@ -238,7 +333,8 @@ function construireHtmlTicket(ticket, qrDataUrl) {
 }
 
 export async function genererTicketPDF(ticket, qrDataUrl) {
-  const html = construireHtmlTicket(ticket, qrDataUrl)
+  const logoBase64 = await chargerLogoBase64()
+  const html = construireHtmlTicket(ticket, qrDataUrl, logoBase64)
 
   const nomEvent = (ticket.eventNom || 'billet')
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -263,8 +359,9 @@ export async function genererTicketPDF(ticket, qrDataUrl) {
 
   const { uri } = await Print.printToFileAsync({
     html,
-    width: 340,
-    height: 620,
+    width: 841,
+    height: 595,
+    margins: { top: 0, bottom: 0, left: 0, right: 0 },
   })
 
   const pdfPath = FileSystem.cacheDirectory + nomFichier

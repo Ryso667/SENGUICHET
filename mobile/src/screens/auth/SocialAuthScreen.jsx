@@ -18,7 +18,15 @@ export default function SocialAuthScreen({ navigation }) {
   const [code, setCode] = useState('')
   const [etape, setEtape] = useState('email') // 'email' | 'otp'
   const [loading, setLoading] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
   const insets = useSafeAreaInsets()
+
+  // Minuteur 60s avant de pouvoir renvoyer un code
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const interval = setInterval(() => setResendCooldown(prev => prev - 1), 1000)
+    return () => clearInterval(interval)
+  }, [resendCooldown])
 
   // Pré-remplit l'email acheteur suggéré depuis la dernière connexion
   useEffect(() => {
@@ -37,6 +45,7 @@ export default function SocialAuthScreen({ navigation }) {
     try {
       await envoyerCodeOTP(email)
       setEtape('otp')
+      setResendCooldown(60)
       setTimeout(() => otpRef.current?.focus(), 300)
     } catch (err) {
       Alert.alert('Erreur', err.message)
@@ -190,8 +199,10 @@ export default function SocialAuthScreen({ navigation }) {
                       )}
                     </TouchableOpacity>
                   </LinearGradient>
-                  <TouchableOpacity style={styles.renvoyerBtn} onPress={handleEnvoyerCode} disabled={loading}>
-                    <Text style={styles.renvoyerBtnText}>Renvoyer le code</Text>
+                  <TouchableOpacity style={styles.renvoyerBtn} onPress={handleEnvoyerCode} disabled={loading || resendCooldown > 0}>
+                    <Text style={[styles.renvoyerBtnText, resendCooldown > 0 && { color: 'rgba(255,255,255,0.3)', textDecorationLine: 'none' }]}>
+                      {resendCooldown > 0 ? `Renvoyer (${resendCooldown}s)` : 'Renvoyer le code'}
+                    </Text>
                   </TouchableOpacity>
                 </>
               )}
