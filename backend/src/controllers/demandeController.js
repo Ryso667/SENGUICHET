@@ -25,8 +25,10 @@ const soumettreDemande = async (req, res) => {
       return res.status(400).json({ message: "ID événement requis" });
     }
 
-    const dateDebut = new Date(date_debut);
-    const dateFin = date_fin ? new Date(date_fin) : null;
+    // Passer les dates en chaîne YYYY-MM-DD directement, car mysql2 convertit les objets Date
+    // en format ISO (T00:00:00.000Z) que TiDB Serverless rejette pour les colonnes DATETIME
+    const dateDebut = date_debut ? date_debut + ' 00:00:00' : null;
+    const dateFin = date_fin ? date_fin + ' 00:00:00' : null;
 
     const [result] = await pool.query(
       `INSERT INTO demande_evenement
@@ -232,8 +234,8 @@ const adminTraiterDemande = async (req, res) => {
           if (payload.titre) { updates.push("titre = ?"); params.push(payload.titre); }
           if (payload.description) { updates.push("description = ?"); params.push(payload.description); }
           if (payload.lieu) { updates.push("lieu = ?"); params.push(payload.lieu); }
-          if (payload.date_debut) { updates.push("date_debut = ?"); params.push(new Date(payload.date_debut)); }
-          if (payload.date_fin) { updates.push("date_fin = ?"); params.push(new Date(payload.date_fin)); }
+          if (payload.date_debut) { updates.push("date_debut = ?"); params.push(payload.date_debut + ' 00:00:00'); }
+          if (payload.date_fin) { updates.push("date_fin = ?"); params.push(payload.date_fin + ' 00:00:00'); }
           if (payload.capacite) { updates.push("capacite_totale = ?"); params.push(payload.capacite); }
 
           if (updates.length) {
