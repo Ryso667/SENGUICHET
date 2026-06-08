@@ -38,6 +38,7 @@ yarn-error.*
 backend/.env.prod
 backend/.env.tidb
 backend/.env.vercel
+frontend-web/.env.production
 
 # typescript
 *.tsbuildinfo

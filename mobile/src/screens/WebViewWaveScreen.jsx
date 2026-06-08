@@ -9,6 +9,7 @@ import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
 import { statutPaiement } from '../services/paiementService'
+import { sauvegarderTicketAcheteur } from '../database/database'
 
 const POLL_INTERVAL = 3000 // 3 secondes entre chaque vérification
 const MAX_POLLS = 60 // 3 minutes maximum
@@ -52,9 +53,10 @@ export default function WebViewWaveScreen({ route, navigation }) {
     }
   }, [transactionReference])
 
-  // Rediriger vers le ticket quand le paiement est confirmé
+  // Sauvegarde locale + redirection vers le ticket quand le paiement est confirmé
   useEffect(() => {
     if (statut === 'SUCCESS') {
+      sauvegarderTicketAcheteur(ticket)
       const timer = setTimeout(() => {
         navigation.replace('Ticket', { ticket })
       }, 1000)

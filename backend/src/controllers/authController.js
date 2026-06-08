@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const pool = require("../config/db");
 require("dotenv").config();
 
-const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const generateToken = (user, role) => {
   return jwt.sign(

@@ -1,5 +1,4 @@
-// Service de génération de ticket PDF — template premium charte SENGUICHET
-// Fond #0D1B2A, carte #152232, header gradient, QR zone, footer catégorie+prix
+// Service de génération de ticket PDF — style billet physique (identique à l'app)
 import * as Print from 'expo-print'
 import * as Sharing from 'expo-sharing'
 import * as FileSystem from 'expo-file-system/legacy'
@@ -12,7 +11,7 @@ function formatPrix(prix) {
 
 function construireHtmlTicket(ticket, qrDataUrl) {
   const eventNom = (ticket.eventNom || 'ÉVÉNEMENT').toUpperCase()
-  const dateStr = ticket.eventDate
+  const dateFormatted = ticket.eventDate
     ? new Date(ticket.eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
     : ''
   const heureStr = ticket.eventHeure || ''
@@ -20,81 +19,268 @@ function construireHtmlTicket(ticket, qrDataUrl) {
   const categorie = (ticket.categorie || 'STANDARD').toUpperCase()
   const prixStr = formatPrix(ticket.prix)
   const refStr = ticket.numero || '—'
+  const dateAchat = ticket.dateAchat
+    ? new Date(ticket.dateAchat).toLocaleDateString('fr-FR')
+    : ''
 
-  const qrHtml = qrDataUrl
-    ? `<img src="${qrDataUrl}" width="150" height="150" style="display:block;margin:0 auto;width:150px;height:150px" />`
-    : '<div style="width:150px;height:150px;background:rgba(0,200,255,0.05);border-radius:8px;margin:0 auto;font-size:11px;color:#5A7090;text-align:center;line-height:150px">QR non disponible</div>'
+  const qrImg = qrDataUrl
+    ? `<img src="${qrDataUrl}" style="width:180px;height:180px;display:block" />`
+    : '<div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#999">QR</div>'
 
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <title>Billet ${eventNom} — SENGUICHET</title>
+<meta charset="utf-8" />
+<title>Billet ${eventNom}</title>
+<style>
+  @page { margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0D1B2A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  .ticket {
+    width: 340px;
+    background: #FFFFFF;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    position: relative;
+  }
+  /* HEADER */
+  .header {
+    height: 140px;
+    background: #FFFFFF;
+    position: relative;
+    overflow: hidden;
+  }
+  .shape1 { position:absolute; top:-20px; right:-30px; width:160px; height:160px; border-radius:80px; background:#00C8FF; opacity:0.15; }
+  .shape2 { position:absolute; top:10px; right:20px; width:100px; height:100px; border-radius:50px; background:#0077FF; opacity:0.2; }
+  .shape3 { position:absolute; top:40px; right:-10px; width:70px; height:70px; border-radius:35px; background:#00E5A0; opacity:0.15; }
+  .shape4 { position:absolute; top:-10px; right:60px; width:50px; height:50px; border-radius:25px; background:#0077FF; opacity:0.1; }
+  .header-content {
+    position: absolute;
+    left: 20px;
+    bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .logo {
+    width: 48px; height: 48px;
+    background: #E8F4FD;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    color: #0D1B2A;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .header-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #0D1B2A;
+    letter-spacing: 3px;
+    margin-top: 4px;
+  }
+  /* REFERENCE VERTICALE */
+  .ref-vert {
+    position: absolute;
+    left: 0;
+    top: 140px;
+    bottom: 0;
+    width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+  }
+  .ref-vert-text {
+    font-size: 9px;
+    color: #5A7090;
+    letter-spacing: 1px;
+    transform: rotate(-90deg);
+    white-space: nowrap;
+    font-family: 'Courier New', monospace;
+  }
+  /* BODY */
+  .body {
+    padding: 20px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .body-sep {
+    width: 100%;
+    border-bottom: 1px dashed #E0E0E0;
+    margin-bottom: 16px;
+  }
+  .event-name {
+    font-size: 22px;
+    font-weight: 900;
+    color: #0D1B2A;
+    text-align: center;
+    letter-spacing: 0.5px;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+  .event-date {
+    font-size: 13px;
+    font-weight: 600;
+    color: #5A7090;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .event-lieu {
+    font-size: 12px;
+    font-weight: 700;
+    color: #00C8FF;
+    text-align: center;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .spacer { height: 8px; }
+  /* QR */
+  .qr-zone {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    border: 1px solid #E8E8E8;
+    border-radius: 8px;
+    padding: 12px;
+    background: #FFFFFF;
+  }
+  /* PERFORATION */
+  .perf {
+    height: 20px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin: 0 10px;
+  }
+  .perf-line {
+    flex: 1;
+    border-bottom: 1.5px dashed #CCCCCC;
+    margin: 0 10px;
+  }
+  .perf-circle {
+    width: 20px; height: 20px;
+    border-radius: 10px;
+    background: #0D1B2A;
+    flex-shrink: 0;
+  }
+  /* FOOTER */
+  .footer {
+    background: #F7F8FA;
+    padding: 20px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+  }
+  .cat-pill {
+    background: #0D1B2A;
+    padding: 6px 20px;
+    border-radius: 9999px;
+  }
+  .cat-text {
+    font-size: 10px;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .price {
+    font-size: 26px;
+    font-weight: 900;
+    color: #0D1B2A;
+    text-align: center;
+  }
+  .legal {
+    font-size: 10px;
+    color: #A0B4C8;
+    font-style: italic;
+    text-align: center;
+  }
+  .watermark {
+    position: absolute;
+    bottom: 8px;
+    right: 16px;
+    font-size: 8px;
+    font-weight: 700;
+    color: #CCCCCC;
+    letter-spacing: 1px;
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .ticket { box-shadow: none; border-radius: 0; }
+  }
+</style>
 </head>
-<body style="margin:0;padding:20px;background:#0D1B2A;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;text-align:center">
+<body>
+<div class="ticket">
 
-  <table style="width:340px;border-collapse:collapse;margin:0 auto;background:#152232;border:1px solid #1E3448;border-radius:16px;overflow:hidden;font-family:'Helvetica Neue',Arial,sans-serif">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="shape1"></div>
+    <div class="shape2"></div>
+    <div class="shape3"></div>
+    <div class="shape4"></div>
+    <div class="header-content">
+      <div class="logo">S</div>
+      <div class="header-title">SENGUICHET</div>
+    </div>
+  </div>
 
-    <!-- HEADER GRADIENT -->
-    <tr>
-      <td style="background:linear-gradient(135deg,#00C8FF,#0077FF);text-align:center;padding:24px 16px;">
-        <div style="width:48px;height:48px;border-radius:12px;margin:0 auto 6px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:bold">S</div>
-        <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-weight:700;font-size:11px;color:#FFFFFF;letter-spacing:3px;text-transform:uppercase">SENGUICHET</div>
-      </td>
-    </tr>
+  <!-- REF VERTICALE -->
+  <div class="ref-vert">
+    <div class="ref-vert-text">REF | ${refStr}</div>
+  </div>
 
-    <!-- PERFORATION -->
-    <tr>
-      <td style="padding:0 8px;height:14px;position:relative">
-        <div style="border-bottom:2px dashed #1E3448;height:1px;font-size:1px;line-height:1px">&nbsp;</div>
-      </td>
-    </tr>
+  <!-- CORPS -->
+  <div class="body">
+    <div class="body-sep"></div>
 
-    <!-- CORPS -->
-    <tr>
-      <td style="text-align:center;padding:20px 24px">
+    <div class="event-name">${eventNom}</div>
 
-        <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-weight:900;font-size:18px;color:#FFFFFF;letter-spacing:1px;line-height:1.3;margin-bottom:6px">${eventNom}</div>
+    ${dateFormatted ? `<div class="event-date">${dateFormatted}${heureStr ? ' à ' + heureStr : ''}</div>` : ''}
 
-        ${dateStr ? `<div style="font-family:'Helvetica Neue',Arial,sans-serif;font-weight:600;font-size:12px;color:#A0B4C8;margin-bottom:3px">${dateStr}${heureStr ? ' à ' + heureStr : ''}</div>` : ''}
+    ${lieuStr ? `<div class="event-lieu">${lieuStr}</div>` : ''}
 
-        ${lieuStr ? `<div style="font-family:'Helvetica Neue',Arial,sans-serif;font-weight:700;font-size:11px;color:#00C8FF;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">${lieuStr}</div>` : ''}
+    <div class="spacer"></div>
 
-        <div style="width:60%;height:0;border-top:1px solid #1E3448;margin:10px auto"></div>
+    <div class="qr-zone">
+      ${qrImg}
+    </div>
+  </div>
 
-        <div style="font-family:'Courier New',monospace;font-size:11px;color:#5A7090;margin-bottom:14px">REF : ${refStr}</div>
+  <!-- PERFORATION -->
+  <div class="perf">
+    <div class="perf-circle"></div>
+    <div class="perf-line"></div>
+    <div class="perf-circle"></div>
+  </div>
 
-        <div style="background:rgba(0,200,255,0.05);border:1px solid rgba(0,200,255,0.15);border-radius:12px;padding:14px;text-align:center">
-          ${qrHtml}
-        </div>
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="cat-pill">
+      <div class="cat-text">${categorie}</div>
+    </div>
+    <div class="price">${prixStr}</div>
+    <div class="legal">Entrée unique et non transférable</div>
+    <div class="watermark">SENGUICHET</div>
+  </div>
 
-      </td>
-    </tr>
-
-    <!-- PERFORATION -->
-    <tr>
-      <td style="padding:0 8px;height:14px;position:relative">
-        <div style="border-bottom:2px dashed #1E3448;height:1px;font-size:1px;line-height:1px">&nbsp;</div>
-      </td>
-    </tr>
-
-    <!-- FOOTER -->
-    <tr>
-      <td style="background:rgba(0,0,0,0.2);text-align:center;padding:16px 24px">
-
-        <div style="display:inline-block;background:linear-gradient(135deg,#00C8FF,#0077FF);padding:5px 18px;border-radius:9999px;margin-bottom:8px">
-          <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-weight:700;font-size:11px;color:#FFFFFF;letter-spacing:2px">${categorie}</div>
-        </div>
-
-        <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-weight:900;font-size:20px;color:#FFFFFF;margin-bottom:4px">${prixStr}</div>
-
-        <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:9px;color:#5A7090;font-style:italic">Entrée unique et non transférable</div>
-
-      </td>
-    </tr>
-
-  </table>
-
+</div>
 </body>
 </html>`
 }

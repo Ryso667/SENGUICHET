@@ -1,108 +1,125 @@
-// Liste des tickets de l'acheteur — version glass
-// FlatList avec stagger animation, chaque item est une carte glass
-import { useState, useEffect, useCallback } from 'react'
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native'
+// Liste des tickets de l'acheteur — charge SQLite (hors-ligne) + API (synchro fond)
+import { useState, useCallback } from 'react'
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
-import { useFocusEffect } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { fonts, colors, spacing, borderRadius, glass, textShadow } from '../constants/theme'
+import { fonts, spacing } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
-import GlassContainer from '../components/GlassContainer'
 import EmptyState from '../components/EmptyState'
-import { useAuth } from '../context/AuthContext'
+import { mesTicketsLocaux, sauvegarderTicketAcheteur } from '../database/database'
 import { mesBillets } from '../services/billetService'
+import { GET } from '../utils/secureStorage'
 import { formaterDateLisible } from '../utils/dateUtils'
 
 const STATUTS = {
-  actif: { label: 'VALIDE', color: '#00E5A0', bg: '#00E5A015' },
-  en_attente: { label: 'EN ATTENTE', color: '#F97316', bg: '#F9731615' },
-  utilise: { label: 'UTILISÉ', color: '#94A3B8', bg: '#94A3B815' },
-  rembourse: { label: 'REMBOURSÉ', color: '#FF4D6D', bg: '#FF4D6D15' },
+  actif: { label: 'VALIDE', color: '#00E5A0', bg: '#00E5A020' },
+  en_attente: { label: 'EN ATTENTE', color: '#F97316', bg: '#F9731620' },
+  utilise: { label: 'UTILISÉ', color: '#94A3B8', bg: '#94A3B820' },
+  rembourse: { label: 'REMBOURSÉ', color: '#FF4D6D', bg: '#FF4D6D20' },
 }
 
-export default function MesTicketsScreen({ navigation }) {
+export default function MesTicketsScreen() {
   const insets = useSafeAreaInsets()
+  const navigation = useNavigation()
   const [tickets, setTickets] = useState([])
-  const [refreshing, setRefreshing] = useState(false)
-  const { numeroTel, profil, email } = useAuth()
+  const [syncing, setSyncing] = useState(false)
   const categoryForBg = tickets[0]?.categorie || null
 
-  // Charge les tickets depuis le service billetService
   const loadTickets = useCallback(async () => {
-    const identifiant = numeroTel || profil?.email || email
-    if (identifiant) {
-      const data = await mesBillets(identifiant)
-      setTickets(data || [])
-    }
-  }, [numeroTel, profil, email])
+    // 1. Charge immédiat depuis SQLite (hors-ligne)
+    const data = await mesTicketsLocaux()
+    setTickets(data || [])
 
-  // Recharge les tickets à chaque focus de l'écran
+    // 2. Synchro API en fond pour récupérer les tickets récents
+    setSyncing(true)
+    try {
+      const telephone = await GET('@senguichet_telephone')
+      const email = await GET('@senguichet_acheteur_email')
+      const identifiant = telephone || email
+      if (identifiant) {
+        const apiTickets = await mesBillets(identifiant)
+        if (apiTickets.length > 0) {
+          // Sauvegarde chaque ticket dans SQLite
+          for (const t of apiTickets) {
+            await sauvegarderTicketAcheteur(t)
+          }
+          // Recharge depuis SQLite pour avoir les données à jour
+          const frais = await mesTicketsLocaux()
+          setTickets(frais || [])
+        }
+      }
+    } catch (_) {
+      // Pas de réseau — on garde les données SQLite
+    } finally {
+      setSyncing(false)
+    }
+  }, [])
+
+  // Recharge à chaque focus
   useFocusEffect(useCallback(() => { loadTickets() }, [loadTickets]))
 
-  // Pull-to-refresh
-  const onRefresh = async () => {
-    setRefreshing(true)
-    await loadTickets()
-    setRefreshing(false)
-  }
-
-  // Affiche un ticket sous forme de carte glass
   const renderItem = ({ item }) => {
     const s = STATUTS[item.statut] || STATUTS.actif
     return (
       <TouchableOpacity
         onPress={() => navigation.navigate('Ticket', { ticket: item })}
         activeOpacity={0.7}
+        style={styles.ticketCard}
       >
-        <GlassContainer style={styles.ticketCard} intensity={40}>
-          <View style={styles.eventThumb}>
-            <LinearGradient colors={['#6366F1', '#EC4899']} style={styles.thumbGradient}>
-              <Feather name="tag" size={18} color="#fff" />
-            </LinearGradient>
+        <View style={styles.cardLeft}>
+          <View style={styles.iconCircle}>
+            <Feather name="tag" size={18} color="#00C8FF" />
           </View>
-          <View style={styles.ticketInfo}>
-            <Text style={styles.ticketTitle} numberOfLines={1}>{item.eventNom || 'Événement'}</Text>
-            <Text style={styles.ticketMeta}>
-              {item.categorie} · {formaterDateLisible(item.eventDate)}
-            </Text>
-          </View>
-          <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
-            <Text style={[styles.statusText, { color: s.color }]}>{s.label}</Text>
-          </View>
-        </GlassContainer>
+        </View>
+        <View style={styles.cardCenter}>
+          <Text style={styles.ticketTitle} numberOfLines={1}>{item.eventNom || 'Événement'}</Text>
+          <Text style={styles.ticketMeta}>
+            {item.categorie} | {formaterDateLisible(item.eventDate)}
+          </Text>
+        </View>
+        <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
+          <Text style={[styles.statusText, { color: s.color }]}>{s.label}</Text>
+        </View>
       </TouchableOpacity>
     )
   }
 
   return (
     <View style={styles.container}>
-      <BlurBackground category={categoryForBg} />
+      <BlurBackground category={categoryForBg} showImage={false} gradientOverride={['rgba(0,229,160,0.5)', 'rgba(0,200,255,0.15)']} />
       <View style={[styles.content, { paddingTop: insets.top }]}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Mes tickets</Text>
-          {tickets.length > 0 && (
-            <GlassContainer style={styles.countBadge} intensity={50}>
-              <Text style={styles.countText}>{tickets.length}</Text>
-            </GlassContainer>
-          )}
+        {/* Header natif */}
+        <View style={styles.headerBar}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.7}>
+            <Feather name="chevron-left" size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Mes tickets</Text>
+          <View style={styles.headerRight}>
+            {syncing && <ActivityIndicator size="small" color="#00C8FF" />}
+            {tickets.length > 0 && (
+              <View style={styles.countBadge}>
+                <Text style={styles.countText}>{tickets.length}</Text>
+              </View>
+            )}
+          </View>
         </View>
 
         <FlatList
           data={tickets}
           renderItem={renderItem}
-          keyExtractor={(item) => item.numero || item.id}
+          keyExtractor={(item) => item.numero || item.uuid}
           contentContainerStyle={styles.list}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
           ListEmptyComponent={
-            <EmptyState
-              icon="ticket"
-              title="Aucun ticket"
-              subtitle="Explore les événements et achète ton premier ticket"
-              actionLabel="Explorer"
-              onAction={() => navigation.navigate('Home')}
-            />
+            !syncing ? (
+              <EmptyState
+                icon="ticket"
+                title="Aucun ticket"
+                subtitle="Explore les événements et achète ton premier ticket"
+                actionLabel="Explorer"
+                onAction={() => navigation.navigate('Home')}
+              />
+            ) : null
           }
         />
       </View>
@@ -111,28 +128,98 @@ export default function MesTicketsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f0f2a' },
+  container: { flex: 1, backgroundColor: '#0D1B2A' },
   content: { flex: 1 },
-  header: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm,
+
+  // HEADER
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: 8,
   },
-  title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.5, ...textShadow },
-  countBadge: { paddingHorizontal: 10, paddingVertical: 3 },
-  countText: { fontSize: 12, fontFamily: fonts.jakarta.semiBold, color: '#fff' },
-  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.xl, gap: 10 },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 20,
+    fontFamily: fonts.outfit.bold,
+    color: '#fff',
+    letterSpacing: -0.3,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  countBadge: {
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 9999,
+  },
+  countText: {
+    fontSize: 12,
+    fontFamily: fonts.jakarta.semiBold,
+    color: '#fff',
+  },
+
+  // LISTE
+  list: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xl,
+    gap: 10,
+  },
+
+  // CARTE TICKET
   ticketCard: {
-    flexDirection: 'row', alignItems: 'center', padding: 12, gap: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    backgroundColor: '#152232',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#1E3448',
+    gap: 12,
   },
-  eventThumb: {
-    width: 52, height: 52, borderRadius: borderRadius.md, overflow: 'hidden',
+  cardLeft: {},
+  iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,200,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  thumbGradient: {
-    flex: 1, alignItems: 'center', justifyContent: 'center',
+  cardCenter: { flex: 1 },
+  ticketTitle: {
+    fontSize: 14,
+    fontFamily: fonts.outfit.semiBold,
+    color: '#fff',
+    letterSpacing: -0.1,
+    marginBottom: 2,
   },
-  ticketInfo: { flex: 1 },
-  ticketTitle: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff', letterSpacing: -0.1, ...textShadow },
-  ticketMeta: { fontSize: 11, color: 'rgba(255,255,255,0.6)', fontFamily: fonts.jakarta.regular, marginTop: 2 },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: borderRadius.sm },
-  statusText: { fontSize: 10, fontFamily: fonts.jakarta.semiBold, ...textShadow },
+  ticketMeta: {
+    fontSize: 11,
+    color: '#5A7090',
+    fontFamily: fonts.jakarta.regular,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  statusText: {
+    fontSize: 10,
+    fontFamily: fonts.jakarta.semiBold,
+    color: '#fff',
+  },
 })

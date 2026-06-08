@@ -234,8 +234,8 @@ const acheter = async (req, res) => {
       conn.release();
     }
   } catch (err) {
-    console.error("Acheter billet error:", err);
-    res.status(500).json({ message: "Erreur lors de l'achat" });
+    console.error("Acheter billet error:", { message: err.message, code: err.code, sqlMessage: err.sqlMessage, stack: err.stack?.split('\n').slice(0,3).join(' ') });
+    res.status(500).json({ message: `Erreur lors de l'achat${process.env.NODE_ENV !== 'production' ? `: ${err.sqlMessage || err.message}` : ''}` });
   }
 };
 
@@ -325,131 +325,69 @@ const afficherBillet = async (req, res) => {
     });
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrPayload)}`;
 
+    const qrHtml = `<img src="${qrUrl}" alt="QR" style="width:180px;height:180px;display:block" />`;
     res.send(`<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Billet ${b.numero} — SENGUICHET</title>
+<title>Billet ${b.numero} - SENGUICHET</title>
 <style>
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: #f0f2f5;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-  }
-  .tk {
-    width: 340px; height: 640px;
-    background: #fff; border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-    display: flex; flex-direction: column;
-    overflow: hidden; position: relative;
-    border: 1px solid #E5E7EB;
-  }
-  /* Z1: QR + ID */
-  .z1 {
-    height: 260px; background: #fff;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    position: relative;
-    border-bottom: 2px dashed #D1D5DB;
-  }
-  .z1 img { width: 180px; height: 180px; }
-  .z1 .ref { font-family: monospace; font-size: 12px; color: #6B7280; letter-spacing: 1.5px; margin-top: 8px; }
-  .z1 .notch { position: absolute; bottom: -12px; width: 24px; height: 24px; border-radius: 50%; background: #f0f2f5; }
-  .z1 .nl { left: -12px; }
-  .z1 .nr { right: -12px; }
-  /* Z2: Infos + prix */
-  .z2 {
-    height: 280px; padding: 24px;
-    display: flex; align-items: center; position: relative;
-  }
-  .z2 .wm {
-    position: absolute; right: 5px; top: 30px;
-    font-size: 140px; font-weight: 900; color: rgba(0,0,0,0.02);
-    pointer-events: none; user-select: none;
-  }
-  .z2 .body {
-    display: flex; width: 100%; align-items: flex-start; z-index: 1;
-  }
-  .z2 .left {
-    flex: 1; max-width: 70%; padding-right: 16px;
-  }
-  .z2 .left h2 {
-    font-size: 18px; font-weight: 800; color: #030712;
-    letter-spacing: -0.3px; line-height: 1.3; margin: 0 0 8px; text-transform: uppercase;
-  }
-  .z2 .left .dt { font-size: 12px; color: #4B5563; margin: 0 0 4px; }
-  .z2 .left .loc { font-size: 12px; color: #6B7280; margin: 0; }
-  .z2 .sep {
-    width: 1px; height: 120px; background: #E5E7EB;
-    align-self: center; flex-shrink: 0;
-  }
-  .z2 .right {
-    width: 80px; padding-left: 16px;
-    display: flex; flex-direction: column; align-items: flex-end;
-    justify-content: center; height: 120px; align-self: center;
-  }
-  .z2 .right .lb { font-size: 10px; color: #9CA3AF; letter-spacing: 1px; text-transform: uppercase; margin: 0 0 4px; }
-  .z2 .right .pr { font-size: 14px; font-weight: 700; color: #111827; white-space: nowrap; }
-  /* Z3: Mentions */
-  .z3 {
-    height: 100px; padding: 16px;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    background: #F9FAFB; border-top: 1px solid #F3F4F6;
-    text-align: center;
-  }
-  .z3 .br { font-size: 10px; font-weight: 700; color: #9CA3AF; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 4px; }
-  .z3 .lg { font-size: 9px; color: #9CA3AF; margin: 0 0 2px; line-height: 1.3; }
-  .z3 .dt { font-size: 8px; color: #B0B7C3; margin: 0; }
-  @media (max-width: 380px) {
-    .tk { width: 90vw; height: auto; min-height: 170vw; }
-    .z1 { height: auto; min-height: 70vw; padding: 4vw; }
-    .z1 img { width: 50vw; height: 50vw; }
-    .z2 { height: auto; min-height: 80vw; padding: 4vw; }
-    .z2 .left h2 { font-size: 4.5vw; }
-    .z3 { height: auto; min-height: 25vw; padding: 3vw; }
-    .z1 .notch { display: none; }
-  }
-  @media print {
-    body { background: #fff; padding: 0; }
-    .tk { box-shadow: none; border-radius: 0; margin: 0 auto; }
-    @page { margin: 0; size: 340px 640px; }
-  }
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#9AD8D8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+.t{width:340px;background:#E8F5F0;border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.15);position:relative}
+.hd{height:140px;background:#fff;position:relative;overflow:hidden}
+.s1{position:absolute;top:-20px;right:-30px;width:160px;height:160px;border-radius:80px;background:#00C8FF;opacity:.15}
+.s2{position:absolute;top:10px;right:20px;width:100px;height:100px;border-radius:50px;background:#0077FF;opacity:.2}
+.s3{position:absolute;top:40px;right:-10px;width:70px;height:70px;border-radius:35px;background:#00E5A0;opacity:.15}
+.s4{position:absolute;top:-10px;right:60px;width:50px;height:50px;border-radius:25px;background:#0077FF;opacity:.1}
+.hc{position:absolute;left:20px;bottom:16px}
+.lo{width:64px;height:64px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.ht{font-size:10px;font-weight:700;color:#0D1B2A;letter-spacing:3px;margin-top:4px}
+.bd{padding:20px 28px;display:flex;flex-direction:column;align-items:center}
+.rv{position:absolute;left:0;top:140px;bottom:0;width:20px;display:flex;align-items:center;justify-content:center;z-index:5}
+.rt{font-size:9px;color:#5A7090;letter-spacing:1px;transform:rotate(-90deg);white-space:nowrap;font-family:'Courier New',monospace}
+.bs{width:100%;border-bottom:1px dashed #E0E0E0;margin-bottom:16px}
+.en{font-size:22px;font-weight:900;color:#0D1B2A;text-align:center;letter-spacing:.5px;line-height:1.3;margin-bottom:8px}
+.ed{font-size:13px;font-weight:600;color:#5A7090;text-align:center;margin-bottom:4px}
+.el{font-size:12px;font-weight:700;color:#00C8FF;text-align:center;letter-spacing:1.5px;text-transform:uppercase}
+.sp{height:8px}
+.qz{width:100%;display:flex;justify-content:center;border:1px solid #E8E8E8;border-radius:8px;padding:12px;background:#fff}
+.pf{height:20px;position:relative}
+.pc{position:absolute;top:0;width:20px;height:20px;border-radius:10px;background:#0D1B2A;z-index:2}
+.pc:first-child{left:-10px}
+.pc:last-child{right:-10px}
+.pl{height:0;border-bottom:1.5px dashed #CCC;margin:9px 20px}
+.ft{background:#F7F8FA;padding:20px 28px;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+.cp{background:#0D1B2A;padding:6px 20px;border-radius:9999px}
+.ct{font-size:10px;font-weight:700;color:#fff;letter-spacing:2px;text-transform:uppercase}
+.pr{font-size:26px;font-weight:900;color:#0D1B2A;text-align:center}
+.ll{font-size:10px;color:#A0B4C8;font-style:italic;text-align:center}
+.wm{position:absolute;bottom:8px;right:16px;font-size:8px;font-weight:700;color:#CCC;letter-spacing:1px}
+@media print{body{background:#fff;padding:0}.t{box-shadow:none;border-radius:0}}
 </style>
 </head>
 <body>
-<div class="tk">
-  <div class="z1">
-    <img src="${qrUrl}" alt="QR billet" />
-    <div class="ref">#${b.numero}</div>
-    <div class="notch nl"></div>
-    <div class="notch nr"></div>
+<div class="t">
+  <div class="hd">
+    <div class="s1"></div><div class="s2"></div><div class="s3"></div><div class="s4"></div>
+    <div class="hc"><img class="lo" src="/public/logo_mobile.jpeg" alt="SENGUICHET" /><div class="ht">SENGUICHET</div></div>
   </div>
-  <div class="z2">
-    <div class="wm">S</div>
-    <div class="body">
-      <div class="left">
-        <h2>${b.titre.toUpperCase()}</h2>
-        <p class="dt">${dateFormatted} à ${heureFormatted}</p>
-        <p class="loc">${b.lieu ? b.lieu.toUpperCase() : ''}</p>
-      </div>
-      <div class="sep"></div>
-      <div class="right">
-        <p class="lb">Prix</p>
-        <p class="pr">${b.prix_paye.toLocaleString()} FCFA</p>
-      </div>
-    </div>
+    <div class="bd">
+    <div class="rv"><div class="rt">REF | ${b.numero}</div></div>
+    <div class="bs"></div>
+    <div class="en">${(b.titre || '').toUpperCase()}</div>
+    <div class="ed">${dateFormatted} a ${heureFormatted}</div>
+    <div class="el">${(b.lieu || '').toUpperCase()}</div>
+    <div class="sp"></div>
+    <div class="qz">${qrHtml}</div>
   </div>
-  <div class="z3">
-    <p class="br">SENGUICHET</p>
-    <p class="lg">Billetterie événementielle • Entrée unique et non transférable</p>
-    <p class="dt">Acheté le ${dateAchat}</p>
+  <div class="pf"><div class="pc"></div><div class="pl"></div><div class="pc"></div></div>
+  <div class="ft">
+    <div class="cp"><div class="ct">${(b.categorie || 'STANDARD').toUpperCase()}</div></div>
+    <div class="pr">${Number(b.prix_paye).toLocaleString()} FCFA</div>
+    <div class="ll">Entree unique et non transferable</div>
+    <div class="wm">SENGUICHET</div>
   </div>
 </div>
 </body>

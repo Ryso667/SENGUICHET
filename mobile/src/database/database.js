@@ -1,5 +1,5 @@
-// Base de données SQLite locale pour le mode offline du contrôleur
-// Tables : tickets (billets téléchargés) et scans (historique des vérifications)
+// Base de données SQLite locale pour le mode offline
+// Tables : tickets (billets téléchargés contrôleur), scans (historique), acheteur_tickets (billets achetés)
 import * as SQLite from 'expo-sqlite'
 let db = null
 
@@ -34,6 +34,22 @@ async function initTables() {
 
     CREATE INDEX IF NOT EXISTS idx_scans_synced ON scans(synced);
     CREATE INDEX IF NOT EXISTS idx_tickets_event ON tickets(event_id);
+
+    CREATE TABLE IF NOT EXISTS acheteur_tickets (
+      uuid TEXT PRIMARY KEY,
+      event_id INTEGER NOT NULL,
+      event_nom TEXT NOT NULL,
+      event_date TEXT,
+      event_heure TEXT,
+      event_lieu TEXT,
+      categorie TEXT NOT NULL,
+      numero TEXT NOT NULL,
+      prix REAL DEFAULT 0,
+      statut TEXT NOT NULL DEFAULT 'actif',
+      telephone TEXT NOT NULL,
+      date_achat TEXT NOT NULL,
+      qr_data TEXT
+    );
   `)
 }
 
@@ -127,6 +143,54 @@ export async function compterTickets() {
   const bd = await getDb()
   const row = await bd.getFirstAsync('SELECT COUNT(*) as total FROM tickets')
   return row?.total || 0
+}
+
+// Sauvegarde un ticket acheté dans la base locale (consultation hors-ligne)
+export async function sauvegarderTicketAcheteur(t) {
+  const bd = await getDb()
+  await bd.runAsync(
+    `INSERT OR REPLACE INTO acheteur_tickets
+     (uuid, event_id, event_nom, event_date, event_heure, event_lieu,
+      categorie, numero, prix, statut, telephone, date_achat, qr_data)
+     VALUES ($uuid, $event_id, $event_nom, $event_date, $event_heure, $event_lieu,
+      $categorie, $numero, $prix, $statut, $telephone, $date_achat, $qr_data)`,
+    {
+      $uuid: t.uuid,
+      $event_id: t.eventId,
+      $event_nom: t.eventNom || '',
+      $event_date: t.eventDate || null,
+      $event_heure: t.eventHeure || null,
+      $event_lieu: t.eventLieu || null,
+      $categorie: t.categorie,
+      $numero: t.numero || '',
+      $prix: t.prix || 0,
+      $statut: t.statut || 'actif',
+      $telephone: t.telephone || '',
+      $date_achat: t.dateAchat || new Date().toISOString(),
+      $qr_data: t.qrData || t.qrPayload || null,
+    }
+  )
+}
+
+// Retourne tous les tickets achetés stockés localement, du plus récent au plus ancien
+export async function mesTicketsLocaux() {
+  const bd = await getDb()
+  const rows = await bd.getAllAsync('SELECT * FROM acheteur_tickets ORDER BY date_achat DESC')
+  return rows.map(r => ({
+    ...r,
+    eventNom: r.event_nom,
+    eventDate: r.event_date,
+    eventHeure: r.event_heure,
+    eventLieu: r.event_lieu,
+    dateAchat: r.date_achat,
+    qrData: r.qr_data || r.qrData,
+  }))
+}
+
+// Supprime un ticket local par son uuid
+export async function supprimerTicketLocal(uuid) {
+  const bd = await getDb()
+  await bd.runAsync('DELETE FROM acheteur_tickets WHERE uuid = $uuid', { $uuid: uuid })
 }
 
 // Vide les tables locales (tickets + scans)

@@ -7,7 +7,7 @@ import { appelAPI } from './apiService'
 // body : { evenement_id, categorie_ticket_id, telephone, email }
 // email : optionnel, permet au backend d'envoyer la confirmation
 // Retourne { billet: { id, uuid, numero, prix_paye, qrData, statut }, transaction: { reference, montant, statut } }
-export async function acheterBillet(evenementId, categorieTicketId, telephone, email, provider = 'SIMULATION') {
+export async function acheterBillet(evenementId, categorieTicketId, telephone, email, provider = 'WAVE') {
   const body = { evenementId, categorieTicketId, telephone, provider }
   if (email) body.email = email
   return await appelAPI('/billets/acheter', {

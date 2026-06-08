@@ -14,4 +14,4 @@ export const API_TIMEOUT = 10000 // 10 secondes avant abandon
 
 // Clé secrète partagée pour la signature HMAC des QR codes
 // Sera remplacé par API — lue via EXPO_PUBLIC_HMAC_SECRET dans .env (gitignoré)
-export const HMAC_SECRET = process.env.EXPO_PUBLIC_HMAC_SECRET || 'senguichet-hmac-secret-v1'
+export const HMAC_SECRET = process.env.EXPO_PUBLIC_HMAC_SECRET

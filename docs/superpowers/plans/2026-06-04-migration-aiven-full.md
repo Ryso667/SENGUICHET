@@ -120,7 +120,7 @@ Vérifier la sortie : toutes les tables créées, seed data insérée.
 - [ ] **Créer `frontend-web/.env`**
 
 ```
-VITE_API_URL=https://backend-rust-sigma-64.vercel.app
+VITE_API_URL=https://backend-beta-six-39.vercel.app
 ```
 
 ### Task 5: Redéployer le backend sur Vercel
@@ -135,13 +135,13 @@ cd backend && vercel deploy --prod
 
 - [ ] **Tester l'API health**
 ```bash
-curl https://backend-rust-sigma-64.vercel.app/api/health
+curl https://backend-beta-six-39.vercel.app/api/health
 # → {"status":"OK",...}
 ```
 
 - [ ] **Tester la soumission partenaire**
 ```bash
-curl -X POST https://backend-rust-sigma-64.vercel.app/api/partenaires \
+curl -X POST https://backend-beta-six-39.vercel.app/api/partenaires \
   -H "Content-Type: application/json" \
   -d '{"nom":"Test","organisation":"TestOrg","telephone":"771234567","email":"test@t.com","typeEvenement":"concert","nbEvenements":"1-3","siteWeb":"","description":"test"}'
 # → {"message":"Votre demande a bien été envoyée...","id":1}
@@ -149,13 +149,13 @@ curl -X POST https://backend-rust-sigma-64.vercel.app/api/partenaires \
 
 - [ ] **Tester la liste des événements publics**
 ```bash
-curl https://backend-rust-sigma-64.vercel.app/api/evenements/public
+curl https://backend-beta-six-39.vercel.app/api/evenements/public
 # → [] (table vide après nettoyage)
 ```
 
 - [ ] **Tester l'envoi d'email OTP**
 ```bash
-curl -X POST https://backend-rust-sigma-64.vercel.app/api/auth/acheteur/envoyer-code \
+curl -X POST https://backend-beta-six-39.vercel.app/api/auth/acheteur/envoyer-code \
   -H "Content-Type: application/json" \
   -d '{"email":"muhamedndiaye00@gmail.com"}'
 # → Code OTP reçu par email
