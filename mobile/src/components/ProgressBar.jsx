@@ -2,6 +2,7 @@
 // Props : value (nombre), max (nombre), label (optionnel)
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
+import { colors, fonts } from '../constants/theme'
 
 export default function ProgressBar({ value = 0, max = 100, label }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0
@@ -24,26 +25,26 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    fontFamily: 'Outfit_400Regular',
-    color: '#B0B0B8',
+    fontFamily: fonts.outfit.regular,
+    color: colors.textTertiary,
     width: 80,
   },
   barBg: {
     flex: 1,
     height: 6,
-    backgroundColor: '#1E3448',
+    backgroundColor: colors.border,
     borderRadius: 4,
     overflow: 'hidden',
   },
   barFill: {
     height: 6,
     borderRadius: 4,
-    backgroundColor: '#D4A574',
+    backgroundColor: colors.accent,
   },
   count: {
     fontSize: 12,
-    fontFamily: 'Outfit_600SemiBold',
-    color: '#B0B0B8',
+    fontFamily: fonts.outfit.semiBold,
+    color: colors.textTertiary,
     width: 70,
     textAlign: 'right',
   },

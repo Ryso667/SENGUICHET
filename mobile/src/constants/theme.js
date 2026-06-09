@@ -58,7 +58,7 @@ export const categoryGradients = {
   Exposition: ['rgba(124,58,237,0.55)', 'rgba(124,58,237,0.15)'],
   'Club / Soirée': ['rgba(219,39,119,0.55)', 'rgba(219,39,119,0.15)'],
   Gala: ['rgba(202,138,4,0.55)', 'rgba(202,138,4,0.15)'],
-  default: ['rgba(212,165,116,0.35)', 'rgba(26,26,30,0.85)'],
+  default: ['rgba(199,81,58,0.2)', 'rgba(245,240,235,0.9)'],
 }
 
 // Ombre portée pour lisibilité du texte blanc sur fond clair/glass

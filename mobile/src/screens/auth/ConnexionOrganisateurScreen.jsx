@@ -10,7 +10,7 @@ import { connecterOrganisateur } from '../../services/authService'
 import { useAuth } from '../../context/AuthContext'
 import { hapticMedium } from '../../utils/haptics'
 import GlassButton from '../../components/GlassButton'
-import { colors, spacing, textShadow } from '../../constants/theme'
+import { colors, spacing } from '../../constants/theme'
 import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
 
@@ -68,7 +68,7 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
               keyboardType="email-address"
               autoCapitalize="none"
               placeholder="exemple@email.com"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor={colors.textTertiary}
             />
           </GlassContainer>
 
@@ -81,7 +81,7 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
               onChangeText={setMdp}
               secureTextEntry
               placeholder="••••••••"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor={colors.textTertiary}
             />
           </GlassContainer>
 
@@ -125,20 +125,19 @@ const styles = StyleSheet.create({
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: '#fff',
+    color: colors.text,
     marginBottom: 8,
-    ...textShadow,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
     marginBottom: 32,
   },
   label: {
     fontFamily: 'Outfit_500Medium',
     fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
+    color: colors.text,
     marginBottom: 6,
   },
   inscriptionRow: {
@@ -150,7 +149,7 @@ const styles = StyleSheet.create({
   inscriptionText: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 13,
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
   },
   inscriptionLink: {
     paddingVertical: 0,
@@ -161,15 +160,15 @@ const styles = StyleSheet.create({
   input: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 16,
-    color: '#fff',
+    color: colors.text,
   },
   glassLoadingBtn: {
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(0,0,0,0.04)',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: colors.border,
   },
 })

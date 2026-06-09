@@ -84,8 +84,8 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   ]
 
   const statColors = [
-    ['rgba(212,165,116,0.25)', 'rgba(200,148,92,0.1)'],
-    ['rgba(0,229,160,0.25)', 'rgba(212,165,116,0.1)'],
+    ['rgba(199,81,58,0.25)', 'rgba(199,81,58,0.1)'],
+    ['rgba(0,229,160,0.25)', 'rgba(199,81,58,0.1)'],
     ['rgba(99,102,241,0.25)', 'rgba(236,72,153,0.1)'],
     ['rgba(249,115,22,0.25)', 'rgba(245,158,11,0.1)'],
   ]
@@ -95,7 +95,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
       <OrganisateurLayout />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#D4A574', '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent, '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}
       >
         {/* Greeting — calqué sur le web : "Bonjour, {nom}" + date */}
         <GlassContainer blurType="light" style={s.greeting}>
@@ -233,7 +233,7 @@ const s = StyleSheet.create({
   recentSection: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
   recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
   recentTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
-  voirTout: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
+  voirTout: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
   empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textAlign: 'center', paddingVertical: 30 },
   eventsGrid: { gap: spacing.md },
   // Carte événement
@@ -257,16 +257,16 @@ const s = StyleSheet.create({
   eventBody: { padding: spacing.md },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
   barBg: { flex: 1, height: 8, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 4, overflow: 'hidden' },
-  barFill: { height: 8, borderRadius: 4, backgroundColor: '#D4A574' },
+  barFill: { height: 8, borderRadius: 4, backgroundColor: colors.accent },
   barCount: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.7)' },
   eventFooter: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.15)', paddingTop: spacing.sm,
   },
-  revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
+  revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent },
   detailsBtn: {
-    backgroundColor: 'rgba(212,165,116,0.15)', borderRadius: 8,
+    backgroundColor: 'rgba(199,81,58,0.15)', borderRadius: 8,
     paddingHorizontal: 14, paddingVertical: 6,
   },
-  detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
+  detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 })

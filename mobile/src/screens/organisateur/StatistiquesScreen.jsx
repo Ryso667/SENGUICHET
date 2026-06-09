@@ -22,7 +22,7 @@ const chartConfig = {
   color: (opacity = 1) => `rgba(99, 102, 241, ${opacity})`,
   labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity * 0.8})`,
   style: { borderRadius: 16 },
-  propsForDots: { r: '6', strokeWidth: '2', stroke: '#D4A574' },
+  propsForDots: { r: '6', strokeWidth: '2', stroke: colors.accent },
 }
 
 export default function StatistiquesScreen() {
@@ -78,11 +78,11 @@ export default function StatistiquesScreen() {
       return rb - ra
     }).slice(0, 3)
 
-    const colors = ['#D4A574', '#C8945C', '#6CD4A0']
+    const chartColors = [colors.accent, colors.orange, '#6CD4A0']
     return top3.map((e, i) => ({
       name: e.nom.substring(0, 10),
       population: e.remplis || 0,
-      color: colors[i],
+      color: chartColors[i],
       legendFontColor: 'rgba(255,255,255,0.8)',
       legendFontSize: 12
     }))
@@ -118,10 +118,10 @@ export default function StatistiquesScreen() {
         </View>
 
         <View style={s.statsGrid}>
-          <StatCard label="Tickets" value={stats.totalVendus} icon="ticket-outline" color="#D4A574" />
+          <StatCard label="Tickets" value={stats.totalVendus} icon="ticket-outline" color={colors.accent} />
           <StatCard label="Revenus" value={`${Math.round(stats.revenusTotaux/1000)}k`} icon="cash" color="#00E5A0" />
           <StatCard label="Remplissage" value={`${stats.tauxRemplissage}%`} icon="chart-donut" color="#F97316" />
-          <StatCard label="Événements" value={stats.nbEvents} icon="calendar-star" color="#C8945C" />
+          <StatCard label="Événements" value={stats.nbEvents} icon="calendar-star" color={colors.orange} />
         </View>
 
         <GlassContainer blurType="light" style={s.section} intensity={30}>

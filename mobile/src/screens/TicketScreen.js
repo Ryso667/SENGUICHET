@@ -6,7 +6,7 @@ import { Feather } from '@expo/vector-icons'
 import QRCode from 'react-native-qrcode-svg'
 import * as Crypto from 'expo-crypto'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { fonts, spacing } from '../constants/theme'
+import { colors, fonts, spacing } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { genererTicketPDF } from '../services/ticketPdfService'
@@ -111,7 +111,7 @@ export default function TicketScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <BlurBackground category={ticket?.categorie} showImage={false} gradientOverride={['rgba(212,165,116,0.15)', 'rgba(30,28,26,0.95)']} />
+      <BlurBackground category={ticket?.categorie} showImage={false} gradientOverride={['rgba(199,81,58,0.15)', 'rgba(30,28,26,0.95)']} />
       <TouchableOpacity style={[styles.backBtn, { top: insets.top + 8 }]} onPress={() => navigation.goBack()} activeOpacity={0.7}>
         <Feather name="arrow-left" size={20} color="#fff" />
       </TouchableOpacity>
@@ -264,7 +264,7 @@ export default function TicketScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A1A1E',
+    backgroundColor: colors.bg,
   },
   backBtn: {
     position: 'absolute', left: 24, zIndex: 10,
@@ -281,6 +281,11 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: '100%',
     maxWidth: 300,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
 
   ticketCard: {
@@ -358,14 +363,14 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#1A1A1E',
+    backgroundColor: colors.bg,
     marginLeft: -10,
   },
   halfCircleRight: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#1A1A1E',
+    backgroundColor: colors.bg,
     marginRight: -10,
   },
   perfLine: {

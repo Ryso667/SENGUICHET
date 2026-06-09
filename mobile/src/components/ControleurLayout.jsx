@@ -1,6 +1,7 @@
-// Fond sombre uni pour les écrans contrôleur
-// Couleur #1A1A1E appliquée en arrière-plan solide
+// Fond clair pour les écrans contrôleur (thème Warm Light)
+// Utilise colors.bg (#F5F0EB) en arrière-plan solide
 import { View, StyleSheet } from 'react-native'
+import { colors } from '../../constants/theme'
 
 export default function ControleurLayout() {
   return (
@@ -11,6 +12,6 @@ export default function ControleurLayout() {
 const styles = StyleSheet.create({
   background: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: '#1A1A1E',
+    backgroundColor: colors.bg,
   },
 })

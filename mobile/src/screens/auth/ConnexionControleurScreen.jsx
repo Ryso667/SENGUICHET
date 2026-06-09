@@ -14,7 +14,7 @@ import GlassButton from '../../components/GlassButton'
 import { useAuth } from '../../context/AuthContext'
 import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
-import { colors, spacing, textShadow } from '../../constants/theme'
+import { colors, spacing } from '../../constants/theme'
 
 export default function ConnexionControleurScreen({ navigation }) {
   const { connecterControleur } = useAuth()
@@ -94,14 +94,13 @@ const styles = StyleSheet.create({
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: '#fff',
+    color: colors.text,
     marginBottom: 8,
-    ...textShadow,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
     marginBottom: 32,
   },
   espace: {
@@ -112,8 +111,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(0,0,0,0.04)',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: colors.border,
   },
 })

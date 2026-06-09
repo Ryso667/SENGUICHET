@@ -1,11 +1,11 @@
 // Écran de sélection du rôle (Acheteur / Contrôleur / Organisateur)
-// Design glass immersif (Apple Invites) : fond Warm Charcoal + cartes glass avec accent par rôle
-// Palette : violet doux (acheteur), or cuivré (contrôleur), vert doux (organisateur)
+// Design glass immersif (Apple Invites) : fond Warm Light + cartes glass avec accent par rôle
+// Palette : violet doux (acheteur), terracotta (contrôleur), vert doux (organisateur)
 import { useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Image } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { fonts, spacing, borderRadius, glass, categoryGradients } from '../constants/theme'
+import { colors, fonts, spacing, borderRadius, glass, categoryGradients } from '../constants/theme'
 import GlassContainer from '../components/GlassContainer'
 
 const ROLES = [
@@ -14,7 +14,7 @@ const ROLES = [
     title: 'Acheteur',
     subtitle: "Achète tes billets\nen un clic",
     icon: 'ticket-outline',
-    accent: '#A78BFA', // Violet doux
+    accent: '#7C6FA0', // Violet doux
     screen: null,
   },
   {
@@ -22,7 +22,7 @@ const ROLES = [
     title: 'Contrôleur',
     subtitle: "Scanne les billets\nà l'entrée",
     icon: 'qrcode-scan',
-    accent: '#D4A574', // Or cuivré
+    accent: '#C7513A', // Terracotta
     screen: 'ConnexionControleur',
   },
   {
@@ -30,7 +30,7 @@ const ROLES = [
     title: 'Organisateur',
     subtitle: 'Crée et gère\ntes événements',
     icon: 'calendar-star',
-    accent: '#6CD4A0', // Vert doux
+    accent: '#2E7D5E', // Vert doux
     screen: 'ConnexionOrganisateur',
   },
 ]
@@ -47,10 +47,10 @@ export default function AccueilChoixScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       {/* Fond dégradé doux catégorie par défaut */}
       <View style={StyleSheet.absoluteFill}>
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: '#1A1A1E' }]} />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.bg }]} />
         <View style={[StyleSheet.absoluteFill, { backgroundColor: categoryGradients.default[0] }]} />
       </View>
 
@@ -90,7 +90,7 @@ export default function AccueilChoixScreen({ navigation }) {
                       <Text style={styles.cardTitle}>{r.title}</Text>
                       <Text style={styles.cardSubtitle}>{r.subtitle}</Text>
                     </View>
-                    <MaterialCommunityIcons name="chevron-right" size={20} color="rgba(255,255,255,0.4)" />
+                    <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textTertiary} />
                   </View>
                 </GlassContainer>
               </TouchableOpacity>
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { alignItems: 'center', paddingTop: 60, paddingBottom: spacing.xl },
   logo: { width: 88, height: 88, marginBottom: spacing.sm, borderRadius: 20 },
-  title: { fontSize: 32, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: 1 },
+  title: { fontSize: 32, fontFamily: fonts.outfit.bold, color: colors.text, letterSpacing: 1 },
   cards: { flex: 1, justifyContent: 'center', gap: spacing.md, paddingHorizontal: spacing.xl, paddingBottom: 60 },
   cardWrap: { borderRadius: borderRadius.xl },
   card: { borderRadius: borderRadius.xl, flexDirection: 'row', overflow: 'hidden' },
@@ -116,6 +116,6 @@ const styles = StyleSheet.create({
     padding: spacing.lg, gap: spacing.md,
   },
   cardText: { flex: 1 },
-  cardTitle: { fontSize: 20, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.3 },
-  cardSubtitle: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+  cardTitle: { fontSize: 20, fontFamily: fonts.outfit.bold, color: colors.text, letterSpacing: -0.3 },
+  cardSubtitle: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 2 },
 })
