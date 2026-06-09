@@ -37,6 +37,8 @@ export default function ScannerScreen({ navigation, route }) {
 
   const eventId = evenementId || route?.params?.eventId || 1
   const zone = route?.params?.zone || 'STANDARD'
+  const dernierScanRef = useRef(null)
+  const DELAI_ANTI_DOUBLON = 10000
 
   const rafraichirTickets = useCallback(async () => {
     setSynchro('chargement')
@@ -67,6 +69,10 @@ export default function ScannerScreen({ navigation, route }) {
 
   const handleScan = async (donnees) => {
     if (scanne || !pret) return
+    // Anti-doublon : ignore le même QR dans les 10 secondes
+    const maintenant = Date.now()
+    if (dernierScanRef.current && dernierScanRef.current.donnees === donnees && (maintenant - dernierScanRef.current.temps) < DELAI_ANTI_DOUBLON) return
+    dernierScanRef.current = { donnees, temps: maintenant }
     try {
       const resultat = await verifierBillet(donnees)
       setScanne(resultat)
