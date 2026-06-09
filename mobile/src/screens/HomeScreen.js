@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
   name: { fontSize: 18, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.3 },
   homeBtn: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(0,200,255,0.1)',
+    backgroundColor: 'rgba(212,165,116,0.1)',
     alignItems: 'center', justifyContent: 'center', marginRight: 8,
   },
   logoutBtn: {

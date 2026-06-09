@@ -1,6 +1,5 @@
-// Layout réutilisable pour toutes les pages acheteur — version glass
-// Le fond est géré par chaque écran via BlurBackground
-// Ce layout fournit uniquement le conteneur et la GlassBottomNav
+// Layout réutilisable pour toutes les pages acheteur
+// Fond sombre #1A1A1E appliqué ici (remplace BlurBackground géré par chaque écran)
 import { View, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import GlassBottomNav from './GlassBottomNav'
@@ -19,6 +18,7 @@ export default function BuyerLayout({ children }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#1A1A1E',
   },
   safe: {
     flex: 1,

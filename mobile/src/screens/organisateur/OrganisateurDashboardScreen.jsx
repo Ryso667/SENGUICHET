@@ -18,7 +18,7 @@ const STATUT_CONFIG = {
   actif: { label: 'Actif', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
   en_attente: { label: 'En attente', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
   refuse: { label: 'Refusé', color: '#FF4D6D', bg: 'rgba(255,77,109,0.2)' },
-  termine: { label: 'Terminé', color: '#A0B4C8', bg: 'rgba(160,180,200,0.2)' },
+  termine: { label: 'Terminé',     color: '#B0B0B8', bg: 'rgba(176,176,184,0.2)' },
   annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
 }
 
@@ -84,8 +84,8 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   ]
 
   const statColors = [
-    ['rgba(0,200,255,0.25)', 'rgba(0,119,255,0.1)'],
-    ['rgba(0,229,160,0.25)', 'rgba(0,200,255,0.1)'],
+    ['rgba(212,165,116,0.25)', 'rgba(200,148,92,0.1)'],
+    ['rgba(0,229,160,0.25)', 'rgba(212,165,116,0.1)'],
     ['rgba(99,102,241,0.25)', 'rgba(236,72,153,0.1)'],
     ['rgba(249,115,22,0.25)', 'rgba(245,158,11,0.1)'],
   ]
@@ -95,7 +95,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
       <OrganisateurLayout />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00C8FF', '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#D4A574', '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}
       >
         {/* Greeting — calqué sur le web : "Bonjour, {nom}" + date */}
         <GlassContainer blurType="light" style={s.greeting}>
@@ -233,7 +233,7 @@ const s = StyleSheet.create({
   recentSection: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
   recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
   recentTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
-  voirTout: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  voirTout: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
   empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textAlign: 'center', paddingVertical: 30 },
   eventsGrid: { gap: spacing.md },
   // Carte événement
@@ -257,16 +257,16 @@ const s = StyleSheet.create({
   eventBody: { padding: spacing.md },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
   barBg: { flex: 1, height: 8, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 4, overflow: 'hidden' },
-  barFill: { height: 8, borderRadius: 4, backgroundColor: '#00C8FF' },
+  barFill: { height: 8, borderRadius: 4, backgroundColor: '#D4A574' },
   barCount: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.7)' },
   eventFooter: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.15)', paddingTop: spacing.sm,
   },
-  revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
   detailsBtn: {
-    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 8,
+    backgroundColor: 'rgba(212,165,116,0.15)', borderRadius: 8,
     paddingHorizontal: 14, paddingVertical: 6,
   },
-  detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
 })

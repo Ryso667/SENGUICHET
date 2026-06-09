@@ -8,12 +8,13 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { connecterControleur as apiConnecterControleur } from '../../services/authService'
+import { hapticLight } from '../../utils/haptics'
 import InputOTP from '../../components/InputOTP'
 import GlassButton from '../../components/GlassButton'
 import { useAuth } from '../../context/AuthContext'
 import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
-import { spacing, textShadow } from '../../constants/theme'
+import { colors, spacing, textShadow } from '../../constants/theme'
 
 export default function ConnexionControleurScreen({ navigation }) {
   const { connecterControleur } = useAuth()
@@ -37,8 +38,14 @@ export default function ConnexionControleurScreen({ navigation }) {
     }
   }
 
+  // Déclenche un retour haptique léger quand les 4 chiffres sont saisis
+  const handleCodeComplet = (code) => {
+    hapticLight()
+    setCodeAcces(code)
+  }
+
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <BlurBackground />
       <KeyboardAvoidingView
         style={styles.flex}
@@ -54,7 +61,7 @@ export default function ConnexionControleurScreen({ navigation }) {
           </Text>
 
           {/* Champ 4 chiffres (réutilise InputOTP avec longueur réduite) */}
-          <InputOTP longueur={4} onComplet={setCodeAcces} />
+          <InputOTP longueur={4} onComplet={handleCodeComplet} />
 
           <View style={styles.espace} />
 

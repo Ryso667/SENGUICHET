@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
   action: {
     fontSize: 13,
     fontFamily: 'Outfit_600SemiBold',
-    color: '#00C8FF',
+    color: '#D4A574',
   },
   spacer: {
     flex: 1,

@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { View, Text, StyleSheet, Animated, ActivityIndicator } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { hapticSuccess, hapticError } from '../../utils/haptics'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect } from '@react-navigation/native'
@@ -16,12 +17,14 @@ import GlassButton from '../../components/GlassButton'
 const INTERVAL_REFRESH = 30000
 
 // Couleurs d'affichage selon le résultat du scan (5 statuts possibles)
+// Palette or (#D4A574) pour le cadre, vert doux (#6CD4A0) pour VALIDE,
+// orange (#E8A868) pour DEJA_UTILISE, rouge (#E86868) pour les erreurs
 const COULEURS = {
-  VALIDE: { fond: '#22c55e', icone: 'check-circle', label: 'Entrée autorisée' },
-  DEJA_UTILISE: { fond: '#f97316', icone: 'alert-circle', label: 'Déjà utilisé' },
-  EXPIRE: { fond: '#FF4D6D', icone: 'clock-outline', label: 'Billet expiré' },
-  INCONNU: { fond: '#b91c1c', icone: 'help-circle', label: 'Billet inconnu' },
-  FRAUDE: { fond: '#dc2626', icone: 'alert-octagon', label: 'FRAUDE suspectée' },
+  VALIDE: { fond: '#6CD4A0', icone: 'check-circle', label: 'Entrée autorisée' },
+  DEJA_UTILISE: { fond: '#E8A868', icone: 'alert-circle', label: 'Déjà utilisé' },
+  EXPIRE: { fond: '#E86868', icone: 'clock-outline', label: 'Billet expiré' },
+  INCONNU: { fond: '#E86868', icone: 'help-circle', label: 'Billet inconnu' },
+  FRAUDE: { fond: '#E86868', icone: 'alert-octagon', label: 'FRAUDE suspectée' },
 }
 
 export default function ScannerScreen({ navigation, route }) {
@@ -79,8 +82,14 @@ export default function ScannerScreen({ navigation, route }) {
     dernierScanRef.current = { donnees, temps: maintenant }
     try {
       const resultat = await verifierBillet(donnees)
+      // Feedback haptique selon le statut du scan
+      if (resultat.resultat === 'VALIDE') {
+        hapticSuccess()
+      } else if (['FRAUDE', 'EXPIRE', 'INCONNU'].includes(resultat.resultat)) {
+        hapticError()
+      }
       setScanne(resultat)
-      synchroniser().catch(() => {})
+      synchroniser().catch((e) => console.warn('[Sync] Échec synchronisation post-scan:', e))
       Animated.sequence([
         Animated.timing(animation, { toValue: 1, duration: 300, useNativeDriver: true }),
         Animated.delay(3000),
@@ -159,7 +168,8 @@ const styles = StyleSheet.create({
   info: { fontFamily: fonts.outfit.regular, fontSize: 13, color: colors.textSecondary },
   syncOk: { fontFamily: fonts.outfit.medium, fontSize: 12, color: '#22c55e', marginTop: 4 },
   zoneCadre: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  cadre: { width: 250, height: 250, borderWidth: 2, borderColor: '#22c55e', borderRadius: 16, opacity: 0.8 },
+  // Cadre de scan doré (#D4A574) pour correspondre à la charte du projet
+  cadre: { width: 250, height: 250, borderWidth: 2, borderColor: '#D4A574', borderRadius: 16, opacity: 0.8 },
   resultat: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   resultatMessage: { fontFamily: fonts.outfit.bold, fontSize: 24, color: '#FFFFFF', marginBottom: 8 },
   resultatDetail: { fontFamily: fonts.outfit.regular, fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: 32 },

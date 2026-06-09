@@ -103,8 +103,8 @@ const s = StyleSheet.create({
   supportSection: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm,
     paddingVertical: spacing.sm, paddingHorizontal: spacing.md,
-    backgroundColor: 'rgba(0,200,255,0.08)', borderRadius: borderRadius.md,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(0,200,255,0.2)',
+    backgroundColor: 'rgba(212,165,116,0.08)', borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(212,165,116,0.2)',
   },
   supportText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
   statsGrid: {

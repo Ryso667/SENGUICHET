@@ -35,7 +35,7 @@ export default function SupportScreen() {
         {/* Contacts */}
         <GlassContainer style={styles.contactsCard} intensity={40}>
           <View style={styles.contactRow}>
-            <Feather name="mail" size={16} color="#00C8FF" />
+            <Feather name="mail" size={16} color="#D4A574" />
             <Text style={styles.contactText}>support@senguichet.sn</Text>
             <GlassChip label="Copier" onPress={() => {}} />
           </View>

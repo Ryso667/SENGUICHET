@@ -1,19 +1,30 @@
 // Bouton principal de l'application
-// Utilise un dégradé Cyan → Bleu (thème officiel)
-// Si desactive = true, passe en gris (muted)
+// Utilise un dégradé Champagne/Doré (thème officiel)
+// Si desactive = true ou disabled = true, passe en gris (muted) avec opacité réduite
 import { TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-// Bouton principal avec dégradé Cyan→Bleu et état de chargement intégré
-// Props : titre (string), chargement (bool), desactive (bool), onPress (function)
-export default function BoutonPrincipal({ titre, chargement, desactive, onPress }) {
+import { hapticMedium } from '../utils/haptics'
+// Bouton principal avec dégradé Champagne/Doré et état de chargement intégré
+// Props : titre (string), chargement (bool), desactive (bool), disabled (bool), onPress (function)
+export default function BoutonPrincipal({ titre, chargement, desactive, disabled, onPress }) {
+  // Désactivé si l'une des props de désactivation est true
+  const estDesactive = desactive || disabled || chargement
+  // Handler qui déclenche le feedback haptique avant d'appeler onPress
+  // N'appelle pas le haptique si le bouton est désactivé
+  const handlePress = () => {
+    if (estDesactive) return
+    hapticMedium()
+    onPress?.()
+  }
   return (
     <TouchableOpacity
-      onPress={onPress}
-      disabled={desactive || chargement}
+      onPress={handlePress}
+      disabled={estDesactive}
       activeOpacity={0.85}
+      style={estDesactive && styles.desactive}
     >
       <LinearGradient
-        colors={desactive ? ['#94a3b8', '#94a3b8'] : ['#00C8FF', '#0077FF']}
+        colors={estDesactive ? ['#94a3b8', '#94a3b8'] : ['#D4A574', '#C8945C']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.bouton}
@@ -40,5 +51,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit_600SemiBold',
     fontSize: 17,
     color: '#FFFFFF',
+  },
+  // Style appliqué quand le bouton est désactivé (opacité 0.5)
+  desactive: {
+    opacity: 0.5,
   },
 })

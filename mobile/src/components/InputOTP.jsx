@@ -1,9 +1,9 @@
-// Champ de saisie à 6 chiffres individuels avec focus automatique
-// Utile pour les codes de validation (OTP)
+// Champ de saisie à chiffres individuels avec auto-focus
+// Utile pour les codes PIN (contrôleur) et OTP (acheteur)
+// Props : longueur (number, défaut 6), onComplet (callback appelé quand tous les chiffres sont saisis)
 import { useRef, useState } from 'react'
 import { View, TextInput, StyleSheet } from 'react-native'
-// Composant de saisie OTP à chiffres individuels avec auto-focus
-// Props : longueur (number, défaut 6), onComplet (callback appelé quand tous les chiffres sont saisis)
+
 export default function InputOTP({ longueur = 6, onComplet }) {
   const [codes, setCodes] = useState(Array(longueur).fill(''))
   const refs = useRef([])
@@ -19,6 +19,7 @@ export default function InputOTP({ longueur = 6, onComplet }) {
       refs.current[index + 1]?.focus()
     }
 
+    // Notifie le parent quand tous les chiffres sont saisis
     const saisi = nouveau.join('')
     if (saisi.length === longueur) {
       onComplet?.(saisi)
@@ -64,15 +65,15 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#edf0f5',
-    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
     textAlign: 'center',
     fontFamily: 'Outfit_700Bold',
     fontSize: 24,
-    color: '#0f172a',
+    color: '#FFFFFF',
   },
   caseRemplie: {
-    borderColor: '#00C8FF',
-    backgroundColor: '#E0F7FF',
+    borderColor: '#D4A574',
+    backgroundColor: 'rgba(212,165,116,0.12)',
   },
 })
