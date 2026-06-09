@@ -30,6 +30,7 @@ export default function ScannerScreen({ navigation, route }) {
   const [pret, setPret] = useState(false)
   const [nbTickets, setNbTickets] = useState(0)
   const [chargeTickets, setChargeTickets] = useState(false)
+  const [synchro, setSynchro] = useState(null)
   const intervalRef = useRef(null)
   const { evenementId, evenementTitre } = useAuth()
   const animation = useRef(new Animated.Value(0)).current
@@ -42,11 +43,13 @@ export default function ScannerScreen({ navigation, route }) {
 
   const rafraichirTickets = useCallback(async () => {
     setChargeTickets(true)
+    setSynchro('chargement')
     try {
       const nb = await telechargerTickets(eventId, zone)
       setNbTickets(nb)
+      setSynchro('ok')
     } catch {
-      // Échec silencieux — le prochain polling (30s) réessaiera
+      // Échec silencieux — le prochain interval (30s) réessayera
     } finally {
       setChargeTickets(false)
     }
@@ -61,6 +64,12 @@ export default function ScannerScreen({ navigation, route }) {
       }
     }, [rafraichirTickets])
   )
+
+  useEffect(() => {
+    if (synchro !== 'ok') return
+    const t = setTimeout(() => setSynchro(null), 3000)
+    return () => clearTimeout(t)
+  }, [synchro])
 
   const handleScan = async (donnees) => {
     if (scanne || !pret) return
@@ -110,14 +119,17 @@ export default function ScannerScreen({ navigation, route }) {
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
       />
       <View style={styles.overlay} pointerEvents="box-none">
-        <View style={[styles.masqueHaut, { paddingTop: insets.top + 16 }]}>
+          <View style={[styles.masqueHaut, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.titre}>Scanner un billet</Text>
           <View style={styles.infoRow}>
-            <Text style={styles.info}>{evenementTitre || `Événement #${eventId}`}</Text>
-            {chargeTickets && (
+            <Text style={styles.info}>{evenementTitre || `Événement #${eventId}`} — {zone}</Text>
+            {(chargeTickets || synchro === 'chargement') && (
               <ActivityIndicator size="small" color={colors.accent} style={{ marginLeft: 8 }} />
             )}
           </View>
+          {synchro === 'ok' && nbTickets > 0 && (
+            <Text style={styles.syncOk}>{nbTickets} tickets dispo</Text>
+          )}
         </View>
         <View style={styles.zoneCadre}>
           <View style={styles.cadre} />
@@ -145,6 +157,7 @@ const styles = StyleSheet.create({
   titre: { fontFamily: fonts.outfit.bold, fontSize: 22, color: colors.text, ...textShadow },
   infoRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   info: { fontFamily: fonts.outfit.regular, fontSize: 13, color: colors.textSecondary },
+  syncOk: { fontFamily: fonts.outfit.medium, fontSize: 12, color: '#22c55e', marginTop: 4 },
   zoneCadre: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   cadre: { width: 250, height: 250, borderWidth: 2, borderColor: '#22c55e', borderRadius: 16, opacity: 0.8 },
   resultat: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },

@@ -103,7 +103,7 @@ export default function ScanHistoryScreen() {
         </GlassContainer>
 
         {evenementTitre && (
-          <Text style={styles.eventName}>{evenementTitre}</Text>
+          <Text style={styles.eventName}>{evenementTitre} (ID: {evenementId})</Text>
         )}
 
         <View style={styles.actions}>
