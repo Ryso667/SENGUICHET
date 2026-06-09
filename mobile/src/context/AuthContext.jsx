@@ -5,7 +5,6 @@ import { Alert } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as LocalAuthentication from 'expo-local-authentication'
 import { nettoyerDonneesLegacy } from '../utils/cleanupLegacyData'
-import { connecterAcheteurSocial as connecterAcheteurSocialAPI } from '../services/authService'
 import { verifierCodeOTP as verifierCodeOTPAPI } from '../services/authService'
 import * as Securite from '../utils/secureStorage'
 
@@ -106,23 +105,6 @@ export function AuthProvider({ children }) {
     } finally {
       setChargement(false)
     }
-  }
-
-  // Connexion sociale acheteur (Google/Apple)
-  // Appelle le backend avec le firebaseToken, stocke le JWT et le profil
-  const connecterAcheteurSocial = async (firebaseToken) => {
-    const data = await connecterAcheteurSocialAPI(firebaseToken)
-    const { token, user: profilUtilisateur } = data
-    await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'acheteur')
-    await Securite.SET(STORAGE_KEY_JWT, token)
-    await Securite.SET(STORAGE_KEY_PROFIL, JSON.stringify(profilUtilisateur))
-    if (profilUtilisateur?.email) {
-      await AsyncStorage.setItem(STORAGE_KEY_ACHETEUR_EMAIL_SUGGESTION, profilUtilisateur.email)
-      setAcheteurEmailSuggestion(profilUtilisateur.email)
-    }
-    setJwt(token)
-    setProfil(profilUtilisateur)
-    setRole('acheteur')
   }
 
   // Connexion acheteur (ancien flow OTP, conservé pour compatibilité)
@@ -262,7 +244,6 @@ export function AuthProvider({ children }) {
         evenementTitre,
         chargement,
         connecterAcheteur,
-        connecterAcheteurSocial,
         connecterAcheteurOTP,
         definirTelephone,
         connecterControleur,

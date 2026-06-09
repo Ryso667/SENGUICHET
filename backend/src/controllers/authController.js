@@ -285,44 +285,6 @@ const verifierCodeOTP = async (req, res) => {
   }
 };
 
-// Connexion sociale (Google/Apple) pour l'acheteur
-// Crée un compte acheteur si inexistant, retourne un JWT
-const connexionSociale = async (req, res) => {
-  try {
-    const { email, nom, provider } = req.body;
-    if (!email) {
-      return res.status(400).json({ message: "Email requis" });
-    }
-
-    let acheteur;
-    try {
-      const [existants] = await pool.query(
-        "SELECT id, nom, email FROM acheteur WHERE email = ? LIMIT 1",
-        [email]
-      );
-      if (existants.length > 0) {
-        acheteur = existants[0];
-        await pool.query("UPDATE acheteur SET dernier_acces = NOW() WHERE id = ?", [acheteur.id]);
-      } else {
-        const [result] = await pool.query(
-          "INSERT INTO acheteur (nom, email, telephone, date_inscription, dernier_acces) VALUES (?, ?, '', NOW(), NOW())",
-          [nom || email.split("@")[0], email]
-        );
-        acheteur = { id: result.insertId, email };
-      }
-    } catch (dbErr) {
-      console.error("DB erreur:", dbErr.message);
-      return res.status(503).json({ message: "Service indisponible" });
-    }
-
-    const token = generateToken({ id: acheteur.id, email }, "ACHETEUR");
-    res.json({ token, user: { id: acheteur.id, email } });
-  } catch (err) {
-    console.error("Connexion sociale error:", err);
-    res.status(500).json({ message: "Erreur serveur" });
-  }
-};
-
 // Permet à un organisateur de changer son mot de passe en vérifiant l'ancien
 // Reçoit : { ancienMotDePasse, nouveauMotDePasse } — met à jour si ancien correspond
 const changerMotDePasse = async (req, res) => {
@@ -402,4 +364,4 @@ const connexionControleur = async (req, res) => {
   }
 };
 
-module.exports = { inscription, connexionOrganisateur, connexionAdmin, connexionPartenaire, connexionControleur, adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur, connexionSociale, envoyerCodeOTP, verifierCodeOTP, changerMotDePasse };
+module.exports = { inscription, connexionOrganisateur, connexionAdmin, connexionPartenaire, connexionControleur, adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur, envoyerCodeOTP, verifierCodeOTP, changerMotDePasse };
