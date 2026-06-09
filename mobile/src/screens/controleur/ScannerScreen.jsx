@@ -121,17 +121,12 @@ export default function ScannerScreen({ navigation, route }) {
           <Text style={styles.titre}>Scanner un billet</Text>
           <View style={styles.infoRow}>
             <Text style={styles.info}>{evenementTitre || `Événement #${eventId}`}</Text>
-            {syncStatut === 'chargement' && (
+              {syncStatut === 'chargement' && (
               <ActivityIndicator size="small" color="#00C8FF" style={{ marginLeft: 8 }} />
             )}
           </View>
           {syncStatut === 'ok' && (
             <Text style={styles.syncOk}>{nbTickets} tickets dispo</Text>
-          )}
-          {syncStatut === 'erreur' && (
-            <TouchableOpacity onPress={rafraichirTickets}>
-              <Text style={styles.syncErreur}>Sync échouée — appuie pour réessayer</Text>
-            </TouchableOpacity>
           )}
         </View>
         <View style={styles.zoneCadre}>
