@@ -1,5 +1,5 @@
 // Service de scan : vérification offline des QR codes avec HMAC-SHA256
-// 5 étapes : parsing QR → HMAC → expiration → recherche locale → anti re-scan
+// 4 étapes : parsing QR → HMAC → recherche locale → anti re-scan
 import * as Crypto from 'expo-crypto'
 import {
   chercherTicket, marquerUtilise, enregistrerScan,
@@ -45,11 +45,6 @@ async function verifierHMAC(qr) {
   return comparerTempsConstant(calcule, qr.hmac)
 }
 
-// Vérifie si le billet est expiré (date de validité dépassée)
-function estExpire(timestamp) {
-  return new Date(timestamp) < new Date()
-}
-
 // Télécharge les tickets depuis le serveur vers SQLite locale
 // Lance une erreur si le réseau ou l'API échoue (le caller gère le feedback)
 export async function telechargerTickets(eventId, zone) {
@@ -59,8 +54,8 @@ export async function telechargerTickets(eventId, zone) {
   return tickets.length
 }
 
-// Vérification complète offline d'un billet (5 étapes)
-// Étape 1 : parsing QR → 2 : HMAC → 3 : expiration → 4 : recherche locale → 5 : anti re-scan
+// Vérification complète offline d'un billet (4 étapes)
+// Étape 1 : parsing QR → 2 : HMAC → 3 : recherche locale → 4 : anti re-scan
 export async function verifierBillet(donneesQR) {
   const qr = parserQR(donneesQR)
   if (!qr) return { resultat: RESULTATS.INCONNU, message: 'QR code invalide' }
@@ -73,20 +68,14 @@ export async function verifierBillet(donneesQR) {
     return { resultat: RESULTATS.FRAUDE, message: 'Signature cryptographique invalide — alerte fraude' }
   }
 
-  // Étape 3 : vérification de la date d'expiration
-  if (estExpire(qr.timestamp)) {
-    await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.EXPIRE)
-    return { resultat: RESULTATS.EXPIRE, message: 'Billet expiré' }
-  }
-
-  // Étape 4 : recherche du billet dans la base SQLite locale
+  // Étape 3 : recherche du billet dans la base SQLite locale
   let ticket = await chercherTicket(qr.uuid)
   if (!ticket) {
     await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.INCONNU)
     return { resultat: RESULTATS.INCONNU, message: 'Billet introuvable dans la base locale' }
   }
 
-  // Étape 5 : vérification anti re-scan (déjà utilisé ?)
+  // Étape 4 : vérification anti re-scan (déjà utilisé ?)
   if (ticket.statut === 'UTILISE_LOCAL') {
     await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.DEJA_UTILISE)
     return { resultat: RESULTATS.DEJA_UTILISE, message: 'Billet déjà scanné sur cet appareil' }
