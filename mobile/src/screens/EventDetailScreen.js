@@ -326,7 +326,7 @@ export default function EventDetailScreen({ route, navigation }) {
                   <Text style={styles.priceChipText}>{selectedTicket.placesDisponibles}/{selectedTicket.capacite} places</Text>
                 </View>
               )}
-              <Feather name="chevron-down" size={16} color="rgba(255,255,255,0.5)" />
+              <Feather name="chevron-down" size={16} color={colors.textSecondary} />
             </View>
           </GlassContainer>
         </TouchableOpacity>
@@ -334,7 +334,7 @@ export default function EventDetailScreen({ route, navigation }) {
         {/* Téléphone — après le choix de la catégorie */}
         <Text style={styles.formLabel}>Téléphone</Text>
         <GlassContainer style={styles.formPhoneRow}>
-          <Feather name="smartphone" size={16} color="rgba(255,255,255,0.4)" />
+          <Feather name="smartphone" size={16} color={colors.textSecondary} />
           <Text style={styles.formCodeText}>+221</Text>
           <TextInput
             style={styles.formPhoneInput}
@@ -342,7 +342,7 @@ export default function EventDetailScreen({ route, navigation }) {
             onChangeText={(t) => setTelephone(formaterTel(t))}
             keyboardType="phone-pad"
             placeholder="77 XXX XX XX"
-            placeholderTextColor="rgba(255,255,255,0.25)"
+            placeholderTextColor={colors.textSecondary}
           />
         </GlassContainer>
 
@@ -553,7 +553,7 @@ export default function EventDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f2a',
+    backgroundColor: colors.bg,
   },
   flex: { flex: 1 },
   scrollContent: {
@@ -690,7 +690,7 @@ const styles = StyleSheet.create({
   },
   descText: {
     fontSize: 15,
-    color: 'rgba(255,255,255,0.85)',
+    color: colors.textSecondary,
     fontFamily: fonts.jakarta.regular,
     lineHeight: 26,
   },
@@ -701,14 +701,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: fonts.outfit.bold,
     fontSize: 14,
-    color: '#fff',
+    color: colors.text,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   sectionSub: {
     fontSize: 11,
     fontFamily: fonts.jakarta.regular,
-    color: 'rgba(255,255,255,0.4)',
+    color: colors.textSecondary,
     marginTop: 3,
   },
   // Sélecteur de catégorie premium
@@ -725,12 +725,12 @@ const styles = StyleSheet.create({
   categorySelectorLabel: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: 16,
-    color: '#fff',
+    color: colors.text,
   },
   categorySelectorPrice: {
     fontFamily: fonts.outfit.bold,
     fontSize: 22,
-    color: '#fff',
+    color: colors.accent,
     letterSpacing: -0.5,
   },
   categorySelectorRight: {
@@ -739,7 +739,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   priceChip: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: colors.bgSecondary,
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 5,
@@ -747,7 +747,7 @@ const styles = StyleSheet.create({
   priceChipText: {
     fontSize: 10,
     fontFamily: fonts.jakarta.semiBold,
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.textSecondary,
   },
   // Overlay et conteneur sheet
   sheetOverlay: {
@@ -829,7 +829,7 @@ const styles = StyleSheet.create({
   formLabel: {
     fontFamily: fonts.jakarta.semiBold,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.4)',
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
     marginBottom: spacing.sm,
@@ -845,13 +845,13 @@ const styles = StyleSheet.create({
   formCodeText: {
     fontFamily: fonts.jakarta.semiBold,
     fontSize: 15,
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
   },
   formPhoneInput: {
     flex: 1,
     fontSize: 15,
     fontFamily: fonts.jakarta.semiBold,
-    color: '#fff',
+    color: colors.text,
     paddingVertical: 10,
   },
   // Montant dans le modal de paiement
