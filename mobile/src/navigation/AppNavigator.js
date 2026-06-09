@@ -287,13 +287,17 @@ export default function AppNavigator() {
 
   // Redirige automatiquement selon le rôle (ou vers AccueilChoix si déconnecté)
   useEffect(() => {
-    if (navigationRef.current?.isReady()) {
+    const pret = navigationRef.current?.isReady()
+    console.log(`[Nav] role="${role}" isReady=${pret}`)
+    if (pret) {
       if (role) {
         const routeName = role === 'acheteur' ? 'Home'
           : role === 'controleur' ? 'ControleurTabs'
           : 'OrganisateurTabs'
+        console.log(`[Nav] reset vers ${routeName}`)
         navigationRef.current.reset({ index: 0, routes: [{ name: routeName }] })
       } else {
+        console.log('[Nav] reset vers AccueilChoix')
         navigationRef.current.reset({ index: 0, routes: [{ name: 'AccueilChoix' }] })
       }
     }

@@ -124,9 +124,11 @@ export function AuthProvider({ children }) {
   // Stocke la session controleur : JWT + evenementId + evenementTitre
   // user (optionnel) vient de la réponse API pour éviter de dépendre du JWT decode
   const connecterControleur = async (token, user) => {
+    console.log('[Auth] connecterControleur appelé')
     const payload = decoderJWT(token)
     const eventId = user?.evenementId || payload.evenementId
     const eventTitre = user?.evenementTitre || payload.evenementTitre
+    console.log('[Auth] eventId=', eventId, 'eventTitre=', eventTitre)
     await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'controleur')
     await Securite.SET(STORAGE_KEY_JWT, token)
     if (eventId) await Securite.SET(STORAGE_KEY_EVENEMENT_ID, String(eventId))
@@ -135,6 +137,7 @@ export function AuthProvider({ children }) {
     setEvenementId(eventId || null)
     setEvenementTitre(eventTitre || null)
     setRole('controleur')
+    console.log('[Auth] role mis à jour vers controleur')
   }
 
   const connecterOrganisateur = async (token, userData) => {
