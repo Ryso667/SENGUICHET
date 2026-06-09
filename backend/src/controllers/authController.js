@@ -264,7 +264,7 @@ const verifierCodeOTP = async (req, res) => {
         );
       } else {
         const [result] = await pool.query(
-          "INSERT INTO acheteur (email, date_inscription, dernier_acces) VALUES (?, NOW(), NOW())",
+          "INSERT INTO acheteur (email, telephone, date_inscription, dernier_acces) VALUES (?, '', NOW(), NOW())",
           [email]
         );
         acheteur = { id: result.insertId, email };
@@ -305,7 +305,7 @@ const connexionSociale = async (req, res) => {
         await pool.query("UPDATE acheteur SET dernier_acces = NOW() WHERE id = ?", [acheteur.id]);
       } else {
         const [result] = await pool.query(
-          "INSERT INTO acheteur (nom, email, date_inscription, dernier_acces) VALUES (?, ?, NOW(), NOW())",
+          "INSERT INTO acheteur (nom, email, telephone, date_inscription, dernier_acces) VALUES (?, ?, '', NOW(), NOW())",
           [nom || email.split("@")[0], email]
         );
         acheteur = { id: result.insertId, email };
