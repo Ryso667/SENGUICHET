@@ -89,9 +89,9 @@ export async function verifierBillet(donneesQR) {
 
 // Synchronisation batch des scans offline vers le serveur (quand connexion rétablie)
 export async function synchroniser() {
-  const enAttente = await scansEnAttente()
-  if (enAttente.length === 0) return { sync: true, message: 'Rien à synchroniser' }
   try {
+    const enAttente = await scansEnAttente()
+    if (enAttente.length === 0) return { sync: true, message: 'Rien à synchroniser' }
     const { appelAPI } = await import('./apiService')
     await appelAPI('/scans/sync', { method: 'POST', body: enAttente })
     await marquerScansSync()

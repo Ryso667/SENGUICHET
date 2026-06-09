@@ -71,8 +71,7 @@ export default function ScannerScreen({ navigation, route }) {
     try {
       const resultat = await verifierBillet(donnees)
       setScanne(resultat)
-      // Synchro immédiate en arrière-plan : si connecté, le badge OFFLINE disparaît
-      synchroniser()
+      synchroniser().catch(() => {})
       Animated.sequence([
         Animated.timing(animation, { toValue: 1, duration: 300, useNativeDriver: true }),
         Animated.delay(3000),
