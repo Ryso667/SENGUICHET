@@ -69,7 +69,7 @@ export default function AccueilChoixScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={require('../../assets/logo_app.jpeg')}
+          source={{ uri: `https://backend-beta-six-39.vercel.app/uploads/logo.jpg` }}
           style={styles.logo}
           resizeMode="contain"
         />

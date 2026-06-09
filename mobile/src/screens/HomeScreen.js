@@ -81,14 +81,16 @@ export default function HomeScreen({ navigation }) {
         <Animated.View style={[styles.headerWrap, headerStyle]}>
           <GlassContainer style={styles.headerCard}>
             <View style={styles.headerRow}>
-              <View style={styles.avatar}>
-                <Feather name="user" size={20} color="#fff" />
-              </View>
+              <Image
+                source={{ uri: `https://backend-beta-six-39.vercel.app/uploads/logo.jpg` }}
+                style={styles.avatar}
+                resizeMode="cover"
+              />
               <View style={styles.headerText}>
                 <Text style={styles.greeting}>Bonjour</Text>
                 <Text style={styles.name}>{profil?.nom || (email ? email.split('@')[0].replace(/\d+$/, '') : 'Invité')}</Text>
               </View>
-              <TouchableOpacity onPress={nettoyerSession} style={styles.homeBtn}>
+              <TouchableOpacity onPress={() => navigation.navigate('AccueilChoix')} style={styles.homeBtn}>
                 <Feather name="home" size={18} color="rgba(255,255,255,0.7)" />
               </TouchableOpacity>
               <TouchableOpacity onPress={deconnecter} style={styles.logoutBtn}>

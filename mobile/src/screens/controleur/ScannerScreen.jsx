@@ -1,15 +1,19 @@
 // Écran de scan : caméra + vérification offline du QR code
+// Télécharge les tickets automatiquement au focus et périodiquement (30s)
 // Processus en 5 étapes : lecture QR → parsing → HMAC → recherche locale → statut
-import { useState, useEffect, useRef } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, Animated, ActivityIndicator } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useFocusEffect } from '@react-navigation/native'
 import { verifierBillet, telechargerTickets, getStats } from '../../services/scanService'
 import { useAuth } from '../../context/AuthContext'
 import BlurBackground from '../../components/BlurBackground'
 import GlassButton from '../../components/GlassButton'
 import { textShadow } from '../../constants/theme'
+
+const INTERVAL_REFRESH = 30000 // 30s entre chaque synchro automatique
 
 // Couleurs d'affichage selon le résultat du scan (5 statuts possibles)
 const COULEURS = {
@@ -24,6 +28,9 @@ export default function ScannerScreen({ navigation, route }) {
   const [permission, requestPermission] = useCameraPermissions()
   const [scanne, setScanne] = useState(null)
   const [pret, setPret] = useState(false)
+  const [nbTickets, setNbTickets] = useState(0)
+  const [syncStatut, setSyncStatut] = useState(null) // 'chargement' | 'ok' | 'erreur'
+  const intervalRef = useRef(null)
   const { evenementId } = useAuth()
   const animation = useRef(new Animated.Value(0)).current
   const insets = useSafeAreaInsets()
@@ -31,24 +38,34 @@ export default function ScannerScreen({ navigation, route }) {
   const eventId = evenementId || route?.params?.eventId || 1
   const zone = route?.params?.zone || 'STANDARD'
 
-  // Au montage : télécharge les tickets dans SQLite locale si la base est vide
-  // Sera remplacé par API : téléchargement automatique via le backend
-  useEffect(() => {
-    preparerScan()
-  }, [])
-
-  const preparerScan = async () => {
+  const rafraichirTickets = useCallback(async () => {
+    setSyncStatut('chargement')
     try {
-      const stats = await getStats()
-      if (stats.ticketsLocaux === 0) {
-        const nb = await telechargerTickets(eventId, zone)
-        if (nb > 0) console.log(`${nb} tickets téléchargés`)
-      }
+      const nb = await telechargerTickets(eventId, zone)
+      setNbTickets(nb)
+      setSyncStatut(nb > 0 ? 'ok' : 'erreur')
     } catch {
-    } finally {
-      setPret(true)
+      setSyncStatut('erreur')
     }
-  }
+  }, [eventId, zone])
+
+  // Démarre/arrête le polling selon que l'écran est focus ou non
+  useFocusEffect(
+    useCallback(() => {
+      rafraichirTickets().finally(() => setPret(true))
+      intervalRef.current = setInterval(rafraichirTickets, INTERVAL_REFRESH)
+      return () => {
+        if (intervalRef.current) clearInterval(intervalRef.current)
+      }
+    }, [rafraichirTickets])
+  )
+
+  // Reset le statut sync après 3s en mode 'ok' pour ne pas obstruer la vue
+  useEffect(() => {
+    if (syncStatut !== 'ok') return
+    const t = setTimeout(() => setSyncStatut(null), 3000)
+    return () => clearTimeout(t)
+  }, [syncStatut])
 
   // Callback déclenché quand un QR code est détecté par la caméra
   // Lance la vérification offline (5 étapes) puis affiche le résultat 3 secondes
@@ -73,7 +90,6 @@ export default function ScannerScreen({ navigation, route }) {
   }
 
   // État : permission caméra pas encore accordée → demande
-  // Sera remplacé par une UI plus riche avec explication du besoin
   if (!permission || !permission.granted) {
     return (
       <View style={{flex: 1}}>
@@ -99,20 +115,31 @@ export default function ScannerScreen({ navigation, route }) {
         onBarcodeScanned={scanne ? undefined : (r) => handleScan(r.data)}
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
       />
-      {/* Overlay positionné en absolu : masque semi-transparent avec cadre de scan central */}
-        <View style={styles.overlay} pointerEvents="none">
+      {/* Overlay positionné en absolu */}
+      <View style={styles.overlay} pointerEvents="box-none">
         <View style={[styles.masqueHaut, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.titre}>Scanner un billet</Text>
-          <Text style={styles.info}>{zone} — Événement #{eventId}</Text>
+          <View style={styles.infoRow}>
+            <Text style={styles.info}>{zone} — Événement #{eventId}</Text>
+            {syncStatut === 'chargement' && (
+              <ActivityIndicator size="small" color="#00C8FF" style={{ marginLeft: 8 }} />
+            )}
+          </View>
+          {syncStatut === 'ok' && (
+            <Text style={styles.syncOk}>{nbTickets} tickets dispo</Text>
+          )}
+          {syncStatut === 'erreur' && (
+            <TouchableOpacity onPress={rafraichirTickets}>
+              <Text style={styles.syncErreur}>Sync échouée — appuie pour réessayer</Text>
+            </TouchableOpacity>
+          )}
         </View>
         <View style={styles.zoneCadre}>
           <View style={styles.cadre} />
-          {!pret && <Text style={styles.chargement}>Préparation...</Text>}
         </View>
       </View>
 
-      {/* Résultat du scan : superposition pleine écran colorée avec animation
-          Chaque statut a sa propre couleur (vert = VALIDE, rouge = erreur, orange = déjà utilisé) */}
+      {/* Résultat du scan : superposition pleine écran colorée avec animation */}
       {scanne && (
         <View style={[styles.resultat, { backgroundColor: (COULEURS[scanne.resultat] || COULEURS.INCONNU).fond }]}>
           <MaterialCommunityIcons name={(COULEURS[scanne.resultat] || COULEURS.INCONNU).icone} size={64} color="#fff" />
@@ -132,7 +159,10 @@ const styles = StyleSheet.create({
   overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   masqueHaut: { backgroundColor: 'rgba(0,0,0,0.6)', paddingBottom: 20, alignItems: 'center' },
   titre: { fontFamily: 'Outfit_700Bold', fontSize: 22, color: '#FFFFFF', ...textShadow },
-  info: { fontFamily: 'Outfit_400Regular', fontSize: 13, color: '#94a3b8', marginTop: 4 },
+  infoRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  info: { fontFamily: 'Outfit_400Regular', fontSize: 13, color: '#94a3b8' },
+  syncOk: { fontFamily: 'Outfit_500Medium', fontSize: 12, color: '#22c55e', marginTop: 4 },
+  syncErreur: { fontFamily: 'Outfit_500Medium', fontSize: 12, color: '#f97316', marginTop: 4, textDecorationLine: 'underline' },
   zoneCadre: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   cadre: { width: 250, height: 250, borderWidth: 2, borderColor: '#22c55e', borderRadius: 16, opacity: 0.8 },
   chargement: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: '#fbbf24', marginTop: 16 },

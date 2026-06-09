@@ -51,15 +51,12 @@ function estExpire(timestamp) {
 }
 
 // Télécharge les tickets depuis le serveur vers SQLite locale
+// Lance une erreur si le réseau ou l'API échoue (le caller gère le feedback)
 export async function telechargerTickets(eventId, zone) {
-  try {
-    const { appelAPI } = await import('./apiService')
-    const tickets = await appelAPI(`/scans/tickets/${eventId}`)
-    await insererTickets(tickets)
-    return tickets.length
-  } catch {
-    return 0
-  }
+  const { appelAPI } = await import('./apiService')
+  const tickets = await appelAPI(`/scans/tickets/${eventId}`)
+  await insererTickets(tickets)
+  return tickets.length
 }
 
 // Vérification complète offline d'un billet (5 étapes)

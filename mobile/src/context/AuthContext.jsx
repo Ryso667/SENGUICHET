@@ -25,9 +25,11 @@ const STORAGE_KEY_ACHETEUR_EMAIL_SUGGESTION = '@senguichet_acheteur_email_sugges
 const STORAGE_KEY_EVENEMENT_ID = '@senguichet_evenement_id'
 
 // Décode le payload d'un JWT sans vérifier la signature (lecture seule des claims)
+// Convertit base64url → base64 avant de décoder (les JWT utilisent base64url)
 const decoderJWT = (token) => {
   try {
-    return JSON.parse(atob(token.split('.')[1]))
+    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    return JSON.parse(atob(base64))
   } catch {
     return {}
   }
