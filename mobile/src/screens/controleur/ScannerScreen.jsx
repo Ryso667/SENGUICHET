@@ -29,7 +29,7 @@ export default function ScannerScreen({ navigation, route }) {
   const [scanne, setScanne] = useState(null)
   const [pret, setPret] = useState(false)
   const [nbTickets, setNbTickets] = useState(0)
-  const [syncStatut, setSyncStatut] = useState(null)
+  const [synchro, setSynchro] = useState(null)
   const intervalRef = useRef(null)
   const { evenementId, evenementTitre } = useAuth()
   const animation = useRef(new Animated.Value(0)).current
@@ -39,13 +39,13 @@ export default function ScannerScreen({ navigation, route }) {
   const zone = route?.params?.zone || 'STANDARD'
 
   const rafraichirTickets = useCallback(async () => {
-    setSyncStatut('chargement')
+    setSynchro('chargement')
     try {
       const nb = await telechargerTickets(eventId, zone)
       setNbTickets(nb)
-      setSyncStatut('ok')
+      setSynchro('ok')
     } catch {
-      setSyncStatut('erreur')
+      // Échec silencieux — le prochain interval (30s) réessayera
     }
   }, [eventId, zone])
 
@@ -60,10 +60,10 @@ export default function ScannerScreen({ navigation, route }) {
   )
 
   useEffect(() => {
-    if (syncStatut !== 'ok') return
-    const t = setTimeout(() => setSyncStatut(null), 3000)
+    if (synchro !== 'ok') return
+    const t = setTimeout(() => setSynchro(null), 3000)
     return () => clearTimeout(t)
-  }, [syncStatut])
+  }, [synchro])
 
   const handleScan = async (donnees) => {
     if (scanne || !pret) return
@@ -112,11 +112,11 @@ export default function ScannerScreen({ navigation, route }) {
           <Text style={styles.titre}>Scanner un billet</Text>
           <View style={styles.infoRow}>
             <Text style={styles.info}>{evenementTitre || `Événement #${eventId}`} — {zone}</Text>
-            {syncStatut === 'chargement' && (
+            {synchro === 'chargement' && (
               <ActivityIndicator size="small" color={colors.accent} style={{ marginLeft: 8 }} />
             )}
           </View>
-          {syncStatut === 'ok' && (
+          {synchro === 'ok' && nbTickets > 0 && (
             <Text style={styles.syncOk}>{nbTickets} tickets dispo</Text>
           )}
         </View>
