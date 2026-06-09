@@ -12,6 +12,7 @@ import { useAuth } from '../context/AuthContext'
 import { hapticLight } from '../utils/haptics'
 import { listerMesDemandes } from '../services/eventService'
 import { API_BASE_URL } from '../config'
+import { colors, fonts, glass } from '../constants/theme'
 
 // Écrans auth (aucun rôle)
 import AccueilChoixScreen from '../screens/AccueilChoixScreen'
@@ -87,11 +88,11 @@ const headerStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#2C2C30',
+    backgroundColor: colors.surface,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
+    borderBottomColor: colors.border,
   },
   left: {
     width: 36,
@@ -103,22 +104,22 @@ const headerStyles = StyleSheet.create({
   },
   title: {
     fontSize: 17,
-    fontFamily: 'Outfit_700Bold',
-    color: '#FFFFFF',
+    fontFamily: fonts.outfit.bold,
+    color: colors.text,
   },
   right: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(212,165,116,0.15)',
+    backgroundColor: 'rgba(199,81,58,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoPlaceholder: {},
   logoText: {
     fontSize: 16,
-    fontFamily: 'Outfit_800ExtraBold',
-    color: '#D4A574',
+    fontFamily: fonts.outfit.extraBold,
+    color: colors.accent,
   },
 })
 
@@ -152,15 +153,15 @@ function OrganisateurTabs() {
         header: () => null,
         tabBarButton: (props) => <HapticTabButton {...props} />,
         tabBarStyle: {
-          backgroundColor: '#2C2C30',
+          backgroundColor: glass.bgHeavy,
           borderTopWidth: 1,
-          borderTopColor: 'rgba(255,255,255,0.08)',
+          borderTopColor: colors.border,
           height: 64,
           paddingBottom: 8,
           paddingTop: 6,
         },
-        tabBarActiveTintColor: '#D4A574',
-        tabBarInactiveTintColor: '#8A8A92',
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textTertiary,
         tabBarLabelStyle: {
           fontFamily: 'Outfit_600SemiBold',
           fontSize: 11,
@@ -242,8 +243,8 @@ function ControleurTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: true,
-        headerStyle: { backgroundColor: '#2C2C30' },
-        headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' },
+        headerStyle: { backgroundColor: glass.bg },
+        headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: colors.text },
         headerLeft: () => (
           <Image
             source={{ uri: `${API_BASE_URL.replace('/api', '')}/uploads/logo.jpg` }}
@@ -260,13 +261,13 @@ function ControleurTabs() {
         ),
         tabBarButton: (props) => <HapticTabButton {...props} />,
         tabBarStyle: {
-          backgroundColor: '#2C2C30',
-          borderTopColor: 'rgba(255,255,255,0.08)',
+          backgroundColor: glass.bgHeavy,
+          borderTopColor: colors.border,
           height: 60,
           paddingBottom: 8,
         },
-        tabBarActiveTintColor: '#D4A574',
-        tabBarInactiveTintColor: '#8A8A92',
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textTertiary,
         tabBarLabelStyle: {
           fontFamily: 'Outfit_600SemiBold',
           fontSize: 12,
@@ -322,7 +323,7 @@ export default function AppNavigator() {
   if (chargement) {
     return (
       <View style={styles.chargement}>
-        <ActivityIndicator size="large" color="#D4A574" />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     )
   }
@@ -333,9 +334,9 @@ export default function AppNavigator() {
       {(() => {
         const headerStyle = {
           headerShown: true,
-          headerStyle: { backgroundColor: '#1A1A1E' },
-          headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' },
-          headerTintColor: '#D4A574',
+          headerStyle: { backgroundColor: glass.bg },
+          headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: colors.text },
+          headerTintColor: colors.accent,
           headerBackTitle: 'Retour',
         }
         const header = (titre) => ({ ...headerStyle, headerTitle: titre })
@@ -399,6 +400,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1A1A1E',
+    backgroundColor: colors.bg,
   },
 })
