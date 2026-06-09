@@ -275,13 +275,17 @@ const navigationRef = createNavigationContainerRef()
 export default function AppNavigator() {
   const { role, chargement } = useAuth()
 
-  // Redirige automatiquement vers l'écran principal du rôle connecté
+  // Redirige automatiquement selon le rôle (ou vers AccueilChoix si déconnecté)
   useEffect(() => {
-    if (role && navigationRef.current?.isReady()) {
-      const routeName = role === 'acheteur' ? 'Home'
-        : role === 'controleur' ? 'ControleurTabs'
-        : 'OrganisateurTabs'
-      navigationRef.current.reset({ index: 0, routes: [{ name: routeName }] })
+    if (navigationRef.current?.isReady()) {
+      if (role) {
+        const routeName = role === 'acheteur' ? 'Home'
+          : role === 'controleur' ? 'ControleurTabs'
+          : 'OrganisateurTabs'
+        navigationRef.current.reset({ index: 0, routes: [{ name: routeName }] })
+      } else {
+        navigationRef.current.reset({ index: 0, routes: [{ name: 'AccueilChoix' }] })
+      }
     }
   }, [role])
 
@@ -295,68 +299,62 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer ref={navigationRef}>
-      <Stack.Navigator screenOptions={{ headerShown: false, gestureEnabled: true }}>
+      {/* Style natif réutilisable pour les headers avec bouton retour */}
+      {(() => {
+        const headerStyle = {
+          headerShown: true,
+          headerStyle: { backgroundColor: '#0D1B2A' },
+          headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' },
+          headerTintColor: '#00C8FF',
+          headerBackTitle: 'Retour',
+        }
+        const header = (titre) => ({ ...headerStyle, headerTitle: titre })
 
-        {/* Pas de session active → écran d'accueil + formulaires auth */}
-        {!role && (
-          <>
+        return (
+          <Stack.Navigator screenOptions={{ headerShown: false, gestureEnabled: true }}>
+
+            {/* Écrans auth toujours disponibles */}
             <Stack.Screen name="AccueilChoix" component={AccueilChoixScreen} />
             <Stack.Screen name="SocialAuth" component={SocialAuthScreen} />
-            <Stack.Screen name="ConnexionControleur" component={ConnexionControleurScreen} />
-            <Stack.Screen name="ConnexionOrganisateur" component={ConnexionOrganisateurScreen} />
-            <Stack.Screen name="InscriptionOrganisateur" component={InscriptionOrganisateurScreen} />
+            <Stack.Screen name="ConnexionControleur" component={ConnexionControleurScreen} options={header('Connexion')} />
+            <Stack.Screen name="ConnexionOrganisateur" component={ConnexionOrganisateurScreen} options={header('Connexion')} />
+            <Stack.Screen name="InscriptionOrganisateur" component={InscriptionOrganisateurScreen} options={header('Inscription')} />
             <Stack.Screen name="EnAttenteValidation" component={EnAttenteValidationScreen} />
-          </>
-        )}
 
-        {/* Acheteur connecté */}
-        {role === 'acheteur' && (
-          <>
-            <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="EventSearch" component={EventSearchScreen} />
-            <Stack.Screen name="EventDetail" component={EventDetailScreen} />
-            <Stack.Screen name="Ticket" component={TicketScreen} />
-            <Stack.Screen name="MesTickets" component={MesTicketsScreen} />
-            <Stack.Screen name="Support" component={SupportScreen} />
-            <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="Profil" component={ProfilScreen}
-              options={{ headerShown: true, headerTitle: 'Profil', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
-            />
-          </>)}
+            {/* Acheteur connecté */}
+            {role === 'acheteur' && (
+              <>
+                <Stack.Screen name="Home" component={HomeScreen} />
+                <Stack.Screen name="EventSearch" component={EventSearchScreen} />
+                <Stack.Screen name="EventDetail" component={EventDetailScreen} options={header('Détail')} />
+                <Stack.Screen name="Ticket" component={TicketScreen} />
+                <Stack.Screen name="MesTickets" component={MesTicketsScreen} />
+                <Stack.Screen name="Support" component={SupportScreen} />
+                <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="Profil" component={ProfilScreen} options={header('Profil')} />
+              </>)}
 
-        {/* Contrôleur connecté */}
-        {role === 'controleur' && (
-          <>
-            <Stack.Screen name="ControleurTabs" component={ControleurTabs} />
-            <Stack.Screen name="Profil" component={ProfilScreen}
-              options={{ headerShown: true, headerTitle: 'Profil', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
-            />
-          </>
-        )}
+            {/* Contrôleur connecté */}
+            {role === 'controleur' && (
+              <>
+                <Stack.Screen name="ControleurTabs" component={ControleurTabs} />
+                <Stack.Screen name="Profil" component={ProfilScreen} options={header('Profil')} />
+              </>
+            )}
 
-        {/* Organisateur connecté : bottom tabs + stack screens */}
-        {role === 'organisateur' && (
-          <>
-            <Stack.Screen name="OrganisateurTabs" component={OrganisateurLayout} />
-            <Stack.Screen
-              name="DetailEvenement"
-              component={DetailEvenementScreen}
-              options={{ headerShown: true, headerTitle: 'Détail', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
-            />
-            <Stack.Screen
-              name="Parametres"
-              component={ParametresScreen}
-              options={{ headerShown: true, headerTitle: 'Paramètres', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
-            />
-            <Stack.Screen
-              name="ChangerMotDePasse"
-              component={ChangerMotDePasseScreen}
-              options={{ headerShown: true, headerTitle: 'Changer le mot de passe', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
-            />
-          </>
-        )}
+            {/* Organisateur connecté : bottom tabs + stack screens */}
+            {role === 'organisateur' && (
+              <>
+                <Stack.Screen name="OrganisateurTabs" component={OrganisateurLayout} />
+                <Stack.Screen name="DetailEvenement" component={DetailEvenementScreen} options={header('Détail')} />
+                <Stack.Screen name="Parametres" component={ParametresScreen} options={header('Paramètres')} />
+                <Stack.Screen name="ChangerMotDePasse" component={ChangerMotDePasseScreen} options={header('Changer le mot de passe')} />
+              </>
+            )}
 
-      </Stack.Navigator>
+          </Stack.Navigator>
+        )
+      })()}
     </NavigationContainer>
   )
 }

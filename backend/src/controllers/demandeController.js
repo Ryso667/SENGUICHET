@@ -154,8 +154,6 @@ const adminDetailDemande = async (req, res) => {
 };
 
 const creerEvenementDepuisDemande = async (conn, demande) => {
-  const scanCode = Math.random().toString(36).substring(2, 6).toUpperCase();
-
   // Extraire ville et categorie (colonne directe ou payload JSON pour rétrocompatibilité)
   const payload = typeof demande.payload === "string"
     ? JSON.parse(demande.payload) : demande.payload;
@@ -167,7 +165,7 @@ const creerEvenementDepuisDemande = async (conn, demande) => {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'actif')`,
     [demande.organisateur_id, demande.titre, demande.description, demande.lieu,
      ville, categorie,
-     demande.date_debut, demande.date_fin, demande.capacite, demande.affiche_url || null, scanCode]
+     demande.date_debut, demande.date_fin, demande.capacite, demande.affiche_url || null, null]
   );
   const evenementId = evResult.insertId;
 

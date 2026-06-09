@@ -30,8 +30,6 @@ const creer = async (req, res) => {
     const dateFinFull = dateFin ? `${dateFin} 23:59:00` : null;
     const afficheUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
-    const scanCode = Math.random().toString(36).substring(2, 6).toUpperCase();
-
     const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
@@ -39,7 +37,7 @@ const creer = async (req, res) => {
       const [evResult] = await conn.query(
         `INSERT INTO evenement (organisateur_id, titre, description, lieu, ville, categorie, date_debut, date_fin, capacite_totale, affiche_url, scan_code, statut)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [req.user.id, titre, description, lieu, ville || null, categorie || null, dateDebutFull, dateFinFull, parseInt(capacite), afficheUrl, scanCode, 'en_attente']
+        [req.user.id, titre, description, lieu, ville || null, categorie || null, dateDebutFull, dateFinFull, parseInt(capacite), afficheUrl, null, 'en_attente']
       );
 
       const evenementId = evResult.insertId;
@@ -59,7 +57,7 @@ const creer = async (req, res) => {
 
       res.status(201).json({
         message: "Événement créé avec succès. En attente de validation par l'administrateur.",
-        evenement: { id: evenementId, titre, scanCode, statut: 'en_attente', affiche_url: afficheUrl }
+        evenement: { id: evenementId, titre, statut: 'en_attente', affiche_url: afficheUrl }
       });
     } catch (err) {
       await conn.rollback();
@@ -77,7 +75,7 @@ const lister = async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT e.id, e.organisateur_id, e.titre, e.description, e.categorie, e.lieu, e.ville,
-        e.date_debut, e.date_fin, e.capacite_totale, e.affiche_url, e.scan_code, e.est_actif,
+        e.date_debut, e.date_fin, e.capacite_totale, e.affiche_url, e.est_actif,
         e.statut, e.date_creation, e.commentaire_admin,
         COALESCE((SELECT SUM(ct.places_disponibles) FROM categorie_ticket ct WHERE ct.evenement_id = e.id), 0) AS places_restantes,
         COALESCE((SELECT SUM(ct.capacite) FROM categorie_ticket ct WHERE ct.evenement_id = e.id), 0) AS capacite_billets,
@@ -106,7 +104,7 @@ const lister = async (req, res) => {
         capacite: r.capacite_billets || r.capacite_totale,
         revenus: `${parseInt(r.revenus || 0).toLocaleString()} FCFA`,
         statut,
-        code: r.scan_code || '',
+        code: '',
         affiche_url: r.affiche_url || null,
       };
     });
@@ -121,7 +119,7 @@ const lister = async (req, res) => {
 const detail = async (req, res) => {
   try {
     const { id } = req.params;
-    const [rows] = await pool.query("SELECT * FROM evenement WHERE id = ? AND organisateur_id = ?", [id, req.user.id]);
+    const [rows] = await pool.query("SELECT e.*, cc.code AS code_controleur FROM evenement e LEFT JOIN code_controleur cc ON cc.evenement_id = e.id AND cc.statut = 'ACTIF' WHERE e.id = ? AND e.organisateur_id = ?", [id, req.user.id]);
     if (!rows.length) return res.status(404).json({ message: "Événement introuvable" });
 
     const [tickets] = await pool.query("SELECT * FROM categorie_ticket WHERE evenement_id = ?", [id]);
@@ -403,16 +401,19 @@ const detailPublic = async (req, res) => {
   }
 };
 
-// Retourne le scan_code de l'événement et la liste des contrôleurs affectés avec leurs stats
+// Retourne le code_controleur (admin-managé) et la liste des contrôleurs affectés avec leurs stats
 const getEquipe = async (req, res) => {
   try {
     const { id } = req.params;
-    const [events] = await pool.query(
-      "SELECT id, scan_code FROM evenement WHERE id = ? AND organisateur_id = ?",
-      [id, req.user.id]
-    );
+    const [events] = await pool.query("SELECT id FROM evenement WHERE id = ? AND organisateur_id = ?", [id, req.user.id]);
     if (!events.length) return res.status(404).json({ message: "Événement introuvable" });
-    const scanCode = events[0].scan_code;
+
+    const [codes] = await pool.query(
+      "SELECT code, statut FROM code_controleur WHERE evenement_id = ? AND statut = 'ACTIF' LIMIT 1",
+      [id]
+    );
+    const codeControleur = codes.length > 0 ? codes[0].code : null;
+
     const [controleurs] = await pool.query(
       `SELECT c.id, c.nom, c.telephone, ac.zone,
         (SELECT COUNT(*) FROM scan_billet sb WHERE sb.controleur_id = c.id AND sb.evenement_id = ?) AS scans_effectues
@@ -422,30 +423,12 @@ const getEquipe = async (req, res) => {
       ORDER BY c.nom ASC`,
       [id, id]
     );
-    res.json({ scan_code: scanCode, controleurs });
+    res.json({ code_controleur: codeControleur, controleurs });
   } catch (err) {
     console.error("Get equipe error:", err);
     res.status(500).json({ message: "Erreur" });
   }
 };
 
-// Génère un nouveau code scan à 4 caractères pour l'événement
-const regenererScanCode = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const [existing] = await pool.query(
-      "SELECT id FROM evenement WHERE id = ? AND organisateur_id = ?",
-      [id, req.user.id]
-    );
-    if (!existing.length) return res.status(404).json({ message: "Événement introuvable" });
-    const nouveauCode = Math.random().toString(36).substring(2, 6).toUpperCase();
-    await pool.query("UPDATE evenement SET scan_code = ? WHERE id = ?", [nouveauCode, id]);
-    res.json({ scan_code: nouveauCode, message: "Code de scan régénéré avec succès" });
-  } catch (err) {
-    console.error("Regenerer scan code error:", err);
-    res.status(500).json({ message: "Erreur" });
-  }
-};
-
-module.exports = { creer, upload, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic, getEquipe, regenererScanCode };
+module.exports = { creer, upload, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic, getEquipe };
 

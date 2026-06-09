@@ -50,14 +50,6 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
           contentContainerStyle={[styles.conteneur, { paddingTop: insets.top + spacing.lg }]}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Bouton retour verre dépoli */}
-          <GlassButton
-            title="Retour"
-            icon="arrow-left"
-            onPress={() => navigation.goBack()}
-            style={styles.retour}
-          />
-
           <Text style={styles.titre}>Espace organisateur</Text>
           <Text style={styles.sousTitre}>
             Connectez-vous pour gérer vos événements
@@ -126,10 +118,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
-  },
-  retour: {
-    marginBottom: 24,
-    alignSelf: 'flex-start',
   },
   titre: {
     fontFamily: 'Outfit_700Bold',

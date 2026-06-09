@@ -88,8 +88,8 @@ export default function DetailEvenementScreen({ route }) {
             <Text style={s.infoValue}>{evenement.capacite || 0} places</Text>
           </GlassContainer>
           <GlassContainer blurType="light" style={s.infoCard} intensity={30}>
-            <Text style={s.infoLabel}>Code</Text>
-            <Text style={s.infoValue}>{evenement.code || '-'}</Text>
+            <Text style={s.infoLabel}>Code contrôleur</Text>
+            <Text style={[s.infoValue, { fontFamily: 'monospace', letterSpacing: 4, color: '#00C8FF' }]}>{evenement.code || '-'}</Text>
           </GlassContainer>
         </View>
 

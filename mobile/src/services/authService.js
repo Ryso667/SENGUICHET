@@ -1,11 +1,6 @@
 // Service d'authentification : sociale (Google/Apple), code contrôleur, email organisateur
 // Le flux OTP téléphone a été remplacé par l'authentification sociale (Google/Apple)
-import bcrypt from 'bcryptjs'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { appelAPI } from './apiService'
-
-const SALT_ROUNDS = 10
-const STORAGE_KEY_CTRL_CODE = '@senguichet_ctrl_code'
 
 // Connecte un acheteur via Firebase Social Auth (Google/Apple)
 // Envoie le firebaseToken au backend qui le vérifie et retourne un JWT de session
@@ -35,28 +30,14 @@ export const connecterOrganisateur = async (email, motDePasse) => {
   return { token: data.token, user: data.user }
 }
 
-// Connexion contrôleur via code d'accès à 4 chiffres
-// Essaie d'abord l'API (vrai JWT), fallback local si hors-ligne
+// Connexion contrôleur via le code d'accès à 4 chiffres de l'événement
+// Valide contre la table code_controleur (gérée par l'admin) et retourne un JWT
 export const connecterControleur = async (codeAcces) => {
-  try {
-    const data = await appelAPI('/auth/controleur/connexion', {
-      method: 'POST',
-      body: { codeAcces },
-    })
-    return { token: data.token, user: data.user }
-  } catch (err) {
-    // Fallback local si API inaccessible
-    let storedHash = await AsyncStorage.getItem(STORAGE_KEY_CTRL_CODE)
-    if (!storedHash) {
-      const bcrypt = require('bcryptjs')
-      storedHash = await bcrypt.hash('1234', SALT_ROUNDS)
-      await AsyncStorage.setItem(STORAGE_KEY_CTRL_CODE, storedHash)
-    }
-    const { compare } = require('bcryptjs')
-    const valide = await compare(codeAcces, storedHash)
-    if (!valide) throw new Error("Code d'accès invalide")
-    return { token: 'jwt-ctrl-' + Date.now(), role: 'controleur' }
-  }
+  const data = await appelAPI('/auth/controleur/connexion', {
+    method: 'POST',
+    body: { codeAcces },
+  })
+  return { token: data.token, user: data.user }
 }
 
 // Envoie un code OTP à l'email de l'acheteur via le backend

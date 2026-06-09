@@ -22,7 +22,7 @@ export default function ConnexionControleurScreen({ navigation }) {
   const insets = useSafeAreaInsets()
 
   // Valide le code 4 chiffres et stocke la session contrôleur
-  // Le code est vérifié contre un hash bcrypt stocké localement
+  // Le code est vérifié par le backend contre la table code_controleur
   const handleConnecter = async () => {
     if (codeAcces.length !== 4) return
     setChargement(true)
@@ -47,14 +47,6 @@ export default function ConnexionControleurScreen({ navigation }) {
           contentContainerStyle={[styles.conteneur, { paddingTop: insets.top + spacing.lg }]}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Bouton retour verre dépoli */}
-          <GlassButton
-            title="Retour"
-            icon="arrow-left"
-            onPress={() => navigation.navigate('AccueilChoix')}
-            style={styles.retour}
-          />
-
           <Text style={styles.titre}>Accès Contrôleur</Text>
           <Text style={styles.sousTitre}>
             Saisissez votre code d'accès à 4 chiffres
@@ -90,10 +82,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
-  },
-  retour: {
-    marginBottom: 16,
-    alignSelf: 'flex-start',
   },
   titre: {
     fontFamily: 'Outfit_700Bold',
