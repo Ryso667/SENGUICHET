@@ -43,7 +43,7 @@ export default function ScannerScreen({ navigation, route }) {
     try {
       const nb = await telechargerTickets(eventId, zone)
       setNbTickets(nb)
-      setSyncStatut(nb > 0 ? 'ok' : 'erreur')
+      setSyncStatut('ok')
     } catch {
       setSyncStatut('erreur')
     }
@@ -120,7 +120,7 @@ export default function ScannerScreen({ navigation, route }) {
         <View style={[styles.masqueHaut, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.titre}>Scanner un billet</Text>
           <View style={styles.infoRow}>
-            <Text style={styles.info}>{evenementTitre || `Événement #${eventId}`}</Text>
+            <Text style={styles.info}>{evenementTitre || `Événement #${eventId}`} — {zone}</Text>
               {syncStatut === 'chargement' && (
               <ActivityIndicator size="small" color="#00C8FF" style={{ marginLeft: 8 }} />
             )}
