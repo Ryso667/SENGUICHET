@@ -5,14 +5,14 @@ import { View, Text, StyleSheet } from 'react-native'
 
 // Palette de couleurs douces remplaçant les couleurs vives d'origine
 const CONFIG = {
-  ACTIF: { label: 'ACTIF', color: '#D4A574', bg: 'rgba(212,165,116,0.15)' },
-  EN_ATTENTE: { label: 'EN ATTENTE', color: '#E8A868', bg: 'rgba(232,168,104,0.15)' },
-  VALIDE: { label: 'VALIDE', color: '#6CD4A0', bg: 'rgba(108,212,160,0.15)' },
-  TERMINE: { label: 'TERMINÉ', color: '#8A8A92', bg: 'rgba(138,138,146,0.15)' },
-  ANNULE: { label: 'ANNULÉ', color: '#E86868', bg: 'rgba(232,104,104,0.15)' },
-  EN_COURS: { label: 'EN COURS', color: '#A78BFA', bg: 'rgba(167,139,250,0.15)' },
-  ACCEPTEE: { label: 'ACCEPTÉE', color: '#6CD4A0', bg: 'rgba(108,212,160,0.15)' },
-  REJETEE: { label: 'REJETÉE', color: '#E86868', bg: 'rgba(232,104,104,0.15)' },
+  ACTIF: { label: 'ACTIF', color: '#2E7D5E', bg: 'rgba(46,125,94,0.15)' },
+  EN_ATTENTE: { label: 'EN ATTENTE', color: '#D4835A', bg: 'rgba(212,131,90,0.15)' },
+  VALIDE: { label: 'VALIDE', color: '#2E7D5E', bg: 'rgba(46,125,94,0.15)' },
+  TERMINE: { label: 'TERMINÉ', color: '#9C9590', bg: 'rgba(156,149,144,0.15)' },
+  ANNULE: { label: 'ANNULÉ', color: '#C73A3A', bg: 'rgba(199,58,58,0.15)' },
+  EN_COURS: { label: 'EN COURS', color: '#7C6FA0', bg: 'rgba(124,111,160,0.15)' },
+  ACCEPTEE: { label: 'ACCEPTÉE', color: '#2E7D5E', bg: 'rgba(46,125,94,0.15)' },
+  REJETEE: { label: 'REJETÉE', color: '#C73A3A', bg: 'rgba(199,58,58,0.15)' },
 }
 
 export default function StatusBadge({ status }) {

@@ -43,7 +43,7 @@ export default function GlassButton({ title, icon, onPress, style, textStyle }) 
         activeOpacity={0.9}
       >
         <BlurView tint="light" intensity={50} style={styles.button}>
-          {icon && <Feather name={icon} size={18} color="#fff" style={styles.icon} />}
+          {icon && <Feather name={icon} size={18} color="#1A1A1E" style={styles.icon} />}
           <Text style={[styles.title, textStyle]}>{title}</Text>
         </BlurView>
       </TouchableOpacity>
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontFamily: fonts.outfit.semiBold,
-    color: '#fff',
+    color: '#1A1A1E',
     letterSpacing: -0.2,
     ...textShadow,
   },

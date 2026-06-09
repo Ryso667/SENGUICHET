@@ -6,10 +6,10 @@ import { BlurView } from 'expo-blur'
 import { glass, borderRadius, colors } from '../constants/theme'
 
 // Wrapper glass avec blur natif, bordure translucide, et fond semi-transparent
-// blurType : 'light' | 'dark' | 'extraLight' (défaut 'dark')
+// blurType : 'light' | 'dark' | 'extraLight' (défaut 'light')
 // intensity : 0-100 (défaut 70)
-// variant : 'glass' (défaut) | 'surface' — 'surface' supprime le flou pour un fond solide #2C2C30
-export default function GlassContainer({ children, style, blurType = 'dark', intensity = 70, variant = 'glass' }) {
+// variant : 'glass' (défaut) | 'surface' — 'surface' supprime le flou pour un fond solide
+export default function GlassContainer({ children, style, blurType = 'light', intensity = 70, variant = 'glass' }) {
   // Variante sans effet verre : fond solide pour contraste renforcé
   if (variant === 'surface') {
     return (

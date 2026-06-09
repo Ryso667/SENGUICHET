@@ -7,6 +7,7 @@ import {
   View, TextInput, Text, Animated, StyleSheet, TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../constants/theme'
 
 // Composant de champ de saisie avec label flottant animé et icône
 // Props :
@@ -56,9 +57,9 @@ const FormInput = ({
     }),
     color: anim.interpolate({
       inputRange: [0, 1],
-      outputRange: ['#B0B0B8', '#B0B0B8'],
+      outputRange: [colors.textSecondary, colors.accent],
     }),
-    backgroundColor: '#232329',
+    backgroundColor: colors.inputBg,
     paddingHorizontal: 4,
     zIndex: 2,
     fontFamily: 'Outfit_400Regular',
@@ -70,7 +71,7 @@ const FormInput = ({
         <Ionicons
           name={icon}
           size={20}
-          color={focused ? '#D4A574' : 'rgba(255,255,255,0.35)'}
+            color={focused ? colors.accent : colors.textTertiary}
           style={styles.icon}
         />
       )}
@@ -87,17 +88,17 @@ const FormInput = ({
         onSubmitEditing={onSubmitEditing}
         autoFocus={autoFocus}
         placeholder={focused ? placeholder || '' : ''}
-        placeholderTextColor="rgba(255,255,255,0.45)"
+        placeholderTextColor={colors.textTertiary}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        selectionColor="#D4A574"
+        selectionColor={colors.accent}
       />
       {secureTextEntry && (
         <TouchableOpacity style={styles.eye} onPress={() => setSecure(!secure)}>
           <Ionicons
             name={secure ? 'eye-off-outline' : 'eye-outline'}
             size={20}
-            color="rgba(255,255,255,0.35)"
+            color={colors.textTertiary}
           />
         </TouchableOpacity>
       )}
@@ -110,16 +111,16 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: colors.inputBg,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: colors.inputBorder,
     height: 56,
     marginBottom: 16,
     position: 'relative',
   },
   containerFocused: {
-    borderColor: '#D4A574',
+    borderColor: colors.inputBorderFocus,
   },
   containerError: {
     borderColor: '#E86868',
@@ -130,7 +131,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 16,
     paddingLeft: 10,
     paddingRight: 14,

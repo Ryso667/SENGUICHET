@@ -4,9 +4,9 @@ import { TouchableOpacity, Text, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { fonts, borderRadius, spacing } from '../constants/theme'
 
-// Couleurs mises à jour selon la charte graphique
-// Inactif : fond rgba(255,255,255,0.06), texte #B0B0B8
-// Actif   : fond #D4A574, texte #1A1A1E
+// Couleurs mises à jour selon la charte graphique (Warm Light)
+// Inactif : fond rgba(0,0,0,0.04), texte #6B6560, bordure rgba(0,0,0,0.08)
+// Actif   : fond #C7513A, texte #FFFFFF
 
 // Chips glass avec icône et texte
 // active : booléen, surbrillance quand actif
@@ -20,7 +20,7 @@ export default function GlassChip({ label, icon, active, onPress, style }) {
       onPress={onPress}
       activeOpacity={0.7}
     >
-      {icon && <Feather name={icon} size={12} color={active ? '#1A1A1E' : '#B0B0B8'} />}
+      {icon && <Feather name={icon} size={12} color={active ? '#FFFFFF' : '#6B6560'} />}
       <Text style={[styles.label, active && styles.activeLabel]}>{label}</Text>
     </TouchableOpacity>
   )
@@ -31,23 +31,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(0,0,0,0.04)',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(0,0,0,0.08)',
   },
   active: {
-    backgroundColor: '#D4A574',
-    borderColor: '#D4A574',
+    backgroundColor: '#C7513A',
+    borderColor: '#C7513A',
   },
   label: {
     fontSize: 12,
     fontFamily: fonts.jakarta.semiBold,
-    color: '#B0B0B8',
+    color: '#6B6560',
   },
   activeLabel: {
-    color: '#1A1A1E',
+    color: '#FFFFFF',
   },
 })

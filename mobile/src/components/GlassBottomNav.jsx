@@ -3,10 +3,10 @@
 // 3 tabs : Accueil, Mes Tickets, Support
 // Animation slide au changement, icône active surélevée
 //
-// Couleurs mises à jour Juin 2026 :
-//   Fond : rgba(44,44,48,0.85) — gris foncé translucide assorti au tabBar natif iOS
-//   Icône/texte actif  : #D4A574 (or) avec fond or semi-transparent
-//   Icône/texte inactif : #8A8A92 (gris doux)
+// Couleurs mises à jour Juin 2026 (Warm Light) :
+//   Fond : rgba(255,255,255,0.6) — blanc translucide
+//   Icône/texte actif  : #C7513A (terracotta)
+//   Icône/texte inactif : #9C9590 (gris doux)
 import { useRef, useEffect } from 'react'
 import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -54,7 +54,7 @@ export default function GlassBottomNav() {
             activeOpacity={0.7}
           >
             <View style={[styles.iconWrap, active && styles.activeIcon]}>
-              <Feather name={tab.icon} size={20} color={active ? '#D4A574' : '#8A8A92'} />
+              <Feather name={tab.icon} size={20} color={active ? '#C7513A' : '#9C9590'} />
             </View>
             <Text style={[styles.label, active && styles.activeLabel]}>
               {tab.label}
@@ -70,9 +70,9 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(142,142,147,0.22)', // Séparateur sombre style iOS
+    borderTopColor: 'rgba(0,0,0,0.08)', // Séparateur léger
     paddingTop: 8,
-    backgroundColor: 'rgba(44,44,48,0.85)', // Fond translucide gris foncé
+    backgroundColor: 'rgba(255,255,255,0.6)', // Fond translucide blanc
   },
   item: {
     flex: 1,
@@ -87,16 +87,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   activeIcon: {
-    backgroundColor: 'rgba(212,165,116,0.2)', // Fond or semi-transparent pour l'icône active
+    backgroundColor: 'rgba(199,81,58,0.15)', // Fond terracotta semi-transparent pour l'icône active
   },
   label: {
     fontSize: 10,
     fontFamily: fonts.jakarta.medium,
-    color: '#8A8A92', // Inactif : gris doux
+    color: '#9C9590', // Inactif : gris doux
     letterSpacing: 0.2,
   },
   activeLabel: {
-    color: '#D4A574', // Actif : or
+    color: '#C7513A', // Actif : terracotta
     fontFamily: fonts.jakarta.semiBold,
   },
 })
