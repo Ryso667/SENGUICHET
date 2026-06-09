@@ -103,7 +103,7 @@ export default function ScanHistoryScreen() {
         </GlassContainer>
 
         {evenementTitre && (
-          <Text style={styles.eventName}>{evenementTitre} (ID: {evenementId})</Text>
+          <Text style={styles.eventName}>{evenementTitre}</Text>
         )}
 
         <View style={styles.actions}>
@@ -166,7 +166,7 @@ export default function ScanHistoryScreen() {
                 </View>
                 <View style={styles.carteCentre}>
                   <Text style={styles.carteEvenement}>
-                    {item.event_id ? `Événement #${item.event_id}${item.category ? ` · ${item.category}` : ''}` : 'Inconnu'}
+                    {item.category || 'Billet scanné'}
                   </Text>
                   <Text style={styles.carteDate}>{formaterDateHeure(item.timestamp_scan)}</Text>
                   <Text style={styles.carteUuid}>#{item.uuid_billet?.slice(0, 8)}</Text>
