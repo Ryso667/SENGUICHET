@@ -1,15 +1,5 @@
-// Service d'authentification : sociale (Google/Apple), code contrôleur, email organisateur
-// Le flux OTP téléphone a été remplacé par l'authentification sociale (Google/Apple)
+// Service d'authentification : email OTP (acheteur), code (contrôleur), email+mdp (organisateur)
 import { appelAPI } from './apiService'
-
-// Connecte un acheteur via Firebase Social Auth (Google/Apple)
-// Envoie le firebaseToken au backend qui le vérifie et retourne un JWT de session
-export const connecterAcheteurSocial = async (firebaseToken) => {
-  return appelAPI('/auth/social', {
-    method: 'POST',
-    body: { firebaseToken },
-  })
-}
 
 // Inscription d'un nouvel organisateur via le backend
 // Partagé avec le frontend-web : mêmes données, même API

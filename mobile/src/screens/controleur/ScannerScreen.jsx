@@ -7,7 +7,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect } from '@react-navigation/native'
-import { verifierBillet, telechargerTickets } from '../../services/scanService'
+import { verifierBillet, telechargerTickets, synchroniser } from '../../services/scanService'
 import { useAuth } from '../../context/AuthContext'
 import { colors, fonts, textShadow } from '../../constants/theme'
 import ControleurLayout from '../../components/ControleurLayout'
@@ -29,6 +29,7 @@ export default function ScannerScreen({ navigation, route }) {
   const [scanne, setScanne] = useState(null)
   const [pret, setPret] = useState(false)
   const [nbTickets, setNbTickets] = useState(0)
+  const [chargeTickets, setChargeTickets] = useState(false)
   const [synchro, setSynchro] = useState(null)
   const intervalRef = useRef(null)
   const { evenementId, evenementTitre } = useAuth()
@@ -37,8 +38,11 @@ export default function ScannerScreen({ navigation, route }) {
 
   const eventId = evenementId || route?.params?.eventId || 1
   const zone = route?.params?.zone || 'STANDARD'
+  const dernierScanRef = useRef(null)
+  const DELAI_ANTI_DOUBLON = 10000
 
   const rafraichirTickets = useCallback(async () => {
+    setChargeTickets(true)
     setSynchro('chargement')
     try {
       const nb = await telechargerTickets(eventId, zone)
@@ -46,6 +50,8 @@ export default function ScannerScreen({ navigation, route }) {
       setSynchro('ok')
     } catch {
       // Échec silencieux — le prochain interval (30s) réessayera
+    } finally {
+      setChargeTickets(false)
     }
   }, [eventId, zone])
 
@@ -67,9 +73,14 @@ export default function ScannerScreen({ navigation, route }) {
 
   const handleScan = async (donnees) => {
     if (scanne || !pret) return
+    // Anti-doublon : ignore le même QR dans les 10 secondes
+    const maintenant = Date.now()
+    if (dernierScanRef.current && dernierScanRef.current.donnees === donnees && (maintenant - dernierScanRef.current.temps) < DELAI_ANTI_DOUBLON) return
+    dernierScanRef.current = { donnees, temps: maintenant }
     try {
       const resultat = await verifierBillet(donnees)
       setScanne(resultat)
+      synchroniser().catch(() => {})
       Animated.sequence([
         Animated.timing(animation, { toValue: 1, duration: 300, useNativeDriver: true }),
         Animated.delay(3000),
@@ -108,11 +119,11 @@ export default function ScannerScreen({ navigation, route }) {
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
       />
       <View style={styles.overlay} pointerEvents="box-none">
-        <View style={[styles.masqueHaut, { paddingTop: insets.top + 16 }]}>
+          <View style={[styles.masqueHaut, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.titre}>Scanner un billet</Text>
           <View style={styles.infoRow}>
             <Text style={styles.info}>{evenementTitre || `Événement #${eventId}`} — {zone}</Text>
-            {synchro === 'chargement' && (
+            {(chargeTickets || synchro === 'chargement') && (
               <ActivityIndicator size="small" color={colors.accent} style={{ marginLeft: 8 }} />
             )}
           </View>
