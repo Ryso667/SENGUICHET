@@ -29,8 +29,9 @@ export default function ConnexionControleurScreen({ navigation }) {
     try {
       const result = await apiConnecterControleur(codeAcces)
       await connecterControleur(result.token, result.user)
-    } catch {
-      alert("Code d'accès invalide")
+    } catch (e) {
+      console.error('Erreur connexion controleur:', e.message)
+      alert(e.message || "Code d'accès invalide")
     } finally {
       setChargement(false)
     }

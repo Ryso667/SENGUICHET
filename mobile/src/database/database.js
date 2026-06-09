@@ -193,9 +193,10 @@ export async function supprimerTicketLocal(uuid) {
   await bd.runAsync('DELETE FROM acheteur_tickets WHERE uuid = $uuid', { $uuid: uuid })
 }
 
-// Vide les tables locales (tickets + scans)
+// Réinitialise les tickets locaux pour permettre un re-scan
+// Remet tous les tickets à DISPONIBLE et vide l'historique des scans
 export async function viderTickets() {
   const bd = await getDb()
-  await bd.runAsync('DELETE FROM tickets')
+  await bd.runAsync("UPDATE tickets SET statut = 'DISPONIBLE' WHERE statut = 'UTILISE_LOCAL'")
   await bd.runAsync('DELETE FROM scans')
 }
