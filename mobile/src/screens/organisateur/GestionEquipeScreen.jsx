@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
-import { colors, spacing, borderRadius, fonts, textShadow, glass } from '../../constants/theme'
+import { colors, spacing, borderRadius, fonts, glass } from '../../constants/theme'
 import { appelAPI } from '../../services/apiService'
 import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
@@ -49,11 +49,11 @@ export default function GestionEquipeScreen({ route, navigation }) {
       <BlurBackground category="Conference" />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-          <Feather name="arrow-left" size={22} color="#fff" />
+          <Feather name="arrow-left" size={22} color={colors.text} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Équipe</Text>
         <TouchableOpacity onPress={charger} style={s.refreshBtn}>
-          <Feather name="refresh-cw" size={20} color="#fff" />
+          <Feather name="refresh-cw" size={20} color={colors.text} />
         </TouchableOpacity>
       </View>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -90,7 +90,7 @@ export default function GestionEquipeScreen({ route, navigation }) {
             <GlassContainer key={ctrl.id || idx} style={s.ctrlCard} intensity={30}>
               <View style={s.ctrlTop}>
                 <View style={s.ctrlAvatar}>
-                  <Feather name="user" size={16} color="#fff" />
+                  <Feather name="user" size={16} color={colors.text} />
                 </View>
                 <View style={s.ctrlInfo}>
                   <Text style={s.ctrlNom}>{ctrl.nom || 'Contrôleur'}</Text>
@@ -124,27 +124,27 @@ const s = StyleSheet.create({
   },
   backBtn: { padding: spacing.sm },
   refreshBtn: { padding: spacing.sm },
-  headerTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
+  headerTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
   codeSection: { margin: spacing.lg, padding: spacing.lg, alignItems: 'center' },
-  codeLabel: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: spacing.sm },
-  codeValue: { fontSize: 28, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: 2, marginBottom: spacing.md, ...textShadow },
+  codeLabel: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: spacing.sm },
+  codeValue: { fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.text, letterSpacing: 2, marginBottom: spacing.md },
   regenerateBtn: {
     flexDirection: 'row', alignItems: 'center',
     paddingVertical: spacing.sm, paddingHorizontal: spacing.lg,
     backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: borderRadius.full,
     borderWidth: StyleSheet.hairlineWidth, borderColor: glass.border,
   },
-  regenerateText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff' },
+  regenerateText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text },
   statsCard: { marginHorizontal: spacing.lg, marginBottom: spacing.sm, padding: spacing.md },
   statRow: { flexDirection: 'row', alignItems: 'center' },
   statItem: { flex: 1, alignItems: 'center' },
-  statNumber: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
-  statLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.3 },
+  statNumber: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text },
+  statLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.3 },
   statDivider: { width: StyleSheet.hairlineWidth, height: 36, backgroundColor: 'rgba(255,255,255,0.15)' },
   listHeader: { paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
-  listTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
+  listTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: colors.text },
   emptyCard: { marginHorizontal: spacing.lg, padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
-  emptyText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)' },
+  emptyText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textTertiary },
   ctrlCard: { marginHorizontal: spacing.lg, marginBottom: spacing.sm, padding: spacing.md },
   ctrlTop: { flexDirection: 'row', alignItems: 'center' },
   ctrlAvatar: {
@@ -152,14 +152,14 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm,
   },
   ctrlInfo: { flex: 1 },
-  ctrlNom: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#fff' },
-  ctrlTel: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', marginTop: 1 },
+  ctrlNom: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.text },
+  ctrlTel: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, marginTop: 1 },
   ctrlScans: { alignItems: 'center' },
   ctrlScanCount: { fontSize: 16, fontFamily: fonts.outfit.bold, color: colors.accent },
-  ctrlScanLabel: { fontSize: 9, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' },
+  ctrlScanLabel: { fontSize: 9, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textTransform: 'uppercase' },
   ctrlZone: {
     flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm,
     paddingTop: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.1)',
   },
-  ctrlZoneText: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)' },
+  ctrlZoneText: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textTertiary },
 })

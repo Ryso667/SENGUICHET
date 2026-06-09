@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BarChart, PieChart } from 'react-native-chart-kit'
-import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
+import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import Skeleton from '../../components/Skeleton'
 import OrganisateurLayout from '../../components/OrganisateurLayout'
@@ -19,8 +19,8 @@ const chartConfig = {
   backgroundGradientFrom: 'rgba(255,255,255,0.05)',
   backgroundGradientTo: 'rgba(255,255,255,0.05)',
   decimalPlaces: 0,
-  color: (opacity = 1) => `rgba(99, 102, 241, ${opacity})`,
-  labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity * 0.8})`,
+  color: (opacity = 1) => `rgba(199, 81, 58, ${opacity})`,
+  labelColor: (opacity = 1) => colors.text,
   style: { borderRadius: 16 },
   propsForDots: { r: '6', strokeWidth: '2', stroke: colors.accent },
 }
@@ -83,7 +83,7 @@ export default function StatistiquesScreen() {
       name: e.nom.substring(0, 10),
       population: e.remplis || 0,
       color: chartColors[i],
-      legendFontColor: 'rgba(255,255,255,0.8)',
+      legendFontColor: colors.text,
       legendFontSize: 12
     }))
   }, [events])
@@ -187,7 +187,7 @@ const s = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: spacing.lg, marginBottom: spacing.md
   },
-  title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
+  title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text },
   pills: { flexDirection: 'row', gap: 8 },
   
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.lg, gap: spacing.md },
@@ -195,14 +195,14 @@ const s = StyleSheet.create({
     width: (screenWidth - spacing.lg * 2 - spacing.md) / 2,
     padding: spacing.md,
   },
-  cardValue: { fontSize: 22, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
-  cardLabel: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
+  cardValue: { fontSize: 22, fontFamily: fonts.outfit.bold, color: colors.text },
+  cardLabel: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary },
 
   section: { marginHorizontal: spacing.lg, marginTop: spacing.xl, padding: spacing.md },
-  sectionTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', marginBottom: spacing.md, ...textShadow },
+  sectionTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.md },
   chartWrapper: { 
     alignItems: 'center',
   },
   chart: { marginVertical: 8, borderRadius: 16 },
-  emptyText: { padding: 40, color: 'rgba(255,255,255,0.5)', fontFamily: fonts.jakarta.regular },
+  emptyText: { padding: 40, color: colors.textTertiary, fontFamily: fonts.jakarta.regular },
 })

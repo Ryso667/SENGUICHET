@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect } from '@react-navigation/native'
 import { verifierBillet, telechargerTickets, synchroniser } from '../../services/scanService'
 import { useAuth } from '../../context/AuthContext'
-import { colors, fonts, textShadow } from '../../constants/theme'
+import { colors, fonts } from '../../constants/theme'
 import ControleurLayout from '../../components/ControleurLayout'
 import GlassButton from '../../components/GlassButton'
 
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   camera: { flex: 1 },
   overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   masqueHaut: { backgroundColor: 'rgba(0,0,0,0.6)', paddingBottom: 20, alignItems: 'center' },
-  titre: { fontFamily: fonts.outfit.bold, fontSize: 22, color: colors.text, ...textShadow },
+  titre: { fontFamily: fonts.outfit.bold, fontSize: 22, color: colors.text },
   infoRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   info: { fontFamily: fonts.outfit.regular, fontSize: 13, color: colors.textSecondary },
   syncOk: { fontFamily: fonts.outfit.medium, fontSize: 12, color: '#22c55e', marginTop: 4 },

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, spacing, fonts, textShadow, borderRadius } from '../../constants/theme'
+import { colors, spacing, fonts, borderRadius } from '../../constants/theme'
 import { fetchEvenementDetailAPI } from '../../services/eventService'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import Skeleton from '../../components/Skeleton'
@@ -78,7 +78,7 @@ export default function DetailEvenementScreen({ route }) {
     <View style={[s.container, { paddingTop: insets.top }]}>
       <OrganisateurLayout />
       <ScrollView showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent, '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}>
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor={colors.accent} />}>
         <GlassContainer blurType="light" style={s.header} intensity={35}>
           <Text style={s.title}>{evenement.nom}</Text>
           <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
@@ -148,36 +148,36 @@ export default function DetailEvenementScreen({ route }) {
 const s = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  errorText: { fontSize: 16, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
+  errorText: { fontSize: 16, fontFamily: fonts.jakarta.regular, color: colors.textSecondary },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     margin: spacing.lg, padding: spacing.md,
   },
-  title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', flex: 1, marginRight: spacing.sm, ...textShadow },
+  title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text, flex: 1, marginRight: spacing.sm },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 },
   statusText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.3 },
   infoGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.lg, gap: spacing.sm },
   infoCard: {
     width: '47%', padding: spacing.md,
   },
-  infoLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 0.5 },
-  infoValue: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#fff', marginTop: 4 },
+  infoLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  infoValue: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.text, marginTop: 4 },
   fillSection: { margin: spacing.lg, padding: spacing.md },
-  fillTitle: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)', marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
+  fillTitle: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   barBg: { flex: 1, height: 10, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 5, overflow: 'hidden' },
   barFill: { height: 10, borderRadius: 5, backgroundColor: colors.accent },
-  barCount: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)' },
-  fillPct: { fontSize: 28, fontFamily: fonts.outfit.bold, color: '#fff', marginTop: spacing.sm, ...textShadow },
+  barCount: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary },
+  fillPct: { fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.text, marginTop: spacing.sm },
   section: { marginHorizontal: spacing.lg, marginBottom: spacing.lg, padding: spacing.md },
-  sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff', marginBottom: spacing.sm },
-  description: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', lineHeight: 22 },
-  empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textAlign: 'center', paddingVertical: spacing.lg },
+  sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.sm },
+  description: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, lineHeight: 22 },
+  empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.lg },
   ticketRow: {
     flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.15)',
   },
-  ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#fff', flex: 1 },
+  ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, flex: 1 },
   ticketPrix: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent },
   ticketStatut: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginLeft: spacing.sm, textTransform: 'capitalize' },
 })

@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
+import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
 import { useAuth } from '../../context/AuthContext'
 import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
@@ -100,10 +100,10 @@ export default function ParametresScreen({ navigation }) {
 const s = StyleSheet.create({
   container: { flex: 1 },
   section: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
-  sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff', marginBottom: spacing.sm, ...textShadow },
+  sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.sm },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.sm },
-  label: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: '#fff' },
-  value: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)', textAlign: 'right', flex: 1, marginLeft: spacing.md },
+  label: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.text },
+  value: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary, textAlign: 'right', flex: 1, marginLeft: spacing.md },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.15)' },
   infoText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', lineHeight: 20 },
   securityBtn: {

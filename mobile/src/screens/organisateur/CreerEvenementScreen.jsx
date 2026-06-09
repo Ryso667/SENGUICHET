@@ -9,7 +9,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
-import { colors, fonts, textShadow } from '../../constants/theme'
+import { colors, fonts } from '../../constants/theme'
 import { creerEvenementAPI } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
 import OrganisateurLayout from '../../components/OrganisateurLayout'
@@ -41,7 +41,7 @@ const ChampInput = ({ label, value, onChange, placeholder, multiline, keyboardTy
     <TextInput
       style={[s.input, multiline && s.textarea, errorKey && errors?.[errorKey] && s.inputError]}
       value={value} onChangeText={onChange}
-      placeholder={placeholder} placeholderTextColor="rgba(255,255,255,0.5)"
+      placeholder={placeholder} placeholderTextColor={colors.textTertiary}
       multiline={multiline} numberOfLines={multiline ? 3 : 1}
       textAlignVertical={multiline ? 'top' : undefined}
       keyboardType={keyboardType}
@@ -197,12 +197,12 @@ export default function CreerEvenementScreen({ navigation }) {
 
       <Text style={s.label}>Catégorie d'événement</Text>
       <TouchableOpacity style={[s.input, errors.categorie && s.inputError]} onPress={() => setCatVisible(true)}>
-        <Text style={[s.inputText, !categorie && { color: 'rgba(255,255,255,0.5)' }]}>{categorie || 'Sélectionner une catégorie'}</Text>
+        <Text style={[s.inputText, !categorie && { color: colors.textTertiary }]}>{categorie || 'Sélectionner une catégorie'}</Text>
       </TouchableOpacity>
       {errors.categorie && <Text style={s.errorText}>{errors.categorie}</Text>}
       {categorie === 'Autres / Divers' && (
         <TextInput style={s.input} value={categorieCustom} onChangeText={setCategorieCustom}
-          placeholder="Précisez la catégorie" placeholderTextColor="rgba(255,255,255,0.5)" />
+          placeholder="Précisez la catégorie" placeholderTextColor={colors.textTertiary} />
       )}
 
       <ChampInput label="Description (optionnelle)" value={description} onChange={setDescription}
@@ -211,8 +211,8 @@ export default function CreerEvenementScreen({ navigation }) {
       <Text style={s.label}>Date</Text>
       <TouchableOpacity style={[s.input, errors.date && s.inputError]} onPress={() => setDateExpanded(!dateExpanded)}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={[s.inputText, !date && { color: 'rgba(255,255,255,0.5)' }]}>{date || 'Sélectionner une date'}</Text>
-          <Feather name={dateExpanded ? 'chevron-up' : 'chevron-down'} size={20} color="rgba(255,255,255,0.6)" />
+          <Text style={[s.inputText, !date && { color: colors.textTertiary }]}>{date || 'Sélectionner une date'}</Text>
+          <Feather name={dateExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textTertiary} />
         </View>
       </TouchableOpacity>
       {errors.date && <Text style={s.errorText}>{errors.date}</Text>}
@@ -221,8 +221,8 @@ export default function CreerEvenementScreen({ navigation }) {
       <Text style={s.label}>Date de fin (optionnelle)</Text>
       <TouchableOpacity style={s.input} onPress={() => setDateFinExpanded(!dateFinExpanded)}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={[s.inputText, !dateFin && { color: 'rgba(255,255,255,0.5)' }]}>{dateFin || 'Même jour (par défaut)'}</Text>
-          <Feather name={dateFinExpanded ? 'chevron-up' : 'chevron-down'} size={20} color="rgba(255,255,255,0.6)" />
+          <Text style={[s.inputText, !dateFin && { color: colors.textTertiary }]}>{dateFin || 'Même jour (par défaut)'}</Text>
+          <Feather name={dateFinExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textTertiary} />
         </View>
       </TouchableOpacity>
       {dateFinExpanded && renderCalendar('dateFin')}
@@ -230,8 +230,8 @@ export default function CreerEvenementScreen({ navigation }) {
       <Text style={s.label}>Horaire</Text>
       <TouchableOpacity style={[s.input, errors.heure && s.inputError]} onPress={() => setHeureExpanded(!heureExpanded)}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={[s.inputText, !heure && { color: 'rgba(255,255,255,0.5)' }]}>{heure || 'Choisir un horaire'}</Text>
-          <Feather name={heureExpanded ? 'chevron-up' : 'chevron-down'} size={20} color="rgba(255,255,255,0.6)" />
+          <Text style={[s.inputText, !heure && { color: colors.textTertiary }]}>{heure || 'Choisir un horaire'}</Text>
+          <Feather name={heureExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textTertiary} />
         </View>
       </TouchableOpacity>
       {errors.heure && <Text style={s.errorText}>{errors.heure}</Text>}
@@ -239,13 +239,13 @@ export default function CreerEvenementScreen({ navigation }) {
 
       <Text style={s.label}>Capacité totale</Text>
       <TextInput style={s.input} value={capacite} onChangeText={setCapacite}
-        placeholder="Ex: 1000" keyboardType="numeric" placeholderTextColor="rgba(255,255,255,0.5)" />
+        placeholder="Ex: 1000" keyboardType="numeric" placeholderTextColor={colors.textTertiary} />
 
       <ChampInput label="Lieu" value={lieu} onChange={setLieu} placeholder="Monument Renaissance, Grand Théâtre..." errorKey="lieu" errors={errors} />
 
       <Text style={s.label}>Ville</Text>
       <TouchableOpacity style={[s.input, errors.ville && s.inputError]} onPress={() => setVilleVisible(true)}>
-        <Text style={[s.inputText, !ville && { color: 'rgba(255,255,255,0.5)' }]}>{ville || 'Sélectionner une ville'}</Text>
+        <Text style={[s.inputText, !ville && { color: colors.textTertiary }]}>{ville || 'Sélectionner une ville'}</Text>
       </TouchableOpacity>
       {errors.ville && <Text style={s.errorText}>{errors.ville}</Text>}
 
@@ -255,7 +255,7 @@ export default function CreerEvenementScreen({ navigation }) {
           <Image source={{ uri: poster.uri }} style={s.posterPreview} />
         ) : (
           <>
-            <Feather name="image" size={20} color="rgba(255,255,255,0.6)" />
+            <Feather name="image" size={20} color={colors.textTertiary} />
             <Text style={s.posterBtnText}>Ajouter une affiche</Text>
           </>
         )}
@@ -276,7 +276,7 @@ export default function CreerEvenementScreen({ navigation }) {
       {categories.map((cat, i) => (
         <GlassContainer blurType="light" key={i} style={{ marginBottom: 12, padding: spacing.sm }} intensity={30}>
           <TouchableOpacity style={s.input} onPress={() => setBilletCatIndex(i)}>
-            <Text style={[s.inputText, !cat.nom && { color: 'rgba(255,255,255,0.5)' }]}>
+            <Text style={[s.inputText, !cat.nom && { color: colors.textTertiary }]}>
               {cat.nom || 'Choisir une catégorie'}
             </Text>
           </TouchableOpacity>
@@ -306,7 +306,7 @@ export default function CreerEvenementScreen({ navigation }) {
         <GlassContainer blurType="light" style={s.promoSection} intensity={30}>
           <TextInput style={s.input} placeholder="Code (ex: PROMO20)"
             value={promo.code} onChangeText={v => setPromo(p => ({...p, code: v}))}
-            placeholderTextColor="rgba(255,255,255,0.5)" autoCapitalize="characters" />
+            placeholderTextColor={colors.textTertiary} autoCapitalize="characters" />
           <View style={s.promoTypeRow}>
             <TouchableOpacity style={[s.promoTypeBtn, promo.type === 'pourcentage' && s.promoTypeBtnActive]}
               onPress={() => setPromo(p => ({...p, type: 'pourcentage'}))}>
@@ -320,10 +320,10 @@ export default function CreerEvenementScreen({ navigation }) {
           <TextInput style={s.input}
             placeholder={promo.type === 'pourcentage' ? 'Valeur (%)' : 'Valeur (FCFA)'}
             value={promo.valeur} onChangeText={v => setPromo(p => ({...p, valeur: v}))}
-            keyboardType="numeric" placeholderTextColor="rgba(255,255,255,0.5)" />
+            keyboardType="numeric" placeholderTextColor={colors.textTertiary} />
           <TextInput style={s.input} placeholder="Limite d'utilisation"
             value={promo.limite} onChangeText={v => setPromo(p => ({...p, limite: v}))}
-            keyboardType="numeric" placeholderTextColor="rgba(255,255,255,0.5)" />
+            keyboardType="numeric" placeholderTextColor={colors.textTertiary} />
         </GlassContainer>
       )}
 
@@ -434,14 +434,14 @@ export default function CreerEvenementScreen({ navigation }) {
             if (month === 0) { setBrowseMonthFn(11); setBrowseYearFn(year - 1) }
             else setBrowseMonthFn(month - 1)
           }}>
-            <Feather name="chevron-left" size={22} color="#fff" />
+            <Feather name="chevron-left" size={22} color={colors.text} />
           </TouchableOpacity>
           <Text style={s.calHeaderText}>{MONTHS[month]} {year}</Text>
           <TouchableOpacity onPress={() => {
             if (month === 11) { setBrowseMonthFn(0); setBrowseYearFn(year + 1) }
             else setBrowseMonthFn(month + 1)
           }}>
-            <Feather name="chevron-right" size={22} color="#fff" />
+            <Feather name="chevron-right" size={22} color={colors.text} />
           </TouchableOpacity>
         </View>
         <View style={s.calWeek}>
@@ -476,14 +476,14 @@ export default function CreerEvenementScreen({ navigation }) {
           const h = editHour === 23 ? 0 : editHour + 1
           setEditHour(h); setHeure(`${pad(h)}:${pad(editMinute)}`)
         }}>
-          <Feather name="chevron-up" size={22} color="#fff" />
+          <Feather name="chevron-up" size={22} color={colors.text} />
         </TouchableOpacity>
         <Text style={s.timeValue}>{pad(editHour)}</Text>
         <TouchableOpacity style={s.timeBtn} onPress={() => {
           const h = editHour === 0 ? 23 : editHour - 1
           setEditHour(h); setHeure(`${pad(h)}:${pad(editMinute)}`)
         }}>
-          <Feather name="chevron-down" size={22} color="#fff" />
+          <Feather name="chevron-down" size={22} color={colors.text} />
         </TouchableOpacity>
       </View>
       <Text style={s.timeSep}>:</Text>
@@ -492,14 +492,14 @@ export default function CreerEvenementScreen({ navigation }) {
           const m = editMinute >= 55 ? 0 : editMinute + 5
           setEditMinute(m); setHeure(`${pad(editHour)}:${pad(m)}`)
         }}>
-          <Feather name="chevron-up" size={22} color="#fff" />
+          <Feather name="chevron-up" size={22} color={colors.text} />
         </TouchableOpacity>
         <Text style={s.timeValue}>{pad(editMinute)}</Text>
         <TouchableOpacity style={s.timeBtn} onPress={() => {
           const m = editMinute <= 0 ? 55 : editMinute - 5
           setEditMinute(m); setHeure(`${pad(editHour)}:${pad(m)}`)
         }}>
-          <Feather name="chevron-down" size={22} color="#fff" />
+          <Feather name="chevron-down" size={22} color={colors.text} />
         </TouchableOpacity>
       </View>
     </GlassContainer>
@@ -603,26 +603,26 @@ const s = StyleSheet.create({
   safe: { flex: 1 },
   flex: { flex: 1 },
   conteneur: { flexGrow: 1, paddingHorizontal: 24 },
-  retour: { fontFamily: fonts.outfit.semiBold, fontSize: 15, color: '#fff', marginBottom: 16 },
-  titre: { fontFamily: fonts.outfit.bold, fontSize: 22, color: '#fff', marginBottom: 8, ...textShadow },
-  sousTitre: { fontFamily: fonts.jakarta.regular, fontSize: 15, color: 'rgba(255,255,255,0.7)', marginBottom: 8 },
-  sectionTitle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: '#fff', marginBottom: 20, marginTop: 8, ...textShadow },
-  label: { fontFamily: fonts.outfit.semiBold, fontSize: 14, color: 'rgba(255,255,255,0.9)', marginBottom: 6 },
+  retour: { fontFamily: fonts.outfit.semiBold, fontSize: 15, color: colors.text, marginBottom: 16 },
+  titre: { fontFamily: fonts.outfit.bold, fontSize: 22, color: colors.text, marginBottom: 8 },
+  sousTitre: { fontFamily: fonts.jakarta.regular, fontSize: 15, color: colors.textSecondary, marginBottom: 8 },
+  sectionTitle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text, marginBottom: 20, marginTop: 8 },
+  label: { fontFamily: fonts.outfit.semiBold, fontSize: 14, color: colors.text, marginBottom: 6 },
   input: {
-    backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 16, height: 56, justifyContent: 'center', marginBottom: 16, color: '#fff',
+    backgroundColor: colors.inputBg, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.inputBorder,
+    paddingHorizontal: 16, height: 56, justifyContent: 'center', marginBottom: 16, color: colors.text,
   },
   inputError: { borderColor: '#FF4D6D' },
-  inputText: { fontFamily: fonts.outfit.regular, fontSize: 16, color: '#fff' },
+  inputText: { fontFamily: fonts.outfit.regular, fontSize: 16, color: colors.text },
   textarea: { height: 80, paddingTop: 16 },
   errorText: { fontFamily: fonts.jakarta.regular, fontSize: 12, color: '#FF4D6D', marginTop: -12, marginBottom: 12 },
   removeCat: { fontFamily: fonts.outfit.semiBold, fontSize: 14, color: '#FF4D6D', textAlign: 'right', marginTop: -8 },
   posterBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: colors.inputBg, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.inputBorder,
     padding: 16, justifyContent: 'center', marginBottom: 16,
   },
-  posterBtnText: { fontFamily: fonts.outfit.regular, fontSize: 14, color: 'rgba(255,255,255,0.6)' },
+  posterBtnText: { fontFamily: fonts.outfit.regular, fontSize: 14, color: colors.textSecondary },
   posterPreview: { width: '100%', height: 160, borderRadius: 12, resizeMode: 'cover' },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 },
   picker: { padding: 20, maxHeight: 400 },
@@ -639,22 +639,22 @@ const s = StyleSheet.create({
   },
   stepperCircleDone: { backgroundColor: 'rgba(0,229,160,0.4)', borderColor: '#00E5A0' },
   stepperCircleActive: { backgroundColor: 'rgba(199,81,58,0.4)', borderColor: colors.accent },
-  stepperCircleText: { fontFamily: fonts.outfit.bold, fontSize: 13, color: 'rgba(255,255,255,0.6)' },
+  stepperCircleText: { fontFamily: fonts.outfit.bold, fontSize: 13, color: colors.textSecondary },
   stepperCircleTextActive: { color: '#fff' },
-  stepperLabel: { fontFamily: fonts.jakarta.regular, fontSize: 11, color: 'rgba(255,255,255,0.6)', marginLeft: 4, maxWidth: 70 },
+  stepperLabel: { fontFamily: fonts.jakarta.regular, fontSize: 11, color: colors.textSecondary, marginLeft: 4, maxWidth: 70 },
   stepperLabelActive: { fontFamily: fonts.jakarta.semiBold, color: colors.accent },
   stepperLabelDone: { color: '#00E5A0' },
   stepperLine: { width: 20, height: 2, backgroundColor: 'rgba(255,255,255,0.2)', marginHorizontal: 6 },
   stepperLineDone: { backgroundColor: '#00E5A0' },
   calendar: { padding: 12, marginBottom: 16 },
   calHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  calHeaderText: { fontFamily: fonts.outfit.semiBold, fontSize: 16, color: '#fff' },
+  calHeaderText: { fontFamily: fonts.outfit.semiBold, fontSize: 16, color: colors.text },
   calWeek: { flexDirection: 'row', marginBottom: 4 },
   calWeekDay: { flex: 1, textAlign: 'center', fontFamily: fonts.outfit.semiBold, fontSize: 13, color: 'rgba(255,255,255,0.6)', paddingVertical: 4 },
   calGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   calDay: { width: '14.28%', aspectRatio: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 8 },
   calDaySelected: { backgroundColor: 'rgba(199,81,58,0.4)' },
-  calDayText: { fontFamily: fonts.outfit.regular, fontSize: 14, color: '#fff' },
+  calDayText: { fontFamily: fonts.outfit.regular, fontSize: 14, color: colors.text },
   calDayTextSelected: { fontFamily: fonts.outfit.semiBold, color: '#fff' },
   timePicker: {
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
@@ -662,8 +662,8 @@ const s = StyleSheet.create({
   },
   timeCol: { alignItems: 'center', paddingHorizontal: 20 },
   timeBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center' },
-  timeValue: { fontFamily: fonts.outfit.bold, fontSize: 36, color: '#fff', marginVertical: 8 },
-  timeSep: { fontFamily: fonts.outfit.bold, fontSize: 36, color: 'rgba(255,255,255,0.6)', marginHorizontal: 4 },
+  timeValue: { fontFamily: fonts.outfit.bold, fontSize: 36, color: colors.text, marginVertical: 8 },
+  timeSep: { fontFamily: fonts.outfit.bold, fontSize: 36, color: colors.textSecondary, marginHorizontal: 4 },
   promoToggle: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
   promoToggleTrack: {
     width: 44, height: 24, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)',
@@ -672,7 +672,7 @@ const s = StyleSheet.create({
   promoToggleTrackActive: { backgroundColor: 'rgba(199,81,58,0.6)' },
   promoToggleThumb: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#fff', alignSelf: 'flex-start' },
   promoToggleThumbActive: { alignSelf: 'flex-end' },
-  promoToggleText: { fontFamily: fonts.outfit.regular, fontSize: 14, color: '#fff' },
+  promoToggleText: { fontFamily: fonts.outfit.regular, fontSize: 14, color: colors.text },
   promoSection: { padding: 16, marginBottom: 16 },
   promoTypeRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   promoTypeBtn: {
@@ -680,11 +680,11 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.2)',
   },
   promoTypeBtnActive: { backgroundColor: 'rgba(199,81,58,0.4)', borderColor: colors.accent },
-  promoTypeText: { fontFamily: fonts.outfit.semiBold, fontSize: 13, color: '#fff' },
+  promoTypeText: { fontFamily: fonts.outfit.semiBold, fontSize: 13, color: colors.text },
   promoTypeTextActive: { color: '#fff' },
   navRow: { flexDirection: 'row', gap: 12, marginTop: 28, alignItems: 'center' },
   backBtn: { paddingVertical: 12, paddingHorizontal: 16 },
-  backBtnText: { fontFamily: fonts.outfit.semiBold, fontSize: 15, color: '#fff' },
+  backBtnText: { fontFamily: fonts.outfit.semiBold, fontSize: 15, color: colors.text },
   submitBtn: {
     flex: 1, paddingVertical: 14, borderRadius: 14, alignItems: 'center',
     backgroundColor: 'rgba(199,81,58,0.5)',
@@ -693,12 +693,12 @@ const s = StyleSheet.create({
   submitBtnText: { fontFamily: fonts.outfit.semiBold, fontSize: 15, color: '#fff' },
   recapCard: { padding: 20, marginBottom: 16 },
   recapRow: { marginBottom: 14 },
-  recapLabel: { fontFamily: fonts.jakarta.regular, fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 2 },
-  recapValue: { fontFamily: fonts.outfit.semiBold, fontSize: 15, color: '#fff' },
+  recapLabel: { fontFamily: fonts.jakarta.regular, fontSize: 12, color: colors.textSecondary, marginBottom: 2 },
+  recapValue: { fontFamily: fonts.outfit.semiBold, fontSize: 15, color: colors.text },
   warningCard: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 12,
     padding: 16, marginBottom: 16,
   },
   warningTitle: { fontFamily: fonts.outfit.semiBold, fontSize: 14, color: '#F97316', marginBottom: 4 },
-  warningDesc: { fontFamily: fonts.jakarta.regular, fontSize: 12, color: 'rgba(255,255,255,0.8)', lineHeight: 18 },
+  warningDesc: { fontFamily: fonts.jakarta.regular, fontSize: 12, color: colors.textSecondary, lineHeight: 18 },
 })

@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { formaterDateHeure } from '../../utils/dateUtils'
 import { telechargerTickets, getHistorique, synchroniser, getStats, reinitialiser } from '../../services/scanService'
 import { useAuth } from '../../context/AuthContext'
-import { colors, fonts, textShadow } from '../../constants/theme'
+import { colors, fonts } from '../../constants/theme'
 import ControleurLayout from '../../components/ControleurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import GlassButton from '../../components/GlassButton'
@@ -80,7 +80,7 @@ export default function ScanHistoryScreen() {
       <ControleurLayout />
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 16 }]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" colors={['#fff']} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
       >
         <GlassContainer style={styles.statsBanner}>
           <View style={styles.statTicket}>
@@ -113,10 +113,10 @@ export default function ScanHistoryScreen() {
             disabled={sync}
           >
             {sync ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
+              <ActivityIndicator color={colors.accent} size="small" />
             ) : (
               <>
-                <Feather name="upload-cloud" size={16} color="#FFFFFF" />
+                <Feather name="upload-cloud" size={16} color={colors.accent} />
                 <Text style={styles.actionTexte}>Synchroniser</Text>
               </>
             )}
@@ -127,10 +127,10 @@ export default function ScanHistoryScreen() {
             disabled={download}
           >
             {download ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
+              <ActivityIndicator color={colors.accent} size="small" />
             ) : (
               <>
-                <Feather name="download-cloud" size={16} color="#FFFFFF" />
+                <Feather name="download-cloud" size={16} color={colors.accent} />
                 <Text style={styles.actionTexte}>Télécharger</Text>
               </>
             )}
@@ -199,9 +199,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statTicket: { alignItems: 'center', paddingRight: 16, minWidth: 80 },
-  statTicketNombre: { fontFamily: fonts.outfit.bold, fontSize: 28, color: colors.text, ...textShadow },
+  statTicketNombre: { fontFamily: fonts.outfit.bold, fontSize: 28, color: colors.text },
   statTicketLabel: { fontFamily: fonts.outfit.regular, fontSize: 11, color: colors.textWhiteMuted, marginTop: 2 },
-  statDivider: { width: 1, height: 60, backgroundColor: 'rgba(255,255,255,0.2)', marginRight: 12 },
+  statDivider: { width: 1, height: 60, backgroundColor: colors.border, marginRight: 12 },
   statGrille: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   statMini: { flexDirection: 'row', alignItems: 'center', gap: 4, width: '45%' },
   statMiniDot: { width: 8, height: 8, borderRadius: 4 },
@@ -226,7 +226,6 @@ const styles = StyleSheet.create({
   sectionTitre: {
     fontFamily: fonts.outfit.semiBold, fontSize: 13, color: colors.text,
     paddingHorizontal: 16, paddingTop: 20, paddingBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5,
-    ...textShadow,
   },
   carte: {
     flexDirection: 'row', alignItems: 'center',
@@ -240,6 +239,6 @@ const styles = StyleSheet.create({
   carteUuid: { fontFamily: fonts.outfit.regular, fontSize: 10, color: colors.textWhiteMuted, marginTop: 1 },
   carteDroite: { alignItems: 'flex-end', gap: 4 },
   carteStatut: { fontFamily: fonts.outfit.bold, fontSize: 12, color: colors.text },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
-  badgeTexte: { fontFamily: fonts.outfit.bold, fontSize: 9, color: '#FFFFFF' },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.accentLight, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  badgeTexte: { fontFamily: fonts.outfit.bold, fontSize: 9, color: colors.accent },
 })
