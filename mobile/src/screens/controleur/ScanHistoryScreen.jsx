@@ -5,14 +5,14 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { formaterDateHeure } from '../../utils/dateUtils'
-import { getHistorique, synchroniser, getStats, reinitialiser } from '../../services/scanService'
+import { telechargerTickets, getHistorique, synchroniser, getStats, reinitialiser } from '../../services/scanService'
+import { useAuth } from '../../context/AuthContext'
 import { colors, fonts, textShadow } from '../../constants/theme'
 import ControleurLayout from '../../components/ControleurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import GlassButton from '../../components/GlassButton'
 import EmptyState from '../../components/EmptyState'
 
-// Couleurs par résultat de scan (fond glass, icône, label)
 const PROFIL = {
   VALIDE: { dot: '#22c55e', icon: 'check-circle', label: 'Valide' },
   DEJA_UTILISE: { dot: '#f97316', icon: 'alert-triangle', label: 'Déjà utilisé' },
@@ -24,15 +24,16 @@ const PROFIL = {
 const ORDRE_STATS = ['VALIDE', 'DEJA_UTILISE', 'EXPIRE', 'INCONNU', 'FRAUDE']
 
 export default function ScanHistoryScreen() {
+  const { evenementId, evenementTitre } = useAuth()
   const [scans, setScans] = useState([])
   const [stats, setStats] = useState({ ticketsLocaux: 0 })
   const [sync, setSync] = useState(false)
+  const [download, setDownload] = useState(false)
+  const [downloadMsg, setDownloadMsg] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
   const insets = useSafeAreaInsets()
 
-  useEffect(() => {
-    charger()
-  }, [])
+  useEffect(() => { charger() }, [])
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)
@@ -54,6 +55,21 @@ export default function ScanHistoryScreen() {
     } catch {
     } finally {
       setSync(false)
+    }
+  }
+
+  const handleDownload = async () => {
+    setDownload(true)
+    setDownloadMsg(null)
+    try {
+      const zone = 'STANDARD'
+      const nb = await telechargerTickets(evenementId, zone)
+      setDownloadMsg({ type: 'success', text: `${nb} ticket${nb > 1 ? 's' : ''} téléchargé${nb > 1 ? 's' : ''}` })
+      await charger()
+    } catch (err) {
+      setDownloadMsg({ type: 'error', text: err.message || 'Échec du téléchargement' })
+    } finally {
+      setDownload(false)
     }
   }
 
@@ -86,6 +102,10 @@ export default function ScanHistoryScreen() {
           </View>
         </GlassContainer>
 
+        {evenementTitre && (
+          <Text style={styles.eventName}>{evenementTitre} (ID: {evenementId})</Text>
+        )}
+
         <View style={styles.actions}>
           <TouchableOpacity
             style={[styles.actionBtn, sync && { opacity: 0.6 }]}
@@ -101,8 +121,28 @@ export default function ScanHistoryScreen() {
               </>
             )}
           </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionBtn, download && { opacity: 0.6 }]}
+            onPress={handleDownload}
+            disabled={download}
+          >
+            {download ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <>
+                <Feather name="download-cloud" size={16} color="#FFFFFF" />
+                <Text style={styles.actionTexte}>Télécharger</Text>
+              </>
+            )}
+          </TouchableOpacity>
           <GlassButton title="Vider" icon="trash-2" onPress={() => { reinitialiser(); charger() }} style={{flex: 1}} />
         </View>
+
+        {downloadMsg && (
+          <Text style={[styles.downloadMsg, downloadMsg.type === 'error' && styles.downloadMsgError]}>
+            {downloadMsg.text}
+          </Text>
+        )}
 
         {evenementsUniques.length > 0 && (
           <Text style={styles.sectionTitre}>
@@ -167,6 +207,10 @@ const styles = StyleSheet.create({
   statMiniDot: { width: 8, height: 8, borderRadius: 4 },
   statMiniNombre: { fontFamily: fonts.outfit.bold, fontSize: 14, color: colors.text, minWidth: 20 },
   statMiniLabel: { fontFamily: fonts.outfit.regular, fontSize: 10, color: colors.textWhiteMuted },
+  eventName: {
+    fontFamily: fonts.outfit.medium, fontSize: 13, color: colors.textSecondary,
+    paddingHorizontal: 16, paddingTop: 12, textAlign: 'center',
+  },
   actions: { flexDirection: 'row', paddingHorizontal: 16, paddingTop: 12, gap: 8 },
   actionBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -174,6 +218,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.glassWhite, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.glassBorder,
   },
   actionTexte: { fontFamily: fonts.outfit.semiBold, fontSize: 13, color: colors.text },
+  downloadMsg: {
+    fontFamily: fonts.outfit.medium, fontSize: 12, color: '#22c55e',
+    paddingHorizontal: 16, paddingTop: 8, textAlign: 'center',
+  },
+  downloadMsgError: { color: '#f97316' },
   sectionTitre: {
     fontFamily: fonts.outfit.semiBold, fontSize: 13, color: colors.text,
     paddingHorizontal: 16, paddingTop: 20, paddingBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5,

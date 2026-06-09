@@ -139,11 +139,12 @@ export function AuthProvider({ children }) {
     setNumeroTel(tel)
   }
 
-  // Stocke la session controleur : JWT + evenementId + evenementTitre extraits du payload
-  const connecterControleur = async (token) => {
+  // Stocke la session controleur : JWT + evenementId + evenementTitre
+  // user (optionnel) vient de la réponse API pour éviter de dépendre du JWT decode
+  const connecterControleur = async (token, user) => {
     const payload = decoderJWT(token)
-    const eventId = payload.evenementId
-    const eventTitre = payload.evenementTitre
+    const eventId = user?.evenementId || payload.evenementId
+    const eventTitre = user?.evenementTitre || payload.evenementTitre
     await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'controleur')
     await Securite.SET(STORAGE_KEY_JWT, token)
     if (eventId) await Securite.SET(STORAGE_KEY_EVENEMENT_ID, String(eventId))

@@ -392,7 +392,8 @@ const connexionControleur = async (req, res) => {
       token,
       user: {
         role: "CONTROLEUR",
-        evenement: { id: c.evenement_id, titre: c.evenement_titre },
+        evenementId: c.evenement_id,
+        evenementTitre: c.evenement_titre,
       },
     });
   } catch (err) {
