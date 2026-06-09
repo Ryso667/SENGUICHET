@@ -2,7 +2,7 @@
 // 3 piles distinctes selon le rôle : acheteur / controleur / organisateur
 // Les écrans non-connectés (auth) sont affichés quand aucun rôle n'est actif
 import React, { useRef, useEffect } from 'react'
-import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Platform } from 'react-native'
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Platform, Image } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { NavigationContainer, useFocusEffect, createNavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
@@ -10,6 +10,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '../context/AuthContext'
 import { listerMesDemandes } from '../services/eventService'
+import { API_BASE_URL } from '../config'
 
 // Écrans auth (aucun rôle)
 import AccueilChoixScreen from '../screens/AccueilChoixScreen'
@@ -57,9 +58,11 @@ function OrganisateurHeader({ title, deconnecter, badgeCount }) {
       </TouchableOpacity>
       <Text style={headerStyles.title}>{title}</Text>
       <View style={headerStyles.right}>
-        <View style={headerStyles.logoPlaceholder}>
-          <Text style={headerStyles.logoText}>S</Text>
-        </View>
+        <Image
+          source={{ uri: `${API_BASE_URL.replace('/api', '')}/uploads/logo.jpg` }}
+          style={{ width: 36, height: 36, borderRadius: 18 }}
+          resizeMode="cover"
+        />
       </View>
     </View>
   )
@@ -226,6 +229,13 @@ function ControleurTabs() {
         headerShown: true,
         headerStyle: { backgroundColor: '#FFFFFF' },
         headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#0f172a' },
+        headerLeft: () => (
+          <Image
+            source={{ uri: `https://backend-beta-six-39.vercel.app/uploads/logo.jpg` }}
+            style={{ width: 36, height: 36, borderRadius: 18, marginLeft: 16 }}
+            resizeMode="cover"
+          />
+        ),
         headerRight: () => (
           <TouchableOpacity onPress={deconnecter} style={{ marginRight: 16 }}>
             <Text style={{ fontSize: 14, color: '#FF4D6D', fontFamily: 'Outfit_600SemiBold' }}>

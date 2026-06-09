@@ -56,7 +56,7 @@ async function initTables() {
 // Insère ou remplace une liste de tickets dans la base locale (tickets téléchargés pour offline)
 export async function insererTickets(tickets) {
   const bd = await getDb()
-  const ins = bd.prepareAsync(
+  const ins = await bd.prepareAsync(
     'INSERT OR REPLACE INTO tickets (uuid, hmac, event_id, category, timestamp_gen, statut) VALUES ($uuid, $hmac, $event_id, $category, $timestamp_gen, $statut)'
   )
   for (const t of tickets) {

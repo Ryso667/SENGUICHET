@@ -1,11 +1,9 @@
 // Écran de sélection du rôle (Acheteur / Contrôleur / Organisateur)
 // Design glass immersif (Apple Invites) : fond sombre + cartes glass avec accent par rôle
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Image } from 'react-native'
-import { useFocusEffect } from '@react-navigation/native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useAuth } from '../context/AuthContext'
 import { fonts, spacing, borderRadius, glass, categoryGradients } from '../constants/theme'
 import GlassContainer from '../components/GlassContainer'
 
@@ -37,25 +35,14 @@ const ROLES = [
 ]
 
 export default function AccueilChoixScreen({ navigation }) {
-  const { role, nettoyerSession } = useAuth()
   const insets = useSafeAreaInsets()
   const anims = useRef(ROLES.map(() => new Animated.Value(0))).current
-  const [redirection, setRedirection] = useState(null)
 
   useEffect(() => {
     Animated.stagger(120, anims.map(a =>
       Animated.timing(a, { toValue: 1, duration: 500, useNativeDriver: true })
     )).start()
   }, [])
-
-  // Si on vient de changer de rôle, on navigue vers l'écran cible
-  useFocusEffect(() => {
-    if (redirection) {
-      const target = redirection
-      setRedirection(null)
-      navigation.navigate(target)
-    }
-  })
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -69,7 +56,7 @@ export default function AccueilChoixScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={require('../../assets/logo_app.jpeg')}
+          source={{ uri: `https://backend-beta-six-39.vercel.app/uploads/logo.jpg` }}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -89,14 +76,9 @@ export default function AccueilChoixScreen({ navigation }) {
             <Animated.View key={r.key} style={[styles.cardWrap, { opacity, transform: [{ scale }] }]}>
               <TouchableOpacity
                 activeOpacity={0.85}
-                  onPress={async () => {
+                  onPress={() => {
                     const target = r.screen || 'SocialAuth'
-                    if (role) {
-                      setRedirection(target)
-                      await nettoyerSession()
-                    } else {
-                      navigation.navigate(target)
-                    }
+                    navigation.navigate(target)
                   }}
               >
                 <GlassContainer style={styles.card} blurType="light" intensity={60}>

@@ -1,7 +1,7 @@
 // Détail d'un événement (lecture seule)
 // Design glass (Apple Invites)
-import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import React, { useState, useEffect, useCallback } from 'react'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { spacing, fonts, textShadow, borderRadius } from '../../constants/theme'
 import { fetchEvenementDetailAPI } from '../../services/eventService'
@@ -25,6 +25,7 @@ export default function DetailEvenementScreen({ route }) {
   const [evenement, setEvenement] = useState(null)
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
     if (eventId) charger()
@@ -39,6 +40,16 @@ export default function DetailEvenementScreen({ route }) {
     } catch {}
     setLoading(false)
   }
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      const data = await fetchEvenementDetailAPI(eventId)
+      setEvenement(data.evenement || data)
+      setTickets(data.tickets || [])
+    } catch {}
+    setRefreshing(false)
+  }, [eventId])
 
   if (loading) {
     return (
@@ -66,7 +77,8 @@ export default function DetailEvenementScreen({ route }) {
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <OrganisateurLayout />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00C8FF', '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}>
         <GlassContainer blurType="light" style={s.header} intensity={35}>
           <Text style={s.title}>{evenement.nom}</Text>
           <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>

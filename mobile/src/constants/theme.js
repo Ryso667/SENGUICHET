@@ -105,6 +105,7 @@ export const fonts = {
     extraBold: 'Outfit_800ExtraBold',
     bold: 'Outfit_700Bold',
     semiBold: 'Outfit_600SemiBold',
+    medium: 'Outfit_500Medium',
     regular: 'Outfit_400Regular',
   },
   jakarta: {
