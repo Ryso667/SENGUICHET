@@ -11,10 +11,10 @@ const limiteEnvoiOTP = rateLimit({
   legacyHeaders: false,
 });
 
-// Limiteur pour la vérification de code OTP : 5 tentatives par minute par IP
+// Limiteur pour la vérification de code OTP : 3 tentatives par minute par IP
 const limiteVerifOTP = rateLimit({
   windowMs: 60 * 1000,
-  max: 5,
+  max: 3,
   message: { message: "Trop de tentatives. Réessaie dans une minute." },
   standardHeaders: true,
   legacyHeaders: false,
