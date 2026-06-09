@@ -31,7 +31,7 @@ export default function ScannerScreen({ navigation, route }) {
   const [nbTickets, setNbTickets] = useState(0)
   const [syncStatut, setSyncStatut] = useState(null) // 'chargement' | 'ok' | 'erreur'
   const intervalRef = useRef(null)
-  const { evenementId } = useAuth()
+  const { evenementId, evenementTitre } = useAuth()
   const animation = useRef(new Animated.Value(0)).current
   const insets = useSafeAreaInsets()
 
@@ -120,7 +120,7 @@ export default function ScannerScreen({ navigation, route }) {
         <View style={[styles.masqueHaut, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.titre}>Scanner un billet</Text>
           <View style={styles.infoRow}>
-            <Text style={styles.info}>{zone} — Événement #{eventId}</Text>
+            <Text style={styles.info}>{evenementTitre || `Événement #${eventId}`}</Text>
             {syncStatut === 'chargement' && (
               <ActivityIndicator size="small" color="#00C8FF" style={{ marginLeft: 8 }} />
             )}

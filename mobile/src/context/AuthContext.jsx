@@ -23,6 +23,7 @@ const STORAGE_KEY_ACHETEUR_PIN    = '@senguichet_acheteur_pin'
 const STORAGE_KEY_ORGA_EMAIL_SUGGESTION = '@senguichet_orga_email_suggestion'
 const STORAGE_KEY_ACHETEUR_EMAIL_SUGGESTION = '@senguichet_acheteur_email_suggestion'
 const STORAGE_KEY_EVENEMENT_ID = '@senguichet_evenement_id'
+const STORAGE_KEY_EVENEMENT_TITRE = '@senguichet_evenement_titre'
 
 // Décode le payload d'un JWT sans vérifier la signature (lecture seule des claims)
 // Convertit base64url → base64 avant de décoder (les JWT utilisent base64url)
@@ -48,6 +49,7 @@ export function AuthProvider({ children }) {
   const [orgaEmailSuggestion, setOrgaEmailSuggestion] = useState(null)
   const [acheteurEmailSuggestion, setAcheteurEmailSuggestion] = useState(null)
   const [evenementId, setEvenementId] = useState(null)
+  const [evenementTitre, setEvenementTitre] = useState(null)
 
   useEffect(() => {
     nettoyerDonneesLegacy()
@@ -71,9 +73,11 @@ export function AuthProvider({ children }) {
       } else if (roleStocke === 'controleur') {
         const token = await Securite.GET(STORAGE_KEY_JWT)
         const eventId = await Securite.GET(STORAGE_KEY_EVENEMENT_ID)
+        const eventTitre = await Securite.GET(STORAGE_KEY_EVENEMENT_TITRE)
         if (token) {
           setJwt(token)
           if (eventId) setEvenementId(Number(eventId))
+          if (eventTitre) setEvenementTitre(eventTitre)
           setRole('controleur')
         }
       } else if (roleStocke === 'organisateur') {
@@ -135,15 +139,18 @@ export function AuthProvider({ children }) {
     setNumeroTel(tel)
   }
 
-  // Stocke la session controleur : JWT + evenementId extrait du payload
+  // Stocke la session controleur : JWT + evenementId + evenementTitre extraits du payload
   const connecterControleur = async (token) => {
     const payload = decoderJWT(token)
     const eventId = payload.evenementId
+    const eventTitre = payload.evenementTitre
     await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'controleur')
     await Securite.SET(STORAGE_KEY_JWT, token)
     if (eventId) await Securite.SET(STORAGE_KEY_EVENEMENT_ID, String(eventId))
+    if (eventTitre) await Securite.SET(STORAGE_KEY_EVENEMENT_TITRE, String(eventTitre))
     setJwt(token)
     setEvenementId(eventId || null)
+    setEvenementTitre(eventTitre || null)
     setRole('controleur')
   }
 
@@ -213,6 +220,7 @@ export function AuthProvider({ children }) {
     await Securite.SUPPRIMER(STORAGE_KEY_PROFIL)
     await Securite.SUPPRIMER(STORAGE_KEY_ACHETEUR_EMAIL)
     await Securite.SUPPRIMER(STORAGE_KEY_EVENEMENT_ID)
+    await Securite.SUPPRIMER(STORAGE_KEY_EVENEMENT_TITRE)
     setRole(null)
     setNumeroTel(null)
     setJwt(null)
@@ -220,6 +228,7 @@ export function AuthProvider({ children }) {
     setUser(null)
     setProfil(null)
     setEvenementId(null)
+    setEvenementTitre(null)
     setHasSavedSession(false)
     setSessionEmail(null)
   }
@@ -249,6 +258,7 @@ export function AuthProvider({ children }) {
         user,
         profil,
         evenementId,
+        evenementTitre,
         chargement,
         connecterAcheteur,
         connecterAcheteurSocial,

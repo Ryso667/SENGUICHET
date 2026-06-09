@@ -383,7 +383,7 @@ const connexionControleur = async (req, res) => {
 
     const c = rows[0];
     const token = jwt.sign(
-      { codeId: c.code_id, evenementId: c.evenement_id, role: "CONTROLEUR" },
+      { codeId: c.code_id, evenementId: c.evenement_id, evenementTitre: c.evenement_titre, role: "CONTROLEUR" },
       JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
     );
