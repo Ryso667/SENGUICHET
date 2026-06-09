@@ -45,7 +45,7 @@ export default function ScannerScreen({ navigation, route }) {
       setNbTickets(nb)
       setSynchro('ok')
     } catch {
-      // Échec silencieux — le prochain interval (30s) réessayera
+      setSynchro(null)
     }
   }, [eventId, zone])
 
