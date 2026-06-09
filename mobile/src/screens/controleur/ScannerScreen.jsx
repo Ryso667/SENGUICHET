@@ -7,7 +7,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect } from '@react-navigation/native'
-import { verifierBillet, telechargerTickets } from '../../services/scanService'
+import { verifierBillet, telechargerTickets, synchroniser } from '../../services/scanService'
 import { useAuth } from '../../context/AuthContext'
 import { colors, fonts, textShadow } from '../../constants/theme'
 import ControleurLayout from '../../components/ControleurLayout'
@@ -76,6 +76,8 @@ export default function ScannerScreen({ navigation, route }) {
     try {
       const resultat = await verifierBillet(donnees)
       setScanne(resultat)
+      // Synchro immédiate en arrière-plan : si connecté, le badge OFFLINE disparaît
+      synchroniser()
       Animated.sequence([
         Animated.timing(animation, { toValue: 1, duration: 300, useNativeDriver: true }),
         Animated.delay(3000),
