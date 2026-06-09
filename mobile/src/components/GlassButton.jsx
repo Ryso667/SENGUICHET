@@ -4,7 +4,7 @@ import { useRef } from 'react'
 import { TouchableOpacity, Text, Animated, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
-import { glass, fonts, borderRadius, spacing, textShadow } from '../constants/theme'
+import { colors, glass, fonts, borderRadius, spacing, textShadow } from '../constants/theme'
 // Feedback haptique léger au press du bouton
 import { hapticLight } from '../utils/haptics'
 
@@ -43,7 +43,7 @@ export default function GlassButton({ title, icon, onPress, style, textStyle }) 
         activeOpacity={0.9}
       >
         <BlurView tint="light" intensity={50} style={styles.button}>
-          {icon && <Feather name={icon} size={18} color="#fff" style={styles.icon} />}
+          {icon && <Feather name={icon} size={18} color={colors.text} style={styles.icon} />}
           <Text style={[styles.title, textStyle]}>{title}</Text>
         </BlurView>
       </TouchableOpacity>
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontFamily: fonts.outfit.semiBold,
-    color: '#fff',
+    color: colors.text,
     letterSpacing: -0.2,
     ...textShadow,
   },

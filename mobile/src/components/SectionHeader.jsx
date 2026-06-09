@@ -2,6 +2,7 @@
 // Props : title (string), actionLabel (string, optionnel), onAction (fn, optionnel)
 import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { colors, fonts } from '../constants/theme'
 
 export default function SectionHeader({ title, actionLabel, onAction }) {
   return (
@@ -25,13 +26,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontFamily: 'Outfit_700Bold',
-    color: '#FFFFFF',
+    fontFamily: fonts.outfit.bold,
+    color: colors.text,
   },
   action: {
     fontSize: 13,
-    fontFamily: 'Outfit_600SemiBold',
-    color: '#D4A574',
+    fontFamily: fonts.outfit.semiBold,
+    color: colors.accent,
   },
   spacer: {
     flex: 1,

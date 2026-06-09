@@ -68,8 +68,9 @@ export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle
               onError={() => setImageError(true)}
             />
           )}
+          {/* Overlay gradient renforcé — fond légèrement plus opaque en bas pour garantir la lisibilité du texte blanc sur toutes les images */}
           <LinearGradient
-            colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)']}
+            colors={['rgba(0,0,0,0.05)', 'rgba(0,0,0,0.65)']}
             style={styles.overlay}
           />
           <View style={styles.badge}>

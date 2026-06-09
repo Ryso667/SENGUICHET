@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import GlassButton from '../../components/GlassButton'
 import GlassContainer from '../../components/GlassContainer'
-import { colors, spacing, fonts, textShadow } from '../../constants/theme'
+import { colors, spacing, fonts } from '../../constants/theme'
 import BlurBackground from '../../components/BlurBackground'
 
 // Composant de la barre de progression à 3 étapes
@@ -24,7 +24,7 @@ const Stepper = ({ etapeCourante }) => {
               <View
                 style={[
                   stepperStyles.ligne,
-                  { backgroundColor: estComplete ? colors.green : 'rgba(255,255,255,0.2)' },
+                  { backgroundColor: estComplete ? colors.green : 'rgba(0,0,0,0.1)' },
                 ]}
               />
             )}
@@ -84,7 +84,7 @@ const stepperStyles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -97,7 +97,7 @@ const stepperStyles = StyleSheet.create({
   cercleTexte: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
   },
   cercleTexteClair: {
     color: colors.white,
@@ -105,7 +105,7 @@ const stepperStyles = StyleSheet.create({
   label: {
     fontFamily: fonts.outfit.regular,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
     textAlign: 'center',
     position: 'absolute',
     top: 44,
@@ -113,7 +113,7 @@ const stepperStyles = StyleSheet.create({
   },
   labelForte: {
     fontFamily: fonts.outfit.semiBold,
-    color: '#fff',
+    color: colors.text,
   },
 })
 
@@ -174,15 +174,14 @@ const styles = StyleSheet.create({
   titre: {
     fontFamily: fonts.outfit.bold,
     fontSize: 24,
-    color: '#fff',
+    color: colors.text,
     marginBottom: spacing.sm,
     textAlign: 'center',
-    ...textShadow,
   },
   sousTitre: {
     fontFamily: fonts.outfit.regular,
     fontSize: 15,
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
@@ -194,7 +193,7 @@ const styles = StyleSheet.create({
   carteTexte: {
     fontFamily: fonts.outfit.regular,
     fontSize: 14,
-    color: '#fff',
+    color: colors.text,
     lineHeight: 20,
   },
 })

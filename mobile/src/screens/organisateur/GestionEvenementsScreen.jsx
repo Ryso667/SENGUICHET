@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, spacing, borderRadius, fonts, textShadow, categoryGradients } from '../../constants/theme'
+import { colors, spacing, borderRadius, fonts, categoryGradients } from '../../constants/theme'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
@@ -70,13 +70,13 @@ export default function GestionEvenementsScreen({ navigation }) {
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#D4A574', '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor={colors.accent} />}
         >
           {/* Header : titre + bouton demander — calqué sur le web */}
           <View style={s.header}>
             <Text style={s.headerTitle}>Mes événements</Text>
             <TouchableOpacity style={s.demanderBtn} onPress={() => navigation.navigate('MesDemandesTab')}>
-              <MaterialCommunityIcons name="clipboard-text-outline" size={16} color="#fff" />
+              <MaterialCommunityIcons name="clipboard-text-outline" size={16} color={colors.text} />
               <Text style={s.demanderBtnText}>Demander</Text>
             </TouchableOpacity>
           </View>
@@ -92,7 +92,7 @@ export default function GestionEvenementsScreen({ navigation }) {
               return (
                 <TouchableOpacity key={tab} style={[s.tab, isActive && s.tabActive]} onPress={() => setActiveTab(tab)} activeOpacity={0.7}>
                   {isActive ? (
-                    <LinearGradient colors={['#D4A574', '#C8945C']} style={s.tabGradient}>
+                    <LinearGradient colors={[colors.accent, '#D4835A']} style={s.tabGradient}>
                       <Text style={s.tabTextActive}>{tab}</Text>
                     </LinearGradient>
                   ) : (
@@ -202,14 +202,14 @@ const s = StyleSheet.create({
 
   /* Header */
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
-  refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginBottom: spacing.sm },
+  headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text },
+  refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginBottom: spacing.sm },
   demanderBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: 'rgba(212,165,116,0.15)', borderRadius: 12,
+    backgroundColor: 'rgba(199,81,58,0.15)', borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 8,
   },
-  demanderBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff' },
+  demanderBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text },
 
   /* Tabs */
   tabsBar: {
@@ -220,28 +220,28 @@ const s = StyleSheet.create({
   tab: { flex: 1, borderRadius: 14, overflow: 'hidden' },
   tabActive: {},
   tabGradient: { paddingVertical: 8, alignItems: 'center', borderRadius: 14 },
-  tabText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.5)', textAlign: 'center', paddingVertical: 8 },
+  tabText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.textTertiary, textAlign: 'center', paddingVertical: 8 },
   tabTextActive: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: '#fff', textAlign: 'center' },
 
   /* Search */
   searchContainer: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14,
+    backgroundColor: colors.inputBg, borderRadius: 14,
     paddingHorizontal: 14, height: 44, marginBottom: spacing.md,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.12)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.inputBorder,
   },
-  searchInput: { flex: 1, fontFamily: fonts.outfit.regular, fontSize: 14, color: '#fff' },
+  searchInput: { flex: 1, fontFamily: fonts.outfit.regular, fontSize: 14, color: colors.text },
 
   /* État vide */
   emptyState: { padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
-  emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
-  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', textAlign: 'center', lineHeight: 20 },
+  emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
+  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', lineHeight: 20 },
   emptyBtn: {
     marginTop: spacing.sm,
-    backgroundColor: 'rgba(212,165,116,0.15)', borderRadius: 12,
+    backgroundColor: 'rgba(199,81,58,0.15)', borderRadius: 12,
     paddingHorizontal: 20, paddingVertical: 10,
   },
-  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
+  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 
   /* Liste */
   eventsList: { gap: spacing.md },
@@ -261,17 +261,17 @@ const s = StyleSheet.create({
 
   cardBody: { padding: spacing.md },
   cardStats: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
-  cardPlaces: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
-  cardRevenu: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
+  cardPlaces: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary },
+  cardRevenu: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 
   cardBarRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   cardBarBg: { flex: 1, height: 6, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden' },
-  cardBarFill: { height: 6, borderRadius: 3, backgroundColor: '#D4A574' },
-  cardBarPct: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.5)', width: 36, textAlign: 'right' },
+  cardBarFill: { height: 6, borderRadius: 3, backgroundColor: colors.accent },
+  cardBarPct: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textTertiary, width: 36, textAlign: 'right' },
 
   cardBtn: {
-    backgroundColor: 'rgba(212,165,116,0.12)', borderRadius: 10,
+    backgroundColor: 'rgba(199,81,58,0.12)', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
-  cardBtnText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
+  cardBtnText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 })

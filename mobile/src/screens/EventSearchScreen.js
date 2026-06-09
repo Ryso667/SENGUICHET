@@ -6,7 +6,7 @@ import { View, Text, TextInput, FlatList, StyleSheet, useWindowDimensions, Scrol
 import { useFocusEffect } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { fonts, spacing, glass } from '../constants/theme'
+import { fonts, spacing, glass, colors } from '../constants/theme'
 import BlurBackground, { optimiserUrlCloudinary } from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
@@ -22,16 +22,16 @@ function SearchHeader({ search, setSearch, activeCat, setActiveCat }) {
   return (
     <>
       <GlassContainer style={styles.searchBar} blurType="light" intensity={60}>
-        <Feather name="search" size={16} color="rgba(255,255,255,0.6)" />
+        <Feather name="search" size={16} color={colors.textSecondary} />
         <TextInput
           style={styles.searchInput}
           placeholder="Concert à Dakar..."
-          placeholderTextColor="rgba(255,255,255,0.5)"
+          placeholderTextColor={colors.textTertiary}
           value={search}
           onChangeText={setSearch}
         />
         {search.length > 0 && (
-          <Feather name="x" size={16} color="rgba(255,255,255,0.6)" onPress={() => setSearch('')} />
+          <Feather name="x" size={16} color={colors.textSecondary} onPress={() => setSearch('')} />
         )}
       </GlassContainer>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow} contentContainerStyle={styles.chipsContent}>
@@ -142,14 +142,14 @@ export default function EventSearchScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f0f2a' },
+  container: { flex: 1, backgroundColor: colors.bg },
   searchBar: {
     flexDirection: 'row', alignItems: 'center',
     marginHorizontal: spacing.lg, marginTop: spacing.md,
     paddingHorizontal: spacing.md, paddingVertical: 12, gap: 10,
   },
   searchInput: {
-    flex: 1, fontSize: 14, fontFamily: fonts.jakarta.regular, color: '#fff',
+    flex: 1, fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.text,
     padding: 0,
   },
   chipsRow: { marginTop: spacing.md, marginBottom: spacing.sm },

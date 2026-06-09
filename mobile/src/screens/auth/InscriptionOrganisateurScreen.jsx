@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { inscrireOrganisateur } from '../../services/authService'
 import { hapticMedium } from '../../utils/haptics'
 import GlassButton from '../../components/GlassButton'
-import { colors, spacing, textShadow } from '../../constants/theme'
+import { colors, spacing } from '../../constants/theme'
 import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
 
@@ -142,7 +142,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
               value={nom}
               onChangeText={setNom}
               placeholder="Ton nom"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor={colors.textTertiary}
               autoCapitalize="words"
             />
           </GlassContainer>
@@ -156,7 +156,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
               onChangeText={(t) => setTelephone(formatterTelephone(t))}
               keyboardType="phone-pad"
               placeholder="+221 XX XXX XX XX"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor={colors.textTertiary}
             />
           </GlassContainer>
 
@@ -170,7 +170,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
               keyboardType="email-address"
               autoCapitalize="none"
               placeholder="exemple@email.com"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor={colors.textTertiary}
             />
           </GlassContainer>
 
@@ -183,7 +183,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
               onChangeText={setMdp}
               secureTextEntry
               placeholder="Minimum 8 caractères"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor={colors.textTertiary}
             />
           </GlassContainer>
 
@@ -196,7 +196,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
                     key={n}
                     style={[
                       styles.barreForce,
-                      { backgroundColor: n <= forceMdp.score ? forceMdp.couleur : 'rgba(255,255,255,0.2)' },
+                      { backgroundColor: n <= forceMdp.score ? forceMdp.couleur : 'rgba(0,0,0,0.08)' },
                     ]}
                   />
                 ))}
@@ -216,7 +216,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
               onChangeText={setConfirmMdp}
               secureTextEntry
               placeholder="Retaper le mot de passe"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor={colors.textTertiary}
             />
           </GlassContainer>
 
@@ -272,27 +272,26 @@ const styles = StyleSheet.create({
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: '#fff',
+    color: colors.text,
     marginBottom: 8,
-    ...textShadow,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
     marginBottom: 32,
   },
   label: {
     fontFamily: 'Outfit_500Medium',
     fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
+    color: colors.text,
     marginBottom: 6,
   },
   inputWrap: { marginBottom: 16, borderRadius: 14, height: 56, justifyContent: 'center', paddingHorizontal: 16 },
   input: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 16,
-    color: '#fff',
+    color: colors.text,
   },
   forceConteneur: {
     flexDirection: 'row',
@@ -333,7 +332,7 @@ const styles = StyleSheet.create({
   lienConnexionText: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
   },
   lienConnexionBtn: {
     paddingVertical: 0,
@@ -345,8 +344,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(0,0,0,0.04)',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: colors.border,
   },
 })

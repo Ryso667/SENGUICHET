@@ -5,7 +5,7 @@ import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshCon
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
+import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
 import { listerMesDemandes, soumettreDemandeEvenement, fetchEvenementsAPI } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
 import * as ImagePicker from 'expo-image-picker'
@@ -359,24 +359,24 @@ export default function MesDemandesScreen({ navigation }) {
             <Text style={f.timeLabel}>Heure</Text>
             <View style={f.timeCol}>
               <TouchableOpacity onPress={() => setEditHour(editHour === 23 ? 0 : editHour + 1)}>
-                <Feather name="chevron-up" size={20} color="rgba(255,255,255,0.5)" />
+                <Feather name="chevron-up" size={20} color={colors.textTertiary} />
               </TouchableOpacity>
               <Text style={f.timeValue}>{editHour.toString().padStart(2, '0')}</Text>
               <TouchableOpacity onPress={() => setEditHour(editHour === 0 ? 23 : editHour - 1)}>
-                <Feather name="chevron-down" size={20} color="rgba(255,255,255,0.5)" />
+                <Feather name="chevron-down" size={20} color={colors.textTertiary} />
               </TouchableOpacity>
             </View>
           </View>
-          <Text style={{ fontSize: 24, color: '#fff', fontFamily: fonts.outfit.bold, alignSelf: 'center', paddingBottom: 8 }}>:</Text>
+          <Text style={{ fontSize: 24, color: colors.text, fontFamily: fonts.outfit.bold, alignSelf: 'center', paddingBottom: 8 }}>:</Text>
           <View style={{ flex: 1, alignItems: 'center' }}>
             <Text style={f.timeLabel}>Minutes</Text>
             <View style={f.timeCol}>
               <TouchableOpacity onPress={() => setEditMinute(editMinute === 55 ? 0 : editMinute + 5)}>
-                <Feather name="chevron-up" size={20} color="rgba(255,255,255,0.5)" />
+                <Feather name="chevron-up" size={20} color={colors.textTertiary} />
               </TouchableOpacity>
               <Text style={f.timeValue}>{editMinute.toString().padStart(2, '0')}</Text>
               <TouchableOpacity onPress={() => setEditMinute(editMinute === 0 ? 55 : editMinute - 5)}>
-                <Feather name="chevron-down" size={20} color="rgba(255,255,255,0.5)" />
+                <Feather name="chevron-down" size={20} color={colors.textTertiary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -408,7 +408,7 @@ export default function MesDemandesScreen({ navigation }) {
   const renderInput = (placeholder, value, onChange, extra) => {
     const { style: extraStyle, ...rest } = extra || {}
     return (
-      <TextInput style={[f.input, extraStyle]} placeholder={placeholder} placeholderTextColor="rgba(255,255,255,0.3)" value={value} onChangeText={onChange} selectionColor="rgba(255,255,255,0.5)" {...rest} />
+      <TextInput style={[f.input, extraStyle]} placeholder={placeholder} placeholderTextColor={colors.textTertiary} value={value} onChangeText={onChange} selectionColor="rgba(255,255,255,0.5)" {...rest} />
     )
   }
 
@@ -420,13 +420,13 @@ export default function MesDemandesScreen({ navigation }) {
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#D4A574', '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor={colors.accent} />}
         >
           {/* Header */}
           <View style={s.header}>
             <Text style={s.headerTitle}>Mes demandes</Text>
             <TouchableOpacity style={s.newBtn} onPress={openNewDemande}>
-              <LinearGradient colors={['#D4A574', '#C8945C']} style={s.newBtnGrad}>
+              <LinearGradient colors={[colors.accent, '#D4835A']} style={s.newBtnGrad}>
                 <MaterialCommunityIcons name="calendar-plus" size={16} color="#fff" />
                 <Text style={s.newBtnText}>Nouvelle demande</Text>
               </LinearGradient>
@@ -441,7 +441,7 @@ export default function MesDemandesScreen({ navigation }) {
             <Skeleton type="card" count={3} />
           ) : demandes.length === 0 ? (
             <GlassContainer blurType="light" style={s.emptyState}>
-              <MaterialCommunityIcons name="inbox-outline" size={56} color="rgba(255,255,255,0.2)" />
+              <MaterialCommunityIcons name="inbox-outline" size={56} color={colors.textTertiary} />
               <Text style={s.emptyTitle}>Aucune demande</Text>
               <Text style={s.emptySub}>Vous n'avez encore fait aucune demande.</Text>
               <TouchableOpacity style={s.emptyBtn} onPress={openNewDemande}>
@@ -498,7 +498,7 @@ export default function MesDemandesScreen({ navigation }) {
                 <>
                   <View style={s.modalHeader}>
                     <Text style={s.modalTitle}>Détail de la demande</Text>
-                    <TouchableOpacity onPress={closeModal}><MaterialCommunityIcons name="close" size={20} color="rgba(255,255,255,0.5)" /></TouchableOpacity>
+                    <TouchableOpacity onPress={closeModal}><MaterialCommunityIcons name="close" size={20} color={colors.textTertiary} /></TouchableOpacity>
                   </View>
 
                   <View style={s.detailBadgeRow}>
@@ -563,7 +563,7 @@ export default function MesDemandesScreen({ navigation }) {
                     <Text style={s.modalTitle}>
                       {typeAction === 'CREATION' ? 'Nouvel événement' : typeAction === 'MODIFICATION' ? 'Modifier' : 'Supprimer'}
                     </Text>
-                    <TouchableOpacity onPress={closeModal}><MaterialCommunityIcons name="close" size={20} color="rgba(255,255,255,0.5)" /></TouchableOpacity>
+                    <TouchableOpacity onPress={closeModal}><MaterialCommunityIcons name="close" size={20} color={colors.textTertiary} /></TouchableOpacity>
                   </View>
 
                   {error ? (
@@ -584,10 +584,10 @@ export default function MesDemandesScreen({ navigation }) {
                       {/* Catégorie */}
                       {renderLabel('Catégorie', true)}
                       <TouchableOpacity style={f.pickerBtn} onPress={() => setCatVisible(true)}>
-                        <Text style={[f.pickerBtnText, !categorie && { color: 'rgba(255,255,255,0.3)' }]}>
+                        <Text style={[f.pickerBtnText, !categorie && { color: colors.textTertiary }]}>
                           {categorie || 'Sélectionner une catégorie'}
                         </Text>
-                        <Feather name="chevron-down" size={16} color="rgba(255,255,255,0.4)" />
+                        <Feather name="chevron-down" size={16} color={colors.textTertiary} />
                       </TouchableOpacity>
 
                       {renderLabel('Description', true)}
@@ -601,10 +601,10 @@ export default function MesDemandesScreen({ navigation }) {
                         <View style={{ flex: 1 }}>
                           {renderLabel('Ville', true)}
                           <TouchableOpacity style={f.pickerBtn} onPress={() => setVilleVisible(true)}>
-                            <Text style={[f.pickerBtnText, !ville && { color: 'rgba(255,255,255,0.3)' }]}>
+                            <Text style={[f.pickerBtnText, !ville && { color: colors.textTertiary }]}>
                               {ville || 'Ville'}
                             </Text>
-                            <Feather name="chevron-down" size={16} color="rgba(255,255,255,0.4)" />
+                            <Feather name="chevron-down" size={16} color={colors.textTertiary} />
                           </TouchableOpacity>
                         </View>
                       </View>
@@ -612,30 +612,30 @@ export default function MesDemandesScreen({ navigation }) {
                       {/* Date début */}
                       {renderLabel('Date début', true)}
                       <TouchableOpacity style={f.pickerBtn} onPress={() => setDateExpanded(!dateExpanded)}>
-                        <Text style={[f.pickerBtnText, !dateDebut && { color: 'rgba(255,255,255,0.3)' }]}>
+                        <Text style={[f.pickerBtnText, !dateDebut && { color: colors.textTertiary }]}>
                           {dateDebut || 'Sélectionner une date'}
                         </Text>
-                        <Feather name={dateExpanded ? 'chevron-up' : 'chevron-down'} size={16} color="rgba(255,255,255,0.4)" />
+                        <Feather name={dateExpanded ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textTertiary} />
                       </TouchableOpacity>
                       {renderCalendar('date')}
 
                       {/* Date fin */}
                       {renderLabel('Date fin')}
                       <TouchableOpacity style={f.pickerBtn} onPress={() => setDateFinExpanded(!dateFinExpanded)}>
-                        <Text style={[f.pickerBtnText, !dateFin && { color: 'rgba(255,255,255,0.3)' }]}>
+                        <Text style={[f.pickerBtnText, !dateFin && { color: colors.textTertiary }]}>
                           {dateFin || 'Même jour (par défaut)'}
                         </Text>
-                        <Feather name={dateFinExpanded ? 'chevron-up' : 'chevron-down'} size={16} color="rgba(255,255,255,0.4)" />
+                        <Feather name={dateFinExpanded ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textTertiary} />
                       </TouchableOpacity>
                       {renderCalendar('dateFin')}
 
                       {/* Horaire */}
                       {renderLabel('Horaire')}
                       <TouchableOpacity style={f.pickerBtn} onPress={() => setHeureExpanded(!heureExpanded)}>
-                        <Text style={[f.pickerBtnText, !heure && { color: 'rgba(255,255,255,0.3)' }]}>
+                        <Text style={[f.pickerBtnText, !heure && { color: colors.textTertiary }]}>
                           {heure || 'Sélectionner l\'heure (optionnel)'}
                         </Text>
-                        <Feather name={heureExpanded ? 'chevron-up' : 'chevron-down'} size={16} color="rgba(255,255,255,0.4)" />
+                        <Feather name={heureExpanded ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textTertiary} />
                       </TouchableOpacity>
                       {heureExpanded && renderTimePicker()}
 
@@ -651,7 +651,7 @@ export default function MesDemandesScreen({ navigation }) {
                           <Image source={{ uri: affichePreview }} style={f.affichePreview} />
                         ) : (
                           <>
-                            <MaterialCommunityIcons name="image-plus-outline" size={28} color="rgba(255,255,255,0.3)" />
+                            <MaterialCommunityIcons name="image-plus-outline" size={28} color={colors.textTertiary} />
                             <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>Ajouter une affiche</Text>
                           </>
                         )}
@@ -661,17 +661,17 @@ export default function MesDemandesScreen({ navigation }) {
                       <View style={f.catHeader}>
                         <Text style={f.label}>Catégories de tickets <Text style={{ color: '#FF4D6D' }}>*</Text></Text>
                         <TouchableOpacity style={f.addCatBtn} onPress={addCategory}>
-                          <MaterialCommunityIcons name="plus" size={14} color="#D4A574" />
+                          <MaterialCommunityIcons name="plus" size={14} color={colors.accent} />
                         </TouchableOpacity>
                       </View>
                       {categories.map((cat, i) => (
                         <View key={i} style={f.catRow}>
                           <View style={{ flex: 1, marginRight: 4 }}>
                             <TouchableOpacity style={f.catPickerBtn} onPress={() => setBilletCatIndex(i)}>
-                              <Text style={[f.catPickerText, !cat.nom && { color: 'rgba(255,255,255,0.3)' }]} numberOfLines={1}>
+                              <Text style={[f.catPickerText, !cat.nom && { color: colors.textTertiary }]} numberOfLines={1}>
                                 {cat.nom || 'Catégorie'}
                               </Text>
-                              <Feather name="chevron-down" size={14} color="rgba(255,255,255,0.4)" />
+                              <Feather name="chevron-down" size={14} color={colors.textTertiary} />
                             </TouchableOpacity>
                           </View>
                           {renderInput('Places', cat.places, (v) => updateCategory(i, 'places', v), { style: { flex: 1, marginHorizontal: 4 }, keyboardType: 'numeric' })}
@@ -690,10 +690,10 @@ export default function MesDemandesScreen({ navigation }) {
                     <>
                       {renderLabel('Événement concerné', true)}
                       <TouchableOpacity style={f.pickerBtn} onPress={() => setEventsVisible(true)}>
-                        <Text style={[f.pickerBtnText, !titre && { color: 'rgba(255,255,255,0.3)' }]} numberOfLines={1}>
+                        <Text style={[f.pickerBtnText, !titre && { color: colors.textTertiary }]} numberOfLines={1}>
                           {titre || 'Sélectionner un événement'}
                         </Text>
-                        <Feather name="chevron-down" size={16} color="rgba(255,255,255,0.4)" />
+                        <Feather name="chevron-down" size={16} color={colors.textTertiary} />
                       </TouchableOpacity>
                     </>
                   )}
@@ -705,7 +705,7 @@ export default function MesDemandesScreen({ navigation }) {
                   )}
 
                   <TouchableOpacity style={f.submitBtn} onPress={handleSubmit} disabled={sending}>
-                    <LinearGradient colors={['#D4A574', '#C8945C']} style={f.submitGrad}>
+                    <LinearGradient colors={[colors.accent, '#D4835A']} style={f.submitGrad}>
                       {sending ? (
                         <ActivityIndicator color="#fff" />
                       ) : (
@@ -807,64 +807,64 @@ const s = StyleSheet.create({
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 40 },
 
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
-  refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginBottom: spacing.sm },
+  headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text },
+  refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginBottom: spacing.sm },
   newBtn: { borderRadius: 12, overflow: 'hidden' },
   newBtnGrad: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 9 },
   newBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff' },
 
   emptyState: { padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
-  emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
-  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', textAlign: 'center' },
-  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, backgroundColor: 'rgba(212,165,116,0.15)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
-  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
+  emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
+  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center' },
+  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, backgroundColor: 'rgba(199,81,58,0.15)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
+  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 
   list: { gap: spacing.sm },
   card: { padding: spacing.md },
   cardTop: { flexDirection: 'row', alignItems: 'center' },
   cardInfo: { flex: 1 },
   cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  cardType: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#fff' },
+  cardType: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text },
   cardBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   cardBadgeText: { fontSize: 10, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.3 },
-  cardDate: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', marginTop: 2 },
+  cardDate: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, marginTop: 2 },
   cardComment: { fontSize: 11, fontFamily: fonts.jakarta.regular, marginTop: 2, fontStyle: 'italic' },
   detailBtn: {
-    borderWidth: 1, borderColor: 'rgba(212,165,116,0.3)', borderRadius: 10,
+    borderWidth: 1, borderColor: 'rgba(199,81,58,0.3)', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 6, marginLeft: spacing.sm,
   },
-  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
+  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 
   /* Modal */
   modalOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'flex-end' },
   modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
   modalContent: {
-    backgroundColor: '#2C2C30', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24,
     padding: spacing.lg, maxHeight: '85%',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.08)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
   },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg },
-  modalTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: '#fff' },
+  modalTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text },
 
   /* Détail */
   detailBadgeRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
-  detailTypeBadge: { backgroundColor: 'rgba(212,165,116,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
-  detailSub: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', marginBottom: spacing.md },
+  detailTypeBadge: { backgroundColor: 'rgba(199,81,58,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  detailSub: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, marginBottom: spacing.md },
   detailImageWrap: { height: 160, borderRadius: 12, overflow: 'hidden', marginBottom: spacing.md },
   detailImage: { width: '100%', height: '100%' },
   detailImageOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.15)' },
   detailTwoCol: { flexDirection: 'row', gap: spacing.md },
   commentBox: { padding: spacing.md, borderRadius: 12, borderWidth: 1, marginTop: spacing.sm },
   commentLabel: { fontSize: 10, fontFamily: fonts.outfit.semiBold, marginBottom: 4 },
-  commentValue: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
+  commentValue: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary },
 
   /* Succès */
   successWrap: { alignItems: 'center', paddingVertical: 30, gap: spacing.sm },
-  successTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: '#fff' },
-  successSub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textAlign: 'center', lineHeight: 20 },
-  successBtn: { marginTop: spacing.md, backgroundColor: 'rgba(212,165,116,0.15)', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
-  successBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
+  successTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text },
+  successSub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
+  successBtn: { marginTop: spacing.md, backgroundColor: 'rgba(199,81,58,0.15)', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
+  successBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 
   /* Erreur */
   errorBox: { padding: spacing.sm, marginBottom: spacing.md },
@@ -881,19 +881,19 @@ const s = StyleSheet.create({
 })
 
 const f = StyleSheet.create({
-  label: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.6)', marginBottom: 6, marginTop: 4 },
+  label: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary, marginBottom: 6, marginTop: 4 },
   input: {
-    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10,
-    paddingHorizontal: 14, height: 44, fontSize: 14, fontFamily: fonts.jakarta.regular, color: '#fff',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)', marginBottom: spacing.sm,
+    backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: 10,
+    paddingHorizontal: 14, height: 44, fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.text,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, marginBottom: spacing.sm,
   },
   selectRow: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.sm, flexWrap: 'wrap' },
   selectOpt: {
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    borderWidth: 1, borderColor: 'rgba(212,165,116,0.3)',
+    borderWidth: 1, borderColor: 'rgba(199,81,58,0.3)',
   },
-  selectOptActive: { backgroundColor: '#D4A574', borderColor: '#D4A574' },
-  selectOptText: { fontSize: 12, fontFamily: fonts.outfit.regular, color: 'rgba(255,255,255,0.6)' },
+  selectOptActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+  selectOptText: { fontSize: 12, fontFamily: fonts.outfit.regular, color: colors.textSecondary },
   selectOptTextActive: { color: '#fff' },
   twoCol: { flexDirection: 'row', gap: spacing.sm },
   uploadZone: {
@@ -902,14 +902,14 @@ const f = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   catHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
-  addCatBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(212,165,116,0.15)', alignItems: 'center', justifyContent: 'center' },
+  addCatBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(199,81,58,0.15)', alignItems: 'center', justifyContent: 'center' },
   catRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   submitBtn: { borderRadius: 12, overflow: 'hidden', marginTop: spacing.md },
   submitGrad: { paddingVertical: 14, alignItems: 'center' },
   submitText: { fontSize: 14, fontFamily: fonts.outfit.bold, color: '#fff' },
   detailField: { marginBottom: spacing.sm },
-  detailLabel: { fontSize: 10, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.4)', marginBottom: 2 },
-  detailValue: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: '#fff' },
+  detailLabel: { fontSize: 10, fontFamily: fonts.outfit.semiBold, color: colors.textTertiary, marginBottom: 2 },
+  detailValue: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.text },
 
   /* Picker bouton */
   pickerBtn: {
@@ -919,7 +919,7 @@ const f = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)',
     marginBottom: spacing.sm,
   },
-  pickerBtnText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: '#fff', flex: 1 },
+  pickerBtnText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.text, flex: 1 },
 
   /* Catégorie billet picker dans la row */
   catPickerBtn: {
@@ -928,7 +928,7 @@ const f = StyleSheet.create({
     paddingHorizontal: 10, height: 40,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)',
   },
-  catPickerText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: '#fff', flex: 1 },
+  catPickerText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.text, flex: 1 },
 
   /* Affiche preview */
   affichePreview: { width: '100%', height: 140, borderRadius: 10, resizeMode: 'cover' },
@@ -936,24 +936,24 @@ const f = StyleSheet.create({
   /* Calendrier */
   calendar: { padding: 12, marginBottom: spacing.sm },
   calHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  calHeaderText: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#fff' },
+  calHeaderText: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.text },
   calWeek: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 8 },
-  calWeekDay: { width: 32, textAlign: 'center', fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' },
+  calWeekDay: { width: 32, textAlign: 'center', fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textTertiary, textTransform: 'uppercase' },
   calGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   calDay: { width: '14.28%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center' },
-  calDaySelected: { backgroundColor: '#D4A574', borderRadius: 20 },
-  calDayText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
+  calDaySelected: { backgroundColor: colors.accent, borderRadius: 20 },
+  calDayText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textSecondary },
   calDayTextSelected: { color: '#fff', fontFamily: fonts.outfit.semiBold },
 
   /* Time picker */
   timePicker: { padding: 12, marginBottom: spacing.sm },
   timeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  timeLabel: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.4)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 },
+  timeLabel: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textTertiary, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 },
   timeCol: { alignItems: 'center', gap: 4 },
-  timeValue: { fontSize: 28, fontFamily: fonts.outfit.bold, color: '#fff', paddingVertical: 4 },
+  timeValue: { fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.text, paddingVertical: 4 },
   timeConfirmBtn: {
-    backgroundColor: 'rgba(212,165,116,0.15)', borderRadius: 10,
+    backgroundColor: 'rgba(199,81,58,0.15)', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
-  timeConfirmText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
+  timeConfirmText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 })

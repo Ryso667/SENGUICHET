@@ -3,6 +3,7 @@
 import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
+import { colors, fonts, borderRadius, spacing } from '../constants/theme'
 import StatusBadge from './StatusBadge'
 import ProgressBar from './ProgressBar'
 
@@ -23,11 +24,11 @@ export default function EventCard({ event, onPress, onDetail }) {
       </View>
       <View style={styles.meta}>
         <View style={styles.metaItem}>
-          <Feather name="map-pin" size={12} color="#D4A574" />
+          <Feather name="map-pin" size={12} color={colors.accent} />
           <Text style={styles.metaText}>{event.lieu || 'Non spécifié'}</Text>
         </View>
         <View style={styles.metaItem}>
-          <Feather name="calendar" size={12} color="#D4A574" />
+          <Feather name="calendar" size={12} color={colors.accent} />
           <Text style={styles.metaText}>{formatDate(event.date)}</Text>
         </View>
       </View>
@@ -43,10 +44,10 @@ export default function EventCard({ event, onPress, onDetail }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#2C2C30',
-    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(212,165,116,0.15)',
+    borderColor: colors.border,
     padding: 16,
     marginBottom: 12,
   },
@@ -58,8 +59,8 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 16,
-    fontFamily: 'Outfit_700Bold',
-    color: '#FFFFFF',
+    fontFamily: fonts.outfit.bold,
+    color: colors.text,
     flex: 1,
     marginRight: 8,
   },
@@ -75,22 +76,22 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    fontFamily: 'Outfit_400Regular',
-    color: '#B0B0B8',
+    fontFamily: fonts.outfit.regular,
+    color: colors.textSecondary,
   },
   progressSection: {
     marginBottom: 12,
   },
   detailBtn: {
     borderWidth: 1,
-    borderColor: '#D4A574',
+    borderColor: colors.accent,
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
   },
   detailBtnText: {
     fontSize: 13,
-    fontFamily: 'Outfit_600SemiBold',
-    color: '#D4A574',
+    fontFamily: fonts.outfit.semiBold,
+    color: colors.accent,
   },
 })

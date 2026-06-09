@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Linking, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { fonts, spacing, borderRadius, glass } from '../constants/theme'
+import { fonts, spacing, borderRadius, glass, colors } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
@@ -35,13 +35,13 @@ export default function SupportScreen() {
         {/* Contacts */}
         <GlassContainer style={styles.contactsCard} intensity={40}>
           <View style={styles.contactRow}>
-            <Feather name="mail" size={16} color="#D4A574" />
+            <Feather name="mail" size={16} color={colors.accent} />
             <Text style={styles.contactText}>support@senguichet.sn</Text>
             <GlassChip label="Copier" onPress={() => {}} />
           </View>
           <View style={styles.divider} />
           <TouchableOpacity style={styles.contactRow} onPress={handleCall}>
-            <Feather name="phone" size={16} color="#00E5A0" />
+            <Feather name="phone" size={16} color={colors.green} />
             <Text style={styles.contactText}>+221 77 123 45 67</Text>
             <GlassChip label="Appeler" onPress={handleCall} />
           </TouchableOpacity>
@@ -62,7 +62,7 @@ export default function SupportScreen() {
               <GlassContainer style={styles.faqItem} intensity={40}>
                 <View style={styles.faqHeader}>
                   <Text style={styles.faqQuestion}>{item.q}</Text>
-                  <Feather name={open ? 'chevron-up' : 'chevron-down'} size={16} color="rgba(255,255,255,0.6)" />
+                  <Feather name={open ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textSecondary} />
                 </View>
                 {open && <Text style={styles.faqAnswer}>{item.r}</Text>}
               </GlassContainer>
@@ -75,32 +75,32 @@ export default function SupportScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f0f2a' },
+  container: { flex: 1, backgroundColor: colors.bg },
   scroll: { flex: 1 },
   scrollContent: { padding: spacing.lg, paddingBottom: spacing.xl, gap: spacing.md },
   headerCard: { padding: spacing.md, alignItems: 'center' },
-  title: { fontSize: 22, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.5 },
-  subtitle: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', marginTop: 4 },
+  title: { fontSize: 22, fontFamily: fonts.outfit.bold, color: colors.text, letterSpacing: -0.5 },
+  subtitle: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 4 },
   contactsCard: { padding: spacing.md },
   contactRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10,
   },
   contactText: {
-    flex: 1, fontSize: 13, fontFamily: fonts.jakarta.regular, color: '#fff',
+    flex: 1, fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.text,
   },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: glass.borderLight },
   faqTitle: {
-    fontSize: 16, fontFamily: fonts.outfit.bold, color: '#fff', letterSpacing: -0.3, marginTop: 8,
+    fontSize: 16, fontFamily: fonts.outfit.bold, color: colors.text, letterSpacing: -0.3, marginTop: 8,
   },
   faqItem: { padding: spacing.md },
   faqHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   faqQuestion: {
-    flex: 1, fontSize: 13, fontFamily: fonts.jakarta.semiBold, color: '#fff', marginRight: spacing.sm,
+    flex: 1, fontSize: 13, fontFamily: fonts.jakarta.semiBold, color: colors.text, marginRight: spacing.sm,
   },
   faqAnswer: {
     fontSize: 12, fontFamily: fonts.jakarta.regular,
-    color: 'rgba(255,255,255,0.7)', marginTop: spacing.sm, lineHeight: 18,
+    color: colors.textSecondary, marginTop: spacing.sm, lineHeight: 18,
   },
 })

@@ -2,6 +2,7 @@
 // Props : demande (object), onPress (fn), onDetail (fn)
 import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { colors, fonts, borderRadius, spacing } from '../constants/theme'
 import StatusBadge from './StatusBadge'
 
 const MONTHS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
@@ -36,10 +37,10 @@ export default function DemandeCard({ demande, onPress, onDetail }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#2C2C30',
-    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(212,165,116,0.15)',
+    borderColor: colors.border,
     padding: 16,
     marginBottom: 12,
   },
@@ -55,31 +56,31 @@ const styles = StyleSheet.create({
   },
   type: {
     fontSize: 15,
-    fontFamily: 'Outfit_700Bold',
-    color: '#FFFFFF',
+    fontFamily: fonts.outfit.bold,
+    color: colors.text,
   },
   date: {
     fontSize: 12,
-    fontFamily: 'Outfit_400Regular',
-    color: '#B0B0B8',
+    fontFamily: fonts.outfit.regular,
+    color: colors.textSecondary,
     marginTop: 2,
   },
   eventName: {
     fontSize: 12,
-    fontFamily: 'Outfit_400Regular',
-    color: '#B0B0B8',
+    fontFamily: fonts.outfit.regular,
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   detailBtn: {
     borderWidth: 1,
-    borderColor: '#D4A574',
+    borderColor: colors.accent,
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
   },
   detailBtnText: {
     fontSize: 13,
-    fontFamily: 'Outfit_600SemiBold',
-    color: '#D4A574',
+    fontFamily: fonts.outfit.semiBold,
+    color: colors.accent,
   },
 })

@@ -6,7 +6,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Tex
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
-import { fonts, spacing, textShadow, colors, glass, gradients, borderRadius as br } from '../../constants/theme'
+import { fonts, spacing, colors, glass, gradients, borderRadius as br } from '../../constants/theme'
 import { useAuth } from '../../context/AuthContext'
 import { envoyerCodeOTP } from '../../services/authService'
 import BlurBackground from '../../components/BlurBackground'
@@ -116,7 +116,7 @@ export default function SocialAuthScreen({ navigation }) {
         <View style={[styles.container, { paddingTop: insets.top + 40 }]}>
           {/* Bouton retour natif toujours visible */}
           <TouchableOpacity style={styles.backBtn} onPress={etape === 'email' ? () => navigation.goBack() : handleRetour}>
-            <Ionicons name="arrow-back" size={20} color="#fff" />
+            <Ionicons name="arrow-back" size={20} color={colors.text} />
           </TouchableOpacity>
 
           <GlassContainer style={styles.card}>
@@ -138,7 +138,7 @@ export default function SocialAuthScreen({ navigation }) {
                       value={email}
                       onChangeText={setEmail}
                       placeholder="email"
-                      placeholderTextColor="rgba(255,255,255,0.35)"
+                      placeholderTextColor={colors.textTertiary}
                       keyboardType="email-address"
                       autoCapitalize="none"
                       autoCorrect={false}
@@ -176,7 +176,7 @@ export default function SocialAuthScreen({ navigation }) {
                       value={code}
                       onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 6))}
                       placeholder="••••••"
-                      placeholderTextColor="rgba(255,255,255,0.35)"
+                      placeholderTextColor={colors.textTertiary}
                       keyboardType="number-pad"
                       maxLength={6}
                       editable={!loading}
@@ -200,7 +200,7 @@ export default function SocialAuthScreen({ navigation }) {
                     </TouchableOpacity>
                   </LinearGradient>
                   <TouchableOpacity style={styles.renvoyerBtn} onPress={handleEnvoyerCode} disabled={loading || resendCooldown > 0}>
-                    <Text style={[styles.renvoyerBtnText, resendCooldown > 0 && { color: 'rgba(255,255,255,0.3)', textDecorationLine: 'none' }]}>
+                    <Text style={[styles.renvoyerBtnText, resendCooldown > 0 && { color: colors.textTertiary, textDecorationLine: 'none' }]}>
                       {resendCooldown > 0 ? `Renvoyer (${resendCooldown}s)` : 'Renvoyer le code'}
                     </Text>
                   </TouchableOpacity>
@@ -265,7 +265,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: colors.textWhite,
     marginBottom: spacing.sm,
-    ...textShadow,
   },
   subtitle: {
     fontFamily: fonts.jakarta.regular,

@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Animated, Alert } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
-import { colors, spacing, borderRadius, fonts, textShadow, glass } from '../../constants/theme'
+import { colors, spacing, borderRadius, fonts, glass } from '../../constants/theme'
 import { useAuth } from '../../context/AuthContext'
 import { appelAPI } from '../../services/apiService'
 import OrganisateurLayout from '../../components/OrganisateurLayout'
@@ -68,7 +68,7 @@ export default function ChangerMotDePasseScreen({ navigation }) {
       <OrganisateurLayout />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-          <Feather name="arrow-left" size={22} color="#fff" />
+          <Feather name="arrow-left" size={22} color={colors.text} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Modifier le mot de passe</Text>
         <View style={{ width: 40 }} />
@@ -81,14 +81,14 @@ export default function ChangerMotDePasseScreen({ navigation }) {
               <TextInput
                 style={s.input}
                 placeholder="••••••••"
-                placeholderTextColor="rgba(255,255,255,0.4)"
+                placeholderTextColor={colors.textTertiary}
                 secureTextEntry={!showAncien}
                 value={ancienMotDePasse}
                 onChangeText={setAncienMotDePasse}
                 autoCapitalize="none"
               />
               <TouchableOpacity onPress={() => setShowAncien(!showAncien)} style={s.eyeBtn}>
-                <Feather name={showAncien ? 'eye' : 'eye-off'} size={18} color="rgba(255,255,255,0.5)" />
+                <Feather name={showAncien ? 'eye' : 'eye-off'} size={18} color={colors.textTertiary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -101,14 +101,14 @@ export default function ChangerMotDePasseScreen({ navigation }) {
               <TextInput
                 style={s.input}
                 placeholder="Min. 6 caractères"
-                placeholderTextColor="rgba(255,255,255,0.4)"
+                placeholderTextColor={colors.textTertiary}
                 secureTextEntry={!showNouveau}
                 value={nouveauMotDePasse}
                 onChangeText={setNouveauMotDePasse}
                 autoCapitalize="none"
               />
               <TouchableOpacity onPress={() => setShowNouveau(!showNouveau)} style={s.eyeBtn}>
-                <Feather name={showNouveau ? 'eye' : 'eye-off'} size={18} color="rgba(255,255,255,0.5)" />
+                <Feather name={showNouveau ? 'eye' : 'eye-off'} size={18} color={colors.textTertiary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -121,14 +121,14 @@ export default function ChangerMotDePasseScreen({ navigation }) {
               <TextInput
                 style={s.input}
                 placeholder="Répète le mot de passe"
-                placeholderTextColor="rgba(255,255,255,0.4)"
+                placeholderTextColor={colors.textTertiary}
                 secureTextEntry={!showConfirm}
                 value={confirmMotDePasse}
                 onChangeText={setConfirmMotDePasse}
                 autoCapitalize="none"
               />
               <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)} style={s.eyeBtn}>
-                <Feather name={showConfirm ? 'eye' : 'eye-off'} size={18} color="rgba(255,255,255,0.5)" />
+                <Feather name={showConfirm ? 'eye' : 'eye-off'} size={18} color={colors.textTertiary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -155,19 +155,19 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
   },
   backBtn: { padding: spacing.sm },
-  headerTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
+  headerTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
   formWrapper: { flex: 1, justifyContent: 'center', paddingHorizontal: spacing.lg },
   form: { padding: spacing.lg },
   fieldGroup: { paddingVertical: spacing.sm },
-  label: { fontSize: 13, fontFamily: fonts.jakarta.medium, color: 'rgba(255,255,255,0.7)', marginBottom: spacing.xs, textTransform: 'uppercase', letterSpacing: 0.5 },
+  label: { fontSize: 13, fontFamily: fonts.jakarta.medium, color: colors.textSecondary, marginBottom: spacing.xs, textTransform: 'uppercase', letterSpacing: 0.5 },
   inputRow: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: borderRadius.md,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: colors.inputBg, borderRadius: borderRadius.md,
+    borderWidth: 1, borderColor: colors.inputBorder,
   },
   input: {
     flex: 1, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md,
-    fontSize: 15, fontFamily: fonts.jakarta.regular, color: '#fff',
+    fontSize: 15, fontFamily: fonts.jakarta.regular, color: colors.text,
   },
   eyeBtn: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.1)' },

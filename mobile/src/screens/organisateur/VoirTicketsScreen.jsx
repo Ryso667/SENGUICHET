@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
+import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
 import { fetchEvenementDetailAPI } from '../../services/eventService'
 import Skeleton from '../../components/Skeleton'
 import OrganisateurLayout from '../../components/OrganisateurLayout'
@@ -90,17 +90,17 @@ const s = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingHorizontal: spacing.lg },
   eventInfo: { marginBottom: spacing.lg, padding: spacing.md },
-  eventName: { fontSize: 22, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
-  ticketCount: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#D4A574', marginTop: 4 },
-  empty: { textAlign: 'center', fontSize: 16, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 60 },
+  eventName: { fontSize: 22, fontFamily: fonts.outfit.bold, color: colors.text },
+  ticketCount: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent, marginTop: 4 },
+  empty: { textAlign: 'center', fontSize: 16, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 60 },
   ticketRow: {
     flexDirection: 'row', alignItems: 'center',
     padding: spacing.md, marginBottom: spacing.sm,
   },
-  ticketNumero: { fontSize: 12, fontFamily: fonts.outfit.bold, color: '#D4A574' },
-  ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#fff', marginTop: 2 },
-  ticketTel: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
-  ticketPrix: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff', marginRight: spacing.sm },
+  ticketNumero: { fontSize: 12, fontFamily: fonts.outfit.bold, color: colors.accent },
+  ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, marginTop: 2 },
+  ticketTel: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 2 },
+  ticketPrix: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text, marginRight: spacing.sm },
   badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
   badgeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold },
 })

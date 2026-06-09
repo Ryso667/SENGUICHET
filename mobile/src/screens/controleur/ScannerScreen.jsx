@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect } from '@react-navigation/native'
 import { verifierBillet, telechargerTickets, synchroniser } from '../../services/scanService'
 import { useAuth } from '../../context/AuthContext'
-import { colors, fonts, textShadow } from '../../constants/theme'
+import { colors, fonts } from '../../constants/theme'
 import ControleurLayout from '../../components/ControleurLayout'
 import GlassButton from '../../components/GlassButton'
 
@@ -157,19 +157,19 @@ export default function ScannerScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  conteneur: { flex: 1 },
+  conteneur: { flex: 1, backgroundColor: colors.bg },
   centre: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   textePermission: { fontFamily: fonts.outfit.medium, fontSize: 16, color: colors.text, textAlign: 'center', marginBottom: 16 },
   camera: { flex: 1 },
   overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   masqueHaut: { backgroundColor: 'rgba(0,0,0,0.6)', paddingBottom: 20, alignItems: 'center' },
-  titre: { fontFamily: fonts.outfit.bold, fontSize: 22, color: colors.text, ...textShadow },
+  titre: { fontFamily: fonts.outfit.bold, fontSize: 22, color: colors.text },
   infoRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   info: { fontFamily: fonts.outfit.regular, fontSize: 13, color: colors.textSecondary },
   syncOk: { fontFamily: fonts.outfit.medium, fontSize: 12, color: '#22c55e', marginTop: 4 },
   zoneCadre: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   // Cadre de scan doré (#D4A574) pour correspondre à la charte du projet
-  cadre: { width: 250, height: 250, borderWidth: 2, borderColor: '#D4A574', borderRadius: 16, opacity: 0.8 },
+  cadre: { width: 250, height: 250, borderWidth: 2, borderColor: colors.accent, borderRadius: 16, opacity: 0.8 },
   resultat: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   resultatMessage: { fontFamily: fonts.outfit.bold, fontSize: 24, color: '#FFFFFF', marginBottom: 8 },
   resultatDetail: { fontFamily: fonts.outfit.regular, fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: 32 },

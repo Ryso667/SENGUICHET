@@ -68,7 +68,7 @@ export default function WebViewWaveScreen({ route, navigation }) {
     return (
       <SafeAreaView style={s.safe}>
         <View style={s.centerBox}>
-          <LinearGradient colors={['#6CD4A0', '#D4A574']} style={s.checkCircle}>
+          <LinearGradient colors={['#6CD4A0', colors.accent]} style={s.checkCircle}>
             <Feather name="check" size={36} color="#fff" />
           </LinearGradient>
           <Text style={s.successText}>Paiement réussi !</Text>
@@ -92,7 +92,7 @@ export default function WebViewWaveScreen({ route, navigation }) {
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
-            <LinearGradient colors={['#D4A574', '#C8945C']} style={s.retryGradient}>
+            <LinearGradient colors={[colors.accent, '#D4835A']} style={s.retryGradient}>
               <Feather name="refresh-cw" size={14} color="#fff" />
               <Text style={s.retryText}>Réessayer</Text>
             </LinearGradient>

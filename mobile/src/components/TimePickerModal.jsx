@@ -46,7 +46,7 @@ export default function TimePickerModal({ visible, onClose, onSelect }) {
               value={custom}
               onChangeText={setCustom}
               placeholder="Autre horaire"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={colors.textTertiary}
             />
             <TouchableOpacity style={s.customBtn} onPress={handleCustom}>
               <Text style={s.customBtnText}>OK</Text>
@@ -66,23 +66,23 @@ const s = StyleSheet.create({
     padding: spacing.lg, maxHeight: '60%',
   },
   title: {
-    fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.slate,
+    fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text,
     textAlign: 'center', marginBottom: spacing.md,
   },
   scroll: { maxHeight: 260 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, justifyContent: 'center' },
   creneau: {
     paddingVertical: 12, paddingHorizontal: 20, borderRadius: borderRadius.lg,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: colors.inputBg,
   },
-  creneauText: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.slate },
+  creneauText: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.text },
   customRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md, alignItems: 'center' },
   customInput: {
-    flex: 1, backgroundColor: '#f1f5f9', borderRadius: borderRadius.lg, paddingHorizontal: 16,
-    height: 48, fontSize: 15, fontFamily: fonts.outfit.regular, color: colors.slate,
+    flex: 1, backgroundColor: colors.inputBg, borderRadius: borderRadius.lg, paddingHorizontal: 16,
+    height: 48, fontSize: 15, fontFamily: fonts.outfit.regular, color: colors.text,
   },
   customBtn: {
-    backgroundColor: '#D4A574', borderRadius: borderRadius.lg, paddingHorizontal: 24,
+    backgroundColor: colors.accent, borderRadius: borderRadius.lg, paddingHorizontal: 24,
     height: 48, alignItems: 'center', justifyContent: 'center',
   },
   customBtnText: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#fff' },

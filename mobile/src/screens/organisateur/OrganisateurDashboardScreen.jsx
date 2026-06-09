@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, spacing, fonts, textShadow, categoryGradients } from '../../constants/theme'
+import { colors, spacing, fonts, categoryGradients } from '../../constants/theme'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import { formaterDateLisible } from '../../utils/dateUtils'
@@ -84,8 +84,8 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   ]
 
   const statColors = [
-    ['rgba(212,165,116,0.25)', 'rgba(200,148,92,0.1)'],
-    ['rgba(0,229,160,0.25)', 'rgba(212,165,116,0.1)'],
+    ['rgba(199,81,58,0.25)', 'rgba(199,81,58,0.1)'],
+    ['rgba(0,229,160,0.25)', 'rgba(199,81,58,0.1)'],
     ['rgba(99,102,241,0.25)', 'rgba(236,72,153,0.1)'],
     ['rgba(249,115,22,0.25)', 'rgba(245,158,11,0.1)'],
   ]
@@ -95,12 +95,12 @@ export default function OrganisateurDashboardScreen({ navigation }) {
       <OrganisateurLayout />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#D4A574', '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor={colors.accent} />}
       >
         {/* Greeting — calqué sur le web : "Bonjour, {nom}" + date */}
         <GlassContainer blurType="light" style={s.greeting}>
           <View style={s.headerRow}>
-            <MaterialCommunityIcons name="view-grid-outline" size={22} color="#fff" />
+            <MaterialCommunityIcons name="view-grid-outline" size={22} color={colors.text} />
             <Text style={s.bonjour}>Bonjour, {user?.nom || 'Organisateur'}</Text>
           </View>
           <Text style={s.dateText}>{today}</Text>
@@ -123,7 +123,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
                   <GlassContainer blurType="light" style={[s.statCard, { borderLeftWidth: 3, borderLeftColor: statColors[i][0].replace('0.25', '1') }]} intensity={40}>
                     <LinearGradient colors={[statColors[i][0], statColors[i][1]]} style={s.statGradient}>
                       <View style={s.statTop}>
-                        <MaterialCommunityIcons name={st.icon} size={20} color="#fff" />
+                        <MaterialCommunityIcons name={st.icon} size={20} color={colors.text} />
                         <Text style={s.statValue}>{st.value}</Text>
                       </View>
                       <Text style={s.statLabel}>{st.label}</Text>
@@ -216,25 +216,25 @@ const s = StyleSheet.create({
   // Greeting
   greeting: { marginHorizontal: spacing.lg, marginTop: spacing.sm, padding: spacing.lg },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  bonjour: { fontSize: 20, fontFamily: fonts.outfit.bold, color: '#fff', flex: 1, ...textShadow },
+  bonjour: { fontSize: 20, fontFamily: fonts.outfit.bold, color: colors.text, flex: 1 },
   dateText: {
-    fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)',
+    fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary,
     marginTop: spacing.xs, textTransform: 'capitalize',
   },
-  refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginTop: spacing.sm, marginBottom: 0 },
+  refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginTop: spacing.sm, marginBottom: 0 },
   // Stats
   statGradient: { padding: spacing.md, borderRadius: 16, minHeight: 80, justifyContent: 'space-between' },
   statsColumn: { paddingHorizontal: spacing.lg, gap: spacing.sm, marginTop: spacing.lg },
   statCard: { padding: 0, overflow: 'hidden' },
   statTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  statValue: { fontSize: 20, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow, maxWidth: '70%', textAlign: 'right' },
-  statLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
+  statValue: { fontSize: 20, fontFamily: fonts.outfit.bold, color: colors.text, maxWidth: '70%', textAlign: 'right' },
+  statLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
   // Section événements récents
   recentSection: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
   recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  recentTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
-  voirTout: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
-  empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textAlign: 'center', paddingVertical: 30 },
+  recentTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
+  voirTout: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', paddingVertical: 30 },
   eventsGrid: { gap: spacing.md },
   // Carte événement
   eventCard: { overflow: 'hidden', borderRadius: 16 },
@@ -257,16 +257,16 @@ const s = StyleSheet.create({
   eventBody: { padding: spacing.md },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
   barBg: { flex: 1, height: 8, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 4, overflow: 'hidden' },
-  barFill: { height: 8, borderRadius: 4, backgroundColor: '#D4A574' },
-  barCount: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.7)' },
+  barFill: { height: 8, borderRadius: 4, backgroundColor: colors.accent },
+  barCount: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary },
   eventFooter: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.15)', paddingTop: spacing.sm,
   },
-  revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
+  revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent },
   detailsBtn: {
-    backgroundColor: 'rgba(212,165,116,0.15)', borderRadius: 8,
+    backgroundColor: 'rgba(199,81,58,0.15)', borderRadius: 8,
     paddingHorizontal: 14, paddingVertical: 6,
   },
-  detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
+  detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 })

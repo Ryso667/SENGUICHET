@@ -1,50 +1,49 @@
-// Thème sombre Warm Charcoal — palette chaude et sophistiquée
-// Fond : #1A1A1E (charbon chaud), Accent : #D4A574 (cuivre doré)
+// Thème clair Warm Light — fond beige #F5F0EB, accent terracotta #C7513A, verre translucide
 export const colors = {
-  bg: '#1A1A1E',
-  bgSecondary: '#232329',
-  surface: '#2C2C30',
-  border: 'rgba(212,165,116,0.15)',
+  bg: '#F5F0EB',
+  bgSecondary: '#EBE5DE',
+  surface: '#FFFFFF',
+  border: 'rgba(0,0,0,0.06)',
   white: '#FFFFFF',
-  text: '#FFFFFF',
-  textSecondary: '#B0B0B8',
-  textTertiary: '#8A8A92',
-  accent: '#D4A574',
-  accentLight: '#E6C99A',
-  green: '#6CD4A0',
-  greenLight: '#E0FFF0',
-  red: '#E86868',
-  whiteMuted: 'rgba(255,255,255,0.45)',
-  violet: '#A78BFA',
-  orange: '#E8A868',
+  text: '#1A1A1E',
+  textSecondary: '#6B6560',
+  textTertiary: '#9C9590',
+  accent: '#C7513A',
+  accentLight: '#F0DED8',
+  green: '#2E7D5E',
+  greenLight: '#E0F5EC',
+  red: '#C73A3A',
+  whiteMuted: '#9C9590',
+  violet: '#7C6FA0',
+  orange: '#D4835A',
   glassWhite: 'rgba(255,255,255,0.15)',
-  glassBorder: 'rgba(255,255,255,0.25)',
-  glassDark: 'rgba(0,0,0,0.2)',
-  textWhite: 'rgba(255,255,255,0.9)',
-  textWhiteMuted: 'rgba(255,255,255,0.5)',
-  inputBg: 'rgba(255,255,255,0.06)',
-  inputBorder: 'rgba(255,255,255,0.12)',
-  inputBorderFocus: '#D4A574',
+  glassBorder: 'rgba(255,255,255,0.6)',
+  glassDark: 'rgba(0,0,0,0.04)',
+  textWhite: '#1A1A1E',
+  textWhiteMuted: '#6B6560',
+  inputBg: '#FFFFFF',
+  inputBorder: '#D4CEC8',
+  inputBorderFocus: '#C7513A',
 }
 
-// === GLASS (verre dépoli — version assombrie pour cohérence Warm Charcoal) ===
+// === GLASS (verre dépoli — version claire pour cohérence Warm Light) ===
 export const glass = {
-  bg: 'rgba(255,255,255,0.08)',
+  bg: 'rgba(255,255,255,0.5)',
   bgLight: 'rgba(255,255,255,0.3)',
-  bgHeavy: 'rgba(255,255,255,0.45)',
-  border: 'rgba(255,255,255,0.12)',
-  borderLight: 'rgba(255,255,255,0.15)',
+  bgHeavy: 'rgba(255,255,255,0.7)',
+  border: 'rgba(255,255,255,0.6)',
+  borderLight: 'rgba(255,255,255,0.4)',
   blur: 20,
   radius: 20,
-  darkBg: 'rgba(0,0,0,0.25)',
-  darkBgHeavy: 'rgba(0,0,0,0.55)',
+  darkBg: 'rgba(0,0,0,0.04)',
+  darkBgHeavy: 'rgba(0,0,0,0.08)',
 }
 
 export const gradients = {
-  primary: ['#D4A574', '#C8945C'],
-  organisateur: ['#D4A574', '#C8945C'],
-  success: ['#6CD4A0', '#5ABF8C'],
-  error: ['#E86868', '#D45555'],
+  primary: ['#C7513A', '#B84530'],
+  organisateur: ['#C7513A', '#B84530'],
+  success: ['#2E7D5E', '#3A8F6E'],
+  error: ['#C73A3A', '#D45050'],
 }
 
 // Dégradés par catégorie d'événement — style Apple Music
@@ -59,14 +58,14 @@ export const categoryGradients = {
   Exposition: ['rgba(124,58,237,0.55)', 'rgba(124,58,237,0.15)'],
   'Club / Soirée': ['rgba(219,39,119,0.55)', 'rgba(219,39,119,0.15)'],
   Gala: ['rgba(202,138,4,0.55)', 'rgba(202,138,4,0.15)'],
-  default: ['rgba(212,165,116,0.35)', 'rgba(26,26,30,0.85)'],
+  default: ['rgba(199,81,58,0.2)', 'rgba(245,240,235,0.9)'],
 }
 
 // Ombre portée pour lisibilité du texte blanc sur fond clair/glass
 export const textShadow = {
-  textShadowColor: 'rgba(0,0,0,0.75)',
-  textShadowOffset: { width: 0, height: 2 },
-  textShadowRadius: 8,
+  textShadowColor: 'rgba(0,0,0,0)',
+  textShadowOffset: { width: 0, height: 0 },
+  textShadowRadius: 0,
 }
 
 // Espacements cohérents dans toute l'app

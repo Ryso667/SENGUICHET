@@ -1,10 +1,10 @@
 // Bouton principal de l'application
-// Utilise un dégradé Champagne/Doré (thème officiel)
+// Utilise un dégradé Terracotta (thème officiel)
 // Si desactive = true ou disabled = true, passe en gris (muted) avec opacité réduite
 import { TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { hapticMedium } from '../utils/haptics'
-// Bouton principal avec dégradé Champagne/Doré et état de chargement intégré
+// Bouton principal avec dégradé Terracotta et état de chargement intégré
 // Props : titre (string), chargement (bool), desactive (bool), disabled (bool), onPress (function)
 export default function BoutonPrincipal({ titre, chargement, desactive, disabled, onPress }) {
   // Désactivé si l'une des props de désactivation est true
@@ -24,7 +24,7 @@ export default function BoutonPrincipal({ titre, chargement, desactive, disabled
       style={estDesactive && styles.desactive}
     >
       <LinearGradient
-        colors={estDesactive ? ['#94a3b8', '#94a3b8'] : ['#D4A574', '#C8945C']}
+        colors={estDesactive ? ['#94a3b8', '#94a3b8'] : ['#C7513A', '#B84530']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.bouton}

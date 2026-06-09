@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
+import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
 import { useAuth } from '../../context/AuthContext'
 import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
@@ -66,8 +66,8 @@ export default function ParametresScreen({ navigation }) {
             <Switch
               value={notifications.smsVente}
               onValueChange={() => toggleNotif('smsVente')}
-              trackColor={{ true: 'rgba(212,165,116,0.6)', false: 'rgba(255,255,255,0.2)' }}
-              thumbColor={notifications.smsVente ? '#D4A574' : 'rgba(255,255,255,0.5)'}
+              trackColor={{ true: 'rgba(199,81,58,0.6)', false: 'rgba(255,255,255,0.2)' }}
+              thumbColor={notifications.smsVente ? colors.accent : 'rgba(255,255,255,0.5)'}
             />
           </View>
           <View style={s.divider} />
@@ -76,8 +76,8 @@ export default function ParametresScreen({ navigation }) {
             <Switch
               value={notifications.emailRecap}
               onValueChange={() => toggleNotif('emailRecap')}
-              trackColor={{ true: 'rgba(212,165,116,0.6)', false: 'rgba(255,255,255,0.2)' }}
-              thumbColor={notifications.emailRecap ? '#D4A574' : 'rgba(255,255,255,0.5)'}
+              trackColor={{ true: 'rgba(199,81,58,0.6)', false: 'rgba(255,255,255,0.2)' }}
+              thumbColor={notifications.emailRecap ? colors.accent : 'rgba(255,255,255,0.5)'}
             />
           </View>
           <View style={s.divider} />
@@ -86,8 +86,8 @@ export default function ParametresScreen({ navigation }) {
             <Switch
               value={notifications.stockFaible}
               onValueChange={() => toggleNotif('stockFaible')}
-              trackColor={{ true: 'rgba(212,165,116,0.6)', false: 'rgba(255,255,255,0.2)' }}
-              thumbColor={notifications.stockFaible ? '#D4A574' : 'rgba(255,255,255,0.5)'}
+              trackColor={{ true: 'rgba(199,81,58,0.6)', false: 'rgba(255,255,255,0.2)' }}
+              thumbColor={notifications.stockFaible ? colors.accent : 'rgba(255,255,255,0.5)'}
             />
           </View>
         </GlassContainer>
@@ -100,16 +100,16 @@ export default function ParametresScreen({ navigation }) {
 const s = StyleSheet.create({
   container: { flex: 1 },
   section: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
-  sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff', marginBottom: spacing.sm, ...textShadow },
+  sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.sm },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.sm },
-  label: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: '#fff' },
-  value: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)', textAlign: 'right', flex: 1, marginLeft: spacing.md },
+  label: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.text },
+  value: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary, textAlign: 'right', flex: 1, marginLeft: spacing.md },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.15)' },
   infoText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', lineHeight: 20 },
   securityBtn: {
     paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md,
-    backgroundColor: 'rgba(212,165,116,0.12)', borderRadius: borderRadius.md,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(212,165,116,0.25)',
+    backgroundColor: 'rgba(199,81,58,0.12)', borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(199,81,58,0.25)',
     alignItems: 'center',
   },
   securityBtnText: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent },

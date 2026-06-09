@@ -5,7 +5,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, 
 import { Feather, Ionicons } from '@expo/vector-icons'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { fonts, spacing } from '../constants/theme'
+import { colors, fonts, spacing } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
 import StatusBadge from '../components/StatusBadge'
 import { mesTicketsLocaux, sauvegarderTicketAcheteur } from '../database/database'
@@ -24,7 +24,7 @@ const STATUS_MAP = {
 
 // Couleurs des bandes latérales selon le statut du ticket
 const STRIP_COLORS = {
-  actif: '#D4A574',      // or — billet valide
+  actif: colors.accent,  // terracotta — billet valide
   en_attente: '#E8A868', // orange — en attente
   utilise: '#6CD4A0',    // vert — utilisé
   rembourse: '#E86868',  // rouge — remboursé/annulé
@@ -96,7 +96,7 @@ export default function MesTicketsScreen() {
           </View>
           {/* Ligne date avec icône calendrier */}
           <View style={styles.infoRow}>
-            <Ionicons name="calendar-outline" size={14} color="#B0B0B8" />
+            <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
             <Text style={styles.infoText}>
               {formaterDateLisible(item.eventDate)}
             </Text>
@@ -104,7 +104,7 @@ export default function MesTicketsScreen() {
           {/* Ligne lieu (affichée uniquement si disponible) */}
           {item.lieu ? (
             <View style={styles.infoRow}>
-              <Ionicons name="location-outline" size={14} color="#B0B0B8" />
+              <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
               <Text style={styles.infoText} numberOfLines={1}>{item.lieu}</Text>
             </View>
           ) : null}
@@ -119,7 +119,7 @@ export default function MesTicketsScreen() {
 
   return (
     <View style={styles.container}>
-      <BlurBackground category={categoryForBg} showImage={false} gradientOverride={['rgba(0,229,160,0.5)', 'rgba(212,165,116,0.15)']} />
+      <BlurBackground category={categoryForBg} showImage={false} gradientOverride={['rgba(0,229,160,0.5)', 'rgba(199,81,58,0.15)']} />
       <View style={[styles.content, { paddingTop: insets.top }]}>
         {/* Header natif avec bouton retour et compteur */}
         <View style={styles.headerBar}>
@@ -128,7 +128,7 @@ export default function MesTicketsScreen() {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Mes tickets</Text>
           <View style={styles.headerRight}>
-            {syncing && <ActivityIndicator size="small" color="#D4A574" />}
+            {syncing && <ActivityIndicator size="small" color={colors.accent} />}
             {tickets.length > 0 && (
               <View style={styles.countBadge}>
                 <Text style={styles.countText}>{tickets.length}</Text>
@@ -147,9 +147,9 @@ export default function MesTicketsScreen() {
             <RefreshControl
               refreshing={syncing}
               onRefresh={loadTickets}
-              tintColor="#D4A574"
-              colors={['#D4A574']}
-              progressBackgroundColor="#2C2C30"
+              tintColor={colors.accent}
+              colors={[colors.accent]}
+              progressBackgroundColor={colors.surface}
             />
           }
           ListEmptyComponent={
@@ -180,7 +180,7 @@ export default function MesTicketsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1A1A1E' },
+  container: { flex: 1, backgroundColor: colors.bg },
   content: { flex: 1 },
 
   // HEADER
@@ -237,9 +237,9 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
 
-  // CARTE TICKET — fond #2C2C30 avec bande latérale colorée
+  // CARTE TICKET — fond blanc avec bande latérale colorée
   card: {
-    backgroundColor: '#2C2C30',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     flexDirection: 'row',
     overflow: 'hidden',
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   eventName: {
     fontSize: 17,
     fontFamily: fonts.outfit.semiBold,
-    color: '#FFFFFF',
+    color: colors.text,
     flex: 1,
     flexShrink: 1,
   },
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 14,
-    color: '#B0B0B8',
+    color: colors.textSecondary,
     fontFamily: fonts.jakarta.regular,
   },
   bottomRow: {
@@ -293,21 +293,21 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontFamily: fonts.outfit.semiBold,
-    color: '#FFFFFF',
+    color: colors.text,
     marginTop: 20,
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 14,
     fontFamily: fonts.jakarta.regular,
-    color: '#B0B0B8',
+    color: colors.textSecondary,
     marginTop: 8,
     textAlign: 'center',
     lineHeight: 20,
   },
   emptyCta: {
     marginTop: 32,
-    backgroundColor: '#D4A574',
+    backgroundColor: colors.accent,
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 12,
@@ -315,6 +315,6 @@ const styles = StyleSheet.create({
   emptyCtaText: {
     fontSize: 15,
     fontFamily: fonts.outfit.semiBold,
-    color: '#1A1A1E',
+    color: colors.white,
   },
 })
