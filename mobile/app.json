@@ -52,8 +52,7 @@
         }
       ],
       "expo-asset",
-      "expo-secure-store",
-      "expo-sharing"
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {
