@@ -112,12 +112,10 @@ export default function SocialAuthScreen({ navigation }) {
             showsVerticalScrollIndicator={false}
           >
         <View style={[styles.container, { paddingTop: insets.top + 40 }]}>
-          {/* Bouton retour */}
-          {etape !== 'email' && (
-            <TouchableOpacity style={styles.backBtn} onPress={handleRetour}>
-              <Ionicons name="arrow-back" size={20} color="#fff" />
-            </TouchableOpacity>
-          )}
+          {/* Bouton retour natif toujours visible */}
+          <TouchableOpacity style={styles.backBtn} onPress={etape === 'email' ? () => navigation.goBack() : handleRetour}>
+            <Ionicons name="arrow-back" size={20} color="#fff" />
+          </TouchableOpacity>
 
           <GlassContainer style={styles.card}>
             <View style={styles.header}>

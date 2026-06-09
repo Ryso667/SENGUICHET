@@ -2,11 +2,11 @@
 // Utilise express-rate-limit pour limiter les requêtes par IP
 const rateLimit = require("express-rate-limit");
 
-// Limiteur pour l'envoi de code OTP : 3 requêtes par minute par IP
+// Limiteur pour l'envoi de code OTP : 5 requêtes par heure par IP
 const limiteEnvoiOTP = rateLimit({
-  windowMs: 60 * 1000,
-  max: 3,
-  message: { message: "Trop de tentatives. Réessaie dans une minute." },
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: { message: "Trop de demandes de code. Réessaie dans une heure." },
   standardHeaders: true,
   legacyHeaders: false,
 });

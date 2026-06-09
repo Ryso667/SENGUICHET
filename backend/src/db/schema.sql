@@ -110,7 +110,7 @@ CREATE TABLE evenement (
   date_fin DATETIME DEFAULT NULL,
   capacite_totale INT NOT NULL DEFAULT 0,
   affiche_url VARCHAR(500) DEFAULT NULL,
-  scan_code VARCHAR(4) NOT NULL,
+  scan_code VARCHAR(4) DEFAULT NULL,
   statut ENUM('en_attente','actif','refuse','suspendu','annule') NOT NULL DEFAULT 'en_attente',
   commentaire_admin TEXT DEFAULT NULL,
   date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

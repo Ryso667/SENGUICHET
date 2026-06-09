@@ -287,6 +287,7 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
 
 // Envoie un code OTP à l'acheteur pour confirmer son email
 // code : chaîne de 6 chiffres, valable 5 minutes
+// Ne propage pas les erreurs SMTP pour ne pas révéler si l'email est valide ou non
 const envoyerCodeOTP = async (destinataire, code) => {
   const transporter = createTransporter();
   if (!transporter) {
@@ -312,7 +313,12 @@ const envoyerCodeOTP = async (destinataire, code) => {
       </tr>
     </table>`;
 
-  return envoyerEmail(destinataire, "Votre code de connexion SENGUICHET", emailLayout(content, { preheader: "Votre code de confirmation" }));
+  try {
+    return await envoyerEmail(destinataire, "Votre code de connexion SENGUICHET", emailLayout(content, { preheader: "Votre code de confirmation" }));
+  } catch (err) {
+    console.error("Erreur envoi OTP email (silencieuse):", err.message);
+    return { erreur: true, message: "Email non délivré" };
+  }
 };
 
 // Envoie une confirmation de demande de partenariat au demandeur

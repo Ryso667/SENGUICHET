@@ -1,7 +1,7 @@
-// Écran de gestion d'équipe (contrôleurs + code de scan)
+// Écran de gestion d'équipe (contrôleurs + code d'accès)
 // Design glass (Apple Invites)
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { colors, spacing, borderRadius, fonts, textShadow, glass } from '../../constants/theme'
@@ -15,7 +15,6 @@ export default function GestionEquipeScreen({ route, navigation }) {
   const { eventId } = route.params || {}
   const [equipe, setEquipe] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [regenerating, setRegenerating] = useState(false)
 
   useEffect(() => {
     if (eventId) charger()
@@ -30,17 +29,6 @@ export default function GestionEquipeScreen({ route, navigation }) {
       Alert.alert('Erreur', err.message)
     }
     setLoading(false)
-  }
-
-  async function regenerer() {
-    setRegenerating(true)
-    try {
-      const data = await appelAPI(`/evenements/${eventId}/regenerer-code`, { method: 'POST' })
-      setEquipe(prev => ({ ...prev, scan_code: data.scan_code }))
-    } catch (err) {
-      Alert.alert('Erreur', err.message)
-    }
-    setRegenerating(false)
   }
 
   const totalScans = equipe?.controleurs?.reduce((acc, c) => acc + (c.scans_effectues || 0), 0) || 0
@@ -70,18 +58,8 @@ export default function GestionEquipeScreen({ route, navigation }) {
       </View>
       <ScrollView showsVerticalScrollIndicator={false}>
         <GlassContainer style={s.codeSection} intensity={35}>
-          <Text style={s.codeLabel}>Code de scan</Text>
-          <Text style={s.codeValue}>{equipe?.scan_code || 'N/A'}</Text>
-          <TouchableOpacity style={s.regenerateBtn} onPress={regenerer} disabled={regenerating}>
-            {regenerating ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <>
-                <Feather name="refresh-cw" size={14} color="#fff" style={{ marginRight: 6 }} />
-                <Text style={s.regenerateText}>Régénérer</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          <Text style={s.codeLabel}>Code d'accès</Text>
+          <Text style={s.codeValue}>{equipe?.code_controleur || '—'}</Text>
         </GlassContainer>
 
         <GlassContainer style={s.statsCard} intensity={30}>

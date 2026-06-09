@@ -224,7 +224,7 @@ const envoyerCodeOTP = async (req, res) => {
     const { envoyerCodeOTP: envoyerEmail } = require("../services/emailService");
     await envoyerEmail(email, code);
 
-    res.json({ message: "Code envoyé", code });
+    res.json({ message: "Code envoyé" });
   } catch (err) {
     console.error("Erreur envoi OTP:", err);
     res.status(500).json({ message: "Erreur lors de l'envoi du code" });
@@ -242,6 +242,10 @@ const verifierCodeOTP = async (req, res) => {
 
     const { VERIFIER_CODE } = require("../services/otpStore");
     const codeValide = await VERIFIER_CODE(email, code);
+
+    // Délai constant anti-timing-attack : identique que le code soit valide ou non
+    await new Promise(r => setTimeout(r, 1500));
+
     if (!codeValide) {
       return res.status(401).json({ message: "Code invalide ou expiré" });
     }
@@ -266,9 +270,8 @@ const verifierCodeOTP = async (req, res) => {
         acheteur = { id: result.insertId, email };
       }
     } catch (dbErr) {
-      // Mode démo : si la base n'est pas accessible, créer un acheteur factice
-      console.warn("DB indisponible, mode démo:", dbErr.message);
-      acheteur = { id: Date.now(), email };
+      console.error("DB erreur:", dbErr.message);
+      return res.status(503).json({ message: "Service indisponible" });
     }
 
     const token = generateToken({ id: acheteur.id, email }, "ACHETEUR");
@@ -308,8 +311,8 @@ const connexionSociale = async (req, res) => {
         acheteur = { id: result.insertId, email };
       }
     } catch (dbErr) {
-      console.warn("DB indisponible, mode démo:", dbErr.message);
-      acheteur = { id: Date.now(), email };
+      console.error("DB erreur:", dbErr.message);
+      return res.status(503).json({ message: "Service indisponible" });
     }
 
     const token = generateToken({ id: acheteur.id, email }, "ACHETEUR");
@@ -355,6 +358,9 @@ const changerMotDePasse = async (req, res) => {
   }
 };
 
+// Connecte un contrôleur via le code d'accès à 4 chiffres de son événement
+// Le code est généré par l'admin dans la table code_controleur (un par événement)
+// Retourne un JWT contenant evenementId pour restreindre le scan à cet événement
 const connexionControleur = async (req, res) => {
   try {
     const { codeAcces } = req.body;
@@ -362,27 +368,33 @@ const connexionControleur = async (req, res) => {
       return res.status(400).json({ message: "Code d'accès requis" });
     }
 
+    // Validation contre la table code_controleur (gérée par l'admin)
     const [rows] = await pool.query(
-      "SELECT id, telephone, nom, code_acces FROM controleur WHERE acces_actif = 1"
+      `SELECT cc.id AS code_id, cc.evenement_id, e.titre AS evenement_titre
+       FROM code_controleur cc
+       JOIN evenement e ON e.id = cc.evenement_id
+       WHERE cc.code = ? AND cc.statut = 'ACTIF'`,
+      [codeAcces]
     );
 
-    for (const c of rows) {
-      if (!c.code_acces) continue;
-      const valid = await bcrypt.compare(codeAcces, c.code_acces);
-      if (valid) {
-        const token = jwt.sign(
-          { id: c.id, email: c.nom || c.telephone, role: "CONTROLEUR" },
-          JWT_SECRET,
-          { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
-        );
-        return res.status(200).json({
-          token,
-          user: { id: c.id, telephone: c.telephone, nom: c.nom, role: "CONTROLEUR" },
-        });
-      }
+    if (!rows.length) {
+      return res.status(401).json({ message: "Code d'accès invalide" });
     }
 
-    return res.status(401).json({ message: "Code d'accès invalide" });
+    const c = rows[0];
+    const token = jwt.sign(
+      { codeId: c.code_id, evenementId: c.evenement_id, role: "CONTROLEUR" },
+      JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+    );
+
+    res.status(200).json({
+      token,
+      user: {
+        role: "CONTROLEUR",
+        evenement: { id: c.evenement_id, titre: c.evenement_titre },
+      },
+    });
   } catch (err) {
     console.error("Connexion controleur error:", err);
     res.status(500).json({ message: "Erreur serveur" });

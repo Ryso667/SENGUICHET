@@ -57,7 +57,7 @@ async function seed() {
         "2026-08-15 20:00:00",
         "2026-08-16 02:00:00",
         170,
-        "1234",
+        null,
       ]
     );
     console.log("✅ Événement test créé : Concert de Hip Hop");

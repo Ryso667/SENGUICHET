@@ -24,11 +24,11 @@ export default function ScannerScreen({ navigation, route }) {
   const [permission, requestPermission] = useCameraPermissions()
   const [scanne, setScanne] = useState(null)
   const [pret, setPret] = useState(false)
-  const { numeroTel } = useAuth()
+  const { evenementId } = useAuth()
   const animation = useRef(new Animated.Value(0)).current
   const insets = useSafeAreaInsets()
 
-  const eventId = route?.params?.eventId || 1
+  const eventId = evenementId || route?.params?.eventId || 1
   const zone = route?.params?.zone || 'STANDARD'
 
   // Au montage : télécharge les tickets dans SQLite locale si la base est vide

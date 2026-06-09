@@ -127,14 +127,6 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
           contentContainerStyle={[styles.conteneur, { paddingTop: insets.top + spacing.lg }]}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Bouton retour verre dépoli */}
-          <GlassButton
-            title="Retour"
-            icon="arrow-left"
-            onPress={() => navigation.goBack()}
-            style={styles.retour}
-          />
-
           <Text style={styles.titre}>Créer un compte organisateur</Text>
           <Text style={styles.sousTitre}>
             Inscris-toi pour gérer tes événements
@@ -215,14 +207,16 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
 
           {/* Champ Confirmer le mot de passe */}
           <Text style={styles.label}>Confirmer le mot de passe</Text>
-          <TextInput
-            style={styles.input}
-            value={confirmMdp}
-            onChangeText={setConfirmMdp}
-            secureTextEntry
-            placeholder="Retaper le mot de passe"
-            placeholderTextColor="rgba(255,255,255,0.5)"
-          />
+          <GlassContainer style={styles.inputWrap}>
+            <TextInput
+              style={styles.input}
+              value={confirmMdp}
+              onChangeText={setConfirmMdp}
+              secureTextEntry
+              placeholder="Retaper le mot de passe"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+            />
+          </GlassContainer>
 
           {/* Message d'erreur si les mots de passe ne correspondent pas */}
           {mdpNeCorrespondPas && (
