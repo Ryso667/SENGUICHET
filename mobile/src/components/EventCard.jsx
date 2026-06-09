@@ -23,11 +23,11 @@ export default function EventCard({ event, onPress, onDetail }) {
       </View>
       <View style={styles.meta}>
         <View style={styles.metaItem}>
-          <Feather name="map-pin" size={12} color="#00C8FF" />
+          <Feather name="map-pin" size={12} color="#D4A574" />
           <Text style={styles.metaText}>{event.lieu || 'Non spécifié'}</Text>
         </View>
         <View style={styles.metaItem}>
-          <Feather name="calendar" size={12} color="#00C8FF" />
+          <Feather name="calendar" size={12} color="#D4A574" />
           <Text style={styles.metaText}>{formatDate(event.date)}</Text>
         </View>
       </View>
@@ -43,10 +43,10 @@ export default function EventCard({ event, onPress, onDetail }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#152232',
+    backgroundColor: '#2C2C30',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(0,200,255,0.15)',
+    borderColor: 'rgba(212,165,116,0.15)',
     padding: 16,
     marginBottom: 12,
   },
@@ -76,14 +76,14 @@ const styles = StyleSheet.create({
   metaText: {
     fontSize: 12,
     fontFamily: 'Outfit_400Regular',
-    color: '#A0B4C8',
+    color: '#B0B0B8',
   },
   progressSection: {
     marginBottom: 12,
   },
   detailBtn: {
     borderWidth: 1,
-    borderColor: '#00C8FF',
+    borderColor: '#D4A574',
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
@@ -91,6 +91,6 @@ const styles = StyleSheet.create({
   detailBtnText: {
     fontSize: 13,
     fontFamily: 'Outfit_600SemiBold',
-    color: '#00C8FF',
+    color: '#D4A574',
   },
 })

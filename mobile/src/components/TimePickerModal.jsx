@@ -82,7 +82,7 @@ const s = StyleSheet.create({
     height: 48, fontSize: 15, fontFamily: fonts.outfit.regular, color: colors.slate,
   },
   customBtn: {
-    backgroundColor: '#00C8FF', borderRadius: borderRadius.lg, paddingHorizontal: 24,
+    backgroundColor: '#D4A574', borderRadius: borderRadius.lg, paddingHorizontal: 24,
     height: 48, alignItems: 'center', justifyContent: 'center',
   },
   customBtnText: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#fff' },

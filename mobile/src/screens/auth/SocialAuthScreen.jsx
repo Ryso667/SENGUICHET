@@ -13,11 +13,13 @@ import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
 
 export default function SocialAuthScreen({ navigation }) {
+  // État du formulaire : email → OTP
   const { connecterAcheteurOTP, acheteurEmailSuggestion } = useAuth()
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [etape, setEtape] = useState('email') // 'email' | 'otp'
   const [loading, setLoading] = useState(false)
+  // Minuteur entre deux envois de code (anti-spam)
   const [resendCooldown, setResendCooldown] = useState(0)
   const insets = useSafeAreaInsets()
 
@@ -54,7 +56,7 @@ export default function SocialAuthScreen({ navigation }) {
     }
   }
 
-  // Étape 2 : vérifie le code OTP et connecte
+  // Étape 2 : vérifie le code OTP et connecte l'acheteur
   const handleVerifierCode = async () => {
     if (code.length !== 6) {
       Alert.alert('Code incomplet', 'Le code fait 6 chiffres')
@@ -69,7 +71,7 @@ export default function SocialAuthScreen({ navigation }) {
     }
   }
 
-  // Retour à l'étape précédente
+  // Retour à l'étape email depuis l'étape OTP
   const handleRetour = () => {
     setEtape('email')
     setCode('')
@@ -99,7 +101,7 @@ export default function SocialAuthScreen({ navigation }) {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <BlurBackground />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -329,7 +331,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 44,
     alignItems: 'center',
-    backgroundColor: '#1a1a2e',
+    backgroundColor: colors.bg,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: glass.border,
   },
@@ -338,7 +340,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   keyboardToolbarBtnText: {
-    color: colors.cyan,
+    color: colors.accent,
     fontFamily: fonts.outfit.semiBold,
     fontSize: 15,
   },

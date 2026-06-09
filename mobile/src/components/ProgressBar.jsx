@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     fontFamily: 'Outfit_400Regular',
-    color: '#A0B4C8',
+    color: '#B0B0B8',
     width: 80,
   },
   barBg: {
@@ -38,12 +38,12 @@ const styles = StyleSheet.create({
   barFill: {
     height: 6,
     borderRadius: 4,
-    backgroundColor: '#00C8FF',
+    backgroundColor: '#D4A574',
   },
   count: {
     fontSize: 12,
     fontFamily: 'Outfit_600SemiBold',
-    color: '#A0B4C8',
+    color: '#B0B0B8',
     width: 70,
     textAlign: 'right',
   },

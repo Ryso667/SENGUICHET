@@ -1,5 +1,6 @@
 // Écran de sélection du rôle (Acheteur / Contrôleur / Organisateur)
-// Design glass immersif (Apple Invites) : fond sombre + cartes glass avec accent par rôle
+// Design glass immersif (Apple Invites) : fond Warm Charcoal + cartes glass avec accent par rôle
+// Palette : violet doux (acheteur), or cuivré (contrôleur), vert doux (organisateur)
 import { useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Image } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
@@ -13,7 +14,7 @@ const ROLES = [
     title: 'Acheteur',
     subtitle: "Achète tes billets\nen un clic",
     icon: 'ticket-outline',
-    accent: '#6366F1',
+    accent: '#A78BFA', // Violet doux
     screen: null,
   },
   {
@@ -21,7 +22,7 @@ const ROLES = [
     title: 'Contrôleur',
     subtitle: "Scanne les billets\nà l'entrée",
     icon: 'qrcode-scan',
-    accent: '#00C8FF',
+    accent: '#D4A574', // Or cuivré
     screen: 'ConnexionControleur',
   },
   {
@@ -29,7 +30,7 @@ const ROLES = [
     title: 'Organisateur',
     subtitle: 'Crée et gère\ntes événements',
     icon: 'calendar-star',
-    accent: '#00E5A0',
+    accent: '#6CD4A0', // Vert doux
     screen: 'ConnexionOrganisateur',
   },
 ]
@@ -49,7 +50,7 @@ export default function AccueilChoixScreen({ navigation }) {
       <StatusBar barStyle="light-content" />
       {/* Fond dégradé doux catégorie par défaut */}
       <View style={StyleSheet.absoluteFill}>
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0b0b20' }]} />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: '#1A1A1E' }]} />
         <View style={[StyleSheet.absoluteFill, { backgroundColor: categoryGradients.default[0] }]} />
       </View>
 

@@ -1,45 +1,50 @@
-// Thème sombre du dashboard organisateur
-// Fond : #0D1B2A (bleu nuit), Accent : #00C8FF (cyan vif)
+// Thème sombre Warm Charcoal — palette chaude et sophistiquée
+// Fond : #1A1A1E (charbon chaud), Accent : #D4A574 (cuivre doré)
 export const colors = {
-  bg: '#0D1B2A',
-  surface: '#152232',
-  border: 'rgba(0, 200, 255, 0.15)',
+  bg: '#1A1A1E',
+  bgSecondary: '#232329',
+  surface: '#2C2C30',
+  border: 'rgba(212,165,116,0.15)',
   white: '#FFFFFF',
   text: '#FFFFFF',
-  textSecondary: '#A0B4C8',
-  accent: '#00C8FF',
-  accentLight: '#E0F7FF',
-  green: '#00E5A0',
+  textSecondary: '#B0B0B8',
+  textTertiary: '#8A8A92',
+  accent: '#D4A574',
+  accentLight: '#E6C99A',
+  green: '#6CD4A0',
   greenLight: '#E0FFF0',
-  red: '#FF4D6D',
-  cyan: '#00C8FF',
-  violet: '#6366F1',
-  orange: '#F97316',
+  red: '#E86868',
+  whiteMuted: 'rgba(255,255,255,0.45)',
+  violet: '#A78BFA',
+  orange: '#E8A868',
   glassWhite: 'rgba(255,255,255,0.15)',
   glassBorder: 'rgba(255,255,255,0.25)',
   glassDark: 'rgba(0,0,0,0.2)',
   textWhite: 'rgba(255,255,255,0.9)',
   textWhiteMuted: 'rgba(255,255,255,0.5)',
+  inputBg: 'rgba(255,255,255,0.06)',
+  inputBorder: 'rgba(255,255,255,0.12)',
+  inputBorderFocus: '#D4A574',
 }
 
-// === GLASS (verre dépoli) ===
+// === GLASS (verre dépoli — version assombrie pour cohérence Warm Charcoal) ===
 export const glass = {
-  bg: 'rgba(255,255,255,0.2)',
+  bg: 'rgba(255,255,255,0.08)',
   bgLight: 'rgba(255,255,255,0.3)',
   bgHeavy: 'rgba(255,255,255,0.45)',
-  border: 'rgba(255,255,255,0.3)',
+  border: 'rgba(255,255,255,0.12)',
   borderLight: 'rgba(255,255,255,0.15)',
   blur: 20,
   radius: 20,
-  darkBg: 'rgba(0,0,0,0.3)',
+  darkBg: 'rgba(0,0,0,0.25)',
   darkBgHeavy: 'rgba(0,0,0,0.55)',
 }
 
 export const gradients = {
-  primary: ['#00C8FF', '#0077FF'],
-  organisateur: ['#00C8FF', '#0077FF'],
-  success: ['#00E5A0', '#00C8FF'],
-  error: ['#FF4D6D', '#FF6B8A'],
+  primary: ['#D4A574', '#C8945C'],
+  organisateur: ['#D4A574', '#C8945C'],
+  success: ['#6CD4A0', '#5ABF8C'],
+  error: ['#E86868', '#D45555'],
 }
 
 // Dégradés par catégorie d'événement — style Apple Music
@@ -54,7 +59,7 @@ export const categoryGradients = {
   Exposition: ['rgba(124,58,237,0.55)', 'rgba(124,58,237,0.15)'],
   'Club / Soirée': ['rgba(219,39,119,0.55)', 'rgba(219,39,119,0.15)'],
   Gala: ['rgba(202,138,4,0.55)', 'rgba(202,138,4,0.15)'],
-  default: ['rgba(99,102,241,0.5)', 'rgba(236,72,153,0.2)'],
+  default: ['rgba(212,165,116,0.35)', 'rgba(26,26,30,0.85)'],
 }
 
 // Ombre portée pour lisibilité du texte blanc sur fond clair/glass

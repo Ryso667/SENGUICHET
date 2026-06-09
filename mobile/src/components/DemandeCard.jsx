@@ -36,10 +36,10 @@ export default function DemandeCard({ demande, onPress, onDetail }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#152232',
+    backgroundColor: '#2C2C30',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(0,200,255,0.15)',
+    borderColor: 'rgba(212,165,116,0.15)',
     padding: 16,
     marginBottom: 12,
   },
@@ -61,18 +61,18 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 12,
     fontFamily: 'Outfit_400Regular',
-    color: '#A0B4C8',
+    color: '#B0B0B8',
     marginTop: 2,
   },
   eventName: {
     fontSize: 12,
     fontFamily: 'Outfit_400Regular',
-    color: '#A0B4C8',
+    color: '#B0B0B8',
     marginBottom: 8,
   },
   detailBtn: {
     borderWidth: 1,
-    borderColor: '#00C8FF',
+    borderColor: '#D4A574',
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
@@ -80,6 +80,6 @@ const styles = StyleSheet.create({
   detailBtnText: {
     fontSize: 13,
     fontFamily: 'Outfit_600SemiBold',
-    color: '#00C8FF',
+    color: '#D4A574',
   },
 })

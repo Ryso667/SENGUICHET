@@ -9,6 +9,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '../context/AuthContext'
+import { hapticLight } from '../utils/haptics'
 import { listerMesDemandes } from '../services/eventService'
 import { API_BASE_URL } from '../config'
 
@@ -48,6 +49,19 @@ import ProfilScreen from '../screens/ProfilScreen'
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
 
+// Composant bouton de tab avec retour haptique au toucher
+const HapticTabButton = ({ children, onPress, ...props }) => {
+  const handlePress = () => {
+    hapticLight()
+    if (onPress) onPress()
+  }
+  return (
+    <TouchableOpacity {...props} onPress={handlePress} activeOpacity={0.7}>
+      {children}
+    </TouchableOpacity>
+  )
+}
+
 // Header réutilisable pour les tabs organisateur
 function OrganisateurHeader({ title, deconnecter, badgeCount }) {
   const insets = useSafeAreaInsets()
@@ -73,7 +87,7 @@ const headerStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1E1B4B',
+    backgroundColor: '#2C2C30',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -96,7 +110,7 @@ const headerStyles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(0,200,255,0.1)',
+    backgroundColor: 'rgba(212,165,116,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -104,7 +118,7 @@ const headerStyles = StyleSheet.create({
   logoText: {
     fontSize: 16,
     fontFamily: 'Outfit_800ExtraBold',
-    color: '#00C8FF',
+    color: '#D4A574',
   },
 })
 
@@ -136,16 +150,17 @@ function OrganisateurTabs() {
     <Tab.Navigator
       screenOptions={{
         header: () => null,
+        tabBarButton: (props) => <HapticTabButton {...props} />,
         tabBarStyle: {
-          backgroundColor: '#1E1B4B',
+          backgroundColor: '#2C2C30',
           borderTopWidth: 1,
           borderTopColor: 'rgba(255,255,255,0.08)',
           height: 64,
           paddingBottom: 8,
           paddingTop: 6,
         },
-        tabBarActiveTintColor: '#00C8FF',
-        tabBarInactiveTintColor: '#A0B4C8',
+        tabBarActiveTintColor: '#D4A574',
+        tabBarInactiveTintColor: '#8A8A92',
         tabBarLabelStyle: {
           fontFamily: 'Outfit_600SemiBold',
           fontSize: 11,
@@ -227,11 +242,11 @@ function ControleurTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: true,
-        headerStyle: { backgroundColor: '#FFFFFF' },
-        headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#0f172a' },
+        headerStyle: { backgroundColor: '#2C2C30' },
+        headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' },
         headerLeft: () => (
           <Image
-            source={{ uri: `https://backend-beta-six-39.vercel.app/uploads/logo.jpg` }}
+            source={{ uri: `${API_BASE_URL.replace('/api', '')}/uploads/logo.jpg` }}
             style={{ width: 36, height: 36, borderRadius: 18, marginLeft: 16 }}
             resizeMode="cover"
           />
@@ -243,14 +258,15 @@ function ControleurTabs() {
             </Text>
           </TouchableOpacity>
         ),
+        tabBarButton: (props) => <HapticTabButton {...props} />,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#edf0f5',
+          backgroundColor: '#2C2C30',
+          borderTopColor: 'rgba(255,255,255,0.08)',
           height: 60,
           paddingBottom: 8,
         },
-        tabBarActiveTintColor: '#00C8FF',
-        tabBarInactiveTintColor: '#94a3b8',
+        tabBarActiveTintColor: '#D4A574',
+        tabBarInactiveTintColor: '#8A8A92',
         tabBarLabelStyle: {
           fontFamily: 'Outfit_600SemiBold',
           fontSize: 12,
@@ -306,7 +322,7 @@ export default function AppNavigator() {
   if (chargement) {
     return (
       <View style={styles.chargement}>
-        <ActivityIndicator size="large" color="#00C8FF" />
+        <ActivityIndicator size="large" color="#D4A574" />
       </View>
     )
   }
@@ -317,15 +333,20 @@ export default function AppNavigator() {
       {(() => {
         const headerStyle = {
           headerShown: true,
-          headerStyle: { backgroundColor: '#0D1B2A' },
+          headerStyle: { backgroundColor: '#1A1A1E' },
           headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' },
-          headerTintColor: '#00C8FF',
+          headerTintColor: '#D4A574',
           headerBackTitle: 'Retour',
         }
         const header = (titre) => ({ ...headerStyle, headerTitle: titre })
 
         return (
-          <Stack.Navigator screenOptions={{ headerShown: false, gestureEnabled: true }}>
+          <Stack.Navigator screenOptions={{ 
+            headerShown: false, 
+            gestureEnabled: true,
+            animation: 'slide_from_right',
+            animationDuration: 250,
+          }}>
 
             {/* Écrans auth toujours disponibles */}
             <Stack.Screen name="AccueilChoix" component={AccueilChoixScreen} />
@@ -378,6 +399,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0D1B2A',
+    backgroundColor: '#1A1A1E',
   },
 })

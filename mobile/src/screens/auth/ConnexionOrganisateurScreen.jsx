@@ -8,6 +8,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { connecterOrganisateur } from '../../services/authService'
 import { useAuth } from '../../context/AuthContext'
+import { hapticMedium } from '../../utils/haptics'
 import GlassButton from '../../components/GlassButton'
 import { colors, spacing, textShadow } from '../../constants/theme'
 import BlurBackground from '../../components/BlurBackground'
@@ -26,8 +27,10 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
   const insets = useSafeAreaInsets()
 
   // Authentifie l'organisateur via le backend et stocke la session
+  // Déclenche un feedback haptique moyen pour confirmer l'action
   const handleConnexion = async () => {
     if (!email || !mdp) return
+    hapticMedium()
     setChargement(true)
     try {
       const reponse = await connecterOrganisateur(email, mdp)
@@ -40,7 +43,7 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <BlurBackground />
       <KeyboardAvoidingView
         style={styles.flex}

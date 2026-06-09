@@ -1,8 +1,7 @@
-// Ecran ticket - style billet physique vert emeraude (design premium)
-// Fond page vert nuit, ticket avec header vert foret, corps creme, souche beige, QR blanc
+// Écran ticket — style billet physique imprimé (design ESP)
+// Fond sombre, ticket blanc/crème structuré en 5 zones : talon, perforation, corps, prix, série
 import { useRef, useEffect, useState } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import QRCode from 'react-native-qrcode-svg'
 import * as Crypto from 'expo-crypto'
@@ -15,6 +14,7 @@ import { HMAC_SECRET } from '../config'
 
 const QR_REFRESH_INTERVAL = 30
 
+// Génère le payload signé HMAC pour le QR code
 async function genererQRPayload(ticket) {
   const now = new Date().toISOString()
   const payload = `${ticket.uuid}|${ticket.numero}|${now}|${ticket.eventId}|${ticket.categorie}`
@@ -32,15 +32,25 @@ async function genererQRPayload(ticket) {
   })
 }
 
-// Couleurs du design vert emeraude
+// Palette du design ticket physique ESP
 const C = {
-  vertForet: '#1B4332',
-  vertMoyen: '#40916C',
-  creme: '#F9F6EE',
-  beige: '#F0EAD6',
-  or: '#D4AF37',
-  fondPage: '#0F1A0F',
-  blanc: '#FFFFFF',
+  ticketBg: '#EEF2F7',
+  white: '#FFFFFF',
+  gold: '#D4A574',
+  dark: '#1A1A2E',
+  gray: '#5A5A60',
+  labelGray: '#8A9AAE',
+  border: '#CDD5DE',
+  refGray: '#8A8A8A',
+  legalGray: '#A0A098',
+  watermarkGreen: '#6CD4A0',
+  watermarkRed: '#E86868',
+  greenDark: '#183828',
+  greenLight: '#2E6040',
+  greenText: '#8FC0A0',
+  cyan: '#00BCD4',
+  serialGray: '#B8C2CC',
+  stubBg: '#EDE8E0',
 }
 
 export default function TicketScreen({ route, navigation }) {
@@ -51,6 +61,7 @@ export default function TicketScreen({ route, navigation }) {
   const [exporting, setExporting] = useState(false)
   const qrRef = useRef(null)
 
+  // Génération initiale + rafraîchissement toutes les 30s
   useEffect(() => {
     genererQRPayload(ticket).then((v) => { setQrValue(v); setQrReady(true) })
     const interval = setInterval(async () => {
@@ -70,12 +81,18 @@ export default function TicketScreen({ route, navigation }) {
     })
   }
 
-  const isScanned = ticket?.statut === 'utilise'
+  const statut = (ticket?.statut || '').toLowerCase()
+  const isUsed = statut === 'utilise'
+  const isExpired = statut === 'expire'
+  const showWatermark = isUsed || isExpired
+  const watermarkLabel = isExpired ? 'EXPIRÉ' : 'UTILISÉ'
+  const watermarkColor = isExpired ? C.watermarkRed : C.watermarkGreen
+
   const eventNom = ticket?.eventNom || ticket?.evenement || 'ÉVÉNEMENT'
   const dateStr = ticket?.eventDate ? formaterDateLisible(ticket.eventDate) : ''
   const heureStr = ticket?.eventHeure || ''
   const lieuStr = ticket?.eventLieu || ''
-  const refStr = ticket?.numero || '—'
+  const refStr = ticket?.numero || 'TKT-XXXXXXX'
   const catStr = ticket?.categorie || 'STANDARD'
   const prixStr = ticket?.prix ? `${Number(ticket.prix).toLocaleString('fr-FR')} FCFA` : '—'
 
@@ -94,117 +111,141 @@ export default function TicketScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <BlurBackground category={ticket?.categorie} showImage={false} gradientOverride={['rgba(27,67,50,0.8)', 'rgba(15,26,15,0.95)']} />
+      <BlurBackground category={ticket?.categorie} showImage={false} gradientOverride={['rgba(212,165,116,0.15)', 'rgba(30,28,26,0.95)']} />
       <TouchableOpacity style={[styles.backBtn, { top: insets.top + 8 }]} onPress={() => navigation.goBack()} activeOpacity={0.7}>
         <Feather name="arrow-left" size={20} color="#fff" />
       </TouchableOpacity>
 
-      <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 40 }]} showsVerticalScrollIndicator={false}>
-        <Text style={styles.pageTitle}>Mon billet</Text>
+      <ScrollView
+        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 40 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.ticketWrapper}>
+          {/* ===== CARTE TICKET ===== */}
+          <View style={styles.ticketCard}>
 
-        {/* TICKET */}
-        <View style={styles.ticketCard}>
-
-          {/* HEADER — vert forêt */}
-          <View style={styles.header}>
-            <View style={[styles.headerOrbe, { top: -30, right: -30, width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(64,145,108,0.35)' }]} />
-            <View style={[styles.headerOrbe, { bottom: -20, left: -20, width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(212,175,55,0.15)' }]} />
-            <View style={styles.headerContent}>
-              <View style={styles.logoOuter}>
-                <Image source={require('../../assets/logo_mobile.jpeg')} style={styles.logoImg} resizeMode="contain" />
+            {/* 1. TALON SUPÉRIEUR — fond blanc, logo e, prix vertical, mini QR */}
+            <View style={styles.stubTop}>
+              <View style={styles.logoEBox}>
+                <Text style={styles.logoEText}>e</Text>
               </View>
-              <Text style={styles.headerTitle}>SENGUICHET</Text>
-            </View>
-            <View style={styles.ligneDoree} />
-            <Text style={styles.eventName}>{eventNom.toUpperCase()}</Text>
-            <Text style={styles.eventCategory}>{catStr.toUpperCase()}</Text>
-          </View>
-
-          {/* PERFORATION HAUTE */}
-          <LinearGradient colors={[C.vertForet, C.creme]} style={styles.perfContainer}>
-            <View style={styles.perfLine} />
-            <View style={[styles.perfCircle, { left: -11 }]} />
-            <View style={[styles.perfCircle, { right: -11 }]} />
-          </LinearGradient>
-
-          {/* CORPS — crème */}
-          <View style={styles.body}>
-            <View style={styles.bodyRow}>
-              <View style={styles.bodyBlock}>
-                <Text style={styles.bodyLabel}>DATE</Text>
-                <Text style={styles.bodyValue}>{dateStr}</Text>
+              <View style={styles.priceVertical}>
+                <Text style={styles.priceVerticalText}>{prixStr}</Text>
               </View>
-              {heureStr ? (
-                <View style={[styles.bodyBlock, { alignItems: 'flex-end' }]}>
-                  <Text style={styles.bodyLabel}>HEURE</Text>
-                  <Text style={styles.bodyValue}>{heureStr}</Text>
-                </View>
-              ) : null}
-            </View>
-
-            {lieuStr ? (
-              <View style={{ marginTop: 10 }}>
-                <Text style={styles.bodyLabel}>LIEU</Text>
-                <Text style={styles.bodyLieu}>{lieuStr.toUpperCase()}</Text>
-              </View>
-            ) : null}
-
-            <View style={styles.bodySeparator} />
-
-            <Text style={styles.bodyRef}>REF · {refStr}</Text>
-
-            {/* ZONE QR */}
-            <View style={styles.qrZone}>
-              <View style={styles.qrWrapper}>
+              <View style={styles.qrMini}>
                 {qrReady ? (
                   <QRCode
                     value={qrValue}
-                    size={180}
-                    color={C.vertForet}
-                    backgroundColor={C.blanc}
+                    size={36}
+                    color="#000000"
+                    backgroundColor={C.white}
                     ecl="H"
-                    quietZone={12}
-                    getRef={(c) => { qrRef.current = c }}
+                    quietZone={0}
                   />
                 ) : (
-                  <View style={styles.qrPlaceholder}>
-                    <ActivityIndicator size="small" color={C.vertMoyen} />
-                  </View>
-                )}
-                {isScanned && (
-                  <View style={styles.scannedOverlay}>
-                    <View style={styles.redCircle}>
-                      <Text style={styles.redX}>✕</Text>
-                    </View>
-                  </View>
+                  <ActivityIndicator size="small" color={C.gold} />
                 )}
               </View>
             </View>
 
-            {isScanned && (
-              <Text style={styles.scannedText}>Contrôlé le {ticket?.dateScan || ''}</Text>
-            )}
-          </View>
-
-          {/* PERFORATION BASSE */}
-          <LinearGradient colors={[C.creme, C.beige]} style={styles.perfContainer}>
-            <View style={styles.perfLine} />
-            <View style={[styles.perfCircle, { left: -11 }]} />
-            <View style={[styles.perfCircle, { right: -11 }]} />
-          </LinearGradient>
-
-          {/* SOUCHE — beige */}
-          <View style={styles.footer}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{catStr.toUpperCase()}</Text>
+            {/* 2. SÉPARATEUR PERFORATION — pointillés + demi-cercles */}
+            <View style={styles.perforation}>
+              <View style={styles.halfCircleLeft} />
+              <View style={styles.perfLine} />
+              <View style={styles.halfCircleRight} />
             </View>
-            <Text style={styles.prixText}>{prixStr}</Text>
-            <Text style={styles.legalText}>Entree unique et non transferable</Text>
-            <Text style={styles.watermark}>SENGUICHET</Text>
+
+            {/* 3. CORPS PRINCIPAL — fond gris clair */}
+            <View style={styles.mainBody}>
+
+              {/* Filigrane diagonal ESP */}
+              <View style={styles.watermarkBg} pointerEvents="none">
+                <Text style={styles.watermarkBgText}>ESP</Text>
+              </View>
+
+              {/* Titre événement */}
+              <Text style={styles.eventTitle}>{eventNom}</Text>
+
+              <View style={styles.sep} />
+
+              {/* Paires d'infos */}
+              <View style={styles.infoPair}>
+                <View style={styles.infoItem}>
+                  <Text style={styles.infoLabel}>Date</Text>
+                  <Text style={styles.infoValue}>{dateStr || '—'}</Text>
+                </View>
+                <View style={styles.infoItem}>
+                  <Text style={styles.infoLabel}>Horaire</Text>
+                  <Text style={styles.infoValue}>{heureStr || '—'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.infoPair}>
+                <View style={styles.infoItem}>
+                  <Text style={styles.infoLabel}>Lieu</Text>
+                  <Text style={styles.infoValue}>{lieuStr || '—'}</Text>
+                </View>
+                <View style={styles.infoItem}>
+                  <Text style={styles.infoLabel}>Type</Text>
+                  <Text style={styles.infoValue}>{catStr}</Text>
+                </View>
+              </View>
+
+              <View style={styles.sep} />
+
+              {/* QR central 108x108 */}
+              <View style={styles.qrCentral}>
+                {qrReady ? (
+                  <QRCode
+                    value={qrValue}
+                    size={94}
+                    color="#000000"
+                    backgroundColor={C.white}
+                    ecl="H"
+                    quietZone={3}
+                    getRef={(c) => { qrRef.current = c }}
+                  />
+                ) : (
+                  <ActivityIndicator size="small" color={C.gold} />
+                )}
+              </View>
+
+              {/* Référence ticket */}
+              <Text style={styles.ticketRef}>REF · {refStr}</Text>
+
+              {/* Pied : numéro + badge catégorie */}
+              <View style={styles.footerLine}>
+                <Text style={styles.ticketNum}>#{ticket?.id || '00234'}</Text>
+                <View style={styles.categoryBadge}>
+                  <Text style={styles.categoryBadgeText}>{catStr}</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* 4. BANDE DE PRIX — dégradé vert foncé */}
+            <View style={styles.priceBand}>
+              <View>
+                <Text style={styles.priceLabel}>TARIF</Text>
+                <Text style={styles.priceAmount}>{prixStr}</Text>
+                <Text style={styles.priceNote}>Entrée unique · Non transférable</Text>
+              </View>
+              <View style={styles.priceBadge}>
+                <Text style={styles.priceBadgeText}>{catStr}</Text>
+              </View>
+            </View>
+
+            {/* Watermark superposition (UTILISÉ / EXPIRÉ) */}
+            {showWatermark ? (
+              <View style={styles.watermarkOverlay} pointerEvents="none">
+                <Text style={[styles.watermarkText, { color: watermarkColor }]}>
+                  {watermarkLabel}
+                </Text>
+              </View>
+            ) : null}
           </View>
         </View>
 
-        {/* BOUTON EXPORT */}
+        {/* Bouton export PDF */}
         <TouchableOpacity
           style={styles.exportBtn}
           onPress={handleExport}
@@ -212,7 +253,7 @@ export default function TicketScreen({ route, navigation }) {
           disabled={exporting}
         >
           <Text style={styles.exportText}>
-            {exporting ? 'GÉNÉRATION...' : 'EXPORTER EN PDF'}
+            {exporting ? 'Génération...' : 'Exporter en PDF'}
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -221,7 +262,10 @@ export default function TicketScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.fondPage },
+  container: {
+    flex: 1,
+    backgroundColor: '#1A1A1E',
+  },
   backBtn: {
     position: 'absolute', left: 24, zIndex: 10,
     width: 40, height: 40, borderRadius: 20,
@@ -232,220 +276,277 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
   },
-  pageTitle: {
-    fontFamily: fonts.outfit.bold,
-    fontSize: 18,
-    color: '#fff',
-    letterSpacing: -0.3,
-    marginBottom: spacing.lg,
+
+  ticketWrapper: {
+    position: 'relative',
+    width: '100%',
+    maxWidth: 300,
   },
 
-  // TICKET CARD
   ticketCard: {
     width: '100%',
-    borderRadius: 20,
+    borderRadius: 14,
     overflow: 'hidden',
+    backgroundColor: C.ticketBg,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 20 },
+    shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.25,
-    shadowRadius: 40,
-    elevation: 16,
-  },
-
-  // HEADER
-  header: {
-    backgroundColor: C.vertForet,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
-    overflow: 'hidden',
-  },
-  headerOrbe: { position: 'absolute' },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  logoOuter: {
-    width: 38, height: 38, borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  logoImg: {
-    width: 28, height: 28, borderRadius: 6,
-  },
-  headerTitle: {
-    fontFamily: fonts.outfit.bold,
-    fontSize: 10,
-    letterSpacing: 3,
-    color: 'rgba(255,255,255,0.7)',
-  },
-  ligneDoree: {
-    height: 1,
-    backgroundColor: C.or,
-    opacity: 0.6,
-    marginVertical: 16,
-  },
-  eventName: {
-    fontFamily: fonts.outfit.bold,
-    fontSize: 22,
-    color: '#fff',
-    textAlign: 'center',
-    letterSpacing: 0.5,
-    lineHeight: 28,
-  },
-  eventCategory: {
-    fontFamily: fonts.jakarta.regular,
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.5)',
-    textAlign: 'center',
-    letterSpacing: 2,
-    marginTop: 6,
-  },
-
-  // PERFORATION
-  perfContainer: {
-    height: 22,
+    shadowRadius: 24,
+    elevation: 12,
     position: 'relative',
+  },
+
+  // ===== 1. TALON SUPÉRIEUR =====
+  stubTop: {
+    backgroundColor: C.white,
+    height: 140,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoEBox: {
+    width: 48,
+    height: 48,
+    borderWidth: 3,
+    borderColor: C.cyan,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  perfLine: {
+  logoEText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: C.cyan,
+  },
+  priceVertical: {
     position: 'absolute',
-    left: 11, right: 11,
+    top: 12,
+    right: 14,
+  },
+  priceVerticalText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: C.greenDark,
+    letterSpacing: 1,
+    writingDirection: 'rtl',
+    transform: [{ rotate: '90deg' }],
+  },
+  qrMini: {
+    position: 'absolute',
+    bottom: 10,
+    right: 14,
+    width: 42,
+    height: 42,
+    backgroundColor: C.white,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // ===== 2. PERFORATION =====
+  perforation: {
+    height: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: C.ticketBg,
+  },
+  halfCircleLeft: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#1A1A1E',
+    marginLeft: -10,
+  },
+  halfCircleRight: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#1A1A1E',
+    marginRight: -10,
+  },
+  perfLine: {
+    flex: 1,
     borderTopWidth: 2,
     borderStyle: 'dashed',
-    borderColor: 'rgba(27,67,50,0.2)',
-  },
-  perfCircle: {
-    position: 'absolute',
-    width: 22, height: 22, borderRadius: 11,
-    backgroundColor: C.fondPage,
-    zIndex: 2,
+    borderColor: C.border,
   },
 
-  // BODY
-  body: {
-    backgroundColor: C.creme,
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 8,
+  // ===== 3. CORPS PRINCIPAL =====
+  mainBody: {
+    backgroundColor: C.ticketBg,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    position: 'relative',
+    overflow: 'hidden',
   },
-  bodyRow: {
+  watermarkBg: {
+    position: 'absolute',
+    top: '30%',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 0,
+  },
+  watermarkBgText: {
+    fontSize: 64,
+    fontWeight: 'bold',
+    color: '#4A6A8A',
+    opacity: 0.09,
+    transform: [{ rotate: '-30deg' }],
+    letterSpacing: 4,
+  },
+  eventTitle: {
+    textAlign: 'center',
+    fontSize: 11.5,
+    fontWeight: 'bold',
+    color: C.dark,
+    lineHeight: 16,
+    marginBottom: 10,
+    zIndex: 1,
+  },
+  sep: {
+    borderTopWidth: 1,
+    borderColor: C.border,
+    marginVertical: 8,
+  },
+  infoPair: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 6,
+    zIndex: 1,
+  },
+  infoItem: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: 6.5,
+    color: C.labelGray,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontFamily: fonts.outfit.bold,
+  },
+  infoValue: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: C.dark,
+    fontFamily: fonts.outfit.semiBold,
+  },
+  qrCentral: {
+    width: 108,
+    height: 108,
+    alignSelf: 'center',
+    marginVertical: 12,
+    backgroundColor: C.white,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 8,
+    padding: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+    zIndex: 1,
+  },
+  ticketRef: {
+    textAlign: 'center',
+    fontSize: 7,
+    color: C.labelGray,
+    letterSpacing: 1.5,
+    marginBottom: 8,
+    zIndex: 1,
+  },
+  footerLine: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  bodyBlock: {},
-  bodyLabel: {
-    fontFamily: fonts.outfit.bold,
-    fontSize: 8,
-    letterSpacing: 2,
-    color: C.vertMoyen,
-    marginBottom: 2,
-  },
-  bodyValue: {
-    fontFamily: fonts.outfit.semiBold,
-    fontSize: 12,
-    color: C.vertForet,
-  },
-  bodyLieu: {
-    fontFamily: fonts.outfit.semiBold,
-    fontSize: 12,
-    color: C.vertMoyen,
-    letterSpacing: 0.5,
-    marginTop: 2,
-  },
-  bodySeparator: {
-    height: 1,
-    backgroundColor: 'rgba(27,67,50,0.1)',
-    marginVertical: 14,
-  },
-  bodyRef: {
-    fontFamily: fonts.jakarta.regular,
-    fontSize: 9,
-    color: C.vertMoyen,
-    letterSpacing: 2,
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  qrZone: {
-    backgroundColor: C.blanc,
-    borderRadius: 12,
-    padding: 12,
-    marginVertical: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(27,67,50,0.08)',
     alignItems: 'center',
+    zIndex: 1,
   },
-  qrWrapper: { position: 'relative', alignItems: 'center', justifyContent: 'center' },
-  qrPlaceholder: { width: 180, height: 180, alignItems: 'center', justifyContent: 'center' },
-  scannedOverlay: {
+  ticketNum: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#4A6A8A',
+    fontFamily: fonts.outfit.bold,
+  },
+  categoryBadge: {
+    backgroundColor: '#D4EDDA',
+    borderRadius: 10,
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+  },
+  categoryBadgeText: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: C.greenLight,
+  },
+
+  // ===== 4. BANDE DE PRIX =====
+  priceBand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: C.greenDark,
+  },
+  priceLabel: {
+    fontSize: 7,
+    color: C.greenText,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontFamily: fonts.outfit.bold,
+  },
+  priceAmount: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: C.white,
+    fontFamily: fonts.outfit.bold,
+  },
+  priceNote: {
+    fontSize: 7,
+    color: C.greenText,
+    fontFamily: fonts.outfit.regular,
+  },
+  priceBadge: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+  },
+  priceBadgeText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: C.white,
+    textTransform: 'uppercase',
+  },
+
+  // Watermark diagonal (UTILISÉ / EXPIRÉ)
+  watermarkOverlay: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(255,77,109,0.85)',
-    borderRadius: 4,
-  },
-  redCircle: {
-    width: 64, height: 64, borderRadius: 32,
-    backgroundColor: '#FF4D6D',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  redX: {
-    fontSize: 36, color: '#FFFFFF',
-    fontFamily: fonts.outfit.bold, lineHeight: 40,
-  },
-  scannedText: {
-    fontFamily: fonts.outfit.bold, fontSize: 13,
-    color: '#FF4D6D', textAlign: 'center', marginTop: -8, marginBottom: 12,
-  },
-
-  // FOOTER / SOUCHE
-  footer: {
-    backgroundColor: C.beige,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    padding: 16,
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
   },
-  badge: {
-    backgroundColor: C.vertForet,
-    borderRadius: 999,
-    paddingVertical: 5,
-    paddingHorizontal: 20,
-  },
-  badgeText: {
+  watermarkText: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 9,
-    letterSpacing: 2.5,
-    color: C.or,
-  },
-  prixText: {
-    fontFamily: fonts.outfit.bold,
-    fontSize: 28,
-    color: C.vertForet,
-    letterSpacing: -0.5,
-  },
-  legalText: {
-    fontFamily: fonts.jakarta.regular,
-    fontSize: 9,
-    color: C.vertMoyen,
-    fontStyle: 'italic',
-  },
-  watermark: {
-    fontSize: 8,
-    color: 'rgba(27,67,50,0.3)',
-    letterSpacing: 2,
-    alignSelf: 'flex-end',
-    marginRight: 4,
+    fontSize: 60,
+    letterSpacing: 8,
+    opacity: 0.15,
+    transform: [{ rotate: '-30deg' }],
   },
 
-  // BOUTON EXPORT
+  // Bouton export PDF
   exportBtn: {
-    backgroundColor: C.vertForet,
+    backgroundColor: C.white,
     borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: C.gold,
     paddingVertical: 14,
     paddingHorizontal: 32,
     alignItems: 'center',
@@ -456,7 +557,7 @@ const styles = StyleSheet.create({
   exportText: {
     fontFamily: fonts.outfit.bold,
     fontSize: 14,
-    color: C.or,
-    letterSpacing: 1,
+    color: C.gold,
+    letterSpacing: 0.5,
   },
 })

@@ -5,6 +5,8 @@ import { TouchableOpacity, Text, Animated, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { glass, fonts, borderRadius, spacing, textShadow } from '../constants/theme'
+// Feedback haptique léger au press du bouton
+import { hapticLight } from '../utils/haptics'
 
 // Bouton glass large avec icône et animation scalePress
 // title : string du texte
@@ -34,7 +36,8 @@ export default function GlassButton({ title, icon, onPress, style, textStyle }) 
   return (
     <Animated.View style={[{ transform: [{ scale }] }, style]}>
       <TouchableOpacity
-        onPress={onPress}
+        // Haptique + callback original au press
+        onPress={() => { hapticLight(); onPress?.() }}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={0.9}

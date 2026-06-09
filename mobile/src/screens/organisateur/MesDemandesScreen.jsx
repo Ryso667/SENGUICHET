@@ -420,13 +420,13 @@ export default function MesDemandesScreen({ navigation }) {
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00C8FF', '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#D4A574', '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}
         >
           {/* Header */}
           <View style={s.header}>
             <Text style={s.headerTitle}>Mes demandes</Text>
             <TouchableOpacity style={s.newBtn} onPress={openNewDemande}>
-              <LinearGradient colors={['#00C8FF', '#0077FF']} style={s.newBtnGrad}>
+              <LinearGradient colors={['#D4A574', '#C8945C']} style={s.newBtnGrad}>
                 <MaterialCommunityIcons name="calendar-plus" size={16} color="#fff" />
                 <Text style={s.newBtnText}>Nouvelle demande</Text>
               </LinearGradient>
@@ -661,7 +661,7 @@ export default function MesDemandesScreen({ navigation }) {
                       <View style={f.catHeader}>
                         <Text style={f.label}>Catégories de tickets <Text style={{ color: '#FF4D6D' }}>*</Text></Text>
                         <TouchableOpacity style={f.addCatBtn} onPress={addCategory}>
-                          <MaterialCommunityIcons name="plus" size={14} color="#00C8FF" />
+                          <MaterialCommunityIcons name="plus" size={14} color="#D4A574" />
                         </TouchableOpacity>
                       </View>
                       {categories.map((cat, i) => (
@@ -705,7 +705,7 @@ export default function MesDemandesScreen({ navigation }) {
                   )}
 
                   <TouchableOpacity style={f.submitBtn} onPress={handleSubmit} disabled={sending}>
-                    <LinearGradient colors={['#00C8FF', '#0077FF']} style={f.submitGrad}>
+                    <LinearGradient colors={['#D4A574', '#C8945C']} style={f.submitGrad}>
                       {sending ? (
                         <ActivityIndicator color="#fff" />
                       ) : (
@@ -816,8 +816,8 @@ const s = StyleSheet.create({
   emptyState: { padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
   emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
   emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', textAlign: 'center' },
-  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
-  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, backgroundColor: 'rgba(212,165,116,0.15)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
+  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
 
   list: { gap: spacing.sm },
   card: { padding: spacing.md },
@@ -830,16 +830,16 @@ const s = StyleSheet.create({
   cardDate: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', marginTop: 2 },
   cardComment: { fontSize: 11, fontFamily: fonts.jakarta.regular, marginTop: 2, fontStyle: 'italic' },
   detailBtn: {
-    borderWidth: 1, borderColor: 'rgba(0,200,255,0.3)', borderRadius: 10,
+    borderWidth: 1, borderColor: 'rgba(212,165,116,0.3)', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 6, marginLeft: spacing.sm,
   },
-  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
 
   /* Modal */
   modalOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'flex-end' },
   modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
   modalContent: {
-    backgroundColor: '#152232', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    backgroundColor: '#2C2C30', borderTopLeftRadius: 24, borderTopRightRadius: 24,
     padding: spacing.lg, maxHeight: '85%',
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.08)',
   },
@@ -848,8 +848,8 @@ const s = StyleSheet.create({
 
   /* Détail */
   detailBadgeRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
-  detailTypeBadge: { backgroundColor: 'rgba(0,200,255,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  detailTypeBadge: { backgroundColor: 'rgba(212,165,116,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
   detailSub: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', marginBottom: spacing.md },
   detailImageWrap: { height: 160, borderRadius: 12, overflow: 'hidden', marginBottom: spacing.md },
   detailImage: { width: '100%', height: '100%' },
@@ -863,8 +863,8 @@ const s = StyleSheet.create({
   successWrap: { alignItems: 'center', paddingVertical: 30, gap: spacing.sm },
   successTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: '#fff' },
   successSub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textAlign: 'center', lineHeight: 20 },
-  successBtn: { marginTop: spacing.md, backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
-  successBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  successBtn: { marginTop: spacing.md, backgroundColor: 'rgba(212,165,116,0.15)', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
+  successBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
 
   /* Erreur */
   errorBox: { padding: spacing.sm, marginBottom: spacing.md },
@@ -890,9 +890,9 @@ const f = StyleSheet.create({
   selectRow: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.sm, flexWrap: 'wrap' },
   selectOpt: {
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    borderWidth: 1, borderColor: 'rgba(0,200,255,0.3)',
+    borderWidth: 1, borderColor: 'rgba(212,165,116,0.3)',
   },
-  selectOptActive: { backgroundColor: '#00C8FF', borderColor: '#00C8FF' },
+  selectOptActive: { backgroundColor: '#D4A574', borderColor: '#D4A574' },
   selectOptText: { fontSize: 12, fontFamily: fonts.outfit.regular, color: 'rgba(255,255,255,0.6)' },
   selectOptTextActive: { color: '#fff' },
   twoCol: { flexDirection: 'row', gap: spacing.sm },
@@ -902,7 +902,7 @@ const f = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   catHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
-  addCatBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(0,200,255,0.15)', alignItems: 'center', justifyContent: 'center' },
+  addCatBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(212,165,116,0.15)', alignItems: 'center', justifyContent: 'center' },
   catRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   submitBtn: { borderRadius: 12, overflow: 'hidden', marginTop: spacing.md },
   submitGrad: { paddingVertical: 14, alignItems: 'center' },
@@ -941,7 +941,7 @@ const f = StyleSheet.create({
   calWeekDay: { width: 32, textAlign: 'center', fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' },
   calGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   calDay: { width: '14.28%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center' },
-  calDaySelected: { backgroundColor: '#00C8FF', borderRadius: 20 },
+  calDaySelected: { backgroundColor: '#D4A574', borderRadius: 20 },
   calDayText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
   calDayTextSelected: { color: '#fff', fontFamily: fonts.outfit.semiBold },
 
@@ -952,8 +952,8 @@ const f = StyleSheet.create({
   timeCol: { alignItems: 'center', gap: 4 },
   timeValue: { fontSize: 28, fontFamily: fonts.outfit.bold, color: '#fff', paddingVertical: 4 },
   timeConfirmBtn: {
-    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 10,
+    backgroundColor: 'rgba(212,165,116,0.15)', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
-  timeConfirmText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  timeConfirmText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#D4A574' },
 })

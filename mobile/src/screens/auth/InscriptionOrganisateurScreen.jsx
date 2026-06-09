@@ -8,6 +8,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { inscrireOrganisateur } from '../../services/authService'
+import { hapticMedium } from '../../utils/haptics'
 import GlassButton from '../../components/GlassButton'
 import { colors, spacing, textShadow } from '../../constants/theme'
 import BlurBackground from '../../components/BlurBackground'
@@ -99,6 +100,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
       return
     }
 
+    hapticMedium()
     setChargement(true)
     try {
       await inscrireOrganisateur({
@@ -117,7 +119,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <BlurBackground />
       <KeyboardAvoidingView
         style={styles.flex}

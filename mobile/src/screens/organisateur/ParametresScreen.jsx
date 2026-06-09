@@ -66,8 +66,8 @@ export default function ParametresScreen({ navigation }) {
             <Switch
               value={notifications.smsVente}
               onValueChange={() => toggleNotif('smsVente')}
-              trackColor={{ true: 'rgba(0,200,255,0.6)', false: 'rgba(255,255,255,0.2)' }}
-              thumbColor={notifications.smsVente ? '#00C8FF' : 'rgba(255,255,255,0.5)'}
+              trackColor={{ true: 'rgba(212,165,116,0.6)', false: 'rgba(255,255,255,0.2)' }}
+              thumbColor={notifications.smsVente ? '#D4A574' : 'rgba(255,255,255,0.5)'}
             />
           </View>
           <View style={s.divider} />
@@ -76,8 +76,8 @@ export default function ParametresScreen({ navigation }) {
             <Switch
               value={notifications.emailRecap}
               onValueChange={() => toggleNotif('emailRecap')}
-              trackColor={{ true: 'rgba(0,200,255,0.6)', false: 'rgba(255,255,255,0.2)' }}
-              thumbColor={notifications.emailRecap ? '#00C8FF' : 'rgba(255,255,255,0.5)'}
+              trackColor={{ true: 'rgba(212,165,116,0.6)', false: 'rgba(255,255,255,0.2)' }}
+              thumbColor={notifications.emailRecap ? '#D4A574' : 'rgba(255,255,255,0.5)'}
             />
           </View>
           <View style={s.divider} />
@@ -86,8 +86,8 @@ export default function ParametresScreen({ navigation }) {
             <Switch
               value={notifications.stockFaible}
               onValueChange={() => toggleNotif('stockFaible')}
-              trackColor={{ true: 'rgba(0,200,255,0.6)', false: 'rgba(255,255,255,0.2)' }}
-              thumbColor={notifications.stockFaible ? '#00C8FF' : 'rgba(255,255,255,0.5)'}
+              trackColor={{ true: 'rgba(212,165,116,0.6)', false: 'rgba(255,255,255,0.2)' }}
+              thumbColor={notifications.stockFaible ? '#D4A574' : 'rgba(255,255,255,0.5)'}
             />
           </View>
         </GlassContainer>
@@ -108,8 +108,8 @@ const s = StyleSheet.create({
   infoText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', lineHeight: 20 },
   securityBtn: {
     paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md,
-    backgroundColor: 'rgba(0,200,255,0.12)', borderRadius: borderRadius.md,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(0,200,255,0.25)',
+    backgroundColor: 'rgba(212,165,116,0.12)', borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(212,165,116,0.25)',
     alignItems: 'center',
   },
   securityBtnText: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent },
