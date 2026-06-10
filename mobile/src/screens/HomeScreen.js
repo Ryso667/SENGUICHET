@@ -89,10 +89,7 @@ export default function HomeScreen({ navigation }) {
         style={styles.scroll}
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.sm }]}
         showsVerticalScrollIndicator={false}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: tabScrollY } } }],
-          { useNativeDriver: true }
-        )}
+        onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
         scrollEventThrottle={16}
       >
         {/* Header Bonjour */}

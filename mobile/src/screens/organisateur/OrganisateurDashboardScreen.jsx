@@ -108,10 +108,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor={colors.accent} />}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: tabScrollY } } }],
-          { useNativeDriver: true }
-        )}
+        onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
         scrollEventThrottle={16}
       >
         {/* Greeting — calqué sur le web : "Bonjour, {nom}" + date */}
