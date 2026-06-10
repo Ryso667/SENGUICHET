@@ -152,7 +152,7 @@ export default function ScanHistoryScreen() {
 
         {scans.length === 0 ? (
           <EmptyState
-            icon={<Feather name="clipboard" size={48} color={colors.textWhiteMuted} />}
+            icon={<Feather name="clipboard" size={48} color={colors.textSecondary} />}
             title="Aucun scan"
             subtitle="Les scans apparaîtront ici"
           />
@@ -200,13 +200,13 @@ const styles = StyleSheet.create({
   },
   statTicket: { alignItems: 'center', paddingRight: 16, minWidth: 80 },
   statTicketNombre: { fontFamily: fonts.outfit.bold, fontSize: 28, color: colors.text },
-  statTicketLabel: { fontFamily: fonts.outfit.regular, fontSize: 11, color: colors.textWhiteMuted, marginTop: 2 },
+  statTicketLabel: { fontFamily: fonts.outfit.regular, fontSize: 11, color: colors.textSecondary, marginTop: 2 },
   statDivider: { width: 1, height: 60, backgroundColor: colors.border, marginRight: 12 },
   statGrille: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   statMini: { flexDirection: 'row', alignItems: 'center', gap: 4, width: '45%' },
   statMiniDot: { width: 8, height: 8, borderRadius: 4 },
   statMiniNombre: { fontFamily: fonts.outfit.bold, fontSize: 14, color: colors.text, minWidth: 20 },
-  statMiniLabel: { fontFamily: fonts.outfit.regular, fontSize: 10, color: colors.textWhiteMuted },
+  statMiniLabel: { fontFamily: fonts.outfit.regular, fontSize: 10, color: colors.textSecondary },
   eventName: {
     fontFamily: fonts.outfit.medium, fontSize: 13, color: colors.textSecondary,
     paddingHorizontal: 16, paddingTop: 12, textAlign: 'center',
@@ -235,8 +235,8 @@ const styles = StyleSheet.create({
   carteGauche: { width: 36, alignItems: 'center' },
   carteCentre: { flex: 1 },
   carteEvenement: { fontFamily: fonts.outfit.semiBold, fontSize: 13, color: colors.text },
-  carteDate: { fontFamily: fonts.outfit.regular, fontSize: 12, color: colors.textWhiteMuted, marginTop: 1 },
-  carteUuid: { fontFamily: fonts.outfit.regular, fontSize: 10, color: colors.textWhiteMuted, marginTop: 1 },
+  carteDate: { fontFamily: fonts.outfit.regular, fontSize: 12, color: colors.textSecondary, marginTop: 1 },
+  carteUuid: { fontFamily: fonts.outfit.regular, fontSize: 10, color: colors.textSecondary, marginTop: 1 },
   carteDroite: { alignItems: 'flex-end', gap: 4 },
   carteStatut: { fontFamily: fonts.outfit.bold, fontSize: 12, color: colors.text },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.accentLight, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },

@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1.5,
     borderColor: colors.inputBorder,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     textAlign: 'center',
     fontFamily: 'Outfit_700Bold',
     fontSize: 24,
@@ -76,6 +76,6 @@ const styles = StyleSheet.create({
   caseRemplie: {
     borderColor: colors.accent,
     backgroundColor: colors.accent,
-    color: '#FFFFFF',
+    color: colors.surface,
   },
 })

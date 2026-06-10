@@ -69,7 +69,7 @@ function OrganisateurHeader({ title, deconnecter, badgeCount }) {
   return (
     <View style={[headerStyles.container, { paddingTop: insets.top + 8 }]}>
       <TouchableOpacity onPress={deconnecter} style={headerStyles.left}>
-        <Feather name="log-out" size={20} color="#FF4D6D" />
+        <Feather name="log-out" size={20} color={colors.danger} />
       </TouchableOpacity>
       <Text style={headerStyles.title}>{title}</Text>
       <View style={headerStyles.right}>
@@ -208,7 +208,7 @@ function OrganisateurTabs() {
                   width: 16,
                   height: 16,
                   borderRadius: 8,
-                  backgroundColor: '#FF4D6D',
+                  backgroundColor: colors.danger,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}>
@@ -230,7 +230,7 @@ function OrganisateurLayout() {
   const { deconnecter } = useAuth()
   return (
     <View style={{ flex: 1 }}>
-      <OrganisateurHeader title="SENGUICHET" deconnecter={deconnecter} />
+      <OrganisateurHeader title="👋 SENGUICHET" deconnecter={deconnecter} />
       <OrganisateurTabs />
     </View>
   )
@@ -254,7 +254,7 @@ function ControleurTabs() {
         ),
         headerRight: () => (
           <TouchableOpacity onPress={deconnecter} style={{ marginRight: 16 }}>
-            <Text style={{ fontSize: 14, color: '#FF4D6D', fontFamily: 'Outfit_600SemiBold' }}>
+            <Text style={{ fontSize: 14, color: colors.danger, fontFamily: 'Outfit_600SemiBold' }}>
               Quitter
             </Text>
           </TouchableOpacity>

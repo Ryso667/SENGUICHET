@@ -62,7 +62,7 @@ export default function SupportScreen() {
               <GlassContainer style={styles.faqItem} intensity={40}>
                 <View style={styles.faqHeader}>
                   <Text style={styles.faqQuestion}>{item.q}</Text>
-                  <Feather name={open ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textSecondary} />
+                  <Feather name={open ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textWhiteMuted} />
                 </View>
                 {open && <Text style={styles.faqAnswer}>{item.r}</Text>}
               </GlassContainer>
@@ -79,28 +79,28 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { padding: spacing.lg, paddingBottom: spacing.xl, gap: spacing.md },
   headerCard: { padding: spacing.md, alignItems: 'center' },
-  title: { fontSize: 22, fontFamily: fonts.outfit.bold, color: colors.text, letterSpacing: -0.5 },
-  subtitle: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 4 },
+  title: { fontSize: 22, fontFamily: fonts.outfit.bold, color: colors.textWhite, letterSpacing: -0.5 },
+  subtitle: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textWhiteMuted, marginTop: 4 },
   contactsCard: { padding: spacing.md },
   contactRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10,
   },
   contactText: {
-    flex: 1, fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.text,
+    flex: 1, fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textWhite,
   },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: glass.borderLight },
   faqTitle: {
-    fontSize: 16, fontFamily: fonts.outfit.bold, color: colors.text, letterSpacing: -0.3, marginTop: 8,
+    fontSize: 16, fontFamily: fonts.outfit.bold, color: colors.textWhite, letterSpacing: -0.3, marginTop: 8,
   },
   faqItem: { padding: spacing.md },
   faqHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   faqQuestion: {
-    flex: 1, fontSize: 13, fontFamily: fonts.jakarta.semiBold, color: colors.text, marginRight: spacing.sm,
+    flex: 1, fontSize: 13, fontFamily: fonts.jakarta.semiBold, color: colors.textWhite, marginRight: spacing.sm,
   },
   faqAnswer: {
     fontSize: 12, fontFamily: fonts.jakarta.regular,
-    color: colors.textSecondary, marginTop: spacing.sm, lineHeight: 18,
+    color: colors.textWhiteMuted, marginTop: spacing.sm, lineHeight: 18,
   },
 })

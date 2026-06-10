@@ -1,18 +1,24 @@
 // Badge de statut réutilisable pour événements et demandes
 // Props : status (ACTIF/EN_ATTENTE/VALIDE/TERMINE/ANNULE/EN_COURS/ACCEPTEE/REJETEE)
-import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
+import { colors } from '../constants/theme'
 
-// Palette de couleurs douces remplaçant les couleurs vives d'origine
+const hexToRgba = (hex, a) => {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r},${g},${b},${a})`
+}
+
 const CONFIG = {
-  ACTIF: { label: 'ACTIF', color: '#2E7D5E', bg: 'rgba(46,125,94,0.15)' },
-  EN_ATTENTE: { label: 'EN ATTENTE', color: '#D4835A', bg: 'rgba(212,131,90,0.15)' },
-  VALIDE: { label: 'VALIDE', color: '#2E7D5E', bg: 'rgba(46,125,94,0.15)' },
-  TERMINE: { label: 'TERMINÉ', color: '#9C9590', bg: 'rgba(156,149,144,0.15)' },
-  ANNULE: { label: 'ANNULÉ', color: '#C73A3A', bg: 'rgba(199,58,58,0.15)' },
-  EN_COURS: { label: 'EN COURS', color: '#7C6FA0', bg: 'rgba(124,111,160,0.15)' },
-  ACCEPTEE: { label: 'ACCEPTÉE', color: '#2E7D5E', bg: 'rgba(46,125,94,0.15)' },
-  REJETEE: { label: 'REJETÉE', color: '#C73A3A', bg: 'rgba(199,58,58,0.15)' },
+  ACTIF: { label: 'ACTIF', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
+  EN_ATTENTE: { label: 'EN ATTENTE', color: colors.warning, bg: hexToRgba(colors.warning, 0.15) },
+  VALIDE: { label: 'VALIDE', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
+  TERMINE: { label: 'TERMINÉ', color: colors.mid, bg: hexToRgba(colors.mid, 0.15) },
+  ANNULE: { label: 'ANNULÉ', color: colors.danger, bg: hexToRgba(colors.danger, 0.15) },
+  EN_COURS: { label: 'EN COURS', color: colors.slate, bg: hexToRgba(colors.slate, 0.15) },
+  ACCEPTEE: { label: 'ACCEPTÉE', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
+  REJETEE: { label: 'REJETÉE', color: colors.danger, bg: hexToRgba(colors.danger, 0.15) },
 }
 
 export default function StatusBadge({ status }) {

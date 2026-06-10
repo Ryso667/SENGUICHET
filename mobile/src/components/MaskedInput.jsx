@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import MaskInput from 'react-native-mask-input'
-import { colors, fonts, spacing, borderRadius } from '../../constants/theme'
+import { colors, fonts, spacing, borderRadius } from '../constants/theme'
 
 // Masque téléphone sénégalais : +221 XX XXX XX XX
 const PHONE_MASK = ['+', '2', '2', '1', ' ', /\d/, /\d/, ' ', /\d/, /\d/, /\d/, ' ', /\d/, /\d/, ' ', /\d/, /\d/]
@@ -67,7 +67,7 @@ export default function MaskedInput({
     ? colors.red
     : focus
       ? colors.accent
-      : '#E2E8F0'
+      : colors.inputBorder
 
   return (
     <View style={styles.wrapper}>
@@ -79,7 +79,7 @@ export default function MaskedInput({
           onChangeText={handleChangeText}
           onFocus={() => setFocus(true)}
           onBlur={() => setFocus(false)}
-          placeholderTextColor={colors.muted}
+          placeholderTextColor={colors.textTertiary}
           style={styles.input}
           {...rest}
         />
@@ -96,11 +96,11 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: fonts.jakarta.medium,
     fontSize: 14,
-    color: colors.mid,
+    color: colors.textSecondary,
     marginBottom: spacing.xs,
   },
   container: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   input: {
     fontFamily: fonts.jakarta.regular,
     fontSize: 16,
-    color: colors.slate,
+    color: colors.text,
     padding: 0,
     margin: 0,
   },

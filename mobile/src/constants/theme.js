@@ -7,23 +7,32 @@ export const colors = {
   white: '#FFFFFF',
   text: '#1A1A1E',
   textSecondary: '#6B6560',
-  textTertiary: '#9C9590',
+  textTertiary: '#7A7570',
   accent: '#C7513A',
   accentLight: '#F0DED8',
-  green: '#2E7D5E',
+  green: '#22C55E',
   greenLight: '#E0F5EC',
   red: '#C73A3A',
-  whiteMuted: '#9C9590',
+  whiteMuted: '#7A7570',
   violet: '#7C6FA0',
   orange: '#D4835A',
   glassWhite: 'rgba(255,255,255,0.15)',
   glassBorder: 'rgba(255,255,255,0.6)',
   glassDark: 'rgba(0,0,0,0.04)',
-  textWhite: '#1A1A1E',
-  textWhiteMuted: '#6B6560',
   inputBg: '#FFFFFF',
   inputBorder: '#D4CEC8',
   inputBorderFocus: '#C7513A',
+  // Tokens textes sur fonds sombres (overlays, glass sur BlurBackground)
+  textWhite: '#FFFFFF',
+  textWhiteMuted: 'rgba(255,255,255,0.7)',
+  // Tokens utilitaires (utilisés dans plusieurs composants)
+  slate: '#2D2D32',
+  mid: '#7A7570',
+  muted: '#8A8480',
+  // Tokens feedback — visibles sur tous les fonds
+  danger: '#D45050',
+  warning: '#F97316',
+  success: '#22C55E',
 }
 
 // === GLASS (verre dépoli — version claire pour cohérence Warm Light) ===
@@ -42,7 +51,7 @@ export const glass = {
 export const gradients = {
   primary: ['#C7513A', '#B84530'],
   organisateur: ['#C7513A', '#B84530'],
-  success: ['#2E7D5E', '#3A8F6E'],
+  success: ['#22C55E', '#16A34A'],
   error: ['#C73A3A', '#D45050'],
 }
 

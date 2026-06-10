@@ -256,7 +256,7 @@ const s = StyleSheet.create({
   eventMeta: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
   eventBody: { padding: spacing.md },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
-  barBg: { flex: 1, height: 8, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 4, overflow: 'hidden' },
+  barBg: { flex: 1, height: 8, backgroundColor: colors.inputBorder, borderRadius: 4, overflow: 'hidden' },
   barFill: { height: 8, borderRadius: 4, backgroundColor: colors.accent },
   barCount: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary },
   eventFooter: {

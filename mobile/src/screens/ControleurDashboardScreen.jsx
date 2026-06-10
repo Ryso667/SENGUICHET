@@ -42,12 +42,12 @@ const styles = StyleSheet.create({
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: colors.text,
+    color: colors.textWhite,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: colors.textSecondary,
+    color: colors.textWhiteMuted,
     marginBottom: 24,
   },
 })

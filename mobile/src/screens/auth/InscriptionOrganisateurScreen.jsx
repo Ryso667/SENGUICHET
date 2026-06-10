@@ -17,7 +17,7 @@ import GlassContainer from '../../components/GlassContainer'
 // Calcule le niveau de force du mot de passe (0-4)
 // Retourne { score, label, couleur }
 const evaluerForceMotDePasse = (mdp) => {
-  if (!mdp) return { score: 0, label: '', couleur: colors.muted }
+  if (!mdp) return { score: 0, label: '', couleur: colors.textWhiteMuted }
   const len = mdp.length
   if (len <= 3) return { score: 1, label: 'Faible', couleur: colors.red }
   if (len <= 6) return { score: 2, label: 'Moyen', couleur: colors.orange }
@@ -272,26 +272,26 @@ const styles = StyleSheet.create({
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: colors.text,
+    color: colors.textWhite,
     marginBottom: 8,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: colors.textSecondary,
+    color: colors.textWhiteMuted,
     marginBottom: 32,
   },
   label: {
     fontFamily: 'Outfit_500Medium',
     fontSize: 14,
-    color: colors.text,
+    color: colors.textWhite,
     marginBottom: 6,
   },
   inputWrap: { marginBottom: 16, borderRadius: 14, height: 56, justifyContent: 'center', paddingHorizontal: 16 },
   input: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 16,
-    color: colors.text,
+    color: colors.textWhite,
   },
   forceConteneur: {
     flexDirection: 'row',
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   lienConnexionText: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 14,
-    color: colors.textSecondary,
+    color: colors.textWhiteMuted,
   },
   lienConnexionBtn: {
     paddingVertical: 0,

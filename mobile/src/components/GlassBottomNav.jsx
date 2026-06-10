@@ -13,7 +13,7 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
-import { fonts } from '../constants/theme'
+import { fonts, colors } from '../constants/theme'
 
 const TABS = [
   { key: 'Home', icon: 'home', label: 'Accueil' },
@@ -54,7 +54,7 @@ export default function GlassBottomNav() {
             activeOpacity={0.7}
           >
             <View style={[styles.iconWrap, active && styles.activeIcon]}>
-              <Feather name={tab.icon} size={20} color={active ? '#C7513A' : '#9C9590'} />
+              <Feather name={tab.icon} size={20} color={active ? colors.accent : colors.textSecondary} />
             </View>
             <Text style={[styles.label, active && styles.activeLabel]}>
               {tab.label}
@@ -92,11 +92,11 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 10,
     fontFamily: fonts.jakarta.medium,
-    color: '#9C9590', // Inactif : gris doux
+    color: colors.textSecondary,
     letterSpacing: 0.2,
   },
   activeLabel: {
-    color: '#C7513A', // Actif : terracotta
+    color: colors.accent,
     fontFamily: fonts.jakarta.semiBold,
   },
 })

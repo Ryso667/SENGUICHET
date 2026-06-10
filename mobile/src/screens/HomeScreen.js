@@ -19,11 +19,18 @@ import { formaterPourEventCard } from '../utils/eventUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
 import { mesBillets } from '../services/billetService'
 
+const hexToRgba = (hex, a) => {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r},${g},${b},${a})`
+}
+
 const STATUTS = {
-  actif: { label: 'VALIDE', color: '#2E7D5E', dot: '#2E7D5E' },
-  en_attente: { label: 'EN ATTENTE', color: '#F97316', dot: '#F97316' },
-  utilise: { label: 'UTILISÉ', color: '#94A3B8', dot: '#94A3B8' },
-  rembourse: { label: 'REMBOURSÉ', color: '#FF4D6D', dot: '#FF4D6D' },
+  actif: { label: 'VALIDE', color: colors.success, dot: colors.success },
+  en_attente: { label: 'EN ATTENTE', color: colors.warning, dot: colors.warning },
+  utilise: { label: 'UTILISÉ', color: colors.mid, dot: colors.mid },
+  rembourse: { label: 'REMBOURSÉ', color: colors.danger, dot: colors.danger },
 }
 
 export default function HomeScreen({ navigation }) {
@@ -32,7 +39,7 @@ export default function HomeScreen({ navigation }) {
   const [tickets, setTickets] = useState([])
   const [category, setCategory] = useState(null)
   const [activeEvent, setActiveEvent] = useState(null)
-  const { deconnecter, nettoyerSession, numeroTel, profil, email } = useAuth()
+  const { deconnecter, numeroTel, profil, email } = useAuth()
   const headerSpring = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
@@ -90,11 +97,11 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.greeting}>Bonjour</Text>
                 <Text style={styles.name}>{profil?.nom || (email ? email.split('@')[0].replace(/\d+$/, '') : 'Invité')}</Text>
               </View>
-              <TouchableOpacity onPress={nettoyerSession} style={styles.homeBtn}>
-                <Feather name="home" size={18} color={colors.textSecondary} />
+              <TouchableOpacity onPress={() => navigation.navigate('AccueilChoix')} style={styles.homeBtn}>
+                <Feather name="home" size={18} color={colors.textWhiteMuted} />
               </TouchableOpacity>
               <TouchableOpacity onPress={deconnecter} style={styles.logoutBtn}>
-                <Feather name="log-out" size={16} color={colors.textSecondary} />
+                <Feather name="log-out" size={16} color={colors.textWhiteMuted} />
               </TouchableOpacity>
             </View>
             {tickets.length > 0 && (
@@ -143,15 +150,15 @@ export default function HomeScreen({ navigation }) {
                   activeOpacity={0.7}
                 >
                   <GlassContainer style={styles.ticketCard} intensity={40}>
-                    <View style={[styles.ticketDot, { backgroundColor: (STATUTS[t.statut]?.dot || '#2E7D5E') }]} />
+                    <View style={[styles.ticketDot, { backgroundColor: (STATUTS[t.statut]?.dot || colors.green) }]} />
                     <View style={styles.ticketInfo}>
                       <Text style={styles.ticketTitle}>{t.eventNom || 'Événement'}</Text>
                       <Text style={styles.ticketMeta}>
                         {t.categorie} · {formaterDateLisible(t.eventDate)}
                       </Text>
                     </View>
-                    <View style={[styles.statusBadge, { backgroundColor: `${STATUTS[t.statut]?.color || '#2E7D5E'}25` }]}>
-                      <Text style={[styles.statusText, { color: STATUTS[t.statut]?.color || '#2E7D5E' }]}>
+                    <View style={[styles.statusBadge, { backgroundColor: hexToRgba(STATUTS[t.statut]?.color || colors.green, 0.15) }]}>
+                      <Text style={[styles.statusText, { color: STATUTS[t.statut]?.color || colors.green }]}>
                         {STATUTS[t.statut]?.label || 'VALIDE'}
                       </Text>
                     </View>
@@ -171,8 +178,6 @@ export default function HomeScreen({ navigation }) {
           />
         </View>
 
-        {/* Footer */}
-        <Text style={styles.footer}>Paiement Wave & Orange Money · Sans compte requis</Text>
       </ScrollView>
     </View>
   )
@@ -191,8 +196,8 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   headerText: { flex: 1 },
-  greeting: { fontSize: 12, color: colors.textSecondary, fontFamily: fonts.jakarta.regular },
-  name: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text, letterSpacing: -0.3 },
+  greeting: { fontSize: 12, color: colors.textWhiteMuted, fontFamily: fonts.jakarta.regular },
+  name: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.textWhite, letterSpacing: -0.3 },
   homeBtn: {
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: 'rgba(199,81,58,0.1)',
@@ -210,19 +215,20 @@ const styles = StyleSheet.create({
     borderTopColor: glass.borderLight,
   },
   ticketCountText: {
-    fontSize: 11, fontFamily: fonts.jakarta.semiBold,
+    fontSize: 12, fontFamily: fonts.jakarta.semiBold,
     color: colors.green,
+    letterSpacing: 0.3,
   },
   sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: spacing.lg, marginTop: 24, marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 16, fontFamily: fonts.outfit.bold, color: colors.text, letterSpacing: -0.3,
+    fontSize: 16, fontFamily: fonts.outfit.bold, color: colors.textWhite, letterSpacing: -0.3,
   },
   voirTout: {
     fontSize: 12, fontFamily: fonts.jakarta.semiBold,
-    color: colors.textSecondary,
+    color: colors.textWhiteMuted,
   },
   emptyText: {
     textAlign: 'center', fontSize: 14, fontFamily: fonts.jakarta.regular,
@@ -238,10 +244,10 @@ const styles = StyleSheet.create({
   },
   ticketInfo: { flex: 1 },
   ticketTitle: {
-    fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text, letterSpacing: -0.1,
+    fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.textWhite, letterSpacing: -0.1,
   },
   ticketMeta: {
-    fontSize: 11, color: colors.textSecondary, fontFamily: fonts.jakarta.regular, marginTop: 2,
+    fontSize: 11, color: colors.textWhiteMuted, fontFamily: fonts.jakarta.regular, marginTop: 2,
   },
   statusBadge: {
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: borderRadius.sm,
@@ -250,8 +256,4 @@ const styles = StyleSheet.create({
     fontSize: 10, fontFamily: fonts.jakarta.semiBold,
   },
   ctaWrap: { paddingHorizontal: spacing.lg, marginTop: 24 },
-  footer: {
-    textAlign: 'center', fontSize: 10, color: colors.textTertiary,
-    fontFamily: fonts.jakarta.regular, marginTop: 24, marginBottom: spacing.sm,
-  },
 })
