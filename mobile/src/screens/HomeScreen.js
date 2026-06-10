@@ -4,7 +4,7 @@
 // Section : cartes événements horizontales animées
 // Section : tickets récents en glass
 // CTA : Explorer les événements en glass button
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Animated, Image, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -186,6 +186,12 @@ export default function HomeScreen({ navigation }) {
           />
         </View>
 
+        {/* Lien support */}
+        <TouchableOpacity onPress={() => navigation.navigate('Support')} style={styles.supportLink}>
+          <Feather name="message-circle" size={12} color={colors.textWhiteMuted} />
+          <Text style={styles.supportLinkText}>Support</Text>
+        </TouchableOpacity>
+
       </ScrollView>
     </View>
   )
@@ -264,4 +270,13 @@ const styles = StyleSheet.create({
     fontSize: 10, fontFamily: fonts.jakarta.semiBold,
   },
   ctaWrap: { paddingHorizontal: spacing.lg, marginTop: 24 },
+  supportLink: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 6, marginTop: spacing.xl, marginBottom: spacing.md,
+    paddingVertical: 8,
+  },
+  supportLinkText: {
+    fontSize: 12, fontFamily: fonts.jakarta.regular,
+    color: colors.textWhiteMuted,
+  },
 })

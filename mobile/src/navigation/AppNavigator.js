@@ -125,15 +125,14 @@ const headerStyles = StyleSheet.create({
   },
 })
 
-// Onglets acheteur : 4 tabs avec barre flottante iOS
+// Onglets acheteur : 4 tabs sans barre de navigation
 function AcheteurTabs() {
   return (
     <TabBarScrollProvider>
     <Tab.Navigator
-      tabBar={(props) => <FloatingTabBar {...props} />}
+      tabBar={() => null}
       screenOptions={{
         headerShown: false,
-        sceneContainerStyle: { paddingBottom: 80 },
       }}
     >
       <Tab.Screen
@@ -152,22 +151,7 @@ function AcheteurTabs() {
           tabBarIcon: ({ color, size }) => <Feather name="tag" size={size} color={color} />,
         }}
       />
-      <Tab.Screen
-        name="Support"
-        component={SupportScreen}
-        options={{
-          tabBarLabel: 'Support',
-          tabBarIcon: ({ color, size }) => <Feather name="message-circle" size={size} color={color} />,
-        }}
-      />
-      <Tab.Screen
-        name="Profil"
-        component={ProfilScreen}
-        options={{
-          tabBarLabel: 'Profil',
-          tabBarIcon: ({ color, size }) => <Feather name="user" size={size} color={color} />,
-        }}
-      />
+
     </Tab.Navigator>
     </TabBarScrollProvider>
   )
@@ -395,6 +379,8 @@ export default function AppNavigator() {
                 <Stack.Screen name="EventDetail" component={EventDetailScreen} options={header('Détail')} />
                 <Stack.Screen name="Ticket" component={TicketScreen} />
                 <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="Support" component={SupportScreen} options={header('Support')} />
+                <Stack.Screen name="Profil" component={ProfilScreen} options={header('Profil')} />
               </>)}
 
             {/* Contrôleur connecté */}

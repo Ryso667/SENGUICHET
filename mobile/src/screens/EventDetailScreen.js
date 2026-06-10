@@ -255,9 +255,9 @@ export default function EventDetailScreen({ route, navigation }) {
           transform: [{ translateY: heroFade.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
         }}>
         <View style={styles.heroSection}>
-          <Text style={[styles.heroCategory, { color: colors.accent }]}>{event.category || 'ÉVÉNEMENT'}</Text>
+          <Text style={[styles.heroCategory, { color: '#90CAF9' }]}>{event.category || 'ÉVÉNEMENT'}</Text>
           <MaskedView maskElement={<Text style={styles.heroTitle}>{event.title}</Text>}>
-            <LinearGradient colors={gradients.primary} start={{x:0,y:0}} end={{x:1,y:0}}>
+            <LinearGradient colors={['#FFFFFF', '#90CAF9']} start={{x:0,y:0}} end={{x:1,y:0}}>
               <Text style={[styles.heroTitle, { opacity: 0 }]}>{event.title}</Text>
             </LinearGradient>
           </MaskedView>

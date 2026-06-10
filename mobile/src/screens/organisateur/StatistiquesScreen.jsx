@@ -65,11 +65,16 @@ export default function StatistiquesScreen() {
     }
   }, [events])
 
+  const barColors = ['#3D5AFE', '#FF6D00', '#6CD4A0', '#FF4D6D', '#A78BFA']
+
   const barData = useMemo(() => {
     const top5 = [...events].sort((a, b) => (b.remplis || 0) - (a.remplis || 0)).slice(0, 5)
     return {
       labels: top5.map(e => e.nom.length > 8 ? e.nom.substring(0, 8) + '…' : e.nom),
-      datasets: [{ data: top5.map(e => e.remplis || 0) }]
+      datasets: [{
+        data: top5.map(e => e.remplis || 0),
+        colors: top5.map((_, i) => (opacity = 1) => barColors[i] + Math.round(opacity * 255).toString(16).padStart(2, '0'))
+      }]
     }
   }, [events])
 
@@ -138,6 +143,8 @@ export default function StatistiquesScreen() {
                 verticalLabelRotation={0}
                 fromZero
                 showValuesOnTopOfBars
+                withCustomBarColorFromData
+                flatColor
                 style={s.chart}
               />
             ) : (
