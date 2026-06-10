@@ -3,10 +3,7 @@
 // 3 tabs : Accueil, Mes Tickets, Support
 // Animation slide au changement, icône active surélevée
 //
-// Couleurs mises à jour Juin 2026 (Warm Light) :
-//   Fond : rgba(255,255,255,0.6) — blanc translucide
-//   Icône/texte actif  : #C7513A (terracotta)
-//   Icône/texte inactif : #9C9590 (gris doux)
+// Couleurs : fond translucide blanc style iOS 18, icône active cyan
 import { useRef, useEffect } from 'react'
 import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -43,7 +40,7 @@ export default function GlassBottomNav() {
   }, [currentIndex, slideAnim])
 
   return (
-    <BlurView tint="dark" intensity={90} style={[styles.container, { paddingBottom: 8 + insets.bottom }]}>
+    <BlurView tint="light" intensity={60} style={[styles.container, { paddingBottom: 8 + insets.bottom }]}>      
       {TABS.map((tab) => {
         const active = route.name === tab.key
         return (
@@ -69,10 +66,9 @@ export default function GlassBottomNav() {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(0,0,0,0.08)', // Séparateur léger
+    borderTopWidth: 0, // Pas de bordure sur le nav style Apple
     paddingTop: 8,
-    backgroundColor: 'rgba(255,255,255,0.6)', // Fond translucide blanc
+    backgroundColor: 'rgba(255,255,255,0.08)', // Verre translucide très subtil
   },
   item: {
     flex: 1,

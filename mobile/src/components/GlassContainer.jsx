@@ -29,7 +29,7 @@ export default function GlassContainer({ children, style, blurType = 'light', in
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: glass.darkBg,
+    backgroundColor: glass.bg,
     borderRadius: borderRadius.xl,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: glass.border,
