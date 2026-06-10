@@ -100,7 +100,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
         {/* Greeting — calqué sur le web : "Bonjour, {nom}" + date */}
         <GlassContainer blurType="light" style={s.greeting}>
           <View style={s.headerRow}>
-            <MaterialCommunityIcons name="view-grid-outline" size={22} color={colors.text} />
+            <Text style={s.emoji}>👋</Text>
             <Text style={s.bonjour}>Bonjour, {user?.nom || 'Organisateur'}</Text>
           </View>
           <Text style={s.dateText}>{today}</Text>
