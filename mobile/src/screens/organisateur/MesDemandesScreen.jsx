@@ -12,6 +12,7 @@ import * as ImagePicker from 'expo-image-picker'
 import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
+import { useTabBarScroll } from '../../context/TabBarScrollContext'
 
 // Convertisseur hex → rgba pour fonds glass translucides
 const hexToRgba = (hex, a) => {
@@ -55,6 +56,7 @@ const VILLES = [
 
 export default function MesDemandesScreen({ navigation }) {
   const insets = useSafeAreaInsets()
+  const { scrollY: tabScrollY } = useTabBarScroll()
   const [demandes, setDemandes] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -430,7 +432,9 @@ export default function MesDemandesScreen({ navigation }) {
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor={colors.accent} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" colors={["#FFFFFF"]} />}
+          onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
+          scrollEventThrottle={16}
         >
           {/* Header */}
           <View style={s.header}>
@@ -493,7 +497,7 @@ export default function MesDemandesScreen({ navigation }) {
             </View>
           )}
 
-          <View style={{ height: 40 }} />
+          <View style={{ height: 100 }} />
         </ScrollView>
       </View>
 
@@ -559,7 +563,7 @@ export default function MesDemandesScreen({ navigation }) {
               ) : demandeSent ? (
                 /* === ÉTAT SUCCÈS === */
                 <View style={s.successWrap}>
-                  <MaterialCommunityIcons name="check-circle-outline" size={48} color="#00E5A0" />
+                  <MaterialCommunityIcons name="check-circle-outline" size={48} color={colors.green} />
                   <Text style={s.successTitle}>Demande soumise</Text>
                   <Text style={s.successSub}>Votre demande a été transmise à l'équipe SenGuichet. Vous recevrez une réponse par email.</Text>
                   <TouchableOpacity style={s.successBtn} onPress={closeModal}>
@@ -671,7 +675,7 @@ export default function MesDemandesScreen({ navigation }) {
                       <View style={f.catHeader}>
                         <Text style={f.label}>Catégories de tickets <Text style={{ color: '#FF4D6D' }}>*</Text></Text>
                         <TouchableOpacity style={f.addCatBtn} onPress={addCategory}>
-                          <MaterialCommunityIcons name="plus" size={14} color={colors.accent} />
+                          <MaterialCommunityIcons name="plus" size={14} color="#fff" />
                         </TouchableOpacity>
                       </View>
                       {categories.map((cat, i) => (
@@ -727,7 +731,7 @@ export default function MesDemandesScreen({ navigation }) {
                   </TouchableOpacity>
                 </>
               )}
-              <View style={{ height: 20 }} />
+              <View style={{ height: 100 }} />
               {kbPadding > 0 && <View style={{ height: kbPadding }} />}
             </ScrollView>
           </Animated.View>
@@ -814,7 +818,7 @@ const DetailField = ({ label, value }) => (
 
 const s = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 40 },
+  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },
 
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
   headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text },
@@ -837,13 +841,13 @@ const s = StyleSheet.create({
   cardType: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text },
   cardBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   cardBadgeText: { fontSize: 10, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.3 },
-  cardDate: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, marginTop: 2 },
+  cardDate: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 2 },
   cardComment: { fontSize: 11, fontFamily: fonts.jakarta.regular, marginTop: 2, fontStyle: 'italic' },
   detailBtn: {
     borderWidth: 1, borderColor: 'rgba(0,200,255,0.3)', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 6, marginLeft: spacing.sm,
   },
-  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
 
   /* Modal */
   modalOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'flex-end' },
@@ -891,11 +895,11 @@ const s = StyleSheet.create({
 })
 
 const f = StyleSheet.create({
-  label: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary, marginBottom: 6, marginTop: 4 },
+  label: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: 6, marginTop: 4 },
   input: {
-    backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: 10,
+    backgroundColor: colors.inputBg, borderRadius: 10,
     paddingHorizontal: 14, height: 44, fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.text,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, marginBottom: spacing.sm,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.inputBorder, marginBottom: spacing.sm,
   },
   selectRow: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.sm, flexWrap: 'wrap' },
   selectOpt: {
@@ -903,7 +907,7 @@ const f = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(0,200,255,0.3)',
   },
   selectOptActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  selectOptText: { fontSize: 12, fontFamily: fonts.outfit.regular, color: colors.textSecondary },
+  selectOptText: { fontSize: 12, fontFamily: fonts.outfit.regular, color: colors.text },
   selectOptTextActive: { color: '#fff' },
   twoCol: { flexDirection: 'row', gap: spacing.sm },
   uploadZone: {
@@ -924,9 +928,9 @@ const f = StyleSheet.create({
   /* Picker bouton */
   pickerBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10,
+    backgroundColor: colors.inputBg, borderRadius: 10,
     paddingHorizontal: 14, height: 44,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.inputBorder,
     marginBottom: spacing.sm,
   },
   pickerBtnText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.text, flex: 1 },
@@ -934,9 +938,9 @@ const f = StyleSheet.create({
   /* Catégorie billet picker dans la row */
   catPickerBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10,
+    backgroundColor: colors.inputBg, borderRadius: 10,
     paddingHorizontal: 10, height: 40,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.inputBorder,
   },
   catPickerText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.text, flex: 1 },
 
@@ -965,5 +969,5 @@ const f = StyleSheet.create({
     backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
-  timeConfirmText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  timeConfirmText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text },
 })

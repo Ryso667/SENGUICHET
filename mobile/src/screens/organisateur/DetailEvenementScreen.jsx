@@ -88,7 +88,7 @@ export default function DetailEvenementScreen({ route }) {
     <View style={[s.container, { paddingTop: insets.top }]}>
       <OrganisateurLayout />
       <ScrollView showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor={colors.accent} />}>
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" colors={["#FFFFFF"]} />}>
         <GlassContainer blurType="light" style={s.header} intensity={35}>
           <Text style={s.title}>{evenement.nom}</Text>
           <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
@@ -111,7 +111,7 @@ export default function DetailEvenementScreen({ route }) {
           </GlassContainer>
           <GlassContainer blurType="light" style={s.infoCard} intensity={30}>
             <Text style={s.infoLabel}>Code contrôleur</Text>
-            <Text style={[s.infoValue, { fontFamily: 'monospace', letterSpacing: 4, color: colors.accent }]}>{evenement.code || '-'}</Text>
+            <Text style={[s.infoValue, { fontFamily: 'monospace', letterSpacing: 4, color: colors.text }]}>{evenement.code || '-'}</Text>
           </GlassContainer>
         </View>
 
@@ -149,7 +149,7 @@ export default function DetailEvenementScreen({ route }) {
           )}
         </GlassContainer>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   )
@@ -175,7 +175,7 @@ const s = StyleSheet.create({
   fillSection: { margin: spacing.lg, padding: spacing.md },
   fillTitle: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  barBg: { flex: 1, height: 10, backgroundColor: colors.inputBorder, borderRadius: 5, overflow: 'hidden' },
+  barBg: { flex: 1, height: 10, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 5, overflow: 'hidden' },
   barFill: { height: 10, borderRadius: 5, backgroundColor: colors.accent },
   barCount: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary },
   fillPct: { fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.text, marginTop: spacing.sm },
@@ -188,6 +188,6 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.15)',
   },
   ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, flex: 1 },
-  ticketPrix: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  ticketPrix: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.green },
   ticketStatut: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginLeft: spacing.sm, textTransform: 'capitalize' },
 })

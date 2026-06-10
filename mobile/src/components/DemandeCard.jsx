@@ -72,8 +72,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   detailBtn: {
-    borderWidth: 1,
-    borderColor: colors.accent,
+    backgroundColor: 'rgba(255,255,255,0.12)',
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
@@ -81,6 +80,6 @@ const styles = StyleSheet.create({
   detailBtnText: {
     fontSize: 13,
     fontFamily: fonts.outfit.semiBold,
-    color: colors.accent,
+    color: '#FFFFFF',
   },
 })

@@ -4,8 +4,9 @@
 import { useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Image } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, fonts, spacing, borderRadius, glass, categoryGradients } from '../constants/theme'
+import { colors, fonts, spacing, borderRadius, shadows, gradients } from '../constants/theme'
 import GlassContainer from '../components/GlassContainer'
 import { useAuth } from '../context/AuthContext'
 
@@ -50,16 +51,13 @@ export default function AccueilChoixScreen({ navigation }) {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" />
-      {/* Fond dégradé doux catégorie par défaut */}
-      <View style={StyleSheet.absoluteFill}>
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.bg }]} />
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: categoryGradients.default[0] }]} />
-      </View>
+      {/* Fond dégradé indigo profond */}
+      <LinearGradient colors={gradients.background} style={StyleSheet.absoluteFill} />
 
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={{ uri: `https://backend-beta-six-39.vercel.app/uploads/logo.jpg` }}
+          source={require('../../assets/logo_app.jpeg')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -98,7 +96,7 @@ export default function AccueilChoixScreen({ navigation }) {
                       <Text style={styles.cardTitle}>{r.title}</Text>
                       <Text style={styles.cardSubtitle}>{r.subtitle}</Text>
                     </View>
-                    <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textTertiary} />
+                    <MaterialCommunityIcons name="chevron-right" size={20} color={colors.navInactive} />
                   </View>
                 </GlassContainer>
               </TouchableOpacity>
@@ -121,8 +119,8 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     flexDirection: 'row',
     overflow: 'hidden',
+
   },
-  accentBar: { width: 4, borderTopLeftRadius: borderRadius.xl, borderBottomLeftRadius: borderRadius.xl },
   cardContent: {
     flex: 1, flexDirection: 'row', alignItems: 'center',
     padding: spacing.lg, gap: spacing.md,

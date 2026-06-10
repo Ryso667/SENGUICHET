@@ -13,6 +13,8 @@ import { hapticLight } from '../utils/haptics'
 import { listerMesDemandes } from '../services/eventService'
 import { API_BASE_URL } from '../config'
 import { colors, fonts, glass } from '../constants/theme'
+import FloatingTabBar from '../components/FloatingTabBar'
+import { TabBarScrollProvider } from '../context/TabBarScrollContext'
 
 // Écrans auth (aucun rôle)
 import AccueilChoixScreen from '../screens/AccueilChoixScreen'
@@ -74,7 +76,7 @@ function OrganisateurHeader({ title, deconnecter, badgeCount }) {
       <Text style={headerStyles.title}>{title}</Text>
       <View style={headerStyles.right}>
         <Image
-          source={{ uri: `${API_BASE_URL.replace('/api', '')}/uploads/logo.jpg` }}
+          source={require('../../assets/logo_app.jpeg')}
           style={{ width: 36, height: 36, borderRadius: 18 }}
           resizeMode="cover"
         />
@@ -123,6 +125,38 @@ const headerStyles = StyleSheet.create({
   },
 })
 
+// Onglets acheteur : 4 tabs sans barre de navigation
+function AcheteurTabs() {
+  return (
+    <TabBarScrollProvider>
+    <Tab.Navigator
+      tabBar={() => null}
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          tabBarLabel: 'Accueil',
+          tabBarIcon: ({ color, size }) => <Feather name="home" size={size} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="MesTickets"
+        component={MesTicketsScreen}
+        options={{
+          tabBarLabel: 'Mes Tickets',
+          tabBarIcon: ({ color, size }) => <Feather name="tag" size={size} color={color} />,
+        }}
+      />
+
+    </Tab.Navigator>
+    </TabBarScrollProvider>
+  )
+}
+
 // Onglets organisateur : 4 tabs
 function OrganisateurTabs() {
   const { deconnecter } = useAuth()
@@ -148,24 +182,12 @@ function OrganisateurTabs() {
   )
 
   return (
+    <TabBarScrollProvider>
     <Tab.Navigator
+      tabBar={(props) => <FloatingTabBar {...props} />}
       screenOptions={{
         header: () => null,
-        tabBarButton: (props) => <HapticTabButton {...props} />,
-        tabBarStyle: {
-          backgroundColor: glass.bgHeavy,
-          borderTopWidth: 1,
-          borderTopColor: colors.border,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 6,
-        },
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.textTertiary,
-        tabBarLabelStyle: {
-          fontFamily: 'Outfit_600SemiBold',
-          fontSize: 11,
-        },
+        sceneContainerStyle: { paddingBottom: 80 },
       }}
     >
       <Tab.Screen
@@ -222,6 +244,7 @@ function OrganisateurTabs() {
         }}
       />
     </Tab.Navigator>
+    </TabBarScrollProvider>
   )
 }
 
@@ -240,14 +263,16 @@ function OrganisateurLayout() {
 function ControleurTabs() {
   const { deconnecter } = useAuth()
   return (
+    <TabBarScrollProvider>
     <Tab.Navigator
+      tabBar={(props) => <FloatingTabBar {...props} />}
       screenOptions={{
         headerShown: true,
         headerStyle: { backgroundColor: glass.bg },
         headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: colors.text },
         headerLeft: () => (
           <Image
-            source={{ uri: `${API_BASE_URL.replace('/api', '')}/uploads/logo.jpg` }}
+            source={require('../../assets/logo_app.jpeg')}
             style={{ width: 36, height: 36, borderRadius: 18, marginLeft: 16 }}
             resizeMode="cover"
           />
@@ -259,19 +284,7 @@ function ControleurTabs() {
             </Text>
           </TouchableOpacity>
         ),
-        tabBarButton: (props) => <HapticTabButton {...props} />,
-        tabBarStyle: {
-          backgroundColor: glass.bgHeavy,
-          borderTopColor: colors.border,
-          height: 60,
-          paddingBottom: 8,
-        },
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.textTertiary,
-        tabBarLabelStyle: {
-          fontFamily: 'Outfit_600SemiBold',
-          fontSize: 12,
-        },
+        sceneContainerStyle: { paddingBottom: 80 },
       }}
     >
       <Tab.Screen
@@ -293,6 +306,7 @@ function ControleurTabs() {
         }}
       />
     </Tab.Navigator>
+    </TabBarScrollProvider>
   )
 }
 
@@ -308,7 +322,7 @@ export default function AppNavigator() {
     console.log(`[Nav] role="${role}" isReady=${pret}`)
     if (pret) {
       if (role) {
-        const routeName = role === 'acheteur' ? 'Home'
+        const routeName = role === 'acheteur' ? 'AcheteurTabs'
           : role === 'controleur' ? 'ControleurTabs'
           : 'OrganisateurTabs'
         console.log(`[Nav] reset vers ${routeName}`)
@@ -323,7 +337,7 @@ export default function AppNavigator() {
   if (chargement) {
     return (
       <View style={styles.chargement}>
-        <ActivityIndicator size="large" color={colors.accent} />
+        <ActivityIndicator size="large" color="#FFFFFF" />
       </View>
     )
   }
@@ -360,13 +374,12 @@ export default function AppNavigator() {
             {/* Acheteur connecté */}
             {role === 'acheteur' && (
               <>
-                <Stack.Screen name="Home" component={HomeScreen} />
+                <Stack.Screen name="AcheteurTabs" component={AcheteurTabs} />
                 <Stack.Screen name="EventSearch" component={EventSearchScreen} />
                 <Stack.Screen name="EventDetail" component={EventDetailScreen} options={header('Détail')} />
                 <Stack.Screen name="Ticket" component={TicketScreen} />
-                <Stack.Screen name="MesTickets" component={MesTicketsScreen} />
-                <Stack.Screen name="Support" component={SupportScreen} />
                 <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="Support" component={SupportScreen} options={header('Support')} />
                 <Stack.Screen name="Profil" component={ProfilScreen} options={header('Profil')} />
               </>)}
 

@@ -91,7 +91,7 @@ export default function ParametresScreen({ navigation }) {
             />
           </View>
         </GlassContainer>
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   )
@@ -112,5 +112,5 @@ const s = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(0,200,255,0.25)',
     alignItems: 'center',
   },
-  securityBtnText: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  securityBtnText: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
 })

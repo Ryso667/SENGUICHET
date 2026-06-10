@@ -1,6 +1,6 @@
 // Écran de profil universel (acheteur / controleur)
 // Design glass (Apple Invites)
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
@@ -9,9 +9,11 @@ import { useAuth } from '../context/AuthContext'
 import { getStats } from '../services/scanService'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
+import { useTabBarScroll } from '../context/TabBarScrollContext'
 
 export default function ProfilScreen({ route }) {
   const insets = useSafeAreaInsets()
+  const { scrollY: tabScrollY } = useTabBarScroll()
   const { role, email, user, profil } = useAuth()
   const currentRole = route?.params?.role || role
   const [stats, setStats] = useState(null)
@@ -30,7 +32,11 @@ export default function ProfilScreen({ route }) {
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <BlurBackground category="Conference" />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
+        scrollEventThrottle={16}
+      >
         <GlassContainer style={s.profileCard} intensity={35}>
           <View style={s.avatar}>
             <Feather name="user" size={28} color={colors.textWhite} />
@@ -77,7 +83,7 @@ export default function ProfilScreen({ route }) {
             <Text style={s.infoText}>Profil non disponible</Text>
           )}
         </GlassContainer>
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   )
