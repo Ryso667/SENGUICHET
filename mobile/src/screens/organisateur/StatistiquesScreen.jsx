@@ -104,7 +104,7 @@ export default function StatistiquesScreen() {
       <OrganisateurLayout />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={s.header}>
-          <Text style={s.title}>Performances</Text>
+          <Text style={s.title}>Statistiques</Text>
           <View style={s.pills}>
             {['7j', '30j', 'Tout'].map(p => (
               <GlassChip
