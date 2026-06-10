@@ -1,5 +1,6 @@
-// Barre de navigation flottante style iOS — compact au scroll
-// Fond #1A1F6E solide, icône active blanche, inactive #5C6BC0
+// Barre de navigation flottante style iOS — se compacte au scroll
+// Labels disparaissent en fondu, hauteur réduite, icônes restent visibles
+// La barre reste en place (ne disparaît pas) — comportement Apple Music
 import { Text, TouchableOpacity, Animated, StyleSheet, Platform, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, fonts, shadows } from '../constants/theme'
@@ -11,30 +12,26 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
   const { scrollY, resetScroll } = useTabBarScroll()
   const bottomOffset = Platform.OS === 'ios' ? (insets.bottom > 0 ? insets.bottom - 4 : 16) : 12
 
-  const compactAnim = scrollY.interpolate({
+  // Compact au scroll : labels fondent + remontent dans l'icône
+  const labelOpacity = scrollY.interpolate({
     inputRange: [0, 80],
-    outputRange: [0, 1],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  })
+  const labelTranslateY = scrollY.interpolate({
+    inputRange: [0, 80],
+    outputRange: [0, 6],
+    extrapolate: 'clamp',
+  })
+  const containerHeight = scrollY.interpolate({
+    inputRange: [0, 80],
+    outputRange: [70, 52],
     extrapolate: 'clamp',
   })
 
-  const labelOpacity = compactAnim.interpolate({
-    inputRange: [0, 0.3, 1],
-    outputRange: [1, 0, 0],
-  })
-
-  const labelTranslateY = compactAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 6],
-  })
-
-  const tabHeight = compactAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [70, 50],
-  })
-
   return (
-    <Animated.View style={[styles.wrapper, { bottom: bottomOffset }]}>
-      <View style={styles.container}>
+    <View style={[styles.wrapper, { bottom: bottomOffset }]}>
+      <Animated.View style={[styles.container, { height: containerHeight }]}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key]
           const isFocused = state.index === index
@@ -66,27 +63,22 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
               style={styles.tab}
               activeOpacity={0.7}
             >
-              <Animated.View style={styles.iconWrap}>
+              <View style={[styles.iconWrap, isFocused && styles.activeIconWrap]}>
                 {icon}
+              </View>
+              <Animated.View style={{ opacity: labelOpacity, transform: [{ translateY: labelTranslateY }] }}>
+                <Text
+                  style={[styles.label, isFocused && styles.activeLabel]}
+                  numberOfLines={1}
+                >
+                  {label}
+                </Text>
               </Animated.View>
-              <Animated.Text
-                style={[
-                  styles.label,
-                  isFocused && styles.activeLabel,
-                  {
-                    opacity: labelOpacity,
-                    transform: [{ translateY: labelTranslateY }],
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {label}
-              </Animated.Text>
             </TouchableOpacity>
           )
         })}
-      </View>
-    </Animated.View>
+      </Animated.View>
+    </View>
   )
 }
 
@@ -101,15 +93,15 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     borderRadius: 28,
-    paddingVertical: 6,
+    alignItems: 'center',
     backgroundColor: colors.bg,
+    paddingHorizontal: 4,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 4,
-    gap: 2,
+    gap: 1,
   },
   iconWrap: {
     width: 36,
@@ -117,6 +109,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  activeIconWrap: {
+    backgroundColor: 'rgba(61,90,254,0.15)',
   },
   label: {
     fontSize: 10,
