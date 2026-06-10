@@ -529,7 +529,7 @@ export default function CreerEvenementScreen({ navigation }) {
           {step === 2 && renderStep2()}
           {step === 3 && renderStep3()}
 
-          <View style={{ height: 40 }} />
+          <View style={{ height: 100 }} />
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -605,7 +605,7 @@ const s = StyleSheet.create({
   conteneur: { flexGrow: 1, paddingHorizontal: 24 },
   retour: { fontFamily: fonts.outfit.semiBold, fontSize: 15, color: colors.text, marginBottom: 16 },
   titre: { fontFamily: fonts.outfit.bold, fontSize: 22, color: colors.text, marginBottom: 8 },
-  sousTitre: { fontFamily: fonts.jakarta.regular, fontSize: 15, color: colors.textSecondary, marginBottom: 8 },
+  sousTitre: { fontFamily: fonts.jakarta.regular, fontSize: 15, color: colors.text, marginBottom: 8 },
   sectionTitle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text, marginBottom: 20, marginTop: 8 },
   label: { fontFamily: fonts.outfit.semiBold, fontSize: 14, color: colors.text, marginBottom: 6 },
   input: {

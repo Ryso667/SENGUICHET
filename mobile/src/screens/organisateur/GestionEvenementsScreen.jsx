@@ -216,10 +216,10 @@ const s = StyleSheet.create({
   refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginBottom: spacing.sm },
   demanderBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: 'rgba(61,90,254,0.15)', borderRadius: 12,
+    backgroundColor: '#3D5AFE', borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 8,
   },
-  demanderBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text },
+  demanderBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff' },
 
   /* Tabs */
   tabsBar: {
@@ -245,7 +245,7 @@ const s = StyleSheet.create({
   /* État vide */
   emptyState: { padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
   emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
-  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', lineHeight: 20 },
+  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
   emptyBtn: {
     marginTop: spacing.sm,
     backgroundColor: 'rgba(61,90,254,0.15)', borderRadius: 12,
@@ -277,7 +277,7 @@ const s = StyleSheet.create({
   cardBarRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   cardBarBg: { flex: 1, height: 6, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden' },
   cardBarFill: { height: 6, borderRadius: 3, backgroundColor: colors.accent },
-  cardBarPct: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textTertiary, width: 36, textAlign: 'right' },
+  cardBarPct: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary, width: 36, textAlign: 'right' },
 
   cardBtn: {
     backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 10,

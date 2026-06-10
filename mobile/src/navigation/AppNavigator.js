@@ -76,7 +76,7 @@ function OrganisateurHeader({ title, deconnecter, badgeCount }) {
       <Text style={headerStyles.title}>{title}</Text>
       <View style={headerStyles.right}>
         <Image
-          source={{ uri: `${API_BASE_URL.replace('/api', '')}/uploads/logo.jpg` }}
+          source={require('../../assets/logo_app.jpeg')}
           style={{ width: 36, height: 36, borderRadius: 18 }}
           resizeMode="cover"
         />
@@ -288,7 +288,7 @@ function ControleurTabs() {
         headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: colors.text },
         headerLeft: () => (
           <Image
-            source={{ uri: `${API_BASE_URL.replace('/api', '')}/uploads/logo.jpg` }}
+            source={require('../../assets/logo_app.jpeg')}
             style={{ width: 36, height: 36, borderRadius: 18, marginLeft: 16 }}
             resizeMode="cover"
           />

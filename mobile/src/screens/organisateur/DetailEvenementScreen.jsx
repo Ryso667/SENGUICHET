@@ -149,7 +149,7 @@ export default function DetailEvenementScreen({ route }) {
           )}
         </GlassContainer>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   )

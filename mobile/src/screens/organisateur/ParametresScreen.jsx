@@ -91,7 +91,7 @@ export default function ParametresScreen({ navigation }) {
             />
           </View>
         </GlassContainer>
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   )

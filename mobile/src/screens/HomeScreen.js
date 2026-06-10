@@ -97,7 +97,7 @@ export default function HomeScreen({ navigation }) {
           <GlassContainer style={styles.headerCard}>
             <View style={styles.headerRow}>
               <Image
-                source={{ uri: `https://backend-beta-six-39.vercel.app/uploads/logo.jpg` }}
+                source={require('../../assets/logo_app.jpeg')}
                 style={styles.avatar}
                 resizeMode="cover"
               />

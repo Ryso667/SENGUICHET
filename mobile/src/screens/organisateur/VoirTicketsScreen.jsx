@@ -79,7 +79,7 @@ export default function VoirTicketsScreen({ route }) {
               )
             })
           )}
-          <View style={{ height: 40 }} />
+          <View style={{ height: 100 }} />
         </View>
       </ScrollView>
     </View>
