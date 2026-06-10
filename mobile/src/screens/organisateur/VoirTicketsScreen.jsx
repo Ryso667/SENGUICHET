@@ -10,7 +10,7 @@ import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 
 const STATUS_BADGE = {
-  valide: { label: 'Valide', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
+  valide: { label: 'Valide', color: colors.green, bg: 'rgba(76,175,80,0.2)' },
   utilise: { label: 'Utilisé', color: '#94a3b8', bg: 'rgba(148,163,184,0.2)' },
   expire: { label: 'Expiré', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
 }

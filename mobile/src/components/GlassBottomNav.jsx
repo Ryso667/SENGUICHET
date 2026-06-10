@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   activeIcon: {
-    backgroundColor: 'rgba(0,200,255,0.15)', // Fond cyan semi-transparent pour l'icône active
+    backgroundColor: 'rgba(61,90,254,0.15)',
   },
   label: {
     fontSize: 10,

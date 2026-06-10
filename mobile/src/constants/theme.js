@@ -1,58 +1,65 @@
-// Thème sombre Indigo - Fond bleu nuit #0D1B2A, accent cyan #00C8FF, verre dépoli
+// Thème bleu foncé profond — Fond #1A1F6E, cartes #252B80, accent #3D5AFE
+// Aucune surface blanche ou gris clair — tout dans la palette marine bleutée
 export const colors = {
-  bg: '#0D1B2A',
-  bgSecondary: '#111827',
-  surface: '#152232',
-  border: 'rgba(0, 200, 255, 0.15)',
+  bg: '#1A1F6E',
+  bgSecondary: '#1A1F6E',
+  surface: '#252B80',
+  border: '#252B80',
   white: '#FFFFFF',
   text: '#FFFFFF',
-  textSecondary: '#A0B4C8',
-  textTertiary: 'rgba(160, 180, 200, 0.7)',
-  accent: '#00C8FF',
-  accentLight: '#E0F7FF',
-  green: '#00E5A0',
-  greenLight: '#E0FFF0',
-  red: '#FF4D6D',
-  whiteMuted: 'rgba(160, 180, 200, 0.7)',
-  violet: '#6366F1',
-  orange: '#F97316',
-  glassWhite: 'rgba(255,255,255,0.15)',
-  glassBorder: 'rgba(255,255,255,0.25)',
-  glassDark: 'rgba(0,0,0,0.2)',
-  inputBg: '#1A2A3A',
-  inputBorder: 'rgba(0, 200, 255, 0.2)',
-  inputBorderFocus: '#00C8FF',
-  // Tokens textes sur fonds sombres (overlays, glass sur BlurBackground)
+  textSecondary: '#B0BEC5',
+  textTertiary: '#90A4AE',
+  accent: '#3D5AFE',
+  accentLight: '#90CAF9',
+  green: '#4CAF50',
+  greenLight: '#E8F5E9',
+  red: '#EF5350',
+  whiteMuted: '#B0BEC5',
+  violet: '#7C4DFF',
+  orange: '#FF6D00',
+  glassWhite: '#252B80',
+  glassBorder: '#252B80',
+  glassDark: '#1A1F6E',
+  inputBg: '#2E3591',
+  inputBorder: '#4A5280',
+  inputBorderFocus: '#3D5AFE',
   textWhite: '#FFFFFF',
-  textWhiteMuted: 'rgba(255,255,255,0.7)',
-  // Tokens utilitaires (utilisés dans plusieurs composants)
-  slate: '#2D2D32',
-  mid: '#A0B4C8',
-  muted: 'rgba(160, 180, 200, 0.6)',
-  // Tokens feedback — visibles sur tous les fonds
-  danger: '#FF4D6D',
-  warning: '#F97316',
-  success: '#00E5A0',
+  textWhiteMuted: '#B0BEC5',
+  // Bordures colorées par type de carte
+  cardCyan: '#00BCD4',
+  cardGreen: '#4CAF50',
+  cardViolet: '#7C4DFF',
+  cardOrange: '#FF6D00',
+  // Couleurs nav
+  navActive: '#FFFFFF',
+  navInactive: '#5C6BC0',
+  // Tokens utilitaires
+  slate: '#252B80',
+  mid: '#B0BEC5',
+  muted: '#90A4AE',
+  danger: '#EF5350',
+  warning: '#FF6D00',
+  success: '#4CAF50',
 }
 
-// === GLASS (verre dépoli) ===
+// === SURFACE SOLIDE (ex-verre dépoli) ===
 export const glass = {
-  bg: 'rgba(255,255,255,0.05)',
-  bgLight: 'rgba(255,255,255,0.03)',
-  bgHeavy: 'rgba(255,255,255,0.08)',
-  border: 'rgba(255,255,255,0.06)',
-  borderLight: 'rgba(255,255,255,0.03)',
-  blur: 30,
+  bg: '#252B80',
+  bgLight: '#2E3591',
+  bgHeavy: '#1A1F6E',
+  border: '#252B80',
+  borderLight: '#1A1F6E',
+  blur: 20,
   radius: 20,
-  darkBg: 'rgba(0,0,0,0.06)',
-  darkBgHeavy: 'rgba(0,0,0,0.12)',
+  darkBg: '#1A1F6E',
+  darkBgHeavy: '#1A1F6E',
 }
 
 export const gradients = {
-  primary: ['#00C8FF', '#0077FF'],
-  organisateur: ['#00C8FF', '#0077FF'],
-  success: ['#00E5A0', '#00C8FF'],
-  error: ['#FF4D6D', '#FF6B8A'],
+  primary: ['#3D5AFE', '#4A90D9'],
+  organisateur: ['#3D5AFE', '#4A90D9'],
+  success: ['#4CAF50', '#66BB6A'],
+  error: ['#EF5350', '#E53935'],
 }
 
 // Dégradés par catégorie d'événement — style Apple Music
@@ -100,15 +107,15 @@ export const shadows = {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   md: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowRadius: 12,
+    elevation: 8,
   },
 }
 

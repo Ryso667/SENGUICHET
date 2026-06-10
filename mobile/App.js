@@ -36,7 +36,7 @@ export default function App() {
   if (!fontsLoaded && !fontError) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#6366F1" />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     )
   }

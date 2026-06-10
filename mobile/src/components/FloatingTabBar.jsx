@@ -1,9 +1,8 @@
-// Barre de navigation flottante style iOS 18 avec compact au scroll
-// Apple Music / Reddit inspired : les labels disparaissent, la barre se réduit
-import { Text, TouchableOpacity, Animated, StyleSheet, Platform } from 'react-native'
-import { BlurView } from 'expo-blur'
+// Barre de navigation flottante style iOS — compact au scroll
+// Fond #1A1F6E solide, icône active blanche, inactive #5C6BC0
+import { Text, TouchableOpacity, Animated, StyleSheet, Platform, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, fonts } from '../constants/theme'
+import { colors, fonts, shadows } from '../constants/theme'
 import { hapticLight } from '../utils/haptics'
 import { useTabBarScroll } from '../context/TabBarScrollContext'
 
@@ -33,14 +32,9 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
     outputRange: [70, 50],
   })
 
-  const indicatorScale = compactAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 0],
-  })
-
   return (
     <Animated.View style={[styles.wrapper, { bottom: bottomOffset }]}>
-      <BlurView tint="dark" intensity={80} style={styles.container}>
+      <View style={styles.container}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key]
           const isFocused = state.index === index
@@ -48,7 +42,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
 
           const icon = options.tabBarIcon({
             focused: isFocused,
-            color: isFocused ? colors.accent : colors.textTertiary,
+            color: isFocused ? colors.navActive : colors.navInactive,
             size: 22,
           })
 
@@ -72,7 +66,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
               style={styles.tab}
               activeOpacity={0.7}
             >
-              <Animated.View style={[styles.iconWrap, isFocused && { backgroundColor: 'rgba(0,200,255,0.15)' }]}>
+              <Animated.View style={styles.iconWrap}>
                 {icon}
               </Animated.View>
               <Animated.Text
@@ -91,7 +85,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
             </TouchableOpacity>
           )
         })}
-      </BlurView>
+      </View>
     </Animated.View>
   )
 }
@@ -102,18 +96,13 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     borderRadius: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 12,
+    ...shadows.md,
   },
   container: {
     flexDirection: 'row',
     borderRadius: 28,
     paddingVertical: 6,
-    backgroundColor: 'rgba(18,18,28,0.85)',
-    overflow: 'hidden',
+    backgroundColor: colors.bg,
   },
   tab: {
     flex: 1,
@@ -132,11 +121,11 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 10,
     fontFamily: fonts.jakarta.medium,
-    color: colors.textTertiary,
+    color: colors.navInactive,
     letterSpacing: 0.2,
   },
   activeLabel: {
-    color: colors.accent,
+    color: colors.navActive,
     fontFamily: fonts.jakarta.semiBold,
   },
 })

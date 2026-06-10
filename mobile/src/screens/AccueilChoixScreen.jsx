@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Image } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, fonts, spacing, borderRadius, glass, categoryGradients } from '../constants/theme'
+import { colors, fonts, spacing, borderRadius, shadows, categoryGradients } from '../constants/theme'
 import GlassContainer from '../components/GlassContainer'
 import { useAuth } from '../context/AuthContext'
 
@@ -15,7 +15,8 @@ const ROLES = [
     title: 'Acheteur',
     subtitle: "Achète tes billets\nen un clic",
     icon: 'ticket-outline',
-    accent: '#818CF8', // Indigo vif
+    accent: '#00BCD4',
+    borderColor: '#00BCD4',
     screen: null,
   },
   {
@@ -23,7 +24,8 @@ const ROLES = [
     title: 'Contrôleur',
     subtitle: "Scanne les billets\nà l'entrée",
     icon: 'qrcode-scan',
-    accent: '#00C8FF', // Cyan
+    accent: '#3D5AFE',
+    borderColor: '#3D5AFE',
     screen: 'ConnexionControleur',
   },
   {
@@ -31,7 +33,8 @@ const ROLES = [
     title: 'Organisateur',
     subtitle: 'Crée et gère\ntes événements',
     icon: 'calendar-star',
-    accent: '#34D399', // Émeraude vif
+    accent: '#4CAF50',
+    borderColor: '#4CAF50',
     screen: 'ConnexionOrganisateur',
   },
 ]
@@ -90,15 +93,14 @@ export default function AccueilChoixScreen({ navigation }) {
                     }
                   }}
               >
-                <GlassContainer style={styles.card} blurType="regular" intensity={40}>
-                  <View style={[styles.accentBar, { backgroundColor: r.accent }]} />
+                <GlassContainer borderLeftColor={r.borderColor} style={styles.card}>
                   <View style={styles.cardContent}>
                     <MaterialCommunityIcons name={r.icon} size={32} color={r.accent} />
                     <View style={styles.cardText}>
                       <Text style={styles.cardTitle}>{r.title}</Text>
                       <Text style={styles.cardSubtitle}>{r.subtitle}</Text>
                     </View>
-                    <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textTertiary} />
+                    <MaterialCommunityIcons name="chevron-right" size={20} color={colors.navInactive} />
                   </View>
                 </GlassContainer>
               </TouchableOpacity>
@@ -121,8 +123,8 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     flexDirection: 'row',
     overflow: 'hidden',
+    ...shadows.md,
   },
-  accentBar: { width: 4, borderTopLeftRadius: borderRadius.xl, borderBottomLeftRadius: borderRadius.xl },
   cardContent: {
     flex: 1, flexDirection: 'row', alignItems: 'center',
     padding: spacing.lg, gap: spacing.md,
