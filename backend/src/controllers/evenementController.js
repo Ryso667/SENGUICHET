@@ -79,7 +79,8 @@ const lister = async (req, res) => {
         e.statut, e.date_creation, e.commentaire_admin,
         COALESCE((SELECT SUM(ct.places_disponibles) FROM categorie_ticket ct WHERE ct.evenement_id = e.id), 0) AS places_restantes,
         COALESCE((SELECT SUM(ct.capacite) FROM categorie_ticket ct WHERE ct.evenement_id = e.id), 0) AS capacite_billets,
-        (SELECT COALESCE(SUM(b.prix_paye), 0) FROM billet b JOIN categorie_ticket ct2 ON b.categorie_ticket_id = ct2.id WHERE ct2.evenement_id = e.id AND b.est_utilise = 0) AS revenus
+        (SELECT COALESCE(SUM(b.prix_paye), 0) FROM billet b JOIN categorie_ticket ct2 ON b.categorie_ticket_id = ct2.id WHERE ct2.evenement_id = e.id AND b.statut = 'ACTIF') AS revenus,
+        (SELECT COUNT(*) FROM billet b JOIN categorie_ticket ct2 ON b.categorie_ticket_id = ct2.id WHERE ct2.evenement_id = e.id AND b.statut = 'ACTIF') AS billets_vendus
       FROM evenement e
       WHERE e.organisateur_id = ? AND e.statut != 'annule'
       ORDER BY e.date_creation DESC`,
@@ -87,7 +88,7 @@ const lister = async (req, res) => {
     );
 
     const events = rows.map(r => {
-      const remplies = r.billets_vendus || (r.capacite_billets - r.places_restantes);
+      const remplies = r.billets_vendus;
       const statut =
         r.statut === 'actif' && r.places_restantes <= 0 ? 'sold-out'
         : r.statut === 'actif' ? 'active'
@@ -131,7 +132,7 @@ const detail = async (req, res) => {
         COALESCE(SUM(b.prix_paye), 0) AS revenus
       FROM billet b
       JOIN categorie_ticket ct ON b.categorie_ticket_id = ct.id
-      WHERE ct.evenement_id = ? AND b.est_utilise = 0`,
+      WHERE ct.evenement_id = ? AND b.statut = 'ACTIF'`,
       [id]
     );
 
