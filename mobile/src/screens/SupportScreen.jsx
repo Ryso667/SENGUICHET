@@ -8,6 +8,7 @@ import { fonts, spacing, borderRadius, glass, colors } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
+import { useTabBarScroll } from '../context/TabBarScrollContext'
 
 const FAQ = [
   { q: 'Comment acheter un ticket ?', r: 'Choisis un événement, sélectionne ta catégorie de ticket, paie via Wave ou Orange Money.' },
@@ -16,6 +17,7 @@ const FAQ = [
 ]
 
 export default function SupportScreen() {
+  const { scrollY: tabScrollY } = useTabBarScroll()
   const [openIndex, setOpenIndex] = useState(null)
 
   const handleCall = () => { Linking.openURL('tel:+221771234567') }
@@ -25,7 +27,13 @@ export default function SupportScreen() {
     <View style={styles.container}>
       <BlurBackground category="Conference" />
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
+        scrollEventThrottle={16}
+      >
         {/* Header */}
         <GlassContainer style={styles.headerCard} intensity={50}>
           <Text style={styles.title}>Support</Text>

@@ -12,6 +12,7 @@ import ControleurLayout from '../../components/ControleurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import GlassButton from '../../components/GlassButton'
 import EmptyState from '../../components/EmptyState'
+import { useTabBarScroll } from '../../context/TabBarScrollContext'
 
 const PROFIL = {
   VALIDE: { dot: '#22c55e', icon: 'check-circle', label: 'Valide' },
@@ -74,13 +75,16 @@ export default function ScanHistoryScreen() {
   }
 
   const evenementsUniques = [...new Set(scans.filter(s => s.event_id).map(s => s.event_id))]
+  const { scrollY: tabScrollY } = useTabBarScroll()
 
   return (
     <View style={{flex: 1}}>
       <ControleurLayout />
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 16 }]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" colors={["#FFFFFF"]} />}
+        onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
+        scrollEventThrottle={16}
       >
         <GlassContainer style={styles.statsBanner}>
           <View style={styles.statTicket}>

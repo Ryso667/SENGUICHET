@@ -96,10 +96,10 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   ]
 
   const statBorders = [
-    { color: colors.accent,   icon: 'ticket-outline' },
-    { color: colors.green,    icon: 'cash' },
-    { color: colors.orange,   icon: 'calendar-check' },
-    { color: colors.violet,   icon: 'calendar-star' },
+    { color: colors.cardCyan,   icon: 'ticket-outline' },
+    { color: colors.green,      icon: 'cash' },
+    { color: colors.cardOrange, icon: 'calendar-check' },
+    { color: colors.cardViolet, icon: 'calendar-star' },
   ]
 
   return (
@@ -107,7 +107,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
       <OrganisateurLayout />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor={colors.accent} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" colors={["#FFFFFF"]} />}
         onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
         scrollEventThrottle={16}
       >
@@ -246,7 +246,7 @@ const s = StyleSheet.create({
   recentSection: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
   recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
   recentTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
-  voirTout: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  voirTout: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text },
   empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', paddingVertical: 30 },
   eventsGrid: { gap: spacing.md },
   // Carte événement

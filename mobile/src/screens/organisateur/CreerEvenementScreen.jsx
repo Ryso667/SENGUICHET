@@ -642,7 +642,7 @@ const s = StyleSheet.create({
   stepperCircleText: { fontFamily: fonts.outfit.bold, fontSize: 13, color: colors.textSecondary },
   stepperCircleTextActive: { color: colors.textWhite },
   stepperLabel: { fontFamily: fonts.jakarta.regular, fontSize: 11, color: colors.textSecondary, marginLeft: 4, maxWidth: 70 },
-  stepperLabelActive: { fontFamily: fonts.jakarta.semiBold, color: colors.accent },
+  stepperLabelActive: { fontFamily: fonts.jakarta.semiBold, color: colors.text },
   stepperLabelDone: { color: '#22C55E' },
   stepperLine: { width: 20, height: 2, backgroundColor: 'rgba(255,255,255,0.2)', marginHorizontal: 6 },
   stepperLineDone: { backgroundColor: '#22C55E' },

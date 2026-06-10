@@ -155,7 +155,7 @@ const s = StyleSheet.create({
   ctrlNom: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.text },
   ctrlTel: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, marginTop: 1 },
   ctrlScans: { alignItems: 'center' },
-  ctrlScanCount: { fontSize: 16, fontFamily: fonts.outfit.bold, color: colors.accent },
+  ctrlScanCount: { fontSize: 16, fontFamily: fonts.outfit.bold, color: colors.text },
   ctrlScanLabel: { fontSize: 9, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textTransform: 'uppercase' },
   ctrlZone: {
     flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm,

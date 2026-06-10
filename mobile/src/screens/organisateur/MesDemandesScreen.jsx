@@ -12,6 +12,7 @@ import * as ImagePicker from 'expo-image-picker'
 import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
+import { useTabBarScroll } from '../../context/TabBarScrollContext'
 
 // Convertisseur hex → rgba pour fonds glass translucides
 const hexToRgba = (hex, a) => {
@@ -55,6 +56,7 @@ const VILLES = [
 
 export default function MesDemandesScreen({ navigation }) {
   const insets = useSafeAreaInsets()
+  const { scrollY: tabScrollY } = useTabBarScroll()
   const [demandes, setDemandes] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -430,7 +432,9 @@ export default function MesDemandesScreen({ navigation }) {
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor={colors.accent} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" colors={["#FFFFFF"]} />}
+          onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
+          scrollEventThrottle={16}
         >
           {/* Header */}
           <View style={s.header}>
@@ -671,7 +675,7 @@ export default function MesDemandesScreen({ navigation }) {
                       <View style={f.catHeader}>
                         <Text style={f.label}>Catégories de tickets <Text style={{ color: '#FF4D6D' }}>*</Text></Text>
                         <TouchableOpacity style={f.addCatBtn} onPress={addCategory}>
-                          <MaterialCommunityIcons name="plus" size={14} color={colors.accent} />
+                          <MaterialCommunityIcons name="plus" size={14} color="#fff" />
                         </TouchableOpacity>
                       </View>
                       {categories.map((cat, i) => (
@@ -827,7 +831,7 @@ const s = StyleSheet.create({
   emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
   emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center' },
   emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, backgroundColor: 'rgba(61,90,254,0.15)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
-  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
 
   list: { gap: spacing.sm },
   card: { padding: spacing.md },
@@ -859,7 +863,7 @@ const s = StyleSheet.create({
   /* Détail */
   detailBadgeRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
   detailTypeBadge: { backgroundColor: 'rgba(61,90,254,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.text },
   detailSub: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginBottom: spacing.md },
   detailImageWrap: { height: 160, borderRadius: 12, overflow: 'hidden', marginBottom: spacing.md },
   detailImage: { width: '100%', height: '100%' },
@@ -874,7 +878,7 @@ const s = StyleSheet.create({
   successTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text },
   successSub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
   successBtn: { marginTop: spacing.md, backgroundColor: 'rgba(61,90,254,0.15)', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
-  successBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  successBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
 
   /* Erreur */
   errorBox: { padding: spacing.sm, marginBottom: spacing.md },
@@ -965,5 +969,5 @@ const f = StyleSheet.create({
     backgroundColor: 'rgba(61,90,254,0.15)', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
-  timeConfirmText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  timeConfirmText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text },
 })

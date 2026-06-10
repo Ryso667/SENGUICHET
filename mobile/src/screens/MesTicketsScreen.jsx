@@ -9,6 +9,7 @@ import { colors, fonts, spacing } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
 import StatusBadge from '../components/StatusBadge'
 import { mesTicketsLocaux, sauvegarderTicketAcheteur } from '../database/database'
+import { useTabBarScroll } from '../context/TabBarScrollContext'
 import { mesBillets } from '../services/billetService'
 import { GET } from '../utils/secureStorage'
 import { formaterDateLisible } from '../utils/dateUtils'
@@ -32,6 +33,7 @@ const STRIP_COLORS = {
 
 export default function MesTicketsScreen() {
   const insets = useSafeAreaInsets()
+  const { scrollY: tabScrollY } = useTabBarScroll()
   const navigation = useNavigation()
   const [tickets, setTickets] = useState([])
   const [syncing, setSyncing] = useState(false)
@@ -147,11 +149,13 @@ export default function MesTicketsScreen() {
             <RefreshControl
               refreshing={syncing}
               onRefresh={loadTickets}
-              tintColor={colors.accent}
-              colors={[colors.accent]}
+              tintColor="#FFFFFF"
+              colors={["#FFFFFF"]}
               progressBackgroundColor={colors.surface}
             />
           }
+          onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
+          scrollEventThrottle={16}
           ListEmptyComponent={
             !syncing ? (
               <View style={styles.emptyContainer}>

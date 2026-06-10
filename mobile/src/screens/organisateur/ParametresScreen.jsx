@@ -112,5 +112,5 @@ const s = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(61,90,254,0.25)',
     alignItems: 'center',
   },
-  securityBtnText: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  securityBtnText: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
 })

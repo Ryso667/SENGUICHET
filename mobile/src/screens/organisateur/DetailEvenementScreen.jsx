@@ -88,7 +88,7 @@ export default function DetailEvenementScreen({ route }) {
     <View style={[s.container, { paddingTop: insets.top }]}>
       <OrganisateurLayout />
       <ScrollView showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor={colors.accent} />}>
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" colors={["#FFFFFF"]} />}>
         <GlassContainer blurType="light" style={s.header} intensity={35}>
           <Text style={s.title}>{evenement.nom}</Text>
           <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
@@ -111,7 +111,7 @@ export default function DetailEvenementScreen({ route }) {
           </GlassContainer>
           <GlassContainer blurType="light" style={s.infoCard} intensity={30}>
             <Text style={s.infoLabel}>Code contrôleur</Text>
-            <Text style={[s.infoValue, { fontFamily: 'monospace', letterSpacing: 4, color: colors.accent }]}>{evenement.code || '-'}</Text>
+            <Text style={[s.infoValue, { fontFamily: 'monospace', letterSpacing: 4, color: colors.text }]}>{evenement.code || '-'}</Text>
           </GlassContainer>
         </View>
 
@@ -188,6 +188,6 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.15)',
   },
   ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, flex: 1 },
-  ticketPrix: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  ticketPrix: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.green },
   ticketStatut: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginLeft: spacing.sm, textTransform: 'capitalize' },
 })

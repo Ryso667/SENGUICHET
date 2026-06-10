@@ -13,6 +13,7 @@ import { formaterDateLisible } from '../../utils/dateUtils'
 import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
+import { useTabBarScroll } from '../../context/TabBarScrollContext'
 
 // Convertisseur hex → rgba pour fonds glass translucides
 const hexToRgba = (hex, a) => {
@@ -36,6 +37,7 @@ const TABS = ['Tous', 'Actifs', 'En attente', 'Terminés', 'Annulés']
 
 export default function GestionEvenementsScreen({ navigation }) {
   const insets = useSafeAreaInsets()
+  const { scrollY: tabScrollY } = useTabBarScroll()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('Tous')
@@ -76,11 +78,13 @@ export default function GestionEvenementsScreen({ navigation }) {
     <View style={s.container}>
       <OrganisateurLayout />
       <View style={{ paddingTop: insets.top, flex: 1 }}>
-        <ScrollView
+          <ScrollView
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor={colors.accent} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" colors={["#FFFFFF"]} />}
+          onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
+          scrollEventThrottle={16}
         >
           {/* Header : titre + bouton demander — calqué sur le web */}
           <View style={s.header}>
@@ -251,7 +255,7 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(61,90,254,0.15)', borderRadius: 12,
     paddingHorizontal: 20, paddingVertical: 10,
   },
-  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
 
   /* Liste */
   eventsList: { gap: spacing.md },
@@ -272,7 +276,7 @@ const s = StyleSheet.create({
   cardBody: { padding: spacing.md },
   cardStats: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
   cardPlaces: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary },
-  cardRevenu: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  cardRevenu: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.green },
 
   cardBarRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   cardBarBg: { flex: 1, height: 6, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden' },

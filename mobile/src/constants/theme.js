@@ -32,7 +32,7 @@ export const colors = {
   cardOrange: '#FF6D00',
   // Couleurs nav
   navActive: '#FFFFFF',
-  navInactive: '#5C6BC0',
+  navInactive: 'rgba(255,255,255,0.45)',
   // Tokens utilitaires
   slate: '#252B80',
   mid: '#B0BEC5',
