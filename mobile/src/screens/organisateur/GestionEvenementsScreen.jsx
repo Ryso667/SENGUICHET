@@ -220,7 +220,7 @@ const s = StyleSheet.create({
   refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginBottom: spacing.sm },
   demanderBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: '#3D5AFE', borderRadius: 12,
+    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 8,
   },
   demanderBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff' },
@@ -252,7 +252,7 @@ const s = StyleSheet.create({
   emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
   emptyBtn: {
     marginTop: spacing.sm,
-    backgroundColor: 'rgba(61,90,254,0.15)', borderRadius: 12,
+    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12,
     paddingHorizontal: 20, paddingVertical: 10,
   },
   emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
@@ -284,7 +284,7 @@ const s = StyleSheet.create({
   cardBarPct: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary, width: 36, textAlign: 'right' },
 
   cardBtn: {
-    backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 10,
+    backgroundColor: 'rgba(0,200,255,0.12)', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
   cardBtnText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },

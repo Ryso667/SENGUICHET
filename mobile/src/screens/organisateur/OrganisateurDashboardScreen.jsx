@@ -95,6 +95,12 @@ export default function OrganisateurDashboardScreen({ navigation }) {
     { icon: 'calendar-star', label: 'Prochain événement', value: prochainEvent?.nom || '—' },
   ]
 
+  const statColors = [
+    ['rgba(0,200,255,0.25)', 'rgba(0,200,255,0.1)'],
+    ['rgba(0,229,160,0.25)', 'rgba(0,200,255,0.1)'],
+    ['rgba(99,102,241,0.25)', 'rgba(236,72,153,0.1)'],
+    ['rgba(249,115,22,0.25)', 'rgba(245,158,11,0.1)'],
+  ]
   const statBorders = [
     { color: colors.cardCyan,   icon: 'ticket-outline' },
     { color: colors.green,      icon: 'cash' },
@@ -278,7 +284,7 @@ const s = StyleSheet.create({
   },
   revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.green },
   detailsBtn: {
-    backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 8,
+    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 8,
     paddingHorizontal: 14, paddingVertical: 6,
   },
   detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },

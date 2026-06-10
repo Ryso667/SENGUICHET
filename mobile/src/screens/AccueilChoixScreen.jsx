@@ -16,8 +16,7 @@ const ROLES = [
     title: 'Acheteur',
     subtitle: "Achète tes billets\nen un clic",
     icon: 'ticket-outline',
-    accent: '#00BCD4',
-    borderColor: '#00BCD4',
+    accent: '#818CF8', // Indigo vif
     screen: null,
   },
   {
@@ -25,8 +24,7 @@ const ROLES = [
     title: 'Contrôleur',
     subtitle: "Scanne les billets\nà l'entrée",
     icon: 'qrcode-scan',
-    accent: '#3D5AFE',
-    borderColor: '#3D5AFE',
+    accent: '#00C8FF', // Cyan
     screen: 'ConnexionControleur',
   },
   {
@@ -34,8 +32,7 @@ const ROLES = [
     title: 'Organisateur',
     subtitle: 'Crée et gère\ntes événements',
     icon: 'calendar-star',
-    accent: '#4CAF50',
-    borderColor: '#4CAF50',
+    accent: '#34D399', // Émeraude vif
     screen: 'ConnexionOrganisateur',
   },
 ]
@@ -91,7 +88,8 @@ export default function AccueilChoixScreen({ navigation }) {
                     }
                   }}
               >
-                <GlassContainer borderLeftColor={r.borderColor} style={styles.card}>
+                <GlassContainer style={styles.card} blurType="regular" intensity={40}>
+                  <View style={[styles.accentBar, { backgroundColor: r.accent }]} />
                   <View style={styles.cardContent}>
                     <MaterialCommunityIcons name={r.icon} size={32} color={r.accent} />
                     <View style={styles.cardText}>
@@ -121,7 +119,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     flexDirection: 'row',
     overflow: 'hidden',
-    ...shadows.md,
+
   },
   cardContent: {
     flex: 1, flexDirection: 'row', alignItems: 'center',

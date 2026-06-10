@@ -113,7 +113,7 @@ const headerStyles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(61,90,254,0.15)',
+    backgroundColor: 'rgba(0,200,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -257,7 +257,7 @@ export default function EventDetailScreen({ route, navigation }) {
         <View style={styles.heroSection}>
           <Text style={[styles.heroCategory, { color: '#90CAF9' }]}>{event.category || 'ÉVÉNEMENT'}</Text>
           <MaskedView maskElement={<Text style={styles.heroTitle}>{event.title}</Text>}>
-            <LinearGradient colors={['#FFFFFF', '#90CAF9']} start={{x:0,y:0}} end={{x:1,y:0}}>
+            <LinearGradient colors={['#00C8FF', '#0077FF']} start={{x:0,y:0}} end={{x:1,y:0}}>
               <Text style={[styles.heroTitle, { opacity: 0 }]}>{event.title}</Text>
             </LinearGradient>
           </MaskedView>
@@ -344,7 +344,7 @@ export default function EventDetailScreen({ route, navigation }) {
             style={styles.buyBtnWrap}
           >
             <LinearGradient
-              colors={gradients.primary}
+              colors={['#00C8FF', '#0077FF']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.buyBtnGradient}
