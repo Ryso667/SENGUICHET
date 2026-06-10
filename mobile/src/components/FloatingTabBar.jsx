@@ -40,8 +40,9 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
   }, [compact, scaleAnim])
   return (
     <Animated.View style={[styles.wrapper, { bottom: bottomOffset, transform: [{ scale: scaleAnim }] }]}>
-      <BlurView tint="dark" intensity={90} style={styles.container}>
-        <View style={styles.waterHighlight} pointerEvents="none" />
+      <BlurView tint="dark" intensity={100} style={styles.container}>
+        <View style={styles.waterSurface} pointerEvents="none" />
+        <View style={styles.waterDepth} pointerEvents="none" />
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key]
           const isFocused = state.index === index
@@ -107,19 +108,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: 32,
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.035)',
+    backgroundColor: 'rgba(255,255,255,0.015)',
     paddingVertical: 4,
     paddingHorizontal: 6,
     overflow: 'hidden',
   },
-  waterHighlight: {
+  waterSurface: {
     position: 'absolute',
     top: 0,
-    left: 14,
-    right: 14,
-    height: StyleSheet.hairlineWidth,
-    borderRadius: 1,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    left: 12,
+    right: 12,
+    height: 1.5,
+    borderBottomLeftRadius: 1,
+    borderBottomRightRadius: 1,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+  },
+  waterDepth: {
+    position: 'absolute',
+    top: 1.5,
+    left: 12,
+    right: 12,
+    height: 6,
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
   tab: {
     flex: 1,
@@ -137,7 +149,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   activeIconWrap: {
-    backgroundColor: 'rgba(61,90,254,0.08)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
   bubbleGlow: {
     ...StyleSheet.absoluteFillObject,
@@ -146,11 +158,11 @@ const styles = StyleSheet.create({
   },
   activeGlow: {
     opacity: 1,
-    backgroundColor: 'rgba(61,90,254,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
     shadowColor: '#3D5AFE',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.45,
-    shadowRadius: 10,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
     elevation: 5,
   },
   label: {
