@@ -230,7 +230,7 @@ function OrganisateurLayout() {
   const { deconnecter } = useAuth()
   return (
     <View style={{ flex: 1 }}>
-      <OrganisateurHeader title="👋 SENGUICHET" deconnecter={deconnecter} />
+      <OrganisateurHeader title="SENGUICHET" deconnecter={deconnecter} />
       <OrganisateurTabs />
     </View>
   )
