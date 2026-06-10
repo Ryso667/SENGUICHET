@@ -353,7 +353,7 @@ export default function AppNavigator() {
   if (chargement) {
     return (
       <View style={styles.chargement}>
-        <ActivityIndicator size="large" color={colors.accent} />
+        <ActivityIndicator size="large" color="#FFFFFF" />
       </View>
     )
   }

@@ -130,7 +130,7 @@ export default function MesTicketsScreen() {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Mes tickets</Text>
           <View style={styles.headerRight}>
-            {syncing && <ActivityIndicator size="small" color={colors.accent} />}
+            {syncing && <ActivityIndicator size="small" color="#FFFFFF" />}
             {tickets.length > 0 && (
               <View style={styles.countBadge}>
                 <Text style={styles.countText}>{tickets.length}</Text>

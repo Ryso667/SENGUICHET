@@ -117,7 +117,7 @@ export default function ScanHistoryScreen() {
             disabled={sync}
           >
             {sync ? (
-              <ActivityIndicator color={colors.accent} size="small" />
+              <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
               <>
                 <Feather name="upload-cloud" size={16} color={colors.accent} />
@@ -131,7 +131,7 @@ export default function ScanHistoryScreen() {
             disabled={download}
           >
             {download ? (
-              <ActivityIndicator color={colors.accent} size="small" />
+              <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
               <>
                 <Feather name="download-cloud" size={16} color={colors.accent} />
