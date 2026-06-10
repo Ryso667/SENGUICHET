@@ -1,18 +1,45 @@
-// Barre de navigation flottante style iOS 18 (Apple Music, Reddit)
-// Fond translucide avec blur, flottante au-dessus du contenu, coins arrondis 28px
-// Props reçues de React Navigation Bottom Tabs
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native'
+// Barre de navigation flottante style iOS 18 avec compact au scroll
+// Apple Music / Reddit inspired : les labels disparaissent, la barre se réduit
+import { Text, TouchableOpacity, Animated, StyleSheet, Platform } from 'react-native'
 import { BlurView } from 'expo-blur'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, fonts } from '../constants/theme'
 import { hapticLight } from '../utils/haptics'
+import { useTabBarScroll } from '../context/TabBarScrollContext'
 
 export default function FloatingTabBar({ state, descriptors, navigation }) {
   const insets = useSafeAreaInsets()
+  const { scrollY, resetScroll } = useTabBarScroll()
   const bottomOffset = Platform.OS === 'ios' ? (insets.bottom > 0 ? insets.bottom - 4 : 16) : 12
 
+  const compactAnim = scrollY.interpolate({
+    inputRange: [0, 80],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  })
+
+  const labelOpacity = compactAnim.interpolate({
+    inputRange: [0, 0.3, 1],
+    outputRange: [1, 0, 0],
+  })
+
+  const labelTranslateY = compactAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 6],
+  })
+
+  const tabHeight = compactAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [70, 50],
+  })
+
+  const indicatorScale = compactAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0],
+  })
+
   return (
-    <View style={[styles.wrapper, { bottom: bottomOffset }]}>
+    <Animated.View style={[styles.wrapper, { bottom: bottomOffset }]}>
       <BlurView tint="dark" intensity={80} style={styles.container}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key]
@@ -26,6 +53,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
           })
 
           const onPress = () => {
+            resetScroll()
             const event = navigation.emit({
               type: 'tabPress',
               target: route.key,
@@ -44,17 +72,27 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
               style={styles.tab}
               activeOpacity={0.7}
             >
-              <View style={[styles.iconWrap, isFocused && styles.activeIcon]}>
+              <Animated.View style={[styles.iconWrap, isFocused && { backgroundColor: 'rgba(0,200,255,0.15)' }]}>
                 {icon}
-              </View>
-              <Text style={[styles.label, isFocused && styles.activeLabel]}>
+              </Animated.View>
+              <Animated.Text
+                style={[
+                  styles.label,
+                  isFocused && styles.activeLabel,
+                  {
+                    opacity: labelOpacity,
+                    transform: [{ translateY: labelTranslateY }],
+                  },
+                ]}
+                numberOfLines={1}
+              >
                 {label}
-              </Text>
+              </Animated.Text>
             </TouchableOpacity>
           )
         })}
       </BlurView>
-    </View>
+    </Animated.View>
   )
 }
 
@@ -90,9 +128,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  activeIcon: {
-    backgroundColor: 'rgba(0,200,255,0.15)',
   },
   label: {
     fontSize: 10,

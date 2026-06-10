@@ -14,6 +14,7 @@ import { listerMesDemandes } from '../services/eventService'
 import { API_BASE_URL } from '../config'
 import { colors, fonts, glass } from '../constants/theme'
 import FloatingTabBar from '../components/FloatingTabBar'
+import { TabBarScrollProvider } from '../context/TabBarScrollContext'
 
 // Écrans auth (aucun rôle)
 import AccueilChoixScreen from '../screens/AccueilChoixScreen'
@@ -127,6 +128,7 @@ const headerStyles = StyleSheet.create({
 // Onglets acheteur : 4 tabs avec barre flottante iOS
 function AcheteurTabs() {
   return (
+    <TabBarScrollProvider>
     <Tab.Navigator
       tabBar={(props) => <FloatingTabBar {...props} />}
       screenOptions={{
@@ -167,6 +169,7 @@ function AcheteurTabs() {
         }}
       />
     </Tab.Navigator>
+    </TabBarScrollProvider>
   )
 }
 
@@ -195,6 +198,7 @@ function OrganisateurTabs() {
   )
 
   return (
+    <TabBarScrollProvider>
     <Tab.Navigator
       tabBar={(props) => <FloatingTabBar {...props} />}
       screenOptions={{
@@ -256,6 +260,7 @@ function OrganisateurTabs() {
         }}
       />
     </Tab.Navigator>
+    </TabBarScrollProvider>
   )
 }
 
@@ -274,6 +279,7 @@ function OrganisateurLayout() {
 function ControleurTabs() {
   const { deconnecter } = useAuth()
   return (
+    <TabBarScrollProvider>
     <Tab.Navigator
       tabBar={(props) => <FloatingTabBar {...props} />}
       screenOptions={{
@@ -316,6 +322,7 @@ function ControleurTabs() {
         }}
       />
     </Tab.Navigator>
+    </TabBarScrollProvider>
   )
 }
 

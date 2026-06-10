@@ -10,6 +10,7 @@ import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, colors, spacing, borderRadius, glass, animations } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
+import { useTabBarScroll } from '../context/TabBarScrollContext'
 import BlurBackground, { optimiserUrlCloudinary } from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassButton from '../components/GlassButton'
@@ -35,6 +36,7 @@ const STATUTS = {
 
 export default function HomeScreen({ navigation }) {
   const insets = useSafeAreaInsets()
+  const { scrollY: tabScrollY } = useTabBarScroll()
   const [evenements, setEvenements] = useState([])
   const [tickets, setTickets] = useState([])
   const [category, setCategory] = useState(null)
@@ -83,7 +85,16 @@ export default function HomeScreen({ navigation }) {
         showImage={!!activeEvent?.affiche_url}
         afficheUrl={activeEvent?.affiche_url}
       />
-      <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.sm }]} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.sm }]}
+        showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: tabScrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
+      >
         {/* Header Bonjour */}
         <Animated.View style={[styles.headerWrap, headerStyle]}>
           <GlassContainer style={styles.headerCard}>

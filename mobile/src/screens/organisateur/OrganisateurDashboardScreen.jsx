@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, spacing, fonts, categoryGradients } from '../../constants/theme'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
+import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import { LinearGradient } from 'expo-linear-gradient'
 import { getCategoryImageUrl } from '../../config/images'
@@ -34,6 +35,7 @@ const STATUT_CONFIG = {
 
 export default function OrganisateurDashboardScreen({ navigation }) {
   const insets = useSafeAreaInsets()
+  const { scrollY: tabScrollY } = useTabBarScroll()
   const { user } = useAuth()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -106,6 +108,11 @@ export default function OrganisateurDashboardScreen({ navigation }) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor={colors.accent} />}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: tabScrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
       >
         {/* Greeting — calqué sur le web : "Bonjour, {nom}" + date */}
         <GlassContainer blurType="light" style={s.greeting}>
