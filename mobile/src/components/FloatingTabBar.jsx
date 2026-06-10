@@ -1,6 +1,7 @@
 // Barre de navigation flottante style iOS — rétrécit légèrement au scroll
 // La barre entière se réduit (scale 0.92), les labels restent visibles
 // Revient à la taille normale en haut de page
+import { useState, useEffect, useRef } from 'react'
 import { Text, TouchableOpacity, Animated, StyleSheet, Platform, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BlurView } from 'expo-blur'
@@ -13,15 +14,34 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
   const { scrollY, resetScroll } = useTabBarScroll()
   const bottomOffset = Platform.OS === 'ios' ? (insets.bottom > 0 ? insets.bottom - 4 : 16) : 12
 
-  // Rétrécit toute la barre progressivement au scroll (scale 0.92 sur 200px)
-  // Réponse instantanée dès le mouvement vers le haut
-  const barScale = scrollY.interpolate({
-    inputRange: [0, 200],
-    outputRange: [1, 0.92],
-    extrapolate: 'clamp',
-  })
+  const [compact, setCompact] = useState(false)
+  const scaleAnim = useRef(new Animated.Value(1)).current
+  const lastScrollY = useRef(0)
+
+  // Écoute le scrollY et bascule compact/expanded avec spring
+  useEffect(() => {
+    const listener = scrollY.addListener(({ value }) => {
+      lastScrollY.current = value
+      if (value > 60 && !compact) {
+        setCompact(true)
+      } else if (value < 20 && compact) {
+        setCompact(false)
+      }
+    })
+    return () => scrollY.removeListener(listener)
+  }, [scrollY, compact])
+
+  // Anime le scale avec spring pour une fluidité maximale
+  useEffect(() => {
+    Animated.spring(scaleAnim, {
+      toValue: compact ? 0.92 : 1,
+      friction: 8,
+      tension: 60,
+      useNativeDriver: true,
+    }).start()
+  }, [compact, scaleAnim])
   return (
-    <Animated.View style={[styles.wrapper, { bottom: bottomOffset, transform: [{ scale: barScale }] }]}>
+    <Animated.View style={[styles.wrapper, { bottom: bottomOffset, transform: [{ scale: scaleAnim }] }]}>
       <BlurView tint="dark" intensity={90} style={styles.container}>
         <View style={styles.waterHighlight} pointerEvents="none" />
         {state.routes.map((route, index) => {
