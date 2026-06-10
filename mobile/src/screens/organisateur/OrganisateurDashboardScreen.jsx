@@ -90,16 +90,16 @@ export default function OrganisateurDashboardScreen({ navigation }) {
 
   const stats = [
     { icon: 'ticket-outline', label: 'Total billets vendus', value: String(totalVendus) },
-    { icon: 'flower', label: 'Revenus générés', value: `${fmt(totalRevenus)} FCFA` },
+    { icon: 'cash', label: 'Revenus générés', value: `${fmt(totalRevenus)} FCFA` },
     { icon: 'calendar-check', label: 'Événements actifs', value: String(activeCount) },
     { icon: 'calendar-star', label: 'Prochain événement', value: prochainEvent?.nom || '—' },
   ]
 
   const statBorders = [
-    { color: colors.cardCyan, icon: 'ticket-outline' },
-    { color: colors.cardGreen, icon: 'flower' },
-    { color: colors.cardViolet, icon: 'calendar-check' },
-    { color: colors.cardOrange, icon: 'calendar-star' },
+    { color: colors.accent,   icon: 'ticket-outline' },
+    { color: colors.green,    icon: 'cash' },
+    { color: colors.orange,   icon: 'calendar-check' },
+    { color: colors.violet,   icon: 'calendar-star' },
   ]
 
   return (
