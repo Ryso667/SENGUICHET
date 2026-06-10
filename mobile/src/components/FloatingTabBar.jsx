@@ -3,6 +3,7 @@
 // La barre reste en place (ne disparaît pas) — comportement Apple Music
 import { Text, TouchableOpacity, Animated, StyleSheet, Platform, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { BlurView } from 'expo-blur'
 import { colors, fonts, shadows } from '../constants/theme'
 import { hapticLight } from '../utils/haptics'
 import { useTabBarScroll } from '../context/TabBarScrollContext'
@@ -25,7 +26,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
   })
   return (
     <View style={[styles.wrapper, { bottom: bottomOffset }]}>
-      <View style={styles.container}>
+      <BlurView tint="dark" intensity={80} style={styles.container}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key]
           const isFocused = state.index === index
@@ -71,7 +72,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
             </TouchableOpacity>
           )
         })}
-      </View>
+      </BlurView>
     </View>
   )
 }
@@ -88,8 +89,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: 28,
     alignItems: 'center',
-    backgroundColor: colors.bg,
+    backgroundColor: 'rgba(255,255,255,0.05)',
     paddingHorizontal: 4,
+    overflow: 'hidden',
   },
   tab: {
     flex: 1,
