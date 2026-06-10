@@ -26,7 +26,8 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
   })
   return (
     <View style={[styles.wrapper, { bottom: bottomOffset }]}>
-      <BlurView tint="dark" intensity={80} style={styles.container}>
+      <BlurView tint="dark" intensity={90} style={styles.container}>
+        <View style={styles.waterHighlight} pointerEvents="none" />
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key]
           const isFocused = state.index === index
@@ -59,6 +60,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
               activeOpacity={0.7}
             >
               <View style={[styles.iconWrap, isFocused && styles.activeIconWrap]}>
+                <View style={[styles.bubbleGlow, isFocused && styles.activeGlow]} />
                 {icon}
               </View>
               <Animated.View style={{ opacity: labelOpacity, transform: [{ translateY: labelTranslateY }] }}>
@@ -84,30 +86,61 @@ const styles = StyleSheet.create({
     right: 16,
     borderRadius: 28,
     ...shadows.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 8,
   },
   container: {
     flexDirection: 'row',
     borderRadius: 28,
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    paddingVertical: 4,
     paddingHorizontal: 4,
     overflow: 'hidden',
+  },
+  waterHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 12,
+    right: 12,
+    height: 1,
+    borderRadius: 1,
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 1,
+    paddingVertical: 4,
   },
   iconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
   },
   activeIconWrap: {
-    backgroundColor: 'rgba(61,90,254,0.15)',
+    backgroundColor: 'rgba(61,90,254,0.12)',
+  },
+  bubbleGlow: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 20,
+    opacity: 0,
+  },
+  activeGlow: {
+    opacity: 1,
+    backgroundColor: 'rgba(61,90,254,0.08)',
+    shadowColor: '#3D5AFE',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
   },
   label: {
     fontSize: 10,
