@@ -13,9 +13,10 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
   const { scrollY, resetScroll } = useTabBarScroll()
   const bottomOffset = Platform.OS === 'ios' ? (insets.bottom > 0 ? insets.bottom - 4 : 16) : 12
 
-  // Rétrécit toute la barre au scroll (scale 0.92), labels toujours visibles
+  // Rétrécit toute la barre progressivement au scroll (scale 0.92 sur 200px)
+  // Réponse instantanée dès le mouvement vers le haut
   const barScale = scrollY.interpolate({
-    inputRange: [0, 80],
+    inputRange: [0, 200],
     outputRange: [1, 0.92],
     extrapolate: 'clamp',
   })
