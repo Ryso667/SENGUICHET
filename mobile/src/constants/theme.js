@@ -37,15 +37,15 @@ export const colors = {
 
 // === GLASS (verre dépoli) ===
 export const glass = {
-  bg: 'rgba(255,255,255,0.12)',
-  bgLight: 'rgba(255,255,255,0.06)',
-  bgHeavy: 'rgba(255,255,255,0.20)',
-  border: 'rgba(255,255,255,0.10)',
-  borderLight: 'rgba(255,255,255,0.05)',
+  bg: 'rgba(255,255,255,0.05)',
+  bgLight: 'rgba(255,255,255,0.03)',
+  bgHeavy: 'rgba(255,255,255,0.08)',
+  border: 'rgba(255,255,255,0.06)',
+  borderLight: 'rgba(255,255,255,0.03)',
   blur: 30,
   radius: 20,
-  darkBg: 'rgba(0,0,0,0.12)',
-  darkBgHeavy: 'rgba(0,0,0,0.25)',
+  darkBg: 'rgba(0,0,0,0.06)',
+  darkBgHeavy: 'rgba(0,0,0,0.12)',
 }
 
 export const gradients = {
