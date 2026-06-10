@@ -23,15 +23,9 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
     outputRange: [0, 6],
     extrapolate: 'clamp',
   })
-  const containerHeight = scrollY.interpolate({
-    inputRange: [0, 80],
-    outputRange: [70, 52],
-    extrapolate: 'clamp',
-  })
-
   return (
     <View style={[styles.wrapper, { bottom: bottomOffset }]}>
-      <Animated.View style={[styles.container, { height: containerHeight }]}>
+      <View style={styles.container}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key]
           const isFocused = state.index === index
@@ -77,7 +71,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
             </TouchableOpacity>
           )
         })}
-      </Animated.View>
+      </View>
     </View>
   )
 }
