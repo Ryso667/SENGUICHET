@@ -1,6 +1,6 @@
-// Barre de navigation flottante style iOS — rétrécit légèrement au scroll
-// La barre entière se réduit (scale 0.92), les labels restent visibles
-// Revient à la taille normale en haut de page
+// Barre de navigation flottante style iOS — rétrécit au scroll vers le bas
+// S'agrandit immédiatement dès qu'on scroll vers le haut (style Instagram)
+// Direction-based : bas→compact, haut→normal, spring fluide
 import { useState, useEffect, useRef } from 'react'
 import { Text, TouchableOpacity, Animated, StyleSheet, Platform, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -16,22 +16,20 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
 
   const [compact, setCompact] = useState(false)
   const scaleAnim = useRef(new Animated.Value(1)).current
-  const lastScrollY = useRef(0)
+  const lastY = useRef(0)
 
-  // Écoute le scrollY et bascule compact/expanded avec spring
+  // Détecte la direction du scroll : bas → compact, haut → normal
   useEffect(() => {
     const listener = scrollY.addListener(({ value }) => {
-      lastScrollY.current = value
-      if (value > 60 && !compact) {
-        setCompact(true)
-      } else if (value < 20 && compact) {
-        setCompact(false)
-      }
+      const diff = value - lastY.current
+      lastY.current = value
+      if (diff > 2 && !compact) setCompact(true)
+      if (diff < -1 && compact) setCompact(false)
     })
     return () => scrollY.removeListener(listener)
   }, [scrollY, compact])
 
-  // Anime le scale avec spring pour une fluidité maximale
+  // Spring fluide entre expanded (1.0) et compact (0.92)
   useEffect(() => {
     Animated.spring(scaleAnim, {
       toValue: compact ? 0.92 : 1,
