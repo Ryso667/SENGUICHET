@@ -13,6 +13,7 @@ import { hapticLight } from '../utils/haptics'
 import { listerMesDemandes } from '../services/eventService'
 import { API_BASE_URL } from '../config'
 import { colors, fonts, glass } from '../constants/theme'
+import FloatingTabBar from '../components/FloatingTabBar'
 
 // Écrans auth (aucun rôle)
 import AccueilChoixScreen from '../screens/AccueilChoixScreen'
@@ -123,6 +124,52 @@ const headerStyles = StyleSheet.create({
   },
 })
 
+// Onglets acheteur : 4 tabs avec barre flottante iOS
+function AcheteurTabs() {
+  return (
+    <Tab.Navigator
+      tabBar={(props) => <FloatingTabBar {...props} />}
+      screenOptions={{
+        headerShown: false,
+        sceneContainerStyle: { paddingBottom: 80 },
+      }}
+    >
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          tabBarLabel: 'Accueil',
+          tabBarIcon: ({ color, size }) => <Feather name="home" size={size} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="MesTickets"
+        component={MesTicketsScreen}
+        options={{
+          tabBarLabel: 'Mes Tickets',
+          tabBarIcon: ({ color, size }) => <Feather name="tag" size={size} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="Support"
+        component={SupportScreen}
+        options={{
+          tabBarLabel: 'Support',
+          tabBarIcon: ({ color, size }) => <Feather name="message-circle" size={size} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="Profil"
+        component={ProfilScreen}
+        options={{
+          tabBarLabel: 'Profil',
+          tabBarIcon: ({ color, size }) => <Feather name="user" size={size} color={color} />,
+        }}
+      />
+    </Tab.Navigator>
+  )
+}
+
 // Onglets organisateur : 4 tabs
 function OrganisateurTabs() {
   const { deconnecter } = useAuth()
@@ -149,23 +196,10 @@ function OrganisateurTabs() {
 
   return (
     <Tab.Navigator
+      tabBar={(props) => <FloatingTabBar {...props} />}
       screenOptions={{
         header: () => null,
-        tabBarButton: (props) => <HapticTabButton {...props} />,
-        tabBarStyle: {
-          backgroundColor: glass.bgHeavy,
-          borderTopWidth: 1,
-          borderTopColor: colors.border,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 6,
-        },
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.textTertiary,
-        tabBarLabelStyle: {
-          fontFamily: 'Outfit_600SemiBold',
-          fontSize: 11,
-        },
+        sceneContainerStyle: { paddingBottom: 80 },
       }}
     >
       <Tab.Screen
@@ -241,6 +275,7 @@ function ControleurTabs() {
   const { deconnecter } = useAuth()
   return (
     <Tab.Navigator
+      tabBar={(props) => <FloatingTabBar {...props} />}
       screenOptions={{
         headerShown: true,
         headerStyle: { backgroundColor: glass.bg },
@@ -259,19 +294,7 @@ function ControleurTabs() {
             </Text>
           </TouchableOpacity>
         ),
-        tabBarButton: (props) => <HapticTabButton {...props} />,
-        tabBarStyle: {
-          backgroundColor: glass.bgHeavy,
-          borderTopColor: colors.border,
-          height: 60,
-          paddingBottom: 8,
-        },
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.textTertiary,
-        tabBarLabelStyle: {
-          fontFamily: 'Outfit_600SemiBold',
-          fontSize: 12,
-        },
+        sceneContainerStyle: { paddingBottom: 80 },
       }}
     >
       <Tab.Screen
@@ -308,7 +331,7 @@ export default function AppNavigator() {
     console.log(`[Nav] role="${role}" isReady=${pret}`)
     if (pret) {
       if (role) {
-        const routeName = role === 'acheteur' ? 'Home'
+        const routeName = role === 'acheteur' ? 'AcheteurTabs'
           : role === 'controleur' ? 'ControleurTabs'
           : 'OrganisateurTabs'
         console.log(`[Nav] reset vers ${routeName}`)
@@ -360,14 +383,11 @@ export default function AppNavigator() {
             {/* Acheteur connecté */}
             {role === 'acheteur' && (
               <>
-                <Stack.Screen name="Home" component={HomeScreen} />
+                <Stack.Screen name="AcheteurTabs" component={AcheteurTabs} />
                 <Stack.Screen name="EventSearch" component={EventSearchScreen} />
                 <Stack.Screen name="EventDetail" component={EventDetailScreen} options={header('Détail')} />
                 <Stack.Screen name="Ticket" component={TicketScreen} />
-                <Stack.Screen name="MesTickets" component={MesTicketsScreen} />
-                <Stack.Screen name="Support" component={SupportScreen} />
                 <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
-                <Stack.Screen name="Profil" component={ProfilScreen} options={header('Profil')} />
               </>)}
 
             {/* Contrôleur connecté */}
