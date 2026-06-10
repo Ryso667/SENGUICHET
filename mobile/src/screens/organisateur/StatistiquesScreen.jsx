@@ -164,7 +164,7 @@ export default function StatistiquesScreen() {
           </View>
         </GlassContainer>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   )

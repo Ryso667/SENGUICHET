@@ -77,7 +77,7 @@ export default function ProfilScreen({ route }) {
             <Text style={s.infoText}>Profil non disponible</Text>
           )}
         </GlassContainer>
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   )

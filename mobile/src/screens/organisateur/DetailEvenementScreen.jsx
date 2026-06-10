@@ -175,7 +175,7 @@ const s = StyleSheet.create({
   fillSection: { margin: spacing.lg, padding: spacing.md },
   fillTitle: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  barBg: { flex: 1, height: 10, backgroundColor: colors.inputBorder, borderRadius: 5, overflow: 'hidden' },
+  barBg: { flex: 1, height: 10, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 5, overflow: 'hidden' },
   barFill: { height: 10, borderRadius: 5, backgroundColor: colors.accent },
   barCount: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary },
   fillPct: { fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.text, marginTop: spacing.sm },

@@ -493,7 +493,7 @@ export default function MesDemandesScreen({ navigation }) {
             </View>
           )}
 
-          <View style={{ height: 40 }} />
+          <View style={{ height: 100 }} />
         </ScrollView>
       </View>
 
@@ -814,7 +814,7 @@ const DetailField = ({ label, value }) => (
 
 const s = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 40 },
+  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },
 
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
   headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text },
@@ -840,10 +840,10 @@ const s = StyleSheet.create({
   cardDate: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, marginTop: 2 },
   cardComment: { fontSize: 11, fontFamily: fonts.jakarta.regular, marginTop: 2, fontStyle: 'italic' },
   detailBtn: {
-    borderWidth: 1, borderColor: 'rgba(61,90,254,0.3)', borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 6, marginLeft: spacing.sm,
   },
-  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
 
   /* Modal */
   modalOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'flex-end' },

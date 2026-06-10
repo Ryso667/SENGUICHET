@@ -190,7 +190,7 @@ export default function ScanHistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingBottom: 40 },
+  scroll: { paddingBottom: 100 },
   statsBanner: {
     marginHorizontal: 16,
     marginTop: 16,

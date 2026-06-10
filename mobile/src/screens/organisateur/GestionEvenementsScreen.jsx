@@ -199,7 +199,7 @@ export default function GestionEvenementsScreen({ navigation }) {
             </View>
           )}
 
-          <View style={{ height: 40 }} />
+          <View style={{ height: 100 }} />
         </ScrollView>
       </View>
     </View>
@@ -208,7 +208,7 @@ export default function GestionEvenementsScreen({ navigation }) {
 
 const s = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 40 },
+  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },
 
   /* Header */
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
@@ -280,8 +280,8 @@ const s = StyleSheet.create({
   cardBarPct: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textTertiary, width: 36, textAlign: 'right' },
 
   cardBtn: {
-    backgroundColor: 'rgba(61,90,254,0.12)', borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
-  cardBtnText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  cardBtnText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
 })
