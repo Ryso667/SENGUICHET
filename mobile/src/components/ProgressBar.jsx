@@ -31,13 +31,13 @@ const styles = StyleSheet.create({
   },
   barBg: {
     flex: 1,
-    height: 6,
-    backgroundColor: colors.border,
+    height: 8,
+    backgroundColor: colors.inputBorder,
     borderRadius: 4,
     overflow: 'hidden',
   },
   barFill: {
-    height: 6,
+    height: 8,
     borderRadius: 4,
     backgroundColor: colors.accent,
   },

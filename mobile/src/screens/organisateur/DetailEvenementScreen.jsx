@@ -11,8 +11,18 @@ import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import GlassButton from '../../components/GlassButton'
 
+// Convertisseur hex → rgba pour fonds glass translucides
+const hexToRgba = (hex, a) => {
+  if (!hex || typeof hex !== 'string') return `rgba(0,0,0,${a})`
+  const clean = hex.replace('#', '')
+  const r = parseInt(clean.substring(0, 2), 16)
+  const g = parseInt(clean.substring(2, 4), 16)
+  const b = parseInt(clean.substring(4, 6), 16)
+  return `rgba(${r},${g},${b},${a})`
+}
+
 const STATUT_CONFIG = {
-  actif: { label: 'Actif', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
+  actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
   en_attente: { label: 'En attente', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
   refuse: { label: 'Refusé', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
   suspendu: { label: 'Suspendu', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
@@ -165,7 +175,7 @@ const s = StyleSheet.create({
   fillSection: { margin: spacing.lg, padding: spacing.md },
   fillTitle: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  barBg: { flex: 1, height: 10, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 5, overflow: 'hidden' },
+  barBg: { flex: 1, height: 10, backgroundColor: colors.inputBorder, borderRadius: 5, overflow: 'hidden' },
   barFill: { height: 10, borderRadius: 5, backgroundColor: colors.accent },
   barCount: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary },
   fillPct: { fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.text, marginTop: spacing.sm },

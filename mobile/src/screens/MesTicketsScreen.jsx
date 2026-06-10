@@ -124,7 +124,7 @@ export default function MesTicketsScreen() {
         {/* Header natif avec bouton retour et compteur */}
         <View style={styles.headerBar}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.7}>
-            <Feather name="chevron-left" size={24} color="#fff" />
+            <Feather name="chevron-left" size={24} color={colors.textWhite} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Mes tickets</Text>
           <View style={styles.headerRight}>
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 20,
     fontFamily: fonts.outfit.bold,
-    color: '#fff',
+    color: colors.textWhite,
     letterSpacing: -0.3,
   },
   headerRight: {
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   countText: {
     fontSize: 12,
     fontFamily: fonts.jakarta.semiBold,
-    color: '#fff',
+    color: colors.textWhite,
   },
 
   // LISTE
@@ -293,14 +293,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontFamily: fonts.outfit.semiBold,
-    color: colors.text,
+    color: colors.textWhite,
     marginTop: 20,
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 14,
     fontFamily: fonts.jakarta.regular,
-    color: colors.textSecondary,
+    color: colors.textWhiteMuted,
     marginTop: 8,
     textAlign: 'center',
     lineHeight: 20,

@@ -2,6 +2,7 @@
 // Format : +221 XX XXX XX XX (9 chiffres après l'indicatif)
 import { useState } from 'react'
 import { View, TextInput, Text, StyleSheet } from 'react-native'
+import { colors } from '../constants/theme'
 
 // Indicateur du Sénégal
 const INDICATIF = '+221'
@@ -45,7 +46,7 @@ export default function InputTel({ onValide }) {
         onChangeText={handleChangement}
         keyboardType="phone-pad"
         placeholder="XX XXX XX XX"
-        placeholderTextColor="#94a3b8"
+        placeholderTextColor={colors.textTertiary}
         maxLength={12}
       />
     </View>
@@ -56,24 +57,24 @@ const styles = StyleSheet.create({
   conteneur: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#edf0f5',
+    borderColor: colors.inputBorder,
     paddingHorizontal: 16,
     height: 56,
   },
   indicatif: {
     fontFamily: 'Outfit_600SemiBold',
     fontSize: 18,
-    color: '#0f172a',
+    color: colors.text,
     marginRight: 8,
   },
   input: {
     flex: 1,
     fontFamily: 'Outfit_400Regular',
     fontSize: 18,
-    color: '#0f172a',
+    color: colors.text,
     height: '100%',
   },
 })

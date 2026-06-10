@@ -12,7 +12,7 @@ import {
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import MaskedView from '@react-native-masked-view/masked-view'
-import { fonts, colors, spacing, borderRadius, glass, categoryGradients, textShadow } from '../constants/theme'
+import { fonts, colors, spacing, borderRadius, glass, textShadow } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import { BlurView } from 'expo-blur'
@@ -255,18 +255,18 @@ export default function EventDetailScreen({ route, navigation }) {
           transform: [{ translateY: heroFade.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
         }}>
         <View style={styles.heroSection}>
-          <Text style={[styles.heroCategory, { color: '#06B6D4' }]}>{event.category || 'ÉVÉNEMENT'}</Text>
+          <Text style={[styles.heroCategory, { color: colors.accent }]}>{event.category || 'ÉVÉNEMENT'}</Text>
           <MaskedView maskElement={<Text style={styles.heroTitle}>{event.title}</Text>}>
-            <LinearGradient colors={['#2563EB', '#06B6D4']} start={{x:0,y:0}} end={{x:1,y:0}}>
+            <LinearGradient colors={['#C7513A', '#D4835A']} start={{x:0,y:0}} end={{x:1,y:0}}>
               <Text style={[styles.heroTitle, { opacity: 0 }]}>{event.title}</Text>
             </LinearGradient>
           </MaskedView>
 
-          <View style={[styles.heroDivider, { backgroundColor: '#2563EB' }]} />
+          <View style={[styles.heroDivider, { backgroundColor: colors.accent }]} />
 
           {event.date && (
-            <GlassContainer style={styles.heroDateCard}>
-              <View style={[styles.heroIconBadge, { backgroundColor: hexToRgba('#2563EB', 0.15) }]}>
+            <GlassContainer intensity={30} style={styles.heroDateCard}>
+              <View style={[styles.heroIconBadge, { backgroundColor: hexToRgba(colors.accent, 0.15) }]}>
                 <Feather name="calendar" size={22} color="#fff" />
               </View>
               <View style={{ flex: 1 }}>
@@ -285,8 +285,8 @@ export default function EventDetailScreen({ route, navigation }) {
           )}
 
           {!!event.location && (
-            <GlassContainer style={styles.heroLocationCard}>
-              <View style={[styles.heroIconBadge, { backgroundColor: hexToRgba('#2563EB', 0.15) }]}>
+            <GlassContainer intensity={30} style={styles.heroLocationCard}>
+              <View style={[styles.heroIconBadge, { backgroundColor: hexToRgba(colors.accent, 0.15) }]}>
                 <Feather name="map-pin" size={22} color="#fff" />
               </View>
               <View style={{ flex: 1 }}>
@@ -300,7 +300,7 @@ export default function EventDetailScreen({ route, navigation }) {
 
         {/* Description — carte large */}
         {!!event.desc && (
-          <GlassContainer style={styles.descCard}>
+          <GlassContainer intensity={30} style={styles.descCard}>
             <Text style={styles.descText}>{event.desc}</Text>
           </GlassContainer>
         )}
@@ -315,7 +315,7 @@ export default function EventDetailScreen({ route, navigation }) {
           onPress={() => setShowCategorySheet(true)}
           activeOpacity={0.7}
         >
-          <GlassContainer style={styles.categorySelector}>
+          <GlassContainer intensity={30} style={styles.categorySelector}>
             <View style={styles.categorySelectorLeft}>
               <Text style={styles.categorySelectorLabel}>{selectedTicket.name}</Text>
               <Text style={styles.categorySelectorPrice}>{selectedTicket.price.toLocaleString()} FCFA</Text>
@@ -326,31 +326,15 @@ export default function EventDetailScreen({ route, navigation }) {
                   <Text style={styles.priceChipText}>{selectedTicket.placesDisponibles}/{selectedTicket.capacite} places</Text>
                 </View>
               )}
-              <Feather name="chevron-down" size={16} color={colors.textSecondary} />
+              <Feather name="chevron-down" size={16} color={colors.textWhiteMuted} />
             </View>
           </GlassContainer>
         </TouchableOpacity>
 
-        {/* Téléphone — après le choix de la catégorie */}
-        <Text style={styles.formLabel}>Téléphone</Text>
-        <GlassContainer style={styles.formPhoneRow}>
-          <Feather name="smartphone" size={16} color={colors.textSecondary} />
-          <Text style={styles.formCodeText}>+221</Text>
-          <TextInput
-            style={styles.formPhoneInput}
-            value={telephone}
-            onChangeText={(t) => setTelephone(formaterTel(t))}
-            keyboardType="phone-pad"
-            placeholder="77 XXX XX XX"
-            placeholderTextColor={colors.textSecondary}
-          />
-        </GlassContainer>
-
         </Animated.ScrollView>
-
         {/* Barre d'achat fixe en bas — effet glass */}
         <BlurView tint="dark" intensity={90} style={styles.bottomBar}>
-          <GlassContainer style={styles.bottomBarTotal}>
+          <GlassContainer intensity={30} style={styles.bottomBarTotal}>
             <Text style={styles.bottomBarTotalLabel}>Total</Text>
             <Text style={styles.bottomBarTotalPrice}>{selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
           </GlassContainer>
@@ -360,7 +344,7 @@ export default function EventDetailScreen({ route, navigation }) {
             style={styles.buyBtnWrap}
           >
             <LinearGradient
-              colors={['#2563EB', '#06B6D4']}
+              colors={['#C7513A', '#B84530']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.buyBtnGradient}
@@ -379,18 +363,13 @@ export default function EventDetailScreen({ route, navigation }) {
         onRequestClose={() => setShowCategorySheet(false)}
       >
         <View style={styles.sheetOverlay}>
-          <LinearGradient
-            colors={categoryGradients[event?.category] || categoryGradients.default}
-            style={StyleSheet.absoluteFill}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.6)' }]} />
           <TouchableOpacity
             style={styles.sheetOverlayContent}
             activeOpacity={1}
             onPress={() => setShowCategorySheet(false)}
           >
-            <GlassContainer style={styles.sheetContainer}>
+            <GlassContainer intensity={30} style={styles.sheetContainer}>
               <View style={styles.sheetHandle} />
               <Text style={styles.sheetTitle}>Choisir une catégorie</Text>
               {event.tickets.map((t) => (
@@ -402,12 +381,12 @@ export default function EventDetailScreen({ route, navigation }) {
                   }}
                   activeOpacity={0.7}
                 >
-                  <GlassContainer
+                  <GlassContainer intensity={30}
                     style={[
                       styles.sheetItem,
                       selectedTicket.name === t.name && {
-                        backgroundColor: 'rgba(37,99,235,0.2)',
-                        borderColor: '#2563EB',
+                        backgroundColor: hexToRgba(colors.accent, 0.2),
+                        borderColor: colors.accent,
                       },
                     ]}
                   >
@@ -421,7 +400,7 @@ export default function EventDetailScreen({ route, navigation }) {
                         <Text style={styles.sheetItemPlaces}>{t.placesDisponibles}/{t.capacite} places</Text>
                       )}
                     {selectedTicket.name === t.name && (
-                      <View style={[styles.sheetCheck, { backgroundColor: '#2563EB' }]}>
+                      <View style={[styles.sheetCheck, { backgroundColor: colors.accent }]}>
                         <Feather name="check" size={12} color="#fff" />
                       </View>
                     )}
@@ -442,12 +421,7 @@ export default function EventDetailScreen({ route, navigation }) {
         onRequestClose={() => setShowPaymentSheet(false)}
       >
         <View style={styles.paySheetOverlay}>
-          <LinearGradient
-            colors={categoryGradients[event?.category] || categoryGradients.default}
-            style={StyleSheet.absoluteFill}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.6)' }]} />
           <TouchableOpacity
             style={styles.paySheetOverlayContent}
             activeOpacity={1}
@@ -458,7 +432,7 @@ export default function EventDetailScreen({ route, navigation }) {
             style={{ width: '100%' }}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
           >
-          <GlassContainer style={styles.paySheetContainer}>
+          <GlassContainer intensity={30} style={styles.paySheetContainer}>
             {/* Bouton de fermeture */}
             {paymentEtape === 'confirm' && (
               <TouchableOpacity style={styles.payCloseBtn} onPress={() => setShowPaymentSheet(false)}>
@@ -471,10 +445,25 @@ export default function EventDetailScreen({ route, navigation }) {
               <>
                 {/* Montant uniquement */}
                 <Text style={styles.payAmountLabel}>{selectedTicket.name}</Text>
-                <GlassContainer style={[styles.payAmountCard, { borderColor: hexToRgba('#2563EB', 0.27) }]}>
-                  <Text style={[styles.payAmountValue, { color: '#1AB3E5' }]}>
+                <GlassContainer intensity={30} style={[styles.payAmountCard, { borderColor: hexToRgba(colors.accent, 0.27) }]}>
+                  <Text style={[styles.payAmountValue, { color: colors.textWhite }]}>
                     {selectedTicket.price.toLocaleString()} FCFA
                   </Text>
+                </GlassContainer>
+
+                {/* Champ téléphone dans le modal */}
+                <Text style={styles.modalPhoneLabel}>Ton téléphone</Text>
+                <GlassContainer intensity={30} style={styles.modalPhoneRow}>
+                  <Feather name="smartphone" size={16} color={colors.textWhiteMuted} />
+                  <Text style={styles.modalPhoneCode}>+221</Text>
+                  <TextInput
+                    style={styles.modalPhoneInput}
+                    value={telephone}
+                    onChangeText={(t) => setTelephone(formaterTel(t))}
+                    keyboardType="phone-pad"
+                    placeholder="77 XXX XX XX"
+                    placeholderTextColor={colors.textWhiteMuted}
+                  />
                 </GlassContainer>
 
                 {/* Bouton de paiement Wave — mobile money */}
@@ -690,7 +679,7 @@ const styles = StyleSheet.create({
   },
   descText: {
     fontSize: 15,
-    color: colors.textSecondary,
+    color: colors.textWhite,
     fontFamily: fonts.jakarta.regular,
     lineHeight: 26,
   },
@@ -701,14 +690,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: fonts.outfit.bold,
     fontSize: 14,
-    color: colors.text,
+    color: colors.textWhite,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   sectionSub: {
     fontSize: 11,
     fontFamily: fonts.jakarta.regular,
-    color: colors.textSecondary,
+    color: colors.textWhiteMuted,
     marginTop: 3,
   },
   // Sélecteur de catégorie premium
@@ -725,12 +714,12 @@ const styles = StyleSheet.create({
   categorySelectorLabel: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: 16,
-    color: colors.text,
+    color: colors.textWhite,
   },
   categorySelectorPrice: {
     fontFamily: fonts.outfit.bold,
     fontSize: 22,
-    color: colors.accent,
+    color: colors.textWhite,
     letterSpacing: -0.5,
   },
   categorySelectorRight: {
@@ -739,7 +728,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   priceChip: {
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: 'rgba(255,255,255,0.12)',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 5,
@@ -747,7 +736,7 @@ const styles = StyleSheet.create({
   priceChipText: {
     fontSize: 10,
     fontFamily: fonts.jakarta.semiBold,
-    color: colors.textSecondary,
+    color: colors.textWhiteMuted,
   },
   // Overlay et conteneur sheet
   sheetOverlay: {
@@ -825,33 +814,37 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  // Champ téléphone sur la page principale — après sélection catégorie
-  formLabel: {
+  // Champ téléphone dans le modal de paiement
+  modalPhoneLabel: {
     fontFamily: fonts.jakarta.semiBold,
     fontSize: 12,
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.6)',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
     marginBottom: spacing.sm,
     marginTop: spacing.sm,
+    alignSelf: 'flex-start',
+    width: '100%',
   },
-  formPhoneRow: {
+  modalPhoneRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingHorizontal: 14,
     paddingVertical: 4,
+    width: '100%',
+    marginBottom: spacing.md,
   },
-  formCodeText: {
+  modalPhoneCode: {
     fontFamily: fonts.jakarta.semiBold,
     fontSize: 15,
-    color: colors.textSecondary,
+    color: colors.textWhiteMuted,
   },
-  formPhoneInput: {
+  modalPhoneInput: {
     flex: 1,
     fontSize: 15,
     fontFamily: fonts.jakarta.semiBold,
-    color: colors.text,
+    color: colors.textWhite,
     paddingVertical: 10,
   },
   // Montant dans le modal de paiement

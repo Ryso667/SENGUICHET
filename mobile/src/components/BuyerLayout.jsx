@@ -2,7 +2,7 @@
 // Fond clair #F5F0EB appliqué ici
 import { View, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { colors } from '../../constants/theme'
+import { colors } from '../constants/theme'
 import GlassBottomNav from './GlassBottomNav'
 
 export default function BuyerLayout({ children }) {

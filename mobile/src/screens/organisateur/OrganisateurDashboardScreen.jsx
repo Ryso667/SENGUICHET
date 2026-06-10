@@ -14,8 +14,18 @@ import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 
+// Convertisseur hex → rgba pour fonds glass translucides
+const hexToRgba = (hex, a) => {
+  if (!hex || typeof hex !== 'string') return `rgba(0,0,0,${a})`
+  const clean = hex.replace('#', '')
+  const r = parseInt(clean.substring(0, 2), 16)
+  const g = parseInt(clean.substring(2, 4), 16)
+  const b = parseInt(clean.substring(4, 6), 16)
+  return `rgba(${r},${g},${b},${a})`
+}
+
 const STATUT_CONFIG = {
-  actif: { label: 'Actif', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
+  actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
   en_attente: { label: 'En attente', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
   refuse: { label: 'Refusé', color: '#FF4D6D', bg: 'rgba(255,77,109,0.2)' },
   termine: { label: 'Terminé',     color: '#B0B0B8', bg: 'rgba(176,176,184,0.2)' },
@@ -100,7 +110,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
         {/* Greeting — calqué sur le web : "Bonjour, {nom}" + date */}
         <GlassContainer blurType="light" style={s.greeting}>
           <View style={s.headerRow}>
-            <MaterialCommunityIcons name="view-grid-outline" size={22} color={colors.text} />
+            <Text style={s.emoji}>👋</Text>
             <Text style={s.bonjour}>Bonjour, {user?.nom || 'Organisateur'}</Text>
           </View>
           <Text style={s.dateText}>{today}</Text>
@@ -256,7 +266,7 @@ const s = StyleSheet.create({
   eventMeta: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
   eventBody: { padding: spacing.md },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
-  barBg: { flex: 1, height: 8, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 4, overflow: 'hidden' },
+  barBg: { flex: 1, height: 8, backgroundColor: colors.inputBorder, borderRadius: 4, overflow: 'hidden' },
   barFill: { height: 8, borderRadius: 4, backgroundColor: colors.accent },
   barCount: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary },
   eventFooter: {

@@ -1,7 +1,7 @@
 // Fond clair pour les écrans contrôleur (thème Warm Light)
 // Utilise colors.bg (#F5F0EB) en arrière-plan solide
 import { View, StyleSheet } from 'react-native'
-import { colors } from '../../constants/theme'
+import { colors } from '../constants/theme'
 
 export default function ControleurLayout() {
   return (

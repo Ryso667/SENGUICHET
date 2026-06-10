@@ -171,7 +171,7 @@ const s = StyleSheet.create({
   },
   eyeBtn: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.1)' },
-  erreur: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: '#FF4D6D', marginTop: spacing.sm, textAlign: 'center' },
+  erreur: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.danger, marginTop: spacing.sm, textAlign: 'center' },
   submitBtn: {
     marginTop: spacing.lg, paddingVertical: spacing.md,
     backgroundColor: colors.accent, borderRadius: borderRadius.lg,

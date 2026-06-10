@@ -13,10 +13,20 @@ import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 
+// Convertisseur hex → rgba pour fonds glass translucides
+const hexToRgba = (hex, a) => {
+  if (!hex || typeof hex !== 'string') return `rgba(0,0,0,${a})`
+  const clean = hex.replace('#', '')
+  const r = parseInt(clean.substring(0, 2), 16)
+  const g = parseInt(clean.substring(2, 4), 16)
+  const b = parseInt(clean.substring(4, 6), 16)
+  return `rgba(${r},${g},${b},${a})`
+}
+
 const STATUT_CONFIG = {
   soumis: { label: 'Soumis', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
   en_analyse: { label: 'En analyse', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
-  approuve: { label: 'Approuvé', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
+  approuve: { label: 'Approuvé', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
   refuse: { label: 'Refusé', color: '#FF4D6D', bg: 'rgba(255,77,109,0.2)' },
 }
 
@@ -468,7 +478,7 @@ export default function MesDemandesScreen({ navigation }) {
                           {d.titre ? ` · ${d.titre}` : ''}
                         </Text>
                         {d.commentaire_admin && d.statut !== 'soumis' && d.statut !== 'en_analyse' && (
-                          <Text style={[s.cardComment, { color: d.statut === 'approuve' ? '#00E5A0' : '#FF4D6D' }]}>
+                          <Text style={[s.cardComment, { color: d.statut === 'approuve' ? colors.green : colors.danger }]}>
                             {d.commentaire_admin}
                           </Text>
                         )}
@@ -538,8 +548,8 @@ export default function MesDemandesScreen({ navigation }) {
                   {viewingDemande.capacite > 0 ? <DetailField label="Capacité" value={`${viewingDemande.capacite} places`} /> : null}
 
                   {viewingDemande.commentaire_admin && viewingDemande.statut !== 'soumis' && viewingDemande.statut !== 'en_analyse' && (
-                    <View style={[s.commentBox, { backgroundColor: viewingDemande.statut === 'approuve' ? 'rgba(0,229,160,0.08)' : 'rgba(255,77,109,0.08)', borderColor: viewingDemande.statut === 'approuve' ? 'rgba(0,229,160,0.2)' : 'rgba(255,77,109,0.2)' }]}>
-                      <Text style={[s.commentLabel, { color: viewingDemande.statut === 'approuve' ? '#00E5A0' : '#FF4D6D' }]}>
+                    <View style={[s.commentBox, { backgroundColor: viewingDemande.statut === 'approuve' ? hexToRgba(colors.green, 0.08) : 'rgba(255,77,109,0.08)', borderColor: viewingDemande.statut === 'approuve' ? hexToRgba(colors.green, 0.2) : 'rgba(255,77,109,0.2)' }]}>
+                      <Text style={[s.commentLabel, { color: viewingDemande.statut === 'approuve' ? colors.green : '#FF4D6D' }]}>
                         {viewingDemande.statut === 'approuve' ? 'Commentaire' : 'Motif du refus'}
                       </Text>
                       <Text style={s.commentValue}>{viewingDemande.commentaire_admin}</Text>

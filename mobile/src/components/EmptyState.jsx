@@ -51,14 +51,14 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: 18,
-    color: colors.slate,
+    color: colors.text,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
   subtitle: {
     fontFamily: fonts.jakarta.regular,
     fontSize: 13,
-    color: colors.mid,
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: spacing.md,
   },

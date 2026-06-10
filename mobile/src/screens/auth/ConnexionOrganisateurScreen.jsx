@@ -125,19 +125,19 @@ const styles = StyleSheet.create({
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: colors.text,
+    color: colors.textWhite,
     marginBottom: 8,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: colors.textSecondary,
+    color: colors.textWhiteMuted,
     marginBottom: 32,
   },
   label: {
     fontFamily: 'Outfit_500Medium',
     fontSize: 14,
-    color: colors.text,
+    color: colors.textWhite,
     marginBottom: 6,
   },
   inscriptionRow: {
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   inscriptionText: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 13,
-    color: colors.textSecondary,
+    color: colors.textWhiteMuted,
   },
   inscriptionLink: {
     paddingVertical: 0,
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   input: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 16,
-    color: colors.text,
+    color: colors.textWhite,
   },
   glassLoadingBtn: {
     borderRadius: 14,

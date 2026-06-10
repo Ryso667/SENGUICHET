@@ -104,7 +104,7 @@ export default function StatistiquesScreen() {
       <OrganisateurLayout />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={s.header}>
-          <Text style={s.title}>Performances</Text>
+          <Text style={s.title}>Statistiques</Text>
           <View style={s.pills}>
             {['7j', '30j', 'Tout'].map(p => (
               <GlassChip
@@ -119,7 +119,7 @@ export default function StatistiquesScreen() {
 
         <View style={s.statsGrid}>
           <StatCard label="Tickets" value={stats.totalVendus} icon="ticket-outline" color={colors.accent} />
-          <StatCard label="Revenus" value={`${Math.round(stats.revenusTotaux/1000)}k`} icon="cash" color="#00E5A0" />
+          <StatCard label="Revenus" value={`${Math.round(stats.revenusTotaux/1000)}k`} icon="cash" color={colors.green} />
           <StatCard label="Remplissage" value={`${stats.tauxRemplissage}%`} icon="chart-donut" color="#F97316" />
           <StatCard label="Événements" value={stats.nbEvents} icon="calendar-star" color={colors.orange} />
         </View>

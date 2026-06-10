@@ -80,14 +80,19 @@ export function AuthProvider({ children }) {
           setRole('controleur')
         }
       } else if (roleStocke === 'organisateur') {
+        console.log('[Auth] restauration organisateur...')
         const token = await Securite.GET(STORAGE_KEY_JWT)
         const userData = await Securite.GET(STORAGE_KEY_USER)
+        console.log('[Auth] token:', !!token, 'userData:', !!userData)
         if (token && userData) {
           const parsed = JSON.parse(userData)
+          console.log('[Auth] organisateur restauré:', parsed.email)
           setUser(parsed)
           setJwt(token)
           setEmail(parsed.email)
           setRole('organisateur')
+        } else {
+          console.log('[Auth] données manquantes pour restaurer organisateur')
         }
       }
 

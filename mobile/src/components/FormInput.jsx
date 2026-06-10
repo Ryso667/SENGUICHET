@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     borderColor: colors.inputBorderFocus,
   },
   containerError: {
-    borderColor: '#E86868',
+    borderColor: colors.red,
   },
   icon: {
     marginLeft: 14,
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit_400Regular',
   },
   inputError: {
-    color: '#E86868',
+    color: colors.red,
   },
   eye: {
     paddingRight: 14,
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -18,
     left: 16,
-    color: '#E86868',
+    color: colors.red,
     fontSize: 12,
     fontFamily: 'Outfit_400Regular',
   },

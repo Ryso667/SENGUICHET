@@ -112,7 +112,7 @@ export default function WebViewWaveScreen({ route, navigation }) {
             navigation.goBack()
           }}
         >
-          <Feather name="x" size={18} color={colors.slate} />
+          <Feather name="x" size={18} color={colors.text} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Paiement Wave</Text>
         <View style={s.headerRight} />
@@ -157,7 +157,7 @@ const s = StyleSheet.create({
   headerTitle: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: 15,
-    color: colors.slate,
+    color: colors.text,
   },
   headerRight: { width: 36 },
   webview: { flex: 1 },
@@ -171,7 +171,7 @@ const s = StyleSheet.create({
   loadingText: {
     fontFamily: fonts.jakarta.regular,
     fontSize: 13,
-    color: colors.mid,
+    color: colors.textSecondary,
   },
   centerBox: {
     flex: 1,
@@ -208,7 +208,7 @@ const s = StyleSheet.create({
   subText: {
     fontFamily: fonts.jakarta.regular,
     fontSize: 13,
-    color: colors.mid,
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   retryBtn: {
