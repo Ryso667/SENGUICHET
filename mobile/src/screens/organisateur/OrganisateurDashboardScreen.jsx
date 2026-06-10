@@ -134,21 +134,12 @@ export default function OrganisateurDashboardScreen({ navigation }) {
             <View style={s.statsColumn}>
               {stats.map((st, i) => (
                 <Animated.View key={st.label} style={{ opacity: fadeAnims[i], transform: [{ translateY: slideAnims[i] }] }}>
-                  <GlassContainer style={s.statCard}>
-                    <LinearGradient
-                      colors={[hexToRgba(statBorders[i].color, 0.10), 'transparent']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={s.statGradientOverlay}
-                      pointerEvents="none"
-                    />
-                    <View style={s.statInner}>
-                      <View style={s.statTop}>
-                        <MaterialCommunityIcons name={st.icon} size={20} color={statBorders[i].color} />
-                        <Text style={s.statValue}>{st.value}</Text>
-                      </View>
-                      <Text style={s.statLabel}>{st.label}</Text>
+                  <GlassContainer style={s.statCard} borderLeftColor={statBorders[i].color}>
+                    <View style={s.statTop}>
+                      <MaterialCommunityIcons name={st.icon} size={20} color={statBorders[i].color} />
+                      <Text style={s.statValue}>{st.value}</Text>
                     </View>
+                    <Text style={s.statLabel}>{st.label}</Text>
                   </GlassContainer>
                 </Animated.View>
               ))}
@@ -247,12 +238,7 @@ const s = StyleSheet.create({
   refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginTop: spacing.sm, marginBottom: 0 },
   // Stats
   statsColumn: { paddingHorizontal: spacing.lg, gap: spacing.sm, marginTop: spacing.lg },
-  statCard: { padding: 0, minHeight: 80, justifyContent: 'space-between' },
-  statGradientOverlay: {
-    ...absoluteFill,
-    borderRadius: borderRadius.xl,
-  },
-  statInner: { padding: spacing.md, flex: 1, justifyContent: 'space-between' },
+  statCard: { padding: spacing.md, minHeight: 80, justifyContent: 'space-between' },
   statTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   statValue: { fontSize: 20, fontFamily: fonts.outfit.bold, color: colors.text, maxWidth: '70%', textAlign: 'right' },
   statLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
