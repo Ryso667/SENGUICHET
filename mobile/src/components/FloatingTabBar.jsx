@@ -18,10 +18,10 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
   const scaleAnim = useRef(new Animated.Value(1)).current
   const lastY = useRef(0)
 
-  // Détecte la direction du scroll : bas → compact, haut → normal
+  // Détecte la direction du scroll : bas → compact (scale 0.92), haut → normal (scale 1)
   useEffect(() => {
     const listener = scrollY.addListener(({ value }) => {
-      const diff = value - lastY.current
+      const diff = lastY.current - value
       lastY.current = value
       if (diff > 2 && !compact) setCompact(true)
       if (diff < -1 && compact) setCompact(false)
