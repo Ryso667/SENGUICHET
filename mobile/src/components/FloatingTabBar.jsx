@@ -1,6 +1,6 @@
-// Barre de navigation flottante style iOS — se compacte au scroll
-// Labels disparaissent en fondu, hauteur réduite, icônes restent visibles
-// La barre reste en place (ne disparaît pas) — comportement Apple Music
+// Barre de navigation flottante style iOS — rétrécit légèrement au scroll
+// La barre entière se réduit (scale 0.92), les labels restent visibles
+// Revient à la taille normale en haut de page
 import { Text, TouchableOpacity, Animated, StyleSheet, Platform, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BlurView } from 'expo-blur'
@@ -13,19 +13,14 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
   const { scrollY, resetScroll } = useTabBarScroll()
   const bottomOffset = Platform.OS === 'ios' ? (insets.bottom > 0 ? insets.bottom - 4 : 16) : 12
 
-  // Compact au scroll : labels fondent + remontent dans l'icône
-  const labelOpacity = scrollY.interpolate({
+  // Rétrécit toute la barre au scroll (scale 0.92), labels toujours visibles
+  const barScale = scrollY.interpolate({
     inputRange: [0, 80],
-    outputRange: [1, 0],
-    extrapolate: 'clamp',
-  })
-  const labelTranslateY = scrollY.interpolate({
-    inputRange: [0, 80],
-    outputRange: [0, 6],
+    outputRange: [1, 0.92],
     extrapolate: 'clamp',
   })
   return (
-    <View style={[styles.wrapper, { bottom: bottomOffset }]}>
+    <Animated.View style={[styles.wrapper, { bottom: bottomOffset, transform: [{ scale: barScale }] }]}>
       <BlurView tint="dark" intensity={90} style={styles.container}>
         <View style={styles.waterHighlight} pointerEvents="none" />
         {state.routes.map((route, index) => {
@@ -63,19 +58,17 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
                 <View style={[styles.bubbleGlow, isFocused && styles.activeGlow]} />
                 {icon}
               </View>
-              <Animated.View style={{ opacity: labelOpacity, transform: [{ translateY: labelTranslateY }] }}>
-                <Text
-                  style={[styles.label, isFocused && styles.activeLabel]}
-                  numberOfLines={1}
-                >
-                  {label}
-                </Text>
-              </Animated.View>
+              <Text
+                style={[styles.label, isFocused && styles.activeLabel]}
+                numberOfLines={1}
+              >
+                {label}
+              </Text>
             </TouchableOpacity>
           )
         })}
       </BlurView>
-    </View>
+    </Animated.View>
   )
 }
 
