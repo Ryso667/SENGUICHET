@@ -119,7 +119,7 @@ export default function MesTicketsScreen() {
 
   return (
     <View style={styles.container}>
-      <BlurBackground category={categoryForBg} showImage={false} gradientOverride={['rgba(0,229,160,0.5)', 'rgba(199,81,58,0.15)']} />
+      <BlurBackground category={categoryForBg} showImage={false} gradientOverride={['rgba(0,200,255,0.3)', 'rgba(0,119,255,0.15)']} />
       <View style={[styles.content, { paddingTop: insets.top }]}>
         {/* Header natif avec bouton retour et compteur */}
         <View style={styles.headerBar}>

@@ -1,58 +1,58 @@
-// Thème clair Warm Light — fond beige #F5F0EB, accent terracotta #C7513A, verre translucide
+// Thème sombre Indigo - Fond bleu nuit #0D1B2A, accent cyan #00C8FF, verre dépoli
 export const colors = {
-  bg: '#F5F0EB',
-  bgSecondary: '#EBE5DE',
-  surface: '#FFFFFF',
-  border: 'rgba(0,0,0,0.06)',
+  bg: '#0D1B2A',
+  bgSecondary: '#111827',
+  surface: '#152232',
+  border: 'rgba(0, 200, 255, 0.15)',
   white: '#FFFFFF',
-  text: '#1A1A1E',
-  textSecondary: '#6B6560',
-  textTertiary: '#7A7570',
-  accent: '#C7513A',
-  accentLight: '#F0DED8',
-  green: '#22C55E',
-  greenLight: '#E0F5EC',
-  red: '#C73A3A',
-  whiteMuted: '#7A7570',
-  violet: '#7C6FA0',
-  orange: '#D4835A',
+  text: '#FFFFFF',
+  textSecondary: '#A0B4C8',
+  textTertiary: 'rgba(160, 180, 200, 0.7)',
+  accent: '#00C8FF',
+  accentLight: '#E0F7FF',
+  green: '#00E5A0',
+  greenLight: '#E0FFF0',
+  red: '#FF4D6D',
+  whiteMuted: 'rgba(160, 180, 200, 0.7)',
+  violet: '#6366F1',
+  orange: '#F97316',
   glassWhite: 'rgba(255,255,255,0.15)',
-  glassBorder: 'rgba(255,255,255,0.6)',
-  glassDark: 'rgba(0,0,0,0.04)',
-  inputBg: '#FFFFFF',
-  inputBorder: '#D4CEC8',
-  inputBorderFocus: '#C7513A',
+  glassBorder: 'rgba(255,255,255,0.25)',
+  glassDark: 'rgba(0,0,0,0.2)',
+  inputBg: '#1A2A3A',
+  inputBorder: 'rgba(0, 200, 255, 0.2)',
+  inputBorderFocus: '#00C8FF',
   // Tokens textes sur fonds sombres (overlays, glass sur BlurBackground)
   textWhite: '#FFFFFF',
   textWhiteMuted: 'rgba(255,255,255,0.7)',
   // Tokens utilitaires (utilisés dans plusieurs composants)
   slate: '#2D2D32',
-  mid: '#7A7570',
-  muted: '#8A8480',
+  mid: '#A0B4C8',
+  muted: 'rgba(160, 180, 200, 0.6)',
   // Tokens feedback — visibles sur tous les fonds
-  danger: '#D45050',
+  danger: '#FF4D6D',
   warning: '#F97316',
-  success: '#22C55E',
+  success: '#00E5A0',
 }
 
-// === GLASS (verre dépoli — version claire pour cohérence Warm Light) ===
+// === GLASS (verre dépoli) ===
 export const glass = {
-  bg: 'rgba(255,255,255,0.5)',
+  bg: 'rgba(255,255,255,0.2)',
   bgLight: 'rgba(255,255,255,0.3)',
-  bgHeavy: 'rgba(255,255,255,0.7)',
-  border: 'rgba(255,255,255,0.6)',
-  borderLight: 'rgba(255,255,255,0.4)',
+  bgHeavy: 'rgba(255,255,255,0.45)',
+  border: 'rgba(255,255,255,0.3)',
+  borderLight: 'rgba(255,255,255,0.15)',
   blur: 20,
   radius: 20,
-  darkBg: 'rgba(0,0,0,0.04)',
-  darkBgHeavy: 'rgba(0,0,0,0.08)',
+  darkBg: 'rgba(0,0,0,0.3)',
+  darkBgHeavy: 'rgba(0,0,0,0.55)',
 }
 
 export const gradients = {
-  primary: ['#C7513A', '#B84530'],
-  organisateur: ['#C7513A', '#B84530'],
-  success: ['#22C55E', '#16A34A'],
-  error: ['#C73A3A', '#D45050'],
+  primary: ['#00C8FF', '#0077FF'],
+  organisateur: ['#00C8FF', '#0077FF'],
+  success: ['#00E5A0', '#00C8FF'],
+  error: ['#FF4D6D', '#FF6B8A'],
 }
 
 // Dégradés par catégorie d'événement — style Apple Music
@@ -67,14 +67,14 @@ export const categoryGradients = {
   Exposition: ['rgba(124,58,237,0.55)', 'rgba(124,58,237,0.15)'],
   'Club / Soirée': ['rgba(219,39,119,0.55)', 'rgba(219,39,119,0.15)'],
   Gala: ['rgba(202,138,4,0.55)', 'rgba(202,138,4,0.15)'],
-  default: ['rgba(199,81,58,0.2)', 'rgba(245,240,235,0.9)'],
+  default: ['rgba(99,102,241,0.5)', 'rgba(236,72,153,0.2)'],
 }
 
 // Ombre portée pour lisibilité du texte blanc sur fond clair/glass
 export const textShadow = {
-  textShadowColor: 'rgba(0,0,0,0)',
-  textShadowOffset: { width: 0, height: 0 },
-  textShadowRadius: 0,
+  textShadowColor: 'rgba(0,0,0,0.75)',
+  textShadowOffset: { width: 0, height: 2 },
+  textShadowRadius: 8,
 }
 
 // Espacements cohérents dans toute l'app

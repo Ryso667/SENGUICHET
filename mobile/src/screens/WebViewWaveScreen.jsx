@@ -7,7 +7,7 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-na
 import { WebView } from 'react-native-webview'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
+import { fonts, colors, gradients, spacing, borderRadius, shadows } from '../constants/theme'
 import { statutPaiement } from '../services/paiementService'
 import { sauvegarderTicketAcheteur } from '../database/database'
 
@@ -92,7 +92,7 @@ export default function WebViewWaveScreen({ route, navigation }) {
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
-            <LinearGradient colors={[colors.accent, '#D4835A']} style={s.retryGradient}>
+            <LinearGradient colors={gradients.primary} style={s.retryGradient}>
               <Feather name="refresh-cw" size={14} color="#fff" />
               <Text style={s.retryText}>Réessayer</Text>
             </LinearGradient>
