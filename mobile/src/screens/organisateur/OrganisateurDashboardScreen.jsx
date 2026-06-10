@@ -14,8 +14,18 @@ import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 
+// Convertisseur hex → rgba pour fonds glass translucides
+const hexToRgba = (hex, a) => {
+  if (!hex || typeof hex !== 'string') return `rgba(0,0,0,${a})`
+  const clean = hex.replace('#', '')
+  const r = parseInt(clean.substring(0, 2), 16)
+  const g = parseInt(clean.substring(2, 4), 16)
+  const b = parseInt(clean.substring(4, 6), 16)
+  return `rgba(${r},${g},${b},${a})`
+}
+
 const STATUT_CONFIG = {
-  actif: { label: 'Actif', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
+  actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
   en_attente: { label: 'En attente', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
   refuse: { label: 'Refusé', color: '#FF4D6D', bg: 'rgba(255,77,109,0.2)' },
   termine: { label: 'Terminé',     color: '#B0B0B8', bg: 'rgba(176,176,184,0.2)' },
