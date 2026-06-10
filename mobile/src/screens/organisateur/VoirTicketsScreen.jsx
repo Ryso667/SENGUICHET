@@ -10,7 +10,7 @@ import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 
 const STATUS_BADGE = {
-  valide: { label: 'Valide', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
+  valide: { label: 'Valide', color: colors.green, bg: 'rgba(76,175,80,0.2)' },
   utilise: { label: 'Utilisé', color: '#94a3b8', bg: 'rgba(148,163,184,0.2)' },
   expire: { label: 'Expiré', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
 }
@@ -79,7 +79,7 @@ export default function VoirTicketsScreen({ route }) {
               )
             })
           )}
-          <View style={{ height: 40 }} />
+          <View style={{ height: 100 }} />
         </View>
       </ScrollView>
     </View>
@@ -91,13 +91,13 @@ const s = StyleSheet.create({
   content: { paddingHorizontal: spacing.lg },
   eventInfo: { marginBottom: spacing.lg, padding: spacing.md },
   eventName: { fontSize: 22, fontFamily: fonts.outfit.bold, color: colors.text },
-  ticketCount: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent, marginTop: 4 },
+  ticketCount: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, marginTop: 4 },
   empty: { textAlign: 'center', fontSize: 16, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 60 },
   ticketRow: {
     flexDirection: 'row', alignItems: 'center',
     padding: spacing.md, marginBottom: spacing.sm,
   },
-  ticketNumero: { fontSize: 12, fontFamily: fonts.outfit.bold, color: colors.accent },
+  ticketNumero: { fontSize: 12, fontFamily: fonts.outfit.bold, color: colors.text },
   ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, marginTop: 2 },
   ticketTel: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 2 },
   ticketPrix: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text, marginRight: spacing.sm },

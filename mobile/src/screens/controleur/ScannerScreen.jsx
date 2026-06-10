@@ -133,7 +133,7 @@ export default function ScannerScreen({ navigation, route }) {
           <View style={styles.infoRow}>
             <Text style={styles.info}>{evenementTitre || `Événement #${eventId}`} — {zone}</Text>
             {(chargeTickets || synchro === 'chargement') && (
-              <ActivityIndicator size="small" color={colors.accent} style={{ marginLeft: 8 }} />
+              <ActivityIndicator size="small" color="#FFFFFF" style={{ marginLeft: 8 }} />
             )}
           </View>
           {synchro === 'ok' && nbTickets > 0 && (

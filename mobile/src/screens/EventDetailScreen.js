@@ -12,7 +12,7 @@ import {
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import MaskedView from '@react-native-masked-view/masked-view'
-import { fonts, colors, spacing, borderRadius, glass, textShadow } from '../constants/theme'
+import { fonts, colors, spacing, borderRadius, glass, gradients, textShadow } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import { BlurView } from 'expo-blur'
@@ -255,9 +255,9 @@ export default function EventDetailScreen({ route, navigation }) {
           transform: [{ translateY: heroFade.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
         }}>
         <View style={styles.heroSection}>
-          <Text style={[styles.heroCategory, { color: colors.accent }]}>{event.category || 'ÉVÉNEMENT'}</Text>
+          <Text style={[styles.heroCategory, { color: '#90CAF9' }]}>{event.category || 'ÉVÉNEMENT'}</Text>
           <MaskedView maskElement={<Text style={styles.heroTitle}>{event.title}</Text>}>
-            <LinearGradient colors={['#00C8FF', '#0077FF']} start={{x:0,y:0}} end={{x:1,y:0}}>
+            <LinearGradient colors={['#FFFFFF', '#90CAF9']} start={{x:0,y:0}} end={{x:1,y:0}}>
               <Text style={[styles.heroTitle, { opacity: 0 }]}>{event.title}</Text>
             </LinearGradient>
           </MaskedView>
@@ -344,7 +344,7 @@ export default function EventDetailScreen({ route, navigation }) {
             style={styles.buyBtnWrap}
           >
             <LinearGradient
-              colors={['#00C8FF', '#0077FF']}
+              colors={gradients.primary}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.buyBtnGradient}

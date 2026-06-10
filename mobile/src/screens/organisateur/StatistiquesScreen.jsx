@@ -11,6 +11,7 @@ import Skeleton from '../../components/Skeleton'
 import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import GlassChip from '../../components/GlassChip'
+import { useTabBarScroll } from '../../context/TabBarScrollContext'
 
 const screenWidth = Dimensions.get('window').width
 
@@ -27,6 +28,7 @@ const chartConfig = {
 
 export default function StatistiquesScreen() {
   const insets = useSafeAreaInsets()
+  const { scrollY: tabScrollY } = useTabBarScroll()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [periode, setPeriode] = useState('30j')
@@ -63,24 +65,25 @@ export default function StatistiquesScreen() {
     }
   }, [events])
 
+  const barColors = ['#3D5AFE', '#FF6D00', '#6CD4A0', '#FF4D6D', '#A78BFA']
+
   const barData = useMemo(() => {
     const top5 = [...events].sort((a, b) => (b.remplis || 0) - (a.remplis || 0)).slice(0, 5)
     return {
-      labels: top5.map(e => e.nom.substring(0, 6) + '.'),
-      datasets: [{ data: top5.map(e => e.remplis || 0) }]
+      labels: top5.map(e => e.nom.length > 8 ? e.nom.substring(0, 8) + '…' : e.nom),
+      datasets: [{
+        data: top5.map(e => e.remplis || 0),
+        colors: top5.map((_, i) => (opacity = 1) => barColors[i] + Math.round(opacity * 255).toString(16).padStart(2, '0'))
+      }]
     }
   }, [events])
 
   const pieData = useMemo(() => {
-    const top3 = [...events].sort((a, b) => {
-      const rb = b.revenus ? parseInt(String(b.revenus).replace(/\D/g, '')) || 0 : 0
-      const ra = a.revenus ? parseInt(String(a.revenus).replace(/\D/g, '')) || 0 : 0
-      return rb - ra
-    }).slice(0, 3)
+    const top3 = [...events].sort((a, b) => (b.remplis || 0) - (a.remplis || 0)).slice(0, 3)
 
-    const chartColors = [colors.accent, colors.orange, '#6CD4A0']
+    const chartColors = ['#3D5AFE', '#FF6D00', '#6CD4A0']
     return top3.map((e, i) => ({
-      name: e.nom.substring(0, 10),
+      name: e.nom.length > 12 ? e.nom.substring(0, 12) + '…' : e.nom,
       population: e.remplis || 0,
       color: chartColors[i],
       legendFontColor: colors.text,
@@ -102,7 +105,11 @@ export default function StatistiquesScreen() {
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <OrganisateurLayout />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
+        scrollEventThrottle={16}
+      >
         <View style={s.header}>
           <Text style={s.title}>Statistiques</Text>
           <View style={s.pills}>
@@ -118,10 +125,10 @@ export default function StatistiquesScreen() {
         </View>
 
         <View style={s.statsGrid}>
-          <StatCard label="Tickets" value={stats.totalVendus} icon="ticket-outline" color={colors.accent} />
+          <StatCard label="Tickets" value={stats.totalVendus} icon="ticket-outline" color={colors.cardCyan} />
           <StatCard label="Revenus" value={`${Math.round(stats.revenusTotaux/1000)}k`} icon="cash" color={colors.green} />
-          <StatCard label="Remplissage" value={`${stats.tauxRemplissage}%`} icon="chart-donut" color="#F97316" />
-          <StatCard label="Événements" value={stats.nbEvents} icon="calendar-star" color={colors.orange} />
+          <StatCard label="Remplissage" value={`${stats.tauxRemplissage}%`} icon="chart-donut" color={colors.cardViolet} />
+          <StatCard label="Événements" value={stats.nbEvents} icon="calendar-star" color={colors.cardOrange} />
         </View>
 
         <GlassContainer blurType="light" style={s.section} intensity={30}>
@@ -136,6 +143,8 @@ export default function StatistiquesScreen() {
                 verticalLabelRotation={0}
                 fromZero
                 showValuesOnTopOfBars
+                withCustomBarColorFromData
+                flatColor
                 style={s.chart}
               />
             ) : (
@@ -164,7 +173,7 @@ export default function StatistiquesScreen() {
           </View>
         </GlassContainer>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   )

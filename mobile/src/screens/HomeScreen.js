@@ -4,12 +4,13 @@
 // Section : cartes événements horizontales animées
 // Section : tickets récents en glass
 // CTA : Explorer les événements en glass button
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Animated, Image, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, colors, spacing, borderRadius, glass, animations } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
+import { useTabBarScroll } from '../context/TabBarScrollContext'
 import BlurBackground, { optimiserUrlCloudinary } from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassButton from '../components/GlassButton'
@@ -35,6 +36,7 @@ const STATUTS = {
 
 export default function HomeScreen({ navigation }) {
   const insets = useSafeAreaInsets()
+  const { scrollY: tabScrollY } = useTabBarScroll()
   const [evenements, setEvenements] = useState([])
   const [tickets, setTickets] = useState([])
   const [category, setCategory] = useState(null)
@@ -83,13 +85,19 @@ export default function HomeScreen({ navigation }) {
         showImage={!!activeEvent?.affiche_url}
         afficheUrl={activeEvent?.affiche_url}
       />
-      <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.sm }]} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.sm }]}
+        showsVerticalScrollIndicator={false}
+        onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
+        scrollEventThrottle={16}
+      >
         {/* Header Bonjour */}
         <Animated.View style={[styles.headerWrap, headerStyle]}>
           <GlassContainer style={styles.headerCard}>
             <View style={styles.headerRow}>
               <Image
-                source={{ uri: `https://backend-beta-six-39.vercel.app/uploads/logo.jpg` }}
+                source={require('../../assets/logo_app.jpeg')}
                 style={styles.avatar}
                 resizeMode="cover"
               />
@@ -178,6 +186,12 @@ export default function HomeScreen({ navigation }) {
           />
         </View>
 
+        {/* Lien support */}
+        <TouchableOpacity onPress={() => navigation.navigate('Support')} style={styles.supportLink}>
+          <Feather name="message-circle" size={12} color={colors.textWhiteMuted} />
+          <Text style={styles.supportLinkText}>Support</Text>
+        </TouchableOpacity>
+
       </ScrollView>
     </View>
   )
@@ -200,7 +214,7 @@ const styles = StyleSheet.create({
   name: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.textWhite, letterSpacing: -0.3 },
   homeBtn: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(0,200,255,0.1)',
+    backgroundColor: 'rgba(61,90,254,0.1)',
     alignItems: 'center', justifyContent: 'center', marginRight: 8,
   },
   logoutBtn: {
@@ -256,4 +270,13 @@ const styles = StyleSheet.create({
     fontSize: 10, fontFamily: fonts.jakarta.semiBold,
   },
   ctaWrap: { paddingHorizontal: spacing.lg, marginTop: 24 },
+  supportLink: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 6, marginTop: spacing.xl, marginBottom: spacing.md,
+    paddingVertical: 8,
+  },
+  supportLinkText: {
+    fontSize: 12, fontFamily: fonts.jakarta.regular,
+    color: colors.textWhiteMuted,
+  },
 })

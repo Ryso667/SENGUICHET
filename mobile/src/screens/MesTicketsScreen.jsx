@@ -9,6 +9,7 @@ import { colors, fonts, spacing } from '../constants/theme'
 import BlurBackground from '../components/BlurBackground'
 import StatusBadge from '../components/StatusBadge'
 import { mesTicketsLocaux, sauvegarderTicketAcheteur } from '../database/database'
+import { useTabBarScroll } from '../context/TabBarScrollContext'
 import { mesBillets } from '../services/billetService'
 import { GET } from '../utils/secureStorage'
 import { formaterDateLisible } from '../utils/dateUtils'
@@ -32,6 +33,7 @@ const STRIP_COLORS = {
 
 export default function MesTicketsScreen() {
   const insets = useSafeAreaInsets()
+  const { scrollY: tabScrollY } = useTabBarScroll()
   const navigation = useNavigation()
   const [tickets, setTickets] = useState([])
   const [syncing, setSyncing] = useState(false)
@@ -119,7 +121,7 @@ export default function MesTicketsScreen() {
 
   return (
     <View style={styles.container}>
-      <BlurBackground category={categoryForBg} showImage={false} gradientOverride={['rgba(0,200,255,0.3)', 'rgba(0,119,255,0.15)']} />
+      <BlurBackground category={categoryForBg} showImage={false} gradientOverride={['rgba(61,90,254,0.3)', 'rgba(74,144,217,0.15)']} />
       <View style={[styles.content, { paddingTop: insets.top }]}>
         {/* Header natif avec bouton retour et compteur */}
         <View style={styles.headerBar}>
@@ -128,7 +130,7 @@ export default function MesTicketsScreen() {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Mes tickets</Text>
           <View style={styles.headerRight}>
-            {syncing && <ActivityIndicator size="small" color={colors.accent} />}
+            {syncing && <ActivityIndicator size="small" color="#FFFFFF" />}
             {tickets.length > 0 && (
               <View style={styles.countBadge}>
                 <Text style={styles.countText}>{tickets.length}</Text>
@@ -147,11 +149,13 @@ export default function MesTicketsScreen() {
             <RefreshControl
               refreshing={syncing}
               onRefresh={loadTickets}
-              tintColor={colors.accent}
-              colors={[colors.accent]}
+              tintColor="#FFFFFF"
+              colors={["#FFFFFF"]}
               progressBackgroundColor={colors.surface}
             />
           }
+          onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
+          scrollEventThrottle={16}
           ListEmptyComponent={
             !syncing ? (
               <View style={styles.emptyContainer}>

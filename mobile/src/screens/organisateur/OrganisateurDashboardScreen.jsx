@@ -4,9 +4,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, spacing, fonts, categoryGradients } from '../../constants/theme'
+import { colors, spacing, fonts, borderRadius, shadows, categoryGradients } from '../../constants/theme'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
+import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import { LinearGradient } from 'expo-linear-gradient'
 import { getCategoryImageUrl } from '../../config/images'
@@ -34,6 +35,7 @@ const STATUT_CONFIG = {
 
 export default function OrganisateurDashboardScreen({ navigation }) {
   const insets = useSafeAreaInsets()
+  const { scrollY: tabScrollY } = useTabBarScroll()
   const { user } = useAuth()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -88,16 +90,16 @@ export default function OrganisateurDashboardScreen({ navigation }) {
 
   const stats = [
     { icon: 'ticket-outline', label: 'Total billets vendus', value: String(totalVendus) },
-    { icon: 'flower', label: 'Revenus générés', value: `${fmt(totalRevenus)} FCFA` },
+    { icon: 'cash', label: 'Revenus générés', value: `${fmt(totalRevenus)} FCFA` },
     { icon: 'calendar-check', label: 'Événements actifs', value: String(activeCount) },
     { icon: 'calendar-star', label: 'Prochain événement', value: prochainEvent?.nom || '—' },
   ]
 
-  const statColors = [
-    ['rgba(0,200,255,0.25)', 'rgba(0,200,255,0.1)'],
-    ['rgba(0,229,160,0.25)', 'rgba(0,200,255,0.1)'],
-    ['rgba(99,102,241,0.25)', 'rgba(236,72,153,0.1)'],
-    ['rgba(249,115,22,0.25)', 'rgba(245,158,11,0.1)'],
+  const statBorders = [
+    { color: colors.cardCyan,   icon: 'ticket-outline' },
+    { color: colors.green,      icon: 'cash' },
+    { color: colors.cardOrange, icon: 'calendar-check' },
+    { color: colors.cardViolet, icon: 'calendar-star' },
   ]
 
   return (
@@ -105,10 +107,12 @@ export default function OrganisateurDashboardScreen({ navigation }) {
       <OrganisateurLayout />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accent]} tintColor={colors.accent} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" colors={["#FFFFFF"]} />}
+        onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
+        scrollEventThrottle={16}
       >
         {/* Greeting — calqué sur le web : "Bonjour, {nom}" + date */}
-        <GlassContainer blurType="light" style={s.greeting}>
+        <GlassContainer style={s.greeting}>
           <View style={s.headerRow}>
             <Text style={s.emoji}>👋</Text>
             <Text style={s.bonjour}>Bonjour, {user?.nom || 'Organisateur'}</Text>
@@ -126,18 +130,16 @@ export default function OrganisateurDashboardScreen({ navigation }) {
           </View>
         ) : (
           <>
-            {/* Stats cards — une carte par ligne (évite débordement des chiffres) */}
+            {/* Stats cards — une carte par ligne avec bordure colorée gauche */}
             <View style={s.statsColumn}>
               {stats.map((st, i) => (
                 <Animated.View key={st.label} style={{ opacity: fadeAnims[i], transform: [{ translateY: slideAnims[i] }] }}>
-                  <GlassContainer blurType="light" style={[s.statCard, { borderLeftWidth: 3, borderLeftColor: statColors[i][0].replace('0.25', '1') }]} intensity={40}>
-                    <LinearGradient colors={[statColors[i][0], statColors[i][1]]} style={s.statGradient}>
-                      <View style={s.statTop}>
-                        <MaterialCommunityIcons name={st.icon} size={20} color={colors.text} />
-                        <Text style={s.statValue}>{st.value}</Text>
-                      </View>
-                      <Text style={s.statLabel}>{st.label}</Text>
-                    </LinearGradient>
+                  <GlassContainer style={s.statCard} borderLeftColor={statBorders[i].color}>
+                    <View style={s.statTop}>
+                      <MaterialCommunityIcons name={st.icon} size={20} color={statBorders[i].color} />
+                      <Text style={s.statValue}>{st.value}</Text>
+                    </View>
+                    <Text style={s.statLabel}>{st.label}</Text>
                   </GlassContainer>
                 </Animated.View>
               ))}
@@ -145,7 +147,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
 
             {/* Section événements récents — calquée sur le web */}
             <Animated.View style={{ opacity: fadeAnims[4], transform: [{ translateY: slideAnims[4] }] }}>
-            <GlassContainer blurType="light" style={s.recentSection}>
+            <GlassContainer style={s.recentSection}>
               <View style={s.recentHeader}>
                 <Text style={s.recentTitle}>Mes événements récents</Text>
                 {events.length > 3 && (
@@ -163,7 +165,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
                     const cfg = STATUT_CONFIG[ev.statut] || STATUT_CONFIG.en_attente
                     const pct = Math.min(100, Math.round(((ev.remplis || 0) / (ev.capacite || 1)) * 100))
                     return (
-                      <GlassContainer blurType="light" key={ev.id} style={s.eventCard}>
+                      <GlassContainer key={ev.id} style={s.eventCard}>
                         {/* Hero image avec dégradé de catégorie + overlay */}
                         <View style={s.eventHero}>
                           {ev.affiche_url || ev.categorie ? (
@@ -215,11 +217,13 @@ export default function OrganisateurDashboardScreen({ navigation }) {
           </>
         )}
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   )
 }
+
+const absoluteFill = StyleSheet.absoluteFill
 
 const s = StyleSheet.create({
   container: { flex: 1 },
@@ -233,9 +237,8 @@ const s = StyleSheet.create({
   },
   refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginTop: spacing.sm, marginBottom: 0 },
   // Stats
-  statGradient: { padding: spacing.md, borderRadius: 16, minHeight: 80, justifyContent: 'space-between' },
   statsColumn: { paddingHorizontal: spacing.lg, gap: spacing.sm, marginTop: spacing.lg },
-  statCard: { padding: 0, overflow: 'hidden' },
+  statCard: { padding: spacing.md, minHeight: 80, justifyContent: 'space-between' },
   statTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   statValue: { fontSize: 20, fontFamily: fonts.outfit.bold, color: colors.text, maxWidth: '70%', textAlign: 'right' },
   statLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
@@ -243,7 +246,7 @@ const s = StyleSheet.create({
   recentSection: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
   recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
   recentTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
-  voirTout: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  voirTout: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text },
   empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', paddingVertical: 30 },
   eventsGrid: { gap: spacing.md },
   // Carte événement
@@ -266,17 +269,17 @@ const s = StyleSheet.create({
   eventMeta: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
   eventBody: { padding: spacing.md },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
-  barBg: { flex: 1, height: 8, backgroundColor: colors.inputBorder, borderRadius: 4, overflow: 'hidden' },
+  barBg: { flex: 1, height: 8, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 4, overflow: 'hidden' },
   barFill: { height: 8, borderRadius: 4, backgroundColor: colors.accent },
   barCount: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary },
   eventFooter: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.15)', paddingTop: spacing.sm,
   },
-  revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.green },
   detailsBtn: {
-    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 8,
     paddingHorizontal: 14, paddingVertical: 6,
   },
-  detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
 })

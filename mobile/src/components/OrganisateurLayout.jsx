@@ -1,17 +1,10 @@
-// Fond clair uni pour les écrans organisateur
-// Couleur #F5F0EB appliquée en arrière-plan solide
-import { View, StyleSheet } from 'react-native'
-import { colors } from '../constants/theme'
+// Fond dégradé indigo pour les écrans organisateur
+import { StyleSheet } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { gradients } from '../constants/theme'
 
 export default function OrganisateurLayout() {
   return (
-    <View style={styles.background} />
+    <LinearGradient colors={gradients.background} style={StyleSheet.absoluteFill} pointerEvents="none" />
   )
 }
-
-const styles = StyleSheet.create({
-  background: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: colors.bg,
-  },
-})

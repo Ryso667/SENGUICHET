@@ -4,8 +4,9 @@
 import { useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Image } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, fonts, spacing, borderRadius, glass, categoryGradients } from '../constants/theme'
+import { colors, fonts, spacing, borderRadius, shadows, gradients } from '../constants/theme'
 import GlassContainer from '../components/GlassContainer'
 import { useAuth } from '../context/AuthContext'
 
@@ -15,7 +16,8 @@ const ROLES = [
     title: 'Acheteur',
     subtitle: "Achète tes billets\nen un clic",
     icon: 'ticket-outline',
-    accent: '#7C6FA0', // Violet doux
+    accent: '#00BCD4',
+    borderColor: '#00BCD4',
     screen: null,
   },
   {
@@ -23,7 +25,8 @@ const ROLES = [
     title: 'Contrôleur',
     subtitle: "Scanne les billets\nà l'entrée",
     icon: 'qrcode-scan',
-    accent: '#00C8FF', // Cyan
+    accent: '#3D5AFE',
+    borderColor: '#3D5AFE',
     screen: 'ConnexionControleur',
   },
   {
@@ -31,7 +34,8 @@ const ROLES = [
     title: 'Organisateur',
     subtitle: 'Crée et gère\ntes événements',
     icon: 'calendar-star',
-    accent: '#2E7D5E', // Vert doux
+    accent: '#4CAF50',
+    borderColor: '#4CAF50',
     screen: 'ConnexionOrganisateur',
   },
 ]
@@ -50,16 +54,13 @@ export default function AccueilChoixScreen({ navigation }) {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" />
-      {/* Fond dégradé doux catégorie par défaut */}
-      <View style={StyleSheet.absoluteFill}>
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.bg }]} />
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: categoryGradients.default[0] }]} />
-      </View>
+      {/* Fond dégradé indigo profond */}
+      <LinearGradient colors={gradients.background} style={StyleSheet.absoluteFill} />
 
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={{ uri: `https://backend-beta-six-39.vercel.app/uploads/logo.jpg` }}
+          source={require('../../assets/logo_app.jpeg')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -90,15 +91,14 @@ export default function AccueilChoixScreen({ navigation }) {
                     }
                   }}
               >
-                <GlassContainer style={styles.card} blurType="light" intensity={70}>
-                  <View style={[styles.accentBar, { backgroundColor: r.accent }]} />
+                <GlassContainer borderLeftColor={r.borderColor} style={styles.card}>
                   <View style={styles.cardContent}>
                     <MaterialCommunityIcons name={r.icon} size={32} color={r.accent} />
                     <View style={styles.cardText}>
                       <Text style={styles.cardTitle}>{r.title}</Text>
                       <Text style={styles.cardSubtitle}>{r.subtitle}</Text>
                     </View>
-                    <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textTertiary} />
+                    <MaterialCommunityIcons name="chevron-right" size={20} color={colors.navInactive} />
                   </View>
                 </GlassContainer>
               </TouchableOpacity>
@@ -121,14 +121,8 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     flexDirection: 'row',
     overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.35)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
+    ...shadows.md,
   },
-  accentBar: { width: 4, borderTopLeftRadius: borderRadius.xl, borderBottomLeftRadius: borderRadius.xl },
   cardContent: {
     flex: 1, flexDirection: 'row', alignItems: 'center',
     padding: spacing.lg, gap: spacing.md,

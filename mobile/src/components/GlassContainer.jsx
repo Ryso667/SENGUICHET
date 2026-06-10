@@ -1,35 +1,25 @@
-// Conteneur réutilisable avec effet verre dépoli (glassmorphism)
-// Utilise expo-blur pour le backdrop blur natif
-// Props : style, blurType, blurAmount, intensity, children, variant
+// Conteneur solide pour carte — fond bleu marine #252B80, coins arrondis 16px
+// Props : style, children, borderLeftColor (couleur de la bordure gauche)
 import { View, StyleSheet } from 'react-native'
-import { BlurView } from 'expo-blur'
-import { glass, borderRadius, colors } from '../constants/theme'
+import { colors, borderRadius, glass } from '../constants/theme'
 
-// Wrapper glass avec blur natif, bordure translucide, et fond semi-transparent
-// blurType : 'light' | 'dark' | 'extraLight' (défaut 'light')
-// intensity : 0-100 (défaut 70)
-// variant : 'glass' (défaut) | 'surface' — 'surface' supprime le flou pour un fond solide
-export default function GlassContainer({ children, style, blurType = 'light', intensity = 70, variant = 'glass' }) {
-  // Variante sans effet verre : fond solide pour contraste renforcé
-  if (variant === 'surface') {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.surface }, style]}>
-        {children}
-      </View>
-    )
-  }
-
-  // Effet verre dépoli par défaut avec fond noir semi-transparent
+// Carte avec fond solide et bordure gauche colorée optionnelle
+// borderLeftColor : couleur hex pour la bordure gauche de 4px
+export default function GlassContainer({ children, style, borderLeftColor }) {
   return (
-    <BlurView tint={blurType} intensity={intensity} style={[styles.container, style]}>
+    <View style={[
+      styles.container,
+      borderLeftColor && { borderLeftWidth: 4, borderLeftColor },
+      style,
+    ]}>
       {children}
-    </BlurView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: glass.darkBg,
+    backgroundColor: glass.bg,
     borderRadius: borderRadius.xl,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: glass.border,
