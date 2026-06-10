@@ -10,6 +10,7 @@ import * as SplashScreen from 'expo-splash-screen'
 import { AuthProvider } from './src/context/AuthContext'
 import { ToastProvider } from './src/context/ToastContext'
 import AppNavigator from './src/navigation/AppNavigator'
+import { colors } from './src/constants/theme'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -63,6 +64,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F5F0EB',
+    backgroundColor: colors.bg,
   },
 })

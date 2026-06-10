@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, spacing, borderRadius, fonts, categoryGradients } from '../../constants/theme'
+import { colors, gradients, spacing, borderRadius, fonts, categoryGradients } from '../../constants/theme'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
@@ -102,7 +102,7 @@ export default function GestionEvenementsScreen({ navigation }) {
               return (
                 <TouchableOpacity key={tab} style={[s.tab, isActive && s.tabActive]} onPress={() => setActiveTab(tab)} activeOpacity={0.7}>
                   {isActive ? (
-                    <LinearGradient colors={[colors.accent, '#D4835A']} style={s.tabGradient}>
+                    <LinearGradient colors={gradients.primary} style={s.tabGradient}>
                       <Text style={s.tabTextActive}>{tab}</Text>
                     </LinearGradient>
                   ) : (
@@ -216,7 +216,7 @@ const s = StyleSheet.create({
   refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginBottom: spacing.sm },
   demanderBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: 'rgba(199,81,58,0.15)', borderRadius: 12,
+    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 8,
   },
   demanderBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text },
@@ -248,7 +248,7 @@ const s = StyleSheet.create({
   emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', lineHeight: 20 },
   emptyBtn: {
     marginTop: spacing.sm,
-    backgroundColor: 'rgba(199,81,58,0.15)', borderRadius: 12,
+    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12,
     paddingHorizontal: 20, paddingVertical: 10,
   },
   emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
@@ -280,7 +280,7 @@ const s = StyleSheet.create({
   cardBarPct: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textTertiary, width: 36, textAlign: 'right' },
 
   cardBtn: {
-    backgroundColor: 'rgba(199,81,58,0.12)', borderRadius: 10,
+    backgroundColor: 'rgba(0,200,255,0.12)', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
   cardBtnText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.accent },

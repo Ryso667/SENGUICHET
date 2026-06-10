@@ -1,6 +1,6 @@
 // Écran de sélection du rôle (Acheteur / Contrôleur / Organisateur)
-// Design glass immersif (Apple Invites) : fond Warm Light + cartes glass avec accent par rôle
-// Palette : violet doux (acheteur), terracotta (contrôleur), vert doux (organisateur)
+// Design glass immersif : fond indigo + cartes glass avec accent par rôle
+// Palette : violet doux (acheteur), cyan (contrôleur), vert doux (organisateur)
 import { useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Image } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
@@ -23,7 +23,7 @@ const ROLES = [
     title: 'Contrôleur',
     subtitle: "Scanne les billets\nà l'entrée",
     icon: 'qrcode-scan',
-    accent: '#C7513A', // Terracotta
+    accent: '#00C8FF', // Cyan
     screen: 'ConnexionControleur',
   },
   {

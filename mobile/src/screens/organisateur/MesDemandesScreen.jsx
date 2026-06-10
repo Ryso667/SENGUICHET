@@ -5,7 +5,7 @@ import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshCon
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
+import { colors, gradients, spacing, borderRadius, fonts } from '../../constants/theme'
 import { listerMesDemandes, soumettreDemandeEvenement, fetchEvenementsAPI } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
 import * as ImagePicker from 'expo-image-picker'
@@ -436,7 +436,7 @@ export default function MesDemandesScreen({ navigation }) {
           <View style={s.header}>
             <Text style={s.headerTitle}>Mes demandes</Text>
             <TouchableOpacity style={s.newBtn} onPress={openNewDemande}>
-              <LinearGradient colors={[colors.accent, '#D4835A']} style={s.newBtnGrad}>
+              <LinearGradient colors={gradients.primary} style={s.newBtnGrad}>
                 <MaterialCommunityIcons name="calendar-plus" size={16} color="#fff" />
                 <Text style={s.newBtnText}>Nouvelle demande</Text>
               </LinearGradient>
@@ -715,7 +715,7 @@ export default function MesDemandesScreen({ navigation }) {
                   )}
 
                   <TouchableOpacity style={f.submitBtn} onPress={handleSubmit} disabled={sending}>
-                    <LinearGradient colors={[colors.accent, '#D4835A']} style={f.submitGrad}>
+                    <LinearGradient colors={gradients.primary} style={f.submitGrad}>
                       {sending ? (
                         <ActivityIndicator color="#fff" />
                       ) : (
@@ -826,7 +826,7 @@ const s = StyleSheet.create({
   emptyState: { padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
   emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
   emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center' },
-  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, backgroundColor: 'rgba(199,81,58,0.15)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
+  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
   emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 
   list: { gap: spacing.sm },
@@ -840,7 +840,7 @@ const s = StyleSheet.create({
   cardDate: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, marginTop: 2 },
   cardComment: { fontSize: 11, fontFamily: fonts.jakarta.regular, marginTop: 2, fontStyle: 'italic' },
   detailBtn: {
-    borderWidth: 1, borderColor: 'rgba(199,81,58,0.3)', borderRadius: 10,
+    borderWidth: 1, borderColor: 'rgba(0,200,255,0.3)', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 6, marginLeft: spacing.sm,
   },
   detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
@@ -858,7 +858,7 @@ const s = StyleSheet.create({
 
   /* Détail */
   detailBadgeRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
-  detailTypeBadge: { backgroundColor: 'rgba(199,81,58,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  detailTypeBadge: { backgroundColor: 'rgba(0,200,255,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
   detailSub: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, marginBottom: spacing.md },
   detailImageWrap: { height: 160, borderRadius: 12, overflow: 'hidden', marginBottom: spacing.md },
@@ -873,7 +873,7 @@ const s = StyleSheet.create({
   successWrap: { alignItems: 'center', paddingVertical: 30, gap: spacing.sm },
   successTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text },
   successSub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
-  successBtn: { marginTop: spacing.md, backgroundColor: 'rgba(199,81,58,0.15)', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
+  successBtn: { marginTop: spacing.md, backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
   successBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 
   /* Erreur */
@@ -900,7 +900,7 @@ const f = StyleSheet.create({
   selectRow: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.sm, flexWrap: 'wrap' },
   selectOpt: {
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    borderWidth: 1, borderColor: 'rgba(199,81,58,0.3)',
+    borderWidth: 1, borderColor: 'rgba(0,200,255,0.3)',
   },
   selectOptActive: { backgroundColor: colors.accent, borderColor: colors.accent },
   selectOptText: { fontSize: 12, fontFamily: fonts.outfit.regular, color: colors.textSecondary },
@@ -912,7 +912,7 @@ const f = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   catHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
-  addCatBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(199,81,58,0.15)', alignItems: 'center', justifyContent: 'center' },
+  addCatBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(0,200,255,0.15)', alignItems: 'center', justifyContent: 'center' },
   catRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   submitBtn: { borderRadius: 12, overflow: 'hidden', marginTop: spacing.md },
   submitGrad: { paddingVertical: 14, alignItems: 'center' },
@@ -962,7 +962,7 @@ const f = StyleSheet.create({
   timeCol: { alignItems: 'center', gap: 4 },
   timeValue: { fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.text, paddingVertical: 4 },
   timeConfirmBtn: {
-    backgroundColor: 'rgba(199,81,58,0.15)', borderRadius: 10,
+    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
   timeConfirmText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },

@@ -111,7 +111,7 @@ export default function TicketScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <BlurBackground category={ticket?.categorie} showImage={false} gradientOverride={['rgba(199,81,58,0.15)', 'rgba(30,28,26,0.95)']} />
+      <BlurBackground category={ticket?.categorie} showImage={false} gradientOverride={['rgba(0,200,255,0.15)', 'rgba(30,28,26,0.95)']} />
       <TouchableOpacity style={[styles.backBtn, { top: insets.top + 8 }]} onPress={() => navigation.goBack()} activeOpacity={0.7}>
         <Feather name="arrow-left" size={20} color="#fff" />
       </TouchableOpacity>

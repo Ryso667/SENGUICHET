@@ -2,13 +2,9 @@
 // Props : label, icon, active, onPress, style
 import { TouchableOpacity, Text, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { fonts, borderRadius, spacing } from '../constants/theme'
+import { colors, fonts, borderRadius, spacing } from '../constants/theme'
 
-// Couleurs mises à jour selon la charte graphique (Warm Light)
-// Inactif : fond rgba(0,0,0,0.04), texte #6B6560, bordure rgba(0,0,0,0.08)
-// Actif   : fond #C7513A, texte #FFFFFF
-
-// Chips glass avec icône et texte
+// Chips indigo avec icône et texte
 // active : booléen, surbrillance quand actif
 // label : string
 // icon : nom d'icône Feather (optionnel)
@@ -20,7 +16,7 @@ export default function GlassChip({ label, icon, active, onPress, style }) {
       onPress={onPress}
       activeOpacity={0.7}
     >
-      {icon && <Feather name={icon} size={12} color={active ? '#FFFFFF' : '#6B6560'} />}
+      {icon && <Feather name={icon} size={12} color={active ? colors.white : colors.textSecondary} />}
       <Text style={[styles.label, active && styles.activeLabel]}>{label}</Text>
     </TouchableOpacity>
   )
@@ -39,13 +35,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0,0,0,0.08)',
   },
   active: {
-    backgroundColor: '#C7513A',
-    borderColor: '#C7513A',
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
   },
   label: {
     fontSize: 12,
     fontFamily: fonts.jakarta.semiBold,
-    color: '#6B6560',
+    color: colors.textSecondary,
   },
   activeLabel: {
     color: '#FFFFFF',

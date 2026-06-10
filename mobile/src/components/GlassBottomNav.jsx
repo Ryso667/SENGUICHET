@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   activeIcon: {
-    backgroundColor: 'rgba(199,81,58,0.15)', // Fond terracotta semi-transparent pour l'icône active
+    backgroundColor: 'rgba(0,200,255,0.15)', // Fond cyan semi-transparent pour l'icône active
   },
   label: {
     fontSize: 10,
