@@ -60,6 +60,7 @@ export const gradients = {
   organisateur: ['#3D5AFE', '#4A90D9'],
   success: ['#4CAF50', '#66BB6A'],
   error: ['#EF5350', '#E53935'],
+  background: ['#0F1460', '#1A1F6E', '#252B80'],
 }
 
 // Dégradés par catégorie d'événement — style Apple Music

@@ -1,9 +1,10 @@
-// Fond solide bleu foncé pour les écrans organisateur
-import { View, StyleSheet } from 'react-native'
-import { colors } from '../constants/theme'
+// Fond dégradé indigo pour les écrans organisateur
+import { StyleSheet } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { gradients } from '../constants/theme'
 
 export default function OrganisateurLayout() {
   return (
-    <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.bg, pointerEvents: 'none' }]} />
+    <LinearGradient colors={gradients.background} style={StyleSheet.absoluteFill} pointerEvents="none" />
   )
 }
