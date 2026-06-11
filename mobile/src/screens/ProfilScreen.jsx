@@ -7,6 +7,7 @@ import { Feather } from '@expo/vector-icons'
 import { colors, spacing, borderRadius, fonts, glass } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
 import { getStats } from '../services/scanService'
+import OrganisateurLayout from '../components/OrganisateurLayout'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import { useTabBarScroll } from '../context/TabBarScrollContext'
@@ -31,6 +32,7 @@ export default function ProfilScreen({ route }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
+      <OrganisateurLayout />
       <BlurBackground category="Conference" />
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -110,7 +112,7 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm,
     paddingVertical: spacing.sm, paddingHorizontal: spacing.md,
     backgroundColor: colors.accentLight, borderRadius: borderRadius.md,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(0,200,255,0.2)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(121,134,203,0.2)',
   },
   supportText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textWhiteMuted },
   statsGrid: {

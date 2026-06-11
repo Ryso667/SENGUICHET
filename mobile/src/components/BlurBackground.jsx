@@ -6,7 +6,7 @@
 import { useEffect, useRef } from 'react'
 import { View, Animated, Image, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { categoryGradients } from '../constants/theme'
+import { categoryGradients, colors } from '../constants/theme'
 import { getCategoryImageUrl } from '../config/images'
 
 // Optimise les URLs Cloudinary pour un chargement plus rapide
@@ -75,6 +75,6 @@ export default function BlurBackground({ category, intensityOverlay = true, show
 const styles = StyleSheet.create({
   baseBg: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#0a0a1a',
+    backgroundColor: colors.bg,
   },
 })

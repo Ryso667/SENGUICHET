@@ -15,11 +15,11 @@ import EmptyState from '../../components/EmptyState'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
 
 const PROFIL = {
-  VALIDE: { dot: '#22c55e', icon: 'check-circle', label: 'Valide' },
-  DEJA_UTILISE: { dot: '#f97316', icon: 'alert-triangle', label: 'Déjà utilisé' },
+  VALIDE: { dot: '#66BB6A', icon: 'check-circle', label: 'Valide' },
+  DEJA_UTILISE: { dot: '#FFA726', icon: 'alert-triangle', label: 'Déjà utilisé' },
   EXPIRE: { dot: '#FF4D6D', icon: 'clock', label: 'Expiré' },
-  INCONNU: { dot: '#b91c1c', icon: 'help-circle', label: 'Inconnu' },
-  FRAUDE: { dot: '#dc2626', icon: 'shield-off', label: 'Fraude' },
+  INCONNU: { dot: '#B71C1C', icon: 'help-circle', label: 'Inconnu' },
+  FRAUDE: { dot: '#B71C1C', icon: 'shield-off', label: 'Fraude' },
 }
 
 const ORDRE_STATS = ['VALIDE', 'DEJA_UTILISE', 'EXPIRE', 'INCONNU', 'FRAUDE']
@@ -223,10 +223,10 @@ const styles = StyleSheet.create({
   },
   actionTexte: { fontFamily: fonts.outfit.semiBold, fontSize: 13, color: colors.text },
   downloadMsg: {
-    fontFamily: fonts.outfit.medium, fontSize: 12, color: '#22c55e',
+    fontFamily: fonts.outfit.medium, fontSize: 12, color: colors.green,
     paddingHorizontal: 16, paddingTop: 8, textAlign: 'center',
   },
-  downloadMsgError: { color: '#f97316' },
+  downloadMsgError: { color: colors.orange },
   sectionTitre: {
     fontFamily: fonts.outfit.semiBold, fontSize: 13, color: colors.text,
     paddingHorizontal: 16, paddingTop: 20, paddingBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5,

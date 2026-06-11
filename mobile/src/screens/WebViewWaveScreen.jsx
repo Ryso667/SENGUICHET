@@ -8,6 +8,7 @@ import { WebView } from 'react-native-webview'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, colors, gradients, spacing, borderRadius, shadows } from '../constants/theme'
+import OrganisateurLayout from '../components/OrganisateurLayout'
 import { statutPaiement } from '../services/paiementService'
 import { sauvegarderTicketAcheteur } from '../database/database'
 
@@ -67,8 +68,9 @@ export default function WebViewWaveScreen({ route, navigation }) {
   if (statut === 'SUCCESS') {
     return (
       <SafeAreaView style={s.safe}>
+        <OrganisateurLayout />
         <View style={s.centerBox}>
-          <LinearGradient colors={['#6CD4A0', colors.accent]} style={s.checkCircle}>
+          <LinearGradient colors={[colors.success, colors.accent]} style={s.checkCircle}>
             <Feather name="check" size={36} color="#fff" />
           </LinearGradient>
           <Text style={s.successText}>Paiement réussi !</Text>
@@ -81,6 +83,7 @@ export default function WebViewWaveScreen({ route, navigation }) {
   if (statut === 'FAILED') {
     return (
       <SafeAreaView style={s.safe}>
+        <OrganisateurLayout />
         <View style={s.centerBox}>
           <View style={s.errorCircle}>
             <Feather name="x" size={36} color="#fff" />
@@ -104,6 +107,7 @@ export default function WebViewWaveScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={s.safe}>
+      <OrganisateurLayout />
       <View style={s.header}>
         <TouchableOpacity
           style={s.backBtn}

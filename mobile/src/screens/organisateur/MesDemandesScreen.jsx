@@ -25,7 +25,7 @@ const hexToRgba = (hex, a) => {
 }
 
 const STATUT_CONFIG = {
-  soumis: { label: 'Soumis', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
+  soumis: { label: 'Soumis', color: '#FFA726', bg: 'rgba(255,167,38,0.2)' },
   en_analyse: { label: 'En analyse', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
   approuve: { label: 'Approuvé', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
   refuse: { label: 'Refusé', color: '#FF4D6D', bg: 'rgba(255,77,109,0.2)' },
@@ -830,7 +830,7 @@ const s = StyleSheet.create({
   emptyState: { padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
   emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
   emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center' },
-  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
+  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, backgroundColor: 'rgba(121,134,203,0.15)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
   emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 
   list: { gap: spacing.sm },
@@ -844,7 +844,7 @@ const s = StyleSheet.create({
   cardDate: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 2 },
   cardComment: { fontSize: 11, fontFamily: fonts.jakarta.regular, marginTop: 2, fontStyle: 'italic' },
   detailBtn: {
-    borderWidth: 1, borderColor: 'rgba(0,200,255,0.3)', borderRadius: 10,
+    borderWidth: 1, borderColor: 'rgba(121,134,203,0.3)', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 6, marginLeft: spacing.sm,
   },
   detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
@@ -862,7 +862,7 @@ const s = StyleSheet.create({
 
   /* Détail */
   detailBadgeRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
-  detailTypeBadge: { backgroundColor: 'rgba(0,200,255,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  detailTypeBadge: { backgroundColor: 'rgba(121,134,203,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
   detailSub: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, marginBottom: spacing.md },
   detailImageWrap: { height: 160, borderRadius: 12, overflow: 'hidden', marginBottom: spacing.md },
@@ -877,7 +877,7 @@ const s = StyleSheet.create({
   successWrap: { alignItems: 'center', paddingVertical: 30, gap: spacing.sm },
   successTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text },
   successSub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
-  successBtn: { marginTop: spacing.md, backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
+  successBtn: { marginTop: spacing.md, backgroundColor: 'rgba(121,134,203,0.15)', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
   successBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 
   /* Erreur */
@@ -904,7 +904,7 @@ const f = StyleSheet.create({
   selectRow: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.sm, flexWrap: 'wrap' },
   selectOpt: {
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    borderWidth: 1, borderColor: 'rgba(0,200,255,0.3)',
+    borderWidth: 1, borderColor: 'rgba(121,134,203,0.3)',
   },
   selectOptActive: { backgroundColor: colors.accent, borderColor: colors.accent },
   selectOptText: { fontSize: 12, fontFamily: fonts.outfit.regular, color: colors.text },
@@ -916,7 +916,7 @@ const f = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   catHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
-  addCatBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(0,200,255,0.15)', alignItems: 'center', justifyContent: 'center' },
+  addCatBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(121,134,203,0.15)', alignItems: 'center', justifyContent: 'center' },
   catRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   submitBtn: { borderRadius: 12, overflow: 'hidden', marginTop: spacing.md },
   submitGrad: { paddingVertical: 14, alignItems: 'center' },
@@ -966,7 +966,7 @@ const f = StyleSheet.create({
   timeCol: { alignItems: 'center', gap: 4 },
   timeValue: { fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.text, paddingVertical: 4 },
   timeConfirmBtn: {
-    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 10,
+    backgroundColor: 'rgba(121,134,203,0.15)', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
   timeConfirmText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text },

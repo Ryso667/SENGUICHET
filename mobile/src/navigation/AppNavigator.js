@@ -1,7 +1,7 @@
 // Navigation principale de l'application
 // 3 piles distinctes selon le rôle : acheteur / controleur / organisateur
 // Les écrans non-connectés (auth) sont affichés quand aucun rôle n'est actif
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Platform, Image } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { NavigationContainer, useFocusEffect, createNavigationContainerRef } from '@react-navigation/native'
@@ -113,7 +113,7 @@ const headerStyles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(0,200,255,0.15)',
+    backgroundColor: 'rgba(121,134,203,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -248,42 +248,37 @@ function OrganisateurTabs() {
   )
 }
 
-// Wrapper avec header personnalisé par dessus les tabs
-function OrganisateurLayout() {
+// Wrappers avec header personnalisé par dessus les tabs
+function LayoutHeader({ children }) {
   const { deconnecter } = useAuth()
   return (
     <View style={{ flex: 1 }}>
       <OrganisateurHeader title="SENGUICHET" deconnecter={deconnecter} />
-      <OrganisateurTabs />
+      {children}
     </View>
   )
 }
 
+function OrganisateurLayout() {
+  return <LayoutHeader><OrganisateurTabs /></LayoutHeader>
+}
+
+function AcheteurLayout() {
+  return <AcheteurTabs />
+}
+
+function ControleurLayout() {
+  return <LayoutHeader><ControleurTabs /></LayoutHeader>
+}
+
 // Onglets du contrôleur : Scanner + Historique
 function ControleurTabs() {
-  const { deconnecter } = useAuth()
   return (
     <TabBarScrollProvider>
     <Tab.Navigator
       tabBar={(props) => <FloatingTabBar {...props} />}
       screenOptions={{
-        headerShown: true,
-        headerStyle: { backgroundColor: glass.bg },
-        headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: colors.text },
-        headerLeft: () => (
-          <Image
-            source={require('../../assets/logo_app.jpeg')}
-            style={{ width: 36, height: 36, borderRadius: 18, marginLeft: 16 }}
-            resizeMode="cover"
-          />
-        ),
-        headerRight: () => (
-          <TouchableOpacity onPress={deconnecter} style={{ marginRight: 16 }}>
-            <Text style={{ fontSize: 14, color: colors.danger, fontFamily: 'Outfit_600SemiBold' }}>
-              Quitter
-            </Text>
-          </TouchableOpacity>
-        ),
+        headerShown: false,
         sceneContainerStyle: { paddingBottom: 80 },
       }}
     >
@@ -315,24 +310,23 @@ const navigationRef = createNavigationContainerRef()
 // Point d'entrée de la navigation
 export default function AppNavigator() {
   const { role, chargement } = useAuth()
+  const [isNavReady, setIsNavReady] = useState(false)
 
-  // Redirige automatiquement selon le rôle (ou vers AccueilChoix si déconnecté)
-  useEffect(() => {
-    const pret = navigationRef.current?.isReady()
-    console.log(`[Nav] role="${role}" isReady=${pret}`)
-    if (pret) {
-      if (role) {
-        const routeName = role === 'acheteur' ? 'AcheteurTabs'
-          : role === 'controleur' ? 'ControleurTabs'
-          : 'OrganisateurTabs'
-        console.log(`[Nav] reset vers ${routeName}`)
-        navigationRef.current.reset({ index: 0, routes: [{ name: routeName }] })
-      } else {
-        console.log('[Nav] reset vers AccueilChoix')
-        navigationRef.current.reset({ index: 0, routes: [{ name: 'AccueilChoix' }] })
-      }
+  const resetNav = useCallback(() => {
+    if (!navigationRef.current?.isReady()) return
+    if (role) {
+      const routeName = role === 'acheteur' ? 'AcheteurTabs'
+        : role === 'controleur' ? 'ControleurTabs'
+        : 'OrganisateurTabs'
+      navigationRef.current.reset({ index: 0, routes: [{ name: routeName }] })
+    } else {
+      navigationRef.current.reset({ index: 0, routes: [{ name: 'AccueilChoix' }] })
     }
   }, [role])
+
+  useEffect(() => {
+    if (isNavReady) resetNav()
+  }, [role, isNavReady, resetNav])
 
   if (chargement) {
     return (
@@ -343,7 +337,7 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} onReady={() => setIsNavReady(true)}>
       {/* Style natif réutilisable pour les headers avec bouton retour */}
       {(() => {
         const headerStyle = {
@@ -374,7 +368,7 @@ export default function AppNavigator() {
             {/* Acheteur connecté */}
             {role === 'acheteur' && (
               <>
-                <Stack.Screen name="AcheteurTabs" component={AcheteurTabs} />
+                <Stack.Screen name="AcheteurTabs" component={AcheteurLayout} />
                 <Stack.Screen name="EventSearch" component={EventSearchScreen} />
                 <Stack.Screen name="EventDetail" component={EventDetailScreen} options={header('Détail')} />
                 <Stack.Screen name="Ticket" component={TicketScreen} />
@@ -386,7 +380,7 @@ export default function AppNavigator() {
             {/* Contrôleur connecté */}
             {role === 'controleur' && (
               <>
-                <Stack.Screen name="ControleurTabs" component={ControleurTabs} />
+                <Stack.Screen name="ControleurTabs" component={ControleurLayout} />
                 <Stack.Screen name="Profil" component={ProfilScreen} options={header('Profil')} />
               </>
             )}

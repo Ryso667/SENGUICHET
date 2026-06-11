@@ -23,7 +23,7 @@ const hexToRgba = (hex, a) => {
 
 const STATUT_CONFIG = {
   actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
-  en_attente: { label: 'En attente', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
+  en_attente: { label: 'En attente', color: '#FFA726', bg: 'rgba(255,167,38,0.2)' },
   refuse: { label: 'Refusé', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
   suspendu: { label: 'Suspendu', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
   annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },

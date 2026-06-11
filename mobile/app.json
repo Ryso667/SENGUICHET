@@ -54,15 +54,5 @@
       "expo-asset",
       "expo-secure-store"
     ],
-    "extra": {
-      "eas": {
-        "projectId": "2727117e-fc16-41c0-8d38-013602ca2c8b"
-      }
-    },
-    "owner": "ecole-superieure-polytechnique",
-    "runtimeVersion": "1.0.0",
-    "updates": {
-      "url": "https://u.expo.dev/2727117e-fc16-41c0-8d38-013602ca2c8b"
-    }
   }
 }

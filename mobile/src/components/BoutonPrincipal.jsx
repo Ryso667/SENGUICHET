@@ -24,7 +24,7 @@ export default function BoutonPrincipal({ titre, chargement, desactive, disabled
       style={estDesactive && styles.desactive}
     >
       <LinearGradient
-        colors={estDesactive ? ['#94a3b8', '#94a3b8'] : ['#00C8FF', '#0077FF']}
+        colors={estDesactive ? ['#94a3b8', '#94a3b8'] : ['#5C6BC0', '#4A5AAF']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.bouton}

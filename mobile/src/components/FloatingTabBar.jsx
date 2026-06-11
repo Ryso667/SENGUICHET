@@ -40,7 +40,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
   }, [compact, scaleAnim])
   return (
     <Animated.View style={[styles.wrapper, { bottom: bottomOffset, transform: [{ scale: scaleAnim }] }]}>
-      <BlurView tint="dark" intensity={100} style={styles.container}>
+      <BlurView tint="dark" intensity={80} style={styles.container}>
         <View style={styles.waterSurface} pointerEvents="none" />
         <View style={styles.waterDepth} pointerEvents="none" />
         {state.routes.map((route, index) => {
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: 32,
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.015)',
+    backgroundColor: 'rgba(37, 43, 122, 0.25)',
     paddingVertical: 4,
     paddingHorizontal: 6,
     overflow: 'hidden',
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   activeGlow: {
     opacity: 1,
     backgroundColor: 'rgba(255,255,255,0.06)',
-    shadowColor: '#3D5AFE',
+    shadowColor: '#5C6BC0',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
