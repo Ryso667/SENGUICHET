@@ -216,6 +216,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingTop: 8, textAlign: 'center',
   },
   downloadMsgError: { color: colors.orange },
+  sectionTitre: {
+    fontFamily: fonts.outfit.semiBold, fontSize: 13, color: colors.text,
+    paddingHorizontal: 16, paddingTop: 20, paddingBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5,
+  },
   carte: {
     flexDirection: 'row', alignItems: 'center',
     marginHorizontal: 16, marginBottom: 6,
