@@ -1,14 +1,13 @@
-// Bouton glass large avec animation scale au press
+// Bouton large avec fond indigo solide et animation scale au press
 // Props : title, icon, onPress, style, textStyle
 import { useRef } from 'react'
-import { TouchableOpacity, Text, Animated, StyleSheet } from 'react-native'
+import { TouchableOpacity, Text, Animated, View, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { BlurView } from 'expo-blur'
-import { colors, glass, fonts, borderRadius, spacing, textShadow } from '../constants/theme'
+import { colors, fonts, borderRadius, spacing } from '../constants/theme'
 // Feedback haptique léger au press du bouton
 import { hapticLight } from '../utils/haptics'
 
-// Bouton glass large avec icône et animation scalePress
+// Bouton large avec fond indigo solide, icône et animation scalePress
 // title : string du texte
 // icon : nom d'icône Feather (optionnel)
 // onPress : fonction callback
@@ -36,16 +35,15 @@ export default function GlassButton({ title, icon, onPress, style, textStyle }) 
   return (
     <Animated.View style={[{ transform: [{ scale }] }, style]}>
       <TouchableOpacity
-        // Haptique + callback original au press
         onPress={() => { hapticLight(); onPress?.() }}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={0.9}
       >
-        <BlurView tint="light" intensity={50} style={styles.button}>
+        <View style={styles.button}>
           {icon && <Feather name={icon} size={18} color={colors.text} style={styles.icon} />}
           <Text style={[styles.title, textStyle]}>{title}</Text>
-        </BlurView>
+        </View>
       </TouchableOpacity>
     </Animated.View>
   )
@@ -60,8 +58,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.lg,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: glass.border,
-    backgroundColor: glass.bgLight,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     overflow: 'hidden',
   },
   icon: {
@@ -72,6 +70,5 @@ const styles = StyleSheet.create({
     fontFamily: fonts.outfit.semiBold,
     color: colors.text,
     letterSpacing: -0.2,
-    ...textShadow,
   },
 })
