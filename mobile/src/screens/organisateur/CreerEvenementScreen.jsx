@@ -393,7 +393,7 @@ export default function CreerEvenementScreen({ navigation }) {
       </GlassContainer>
 
       <GlassContainer blurType="dark" style={s.warningCard} intensity={30}>
-        <Feather name="clock" size={18} color="#F97316" />
+        <Feather name="clock" size={18} color="#FFA726" />
         <View style={{ flex: 1 }}>
           <Text style={s.warningTitle}>Votre événement sera soumis à l'administrateur</Text>
           <Text style={s.warningDesc}>Une fois validé par l'admin, les billets seront disponibles à la vente.</Text>
@@ -638,7 +638,7 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.15)', borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)',
   },
   stepperCircleDone: { backgroundColor: 'rgba(34,197,94,0.4)', borderColor: '#22C55E' },
-  stepperCircleActive: { backgroundColor: 'rgba(0,200,255,0.4)', borderColor: colors.accent },
+  stepperCircleActive: { backgroundColor: 'rgba(121,134,203,0.4)', borderColor: colors.accent },
   stepperCircleText: { fontFamily: fonts.outfit.bold, fontSize: 13, color: colors.textSecondary },
   stepperCircleTextActive: { color: colors.textWhite },
   stepperLabel: { fontFamily: fonts.jakarta.regular, fontSize: 11, color: colors.textSecondary, marginLeft: 4, maxWidth: 70 },
@@ -653,7 +653,7 @@ const s = StyleSheet.create({
   calWeekDay: { flex: 1, textAlign: 'center', fontFamily: fonts.outfit.semiBold, fontSize: 13, color: 'rgba(255,255,255,0.6)', paddingVertical: 4 },
   calGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   calDay: { width: '14.28%', aspectRatio: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 8 },
-  calDaySelected: { backgroundColor: 'rgba(0,200,255,0.4)' },
+  calDaySelected: { backgroundColor: 'rgba(121,134,203,0.4)' },
   calDayText: { fontFamily: fonts.outfit.regular, fontSize: 14, color: colors.text },
   calDayTextSelected: { fontFamily: fonts.outfit.semiBold, color: colors.textWhite },
   timePicker: {
@@ -669,7 +669,7 @@ const s = StyleSheet.create({
     width: 44, height: 24, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center', paddingHorizontal: 2, marginRight: 10,
   },
-  promoToggleTrackActive: { backgroundColor: 'rgba(0,200,255,0.6)' },
+  promoToggleTrackActive: {     backgroundColor: 'rgba(121,134,203,0.6)' },
   promoToggleThumb: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#fff', alignSelf: 'flex-start' },
   promoToggleThumbActive: { alignSelf: 'flex-end' },
   promoToggleText: { fontFamily: fonts.outfit.regular, fontSize: 14, color: colors.text },
@@ -679,7 +679,7 @@ const s = StyleSheet.create({
     flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.2)',
   },
-  promoTypeBtnActive: { backgroundColor: 'rgba(0,200,255,0.4)', borderColor: colors.accent },
+  promoTypeBtnActive: { backgroundColor: 'rgba(121,134,203,0.4)', borderColor: colors.accent },
   promoTypeText: { fontFamily: fonts.outfit.semiBold, fontSize: 13, color: colors.text },
   promoTypeTextActive: { color: colors.textWhite },
   navRow: { flexDirection: 'row', gap: 12, marginTop: 28, alignItems: 'center' },
@@ -687,7 +687,7 @@ const s = StyleSheet.create({
   backBtnText: { fontFamily: fonts.outfit.semiBold, fontSize: 15, color: colors.text },
   submitBtn: {
     flex: 1, paddingVertical: 14, borderRadius: 14, alignItems: 'center',
-    backgroundColor: 'rgba(0,200,255,0.5)',
+    backgroundColor: 'rgba(121,134,203,0.5)',
   },
   submitBtnDisabled: { opacity: 0.6 },
   submitBtnText: { fontFamily: fonts.outfit.semiBold, fontSize: 15, color: colors.textWhite },
@@ -699,6 +699,6 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'flex-start', gap: 12,
     padding: 16, marginBottom: 16,
   },
-  warningTitle: { fontFamily: fonts.outfit.semiBold, fontSize: 14, color: '#F97316', marginBottom: 4 },
+  warningTitle: { fontFamily: fonts.outfit.semiBold, fontSize: 14, color: '#FFA726', marginBottom: 4 },
   warningDesc: { fontFamily: fonts.jakarta.regular, fontSize: 12, color: colors.textWhiteMuted, lineHeight: 18 },
 })

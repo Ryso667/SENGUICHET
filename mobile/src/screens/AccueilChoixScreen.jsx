@@ -16,7 +16,7 @@ const ROLES = [
     title: 'Acheteur',
     subtitle: "Achète tes billets\nen un clic",
     icon: 'ticket-outline',
-    accent: '#818CF8', // Indigo vif
+    accent: '#4DD0E1', // Cyan doux
     screen: null,
   },
   {
@@ -24,7 +24,7 @@ const ROLES = [
     title: 'Contrôleur',
     subtitle: "Scanne les billets\nà l'entrée",
     icon: 'qrcode-scan',
-    accent: '#00C8FF', // Cyan
+    accent: '#7986CB', // Indigo doux
     screen: 'ConnexionControleur',
   },
   {
@@ -32,7 +32,7 @@ const ROLES = [
     title: 'Organisateur',
     subtitle: 'Crée et gère\ntes événements',
     icon: 'calendar-star',
-    accent: '#34D399', // Émeraude vif
+    accent: '#66BB6A', // Vert doux
     screen: 'ConnexionOrganisateur',
   },
 ]
@@ -52,7 +52,7 @@ export default function AccueilChoixScreen({ navigation }) {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" />
       {/* Fond dégradé indigo profond */}
-      <LinearGradient colors={gradients.background} style={StyleSheet.absoluteFill} />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.bg }]} />
 
       {/* Header */}
       <View style={styles.header}>
@@ -88,8 +88,7 @@ export default function AccueilChoixScreen({ navigation }) {
                     }
                   }}
               >
-                <GlassContainer style={styles.card} blurType="regular" intensity={40}>
-                  <View style={[styles.accentBar, { backgroundColor: r.accent }]} />
+                <GlassContainer style={styles.card} blurType="regular" intensity={40} borderLeftColor={r.accent}>
                   <View style={styles.cardContent}>
                     <MaterialCommunityIcons name={r.icon} size={32} color={r.accent} />
                     <View style={styles.cardText}>

@@ -1,62 +1,63 @@
-// Thème sombre Indigo - Fond bleu nuit #0D1B2A, accent cyan #00C8FF, verre dépoli
+// Thème Indigo doux - Fond #1C2166, primary #5C6BC0, accent #7986CB
+// Palette professionnelle reposante, fatigue visuelle minimale
 export const colors = {
-  bg: '#0D1B2A',
-  bgSecondary: '#111827',
-  surface: '#152232',
-  border: 'rgba(0, 200, 255, 0.15)',
+  bg: '#1C2166',
+  bgSecondary: '#252B7A',
+  surface: '#252B7A',
+  border: 'rgba(121, 134, 203, 0.15)',
+  primary: '#5C6BC0',
   white: '#FFFFFF',
   text: '#FFFFFF',
-  textSecondary: '#A0B4C8',
-  textTertiary: 'rgba(160, 180, 200, 0.7)',
-  accent: '#00C8FF',
-  accentLight: '#E0F7FF',
-  green: '#00E5A0',
-  greenLight: '#E0FFF0',
+  textSecondary: '#C5CAE9',
+  textTertiary: '#B0BEC5',
+  accent: '#7986CB',
+  accentLight: 'rgba(121, 134, 203, 0.15)',
+  green: '#66BB6A',
+  greenLight: 'rgba(102, 187, 106, 0.15)',
   red: '#FF4D6D',
-  whiteMuted: 'rgba(160, 180, 200, 0.7)',
-  violet: '#6366F1',
-  orange: '#F97316',
-  glassWhite: 'rgba(255,255,255,0.15)',
-  glassBorder: 'rgba(255,255,255,0.25)',
-  glassDark: 'rgba(0,0,0,0.2)',
-  inputBg: '#1A2A3A',
-  inputBorder: 'rgba(0, 200, 255, 0.2)',
-  inputBorderFocus: '#00C8FF',
-  // Tokens textes sur fonds sombres (overlays, glass sur BlurBackground)
+  violet: '#9575CD',
+  orange: '#FFA726',
+  cyan: '#4DD0E1',
+  glassWhite: 'rgba(255,255,255,0.08)',
+  glassBorder: 'rgba(255,255,255,0.12)',
+  glassDark: 'rgba(0,0,0,0.15)',
+  inputBg: '#2A3190',
+  inputBorder: '#3F4DB0',
+  inputBorderFocus: '#7986CB',
   textWhite: '#FFFFFF',
   textWhiteMuted: 'rgba(255,255,255,0.7)',
-  // Tokens utilitaires (utilisés dans plusieurs composants)
-  slate: '#2D2D32',
-  mid: '#A0B4C8',
-  muted: 'rgba(160, 180, 200, 0.6)',
-  // Tokens feedback — visibles sur tous les fonds
+  slate: '#252B7A',
+  mid: '#C5CAE9',
+  muted: '#9FA8DA',
+  placeholder: '#9FA8DA',
+  navInactive: '#9FA8DA',
+  navActive: '#FFFFFF',
   danger: '#FF4D6D',
-  warning: '#F97316',
-  success: '#00E5A0',
+  warning: '#FFA726',
+  success: '#66BB6A',
 }
 
 // === GLASS (verre dépoli) ===
 export const glass = {
-  bg: 'rgba(255,255,255,0.12)',
-  bgLight: 'rgba(255,255,255,0.06)',
-  bgHeavy: 'rgba(255,255,255,0.20)',
-  border: 'rgba(255,255,255,0.10)',
-  borderLight: 'rgba(255,255,255,0.05)',
+  bg: 'rgba(255,255,255,0.08)',
+  bgLight: 'rgba(255,255,255,0.04)',
+  bgHeavy: 'rgba(255,255,255,0.12)',
+  border: 'rgba(255,255,255,0.08)',
+  borderLight: 'rgba(255,255,255,0.04)',
   blur: 30,
   radius: 20,
-  darkBg: 'rgba(0,0,0,0.12)',
-  darkBgHeavy: 'rgba(0,0,0,0.25)',
+  darkBg: 'rgba(0,0,0,0.08)',
+  darkBgHeavy: 'rgba(0,0,0,0.15)',
 }
 
 export const gradients = {
-  primary: ['#00C8FF', '#0077FF'],
-  organisateur: ['#00C8FF', '#0077FF'],
-  success: ['#00E5A0', '#00C8FF'],
+  primary: ['#5C6BC0', '#7986CB'],
+  organisateur: ['#5C6BC0', '#7986CB'],
+  success: ['#66BB6A', '#5C6BC0'],
   error: ['#FF4D6D', '#FF6B8A'],
 }
 
 // Dégradés par catégorie d'événement — style Apple Music
-// Couleurs saturées pour fond immersif premium avec lisibilité
 export const categoryGradients = {
   Concert: ['rgba(109,29,217,0.55)', 'rgba(109,29,217,0.15)'],
   Festival: ['rgba(5,150,105,0.55)', 'rgba(5,150,105,0.15)'],
@@ -70,43 +71,33 @@ export const categoryGradients = {
   default: ['rgba(99,102,241,0.5)', 'rgba(236,72,153,0.2)'],
 }
 
-// Ombre portée pour lisibilité du texte blanc sur fond clair/glass
+// Ombre portée pour lisibilité du texte blanc
 export const textShadow = {
   textShadowColor: 'rgba(0,0,0,0.75)',
   textShadowOffset: { width: 0, height: 2 },
   textShadowRadius: 8,
 }
 
-// Espacements cohérents dans toute l'app
 export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
-  xxl: 40,
+  xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 40,
 }
 
 export const borderRadius = {
-  sm: 6,
-  md: 8,
-  lg: 12,
-  xl: 16,
-  full: 9999,
+  sm: 6, md: 8, lg: 12, xl: 16, full: 9999,
 }
 
 export const shadows = {
   sm: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
     elevation: 4,
   },
   md: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 8,
   },
@@ -128,24 +119,10 @@ export const fonts = {
   },
 }
 
-// === ANIMATIONS (Animated API) ===
 export const animations = {
-  spring: {
-    friction: 6,
-    tension: 80,
-  },
-  timing: {
-    duration: 300,
-  },
+  spring: { friction: 6, tension: 80 },
+  timing: { duration: 300 },
   stagger: 80,
-  pulse: {
-    duration: 2000,
-    minScale: 1,
-    maxScale: 1.02,
-  },
-  scalePress: {
-    toValue: 0.96,
-    friction: 8,
-    tension: 100,
-  },
+  pulse: { duration: 2000, minScale: 1, maxScale: 1.02 },
+  scalePress: { toValue: 0.96, friction: 8, tension: 100 },
 }

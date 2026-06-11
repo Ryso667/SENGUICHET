@@ -7,6 +7,7 @@ import { useFocusEffect } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, spacing, glass, colors } from '../constants/theme'
+import OrganisateurLayout from '../components/OrganisateurLayout'
 import BlurBackground, { optimiserUrlCloudinary } from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
@@ -104,6 +105,7 @@ export default function EventSearchScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <OrganisateurLayout />
       <BlurBackground
         category={activeEvent?.category || (activeCat === 'Tout' ? null : activeCat)}
         showImage={!!activeEvent?.affiche_url}

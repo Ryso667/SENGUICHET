@@ -6,6 +6,7 @@ import { Feather, Ionicons } from '@expo/vector-icons'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, fonts, spacing } from '../constants/theme'
+import OrganisateurLayout from '../components/OrganisateurLayout'
 import BlurBackground from '../components/BlurBackground'
 import StatusBadge from '../components/StatusBadge'
 import { mesTicketsLocaux, sauvegarderTicketAcheteur } from '../database/database'
@@ -25,10 +26,10 @@ const STATUS_MAP = {
 
 // Couleurs des bandes latérales selon le statut du ticket
 const STRIP_COLORS = {
-  actif: colors.accent,  // terracotta — billet valide
-  en_attente: '#E8A868', // orange — en attente
-  utilise: '#6CD4A0',    // vert — utilisé
-  rembourse: '#E86868',  // rouge — remboursé/annulé
+  actif: colors.accent,
+  en_attente: colors.orange,
+  utilise: colors.green,
+  rembourse: colors.danger,
 }
 
 export default function MesTicketsScreen() {
@@ -121,7 +122,8 @@ export default function MesTicketsScreen() {
 
   return (
     <View style={styles.container}>
-      <BlurBackground category={categoryForBg} showImage={false} gradientOverride={['rgba(0,200,255,0.3)', 'rgba(0,119,255,0.15)']} />
+      <OrganisateurLayout />
+      <BlurBackground category={categoryForBg} showImage={false} gradientOverride={['rgba(121,134,203,0.3)', 'rgba(92,107,192,0.15)']} />
       <View style={[styles.content, { paddingTop: insets.top }]}>
         {/* Header natif avec bouton retour et compteur */}
         <View style={styles.headerBar}>

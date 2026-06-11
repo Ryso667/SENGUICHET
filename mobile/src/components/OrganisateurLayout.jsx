@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 export default function OrganisateurLayout() {
   return (
     <LinearGradient
-      colors={['#141E36', '#0D1B2A', '#0A1628']}
+      colors={['#1C2166', '#252B7A', '#191E5E']}
       locations={[0, 0.5, 1]}
       style={StyleSheet.absoluteFill}
       pointerEvents="none"

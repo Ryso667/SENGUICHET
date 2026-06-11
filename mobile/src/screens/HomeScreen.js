@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, colors, spacing, borderRadius, glass, animations } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
 import { useTabBarScroll } from '../context/TabBarScrollContext'
+import OrganisateurLayout from '../components/OrganisateurLayout'
 import BlurBackground, { optimiserUrlCloudinary } from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassButton from '../components/GlassButton'
@@ -80,6 +81,7 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <OrganisateurLayout />
       <BlurBackground
         category={activeEvent?.category || category}
         showImage={!!activeEvent?.affiche_url}
@@ -214,7 +216,7 @@ const styles = StyleSheet.create({
   name: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.textWhite, letterSpacing: -0.3 },
   homeBtn: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(0,200,255,0.1)',
+    backgroundColor: 'rgba(121,134,203,0.1)',
     alignItems: 'center', justifyContent: 'center', marginRight: 8,
   },
   logoutBtn: {

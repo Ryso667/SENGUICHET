@@ -7,6 +7,7 @@ import QRCode from 'react-native-qrcode-svg'
 import * as Crypto from 'expo-crypto'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, fonts, spacing } from '../constants/theme'
+import OrganisateurLayout from '../components/OrganisateurLayout'
 import BlurBackground from '../components/BlurBackground'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { genererTicketPDF } from '../services/ticketPdfService'
@@ -43,8 +44,8 @@ const C = {
   border: '#CDD5DE',
   refGray: '#8A8A8A',
   legalGray: '#A0A098',
-  watermarkGreen: '#6CD4A0',
-  watermarkRed: '#E86868',
+  watermarkGreen: '#66BB6A',
+  watermarkRed: '#FF4D6D',
   greenDark: '#183828',
   greenLight: '#2E6040',
   greenText: '#8FC0A0',
@@ -111,7 +112,8 @@ export default function TicketScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <BlurBackground category={ticket?.categorie} showImage={false} gradientOverride={['rgba(0,200,255,0.15)', 'rgba(30,28,26,0.95)']} />
+      <OrganisateurLayout />
+      <BlurBackground category={ticket?.categorie} showImage={false} gradientOverride={['rgba(121,134,203,0.15)', 'rgba(30,28,26,0.95)']} />
       <TouchableOpacity style={[styles.backBtn, { top: insets.top + 8 }]} onPress={() => navigation.goBack()} activeOpacity={0.7}>
         <Feather name="arrow-left" size={20} color="#fff" />
       </TouchableOpacity>

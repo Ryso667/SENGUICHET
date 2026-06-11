@@ -20,7 +20,7 @@ const chartConfig = {
   backgroundGradientFrom: 'rgba(255,255,255,0.05)',
   backgroundGradientTo: 'rgba(255,255,255,0.05)',
   decimalPlaces: 0,
-  color: (opacity = 1) => `rgba(199, 81, 58, ${opacity})`,
+  color: (opacity = 1) => `rgba(92, 107, 192, ${opacity})`,
   labelColor: (opacity = 1) => colors.text,
   style: { borderRadius: 16 },
   propsForDots: { r: '6', strokeWidth: '2', stroke: colors.accent },
@@ -65,7 +65,7 @@ export default function StatistiquesScreen() {
     }
   }, [events])
 
-  const barColors = ['#3D5AFE', '#FF6D00', '#6CD4A0', '#FF4D6D', '#A78BFA']
+  const barColors = ['#5C6BC0', '#FFA726', '#66BB6A', '#FF4D6D', '#9575CD']
 
   const barData = useMemo(() => {
     const top5 = [...events].sort((a, b) => (b.remplis || 0) - (a.remplis || 0)).slice(0, 5)
@@ -81,7 +81,7 @@ export default function StatistiquesScreen() {
   const pieData = useMemo(() => {
     const top3 = [...events].sort((a, b) => (b.remplis || 0) - (a.remplis || 0)).slice(0, 3)
 
-    const chartColors = ['#3D5AFE', '#FF6D00', '#6CD4A0']
+    const chartColors = ['#5C6BC0', '#FFA726', '#66BB6A']
     return top3.map((e, i) => ({
       name: e.nom.length > 12 ? e.nom.substring(0, 12) + '…' : e.nom,
       population: e.remplis || 0,
@@ -125,10 +125,10 @@ export default function StatistiquesScreen() {
         </View>
 
         <View style={s.statsGrid}>
-          <StatCard label="Tickets" value={stats.totalVendus} icon="ticket-outline" color={colors.cardCyan} />
+          <StatCard label="Tickets" value={stats.totalVendus} icon="ticket-outline" color={colors.cyan} />
           <StatCard label="Revenus" value={`${Math.round(stats.revenusTotaux/1000)}k`} icon="cash" color={colors.green} />
-          <StatCard label="Remplissage" value={`${stats.tauxRemplissage}%`} icon="chart-donut" color={colors.cardViolet} />
-          <StatCard label="Événements" value={stats.nbEvents} icon="calendar-star" color={colors.cardOrange} />
+          <StatCard label="Remplissage" value={`${stats.tauxRemplissage}%`} icon="chart-donut" color={colors.violet} />
+          <StatCard label="Événements" value={stats.nbEvents} icon="calendar-star" color={colors.orange} />
         </View>
 
         <GlassContainer blurType="light" style={s.section} intensity={30}>

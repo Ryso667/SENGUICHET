@@ -27,7 +27,7 @@ const hexToRgba = (hex, a) => {
 
 const STATUT_CONFIG = {
   actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
-  en_attente: { label: 'En attente', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
+  en_attente: { label: 'En attente', color: '#FFA726', bg: 'rgba(255,167,38,0.2)' },
   refuse: { label: 'Refusé', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
   suspendu: { label: 'Suspendu', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
   annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
@@ -89,9 +89,11 @@ export default function GestionEvenementsScreen({ navigation }) {
           {/* Header : titre + bouton demander — calqué sur le web */}
           <View style={s.header}>
             <Text style={s.headerTitle}>Mes événements</Text>
-            <TouchableOpacity style={s.demanderBtn} onPress={() => navigation.navigate('MesDemandesTab')}>
-              <MaterialCommunityIcons name="clipboard-text-outline" size={16} color={colors.text} />
-              <Text style={s.demanderBtnText}>Demander</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('MesDemandesTab')} activeOpacity={0.8}>
+              <LinearGradient colors={gradients.primary} style={s.demanderBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                <MaterialCommunityIcons name="clipboard-text-outline" size={16} color="#fff" />
+                <Text style={s.demanderBtnText}>Demander</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
 
@@ -140,8 +142,10 @@ export default function GestionEvenementsScreen({ navigation }) {
               <MaterialCommunityIcons name="ticket-outline" size={56} color="rgba(255,255,255,0.3)" />
               <Text style={s.emptyTitle}>Aucun événement trouvé</Text>
               <Text style={s.emptySub}>Vous n'avez pas encore d'événement. Faites une demande à l'équipe SENGUICHET.</Text>
-              <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('MesDemandesTab')}>
-                <Text style={s.emptyBtnText}>Demander un événement</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('MesDemandesTab')} activeOpacity={0.8}>
+                <LinearGradient colors={gradients.primary} style={s.emptyBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                  <Text style={s.emptyBtnText}>Demander un événement</Text>
+                </LinearGradient>
               </TouchableOpacity>
             </GlassContainer>
           ) : (
@@ -220,7 +224,7 @@ const s = StyleSheet.create({
   refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginBottom: spacing.sm },
   demanderBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12,
+    borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 8,
   },
   demanderBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff' },
@@ -252,7 +256,7 @@ const s = StyleSheet.create({
   emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
   emptyBtn: {
     marginTop: spacing.sm,
-    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12,
+    borderRadius: 12,
     paddingHorizontal: 20, paddingVertical: 10,
   },
   emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
@@ -284,7 +288,7 @@ const s = StyleSheet.create({
   cardBarPct: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary, width: 36, textAlign: 'right' },
 
   cardBtn: {
-    backgroundColor: 'rgba(0,200,255,0.12)', borderRadius: 10,
+    backgroundColor: 'rgba(121,134,203,0.12)', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
   cardBtnText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },

@@ -27,7 +27,7 @@ const hexToRgba = (hex, a) => {
 
 const STATUT_CONFIG = {
   actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
-  en_attente: { label: 'En attente', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
+  en_attente: { label: 'En attente', color: '#FFA726', bg: 'rgba(255,167,38,0.2)' },
   refuse: { label: 'Refusé', color: '#FF4D6D', bg: 'rgba(255,77,109,0.2)' },
   termine: { label: 'Terminé',     color: '#B0B0B8', bg: 'rgba(176,176,184,0.2)' },
   annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
@@ -96,16 +96,10 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   ]
 
   const statColors = [
-    ['rgba(0,200,255,0.25)', 'rgba(0,200,255,0.1)'],
-    ['rgba(0,229,160,0.25)', 'rgba(0,200,255,0.1)'],
-    ['rgba(99,102,241,0.25)', 'rgba(236,72,153,0.1)'],
-    ['rgba(249,115,22,0.25)', 'rgba(245,158,11,0.1)'],
-  ]
-  const statBorders = [
-    { color: colors.cardCyan,   icon: 'ticket-outline' },
-    { color: colors.green,      icon: 'cash' },
-    { color: colors.cardOrange, icon: 'calendar-check' },
-    { color: colors.cardViolet, icon: 'calendar-star' },
+    { color: colors.cyan,   icon: 'ticket-outline' },
+    { color: colors.green,  icon: 'cash' },
+    { color: colors.violet, icon: 'calendar-check' },
+    { color: colors.orange, icon: 'calendar-star' },
   ]
 
   return (
@@ -140,9 +134,9 @@ export default function OrganisateurDashboardScreen({ navigation }) {
             <View style={s.statsColumn}>
               {stats.map((st, i) => (
                 <Animated.View key={st.label} style={{ opacity: fadeAnims[i], transform: [{ translateY: slideAnims[i] }] }}>
-                  <GlassContainer style={s.statCard} borderLeftColor={statBorders[i].color}>
+                  <GlassContainer style={s.statCard} borderLeftColor={statColors[i].color}>
                     <View style={s.statTop}>
-                      <MaterialCommunityIcons name={st.icon} size={20} color={statBorders[i].color} />
+                      <MaterialCommunityIcons name={st.icon} size={20} color={statColors[i].color} />
                       <Text style={s.statValue}>{st.value}</Text>
                     </View>
                     <Text style={s.statLabel}>{st.label}</Text>
@@ -284,7 +278,7 @@ const s = StyleSheet.create({
   },
   revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.green },
   detailsBtn: {
-    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 8,
+    backgroundColor: 'rgba(121,134,203,0.15)', borderRadius: 8,
     paddingHorizontal: 14, paddingVertical: 6,
   },
   detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },

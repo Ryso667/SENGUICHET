@@ -3,6 +3,7 @@
 import { View, Text, ScrollView, TouchableOpacity, Linking, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { fonts, spacing, glass, colors, borderRadius } from '../constants/theme'
+import OrganisateurLayout from '../components/OrganisateurLayout'
 import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
 
@@ -13,6 +14,7 @@ export default function SupportScreen() {
 
   return (
     <View style={styles.container}>
+      <OrganisateurLayout />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}

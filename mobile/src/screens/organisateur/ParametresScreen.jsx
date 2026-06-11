@@ -66,7 +66,7 @@ export default function ParametresScreen({ navigation }) {
             <Switch
               value={notifications.smsVente}
               onValueChange={() => toggleNotif('smsVente')}
-              trackColor={{ true: 'rgba(0,200,255,0.6)', false: 'rgba(255,255,255,0.2)' }}
+              trackColor={{ true: 'rgba(121,134,203,0.6)', false: 'rgba(255,255,255,0.2)' }}
               thumbColor={notifications.smsVente ? colors.accent : 'rgba(255,255,255,0.5)'}
             />
           </View>
@@ -76,7 +76,7 @@ export default function ParametresScreen({ navigation }) {
             <Switch
               value={notifications.emailRecap}
               onValueChange={() => toggleNotif('emailRecap')}
-              trackColor={{ true: 'rgba(0,200,255,0.6)', false: 'rgba(255,255,255,0.2)' }}
+              trackColor={{ true: 'rgba(121,134,203,0.6)', false: 'rgba(255,255,255,0.2)' }}
               thumbColor={notifications.emailRecap ? colors.accent : 'rgba(255,255,255,0.5)'}
             />
           </View>
@@ -86,7 +86,7 @@ export default function ParametresScreen({ navigation }) {
             <Switch
               value={notifications.stockFaible}
               onValueChange={() => toggleNotif('stockFaible')}
-              trackColor={{ true: 'rgba(0,200,255,0.6)', false: 'rgba(255,255,255,0.2)' }}
+              trackColor={{ true: 'rgba(121,134,203,0.6)', false: 'rgba(255,255,255,0.2)' }}
               thumbColor={notifications.stockFaible ? colors.accent : 'rgba(255,255,255,0.5)'}
             />
           </View>
@@ -108,8 +108,8 @@ const s = StyleSheet.create({
   infoText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', lineHeight: 20 },
   securityBtn: {
     paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md,
-    backgroundColor: 'rgba(0,200,255,0.12)', borderRadius: borderRadius.md,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(0,200,255,0.25)',
+    backgroundColor: 'rgba(121,134,203,0.12)', borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(121,134,203,0.25)',
     alignItems: 'center',
   },
   securityBtnText: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },

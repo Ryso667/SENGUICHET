@@ -60,7 +60,7 @@ export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle
         activeOpacity={event.estPasse ? 1 : 0.9}
         style={styles.touch}
       >
-        <View style={[styles.card, { backgroundColor: event.bg || '#6366F1' }, event.estPasse && styles.cardPasse]}>
+        <View style={[styles.card, { backgroundColor: event.bg || '#9575CD' }, event.estPasse && styles.cardPasse]}>
           {imageUrl && !imageError && (
             <Animated.Image
               source={{ uri: imageUrl }}
