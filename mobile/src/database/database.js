@@ -20,7 +20,8 @@ async function initTables() {
       event_id INTEGER NOT NULL,
       category TEXT NOT NULL,
       timestamp_gen TEXT NOT NULL,
-      statut TEXT NOT NULL DEFAULT 'DISPONIBLE'
+      statut TEXT NOT NULL DEFAULT 'DISPONIBLE',
+      numero TEXT
     );
 
     CREATE TABLE IF NOT EXISTS scans (
@@ -51,6 +52,7 @@ async function initTables() {
       qr_data TEXT
     );
   `)
+  try { await db.runAsync("ALTER TABLE tickets ADD COLUMN numero TEXT") } catch {}
 }
 
 // Insère ou met à jour les tickets sans réinitialiser ceux déjà scannés (UTILISE_LOCAL)
@@ -58,8 +60,8 @@ async function initTables() {
 export async function insererTickets(tickets) {
   const bd = await getDb()
   const ins = await bd.prepareAsync(
-    `INSERT OR REPLACE INTO tickets (uuid, hmac, event_id, category, timestamp_gen, statut)
-     SELECT $uuid, $hmac, $event_id, $category, $timestamp_gen, 'DISPONIBLE'
+    `INSERT OR REPLACE INTO tickets (uuid, hmac, event_id, category, timestamp_gen, statut, numero)
+     SELECT $uuid, $hmac, $event_id, $category, $timestamp_gen, 'DISPONIBLE', $numero
      WHERE NOT EXISTS (
        SELECT 1 FROM tickets WHERE uuid = $uuid AND statut = 'UTILISE_LOCAL'
      )`
@@ -71,6 +73,7 @@ export async function insererTickets(tickets) {
       $event_id: t.event_id,
       $category: t.category,
       $timestamp_gen: t.timestamp_gen || new Date().toISOString(),
+      $numero: t.numero || null,
     })
   }
   await ins.finalizeAsync()
@@ -123,11 +126,11 @@ export async function historiqueScans() {
   return await bd.getAllAsync('SELECT * FROM scans ORDER BY timestamp_scan DESC')
 }
 
-// Récupère l'historique des scans enrichi avec les infos de l'événement
+// Récupère l'historique des scans enrichi avec les infos de l'événement et le numéro du billet
 export async function historiqueScansAvecDetails() {
   const bd = await getDb()
   return await bd.getAllAsync(`
-    SELECT s.*, t.event_id, t.category
+    SELECT s.*, t.event_id, t.category, t.numero
     FROM scans s
     LEFT JOIN tickets t ON s.uuid_billet = t.uuid
     ORDER BY s.timestamp_scan DESC

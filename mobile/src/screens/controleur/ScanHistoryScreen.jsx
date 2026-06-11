@@ -162,6 +162,7 @@ export default function ScanHistoryScreen() {
                   <Feather name={p.icon} size={18} color={p.dot} />
                 </View>
                 <View style={styles.carteCentre}>
+                  <Text style={styles.carteNumero}>{item.numero || '—'}</Text>
                   <Text style={styles.carteDate}>{formaterDateHeure(item.timestamp_scan)}</Text>
                 </View>
                 <View style={styles.carteDroite}>
@@ -222,7 +223,8 @@ const styles = StyleSheet.create({
   },
   carteGauche: { width: 36, alignItems: 'center' },
   carteCentre: { flex: 1 },
-  carteDate: { fontFamily: fonts.outfit.semiBold, fontSize: 14, color: colors.text },
+  carteDate: { fontFamily: fonts.outfit.regular, fontSize: 12, color: colors.textSecondary, marginTop: 1 },
+  carteNumero: { fontFamily: fonts.outfit.semiBold, fontSize: 14, color: colors.text },
   carteDroite: { alignItems: 'flex-end', gap: 4 },
   carteStatut: { fontFamily: fonts.outfit.bold, fontSize: 12, color: colors.text },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.accentLight, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
