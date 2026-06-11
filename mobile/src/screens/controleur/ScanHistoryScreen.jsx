@@ -162,7 +162,7 @@ export default function ScanHistoryScreen() {
                   <Feather name={p.icon} size={18} color={p.dot} />
                 </View>
                 <View style={styles.carteCentre}>
-                  <Text style={styles.carteNumero}>{item.numero || '—'}</Text>
+                  <Text style={styles.carteNumero}>{item.numero || item.uuid_billet?.substring(0, 12) || '—'}</Text>
                   <Text style={styles.carteDate}>{formaterDateHeure(item.timestamp_scan)}</Text>
                 </View>
                 <View style={styles.carteDroite}>

@@ -30,7 +30,8 @@ async function initTables() {
       hmac TEXT NOT NULL,
       timestamp_scan TEXT NOT NULL,
       resultat TEXT NOT NULL,
-      synced INTEGER NOT NULL DEFAULT 0
+      synced INTEGER NOT NULL DEFAULT 0,
+      numero TEXT
     );
 
     CREATE INDEX IF NOT EXISTS idx_scans_synced ON scans(synced);
@@ -53,6 +54,7 @@ async function initTables() {
     );
   `)
   try { await db.runAsync("ALTER TABLE tickets ADD COLUMN numero TEXT") } catch {}
+  try { await db.runAsync("ALTER TABLE scans ADD COLUMN numero TEXT") } catch {}
 }
 
 // Insère ou met à jour les tickets sans réinitialiser ceux déjà scannés (UTILISE_LOCAL)
@@ -95,15 +97,16 @@ export async function marquerUtilise(uuid) {
 }
 
 // Enregistre un scan dans l'historique local (synced = 0 = en attente de synchro)
-export async function enregistrerScan(uuid, hmac, resultat) {
+export async function enregistrerScan(uuid, hmac, resultat, numero) {
   const bd = await getDb()
   await bd.runAsync(
-    'INSERT INTO scans (uuid_billet, hmac, timestamp_scan, resultat, synced) VALUES ($uuid, $hmac, $ts, $res, 0)',
+    'INSERT INTO scans (uuid_billet, hmac, timestamp_scan, resultat, synced, numero) VALUES ($uuid, $hmac, $ts, $res, 0, $numero)',
     {
       $uuid: uuid,
       $hmac: hmac,
       $ts: new Date().toISOString(),
       $res: resultat,
+      $numero: numero || null,
     }
   )
 }
@@ -126,11 +129,11 @@ export async function historiqueScans() {
   return await bd.getAllAsync('SELECT * FROM scans ORDER BY timestamp_scan DESC')
 }
 
-// Récupère l'historique des scans enrichi avec les infos de l'événement et le numéro du billet
+// Récupère l'historique des scans enrichi avec les infos de l'événement
 export async function historiqueScansAvecDetails() {
   const bd = await getDb()
   return await bd.getAllAsync(`
-    SELECT s.*, t.event_id, t.category, t.numero
+    SELECT s.*, t.event_id, t.category
     FROM scans s
     LEFT JOIN tickets t ON s.uuid_billet = t.uuid
     ORDER BY s.timestamp_scan DESC

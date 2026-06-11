@@ -105,11 +105,11 @@ export default function SocialAuthScreen({ navigation }) {
       <BlurBackground />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
-            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerStyle={{ flexGrow: 0 }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
