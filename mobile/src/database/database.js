@@ -53,11 +53,16 @@ async function initTables() {
   `)
 }
 
-// Insère ou remplace une liste de tickets dans la base locale (tickets téléchargés pour offline)
+// Insère ou met à jour les tickets sans réinitialiser ceux déjà scannés (UTILISE_LOCAL)
+// Empêche la faille : refresh périodique (30s) qui écrasait le statut → re-validation possible
 export async function insererTickets(tickets) {
   const bd = await getDb()
   const ins = await bd.prepareAsync(
-    'INSERT OR REPLACE INTO tickets (uuid, hmac, event_id, category, timestamp_gen, statut) VALUES ($uuid, $hmac, $event_id, $category, $timestamp_gen, $statut)'
+    `INSERT OR REPLACE INTO tickets (uuid, hmac, event_id, category, timestamp_gen, statut)
+     SELECT $uuid, $hmac, $event_id, $category, $timestamp_gen, 'DISPONIBLE'
+     WHERE NOT EXISTS (
+       SELECT 1 FROM tickets WHERE uuid = $uuid AND statut = 'UTILISE_LOCAL'
+     )`
   )
   for (const t of tickets) {
     await ins.executeAsync({
@@ -66,7 +71,6 @@ export async function insererTickets(tickets) {
       $event_id: t.event_id,
       $category: t.category,
       $timestamp_gen: t.timestamp_gen || new Date().toISOString(),
-      $statut: 'DISPONIBLE',
     })
   }
   await ins.finalizeAsync()

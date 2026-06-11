@@ -68,6 +68,13 @@ export async function verifierBillet(donneesQR) {
     return { resultat: RESULTATS.FRAUDE, message: 'Signature cryptographique invalide — alerte fraude' }
   }
 
+  // Vérification fraîcheur du QR code (anti-rejeu) — max 60 secondes
+  const age = Date.now() - new Date(qr.timestamp).getTime()
+  if (age > 60000) {
+    await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.EXPIRE)
+    return { resultat: RESULTATS.EXPIRE, message: 'QR code expiré — veuillez rafraîchir' }
+  }
+
   // Étape 3 : recherche du billet dans la base SQLite locale
   let ticket = await chercherTicket(qr.uuid)
   if (!ticket) {

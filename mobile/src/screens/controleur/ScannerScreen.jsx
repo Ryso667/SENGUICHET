@@ -73,9 +73,14 @@ export default function ScannerScreen({ navigation, route }) {
 
   const handleScan = async (donnees) => {
     if (scanne || !pret) return
+
+    // Extraire l'uuid du billet depuis le QR (anti-doublon par billet, pas par chaîne complète)
+    let uuid
+    try { const p = JSON.parse(typeof donnees === 'string' ? donnees : donnees); uuid = p.uuid } catch { uuid = donnees }
+
     const maintenant = Date.now()
-    if (dernierScanRef.current && dernierScanRef.current.donnees === donnees && (maintenant - dernierScanRef.current.temps) < DELAI_ANTI_DOUBLON) return
-    dernierScanRef.current = { donnees, temps: maintenant }
+    if (dernierScanRef.current && dernierScanRef.current.uuid === uuid && (maintenant - dernierScanRef.current.temps) < DELAI_ANTI_DOUBLON) return
+    dernierScanRef.current = { uuid, temps: maintenant }
     try {
       const resultat = await verifierBillet(donnees)
       if (resultat.resultat === 'VALIDE') {
