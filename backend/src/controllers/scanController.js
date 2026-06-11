@@ -20,7 +20,7 @@ const telechargerTickets = async (req, res) => {
     }
     const [rows] = await pool.query(
       `SELECT b.uuid, b.payload_signature AS hmac, b.evenement_id AS event_id,
-              ct.nom AS category, b.date_creation AS timestamp_gen
+              ct.nom AS category, b.date_creation AS timestamp_gen, b.numero
        FROM billet b
        JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
        WHERE b.evenement_id = ? AND b.statut = 'ACTIF'`,

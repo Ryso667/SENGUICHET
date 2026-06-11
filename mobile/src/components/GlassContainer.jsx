@@ -1,15 +1,16 @@
-// Conteneur solide pour carte — fond bleu marine #252B80, coins arrondis 16px
-// Props : style, children, borderLeftColor (couleur de la bordure gauche)
+// Carte fond indigo solide avec bordure subtile — remplace l'effet glass pour meilleur contraste
+// Props : style, children, borderLeftColor (couleur de la bordure gauche), borderLeftWidth (largeur, défaut 6)
 import { View, StyleSheet } from 'react-native'
-import { colors, borderRadius, glass } from '../constants/theme'
+import { colors, borderRadius } from '../constants/theme'
 
-// Carte avec fond solide et bordure gauche colorée optionnelle
-// borderLeftColor : couleur hex pour la bordure gauche de 4px
-export default function GlassContainer({ children, style, borderLeftColor }) {
+// Carte avec fond indigo solide et bordure gauche colorée optionnelle
+// borderLeftColor : couleur hex pour la bordure gauche
+// borderLeftWidth : largeur de la bordure gauche (défaut 6)
+export default function GlassContainer({ children, style, borderLeftColor, borderLeftWidth }) {
   return (
     <View style={[
       styles.container,
-      borderLeftColor && { borderLeftWidth: 4, borderLeftColor },
+      borderLeftColor && { borderLeftWidth: borderLeftWidth || 6, borderLeftColor },
       style,
     ]}>
       {children}
@@ -19,10 +20,10 @@ export default function GlassContainer({ children, style, borderLeftColor }) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: glass.bg,
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: glass.border,
+    borderWidth: 1,
+    borderColor: 'rgba(121, 134, 203, 0.2)',
     overflow: 'hidden',
   },
 })

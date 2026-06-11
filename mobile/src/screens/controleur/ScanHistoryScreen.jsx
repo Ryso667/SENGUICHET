@@ -74,7 +74,6 @@ export default function ScanHistoryScreen() {
     }
   }
 
-  const evenementsUniques = [...new Set(scans.filter(s => s.event_id).map(s => s.event_id))]
   const { scrollY: tabScrollY } = useTabBarScroll()
 
   return (
@@ -107,7 +106,7 @@ export default function ScanHistoryScreen() {
         </GlassContainer>
 
         {evenementTitre && (
-          <Text style={styles.eventName}>{evenementTitre} (ID: {evenementId})</Text>
+          <Text style={styles.eventName}>{evenementTitre}</Text>
         )}
 
         <View style={styles.actions}>
@@ -148,12 +147,6 @@ export default function ScanHistoryScreen() {
           </Text>
         )}
 
-        {evenementsUniques.length > 0 && (
-          <Text style={styles.sectionTitre}>
-            {evenementsUniques.length} événement{evenementsUniques.length > 1 ? 's' : ''} scanné{evenementsUniques.length > 1 ? 's' : ''} · {scans.length} scan{scans.length > 1 ? 's' : ''}
-          </Text>
-        )}
-
         {scans.length === 0 ? (
           <EmptyState
             icon={<Feather name="clipboard" size={48} color={colors.textSecondary} />}
@@ -169,17 +162,13 @@ export default function ScanHistoryScreen() {
                   <Feather name={p.icon} size={18} color={p.dot} />
                 </View>
                 <View style={styles.carteCentre}>
-                  <Text style={styles.carteEvenement}>
-                    {item.category || 'Billet scanné'}
-                  </Text>
+                  <Text style={styles.carteNumero}>{item.numero || item.uuid_billet?.substring(0, 12) || '—'}</Text>
                   <Text style={styles.carteDate}>{formaterDateHeure(item.timestamp_scan)}</Text>
-                  <Text style={styles.carteUuid}>#{item.uuid_billet?.slice(0, 8)}</Text>
                 </View>
                 <View style={styles.carteDroite}>
                   <Text style={styles.carteStatut}>{p.label}</Text>
                   {item.synced === 0 && (
                     <View style={styles.badge}>
-                      <Feather name="wifi-off" size={10} color="#fff" />
                       <Text style={styles.badgeTexte}>OFFLINE</Text>
                     </View>
                   )}
@@ -238,9 +227,8 @@ const styles = StyleSheet.create({
   },
   carteGauche: { width: 36, alignItems: 'center' },
   carteCentre: { flex: 1 },
-  carteEvenement: { fontFamily: fonts.outfit.semiBold, fontSize: 13, color: colors.text },
   carteDate: { fontFamily: fonts.outfit.regular, fontSize: 12, color: colors.textSecondary, marginTop: 1 },
-  carteUuid: { fontFamily: fonts.outfit.regular, fontSize: 10, color: colors.textSecondary, marginTop: 1 },
+  carteNumero: { fontFamily: fonts.outfit.semiBold, fontSize: 14, color: colors.text },
   carteDroite: { alignItems: 'flex-end', gap: 4 },
   carteStatut: { fontFamily: fonts.outfit.bold, fontSize: 12, color: colors.text },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.accentLight, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },

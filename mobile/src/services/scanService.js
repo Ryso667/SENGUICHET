@@ -63,27 +63,29 @@ export async function verifierBillet(donneesQR) {
   // Étape 1 : parsing du QR (déjà fait ci-dessus)
   // Étape 2 : vérification HMAC (signature cryptographique)
   const hmacOk = await verifierHMAC(qr)
+  const num = qr.transaction_ref || null
+
   if (!hmacOk) {
-    await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.FRAUDE)
+    await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.FRAUDE, num)
     return { resultat: RESULTATS.FRAUDE, message: 'Signature cryptographique invalide — alerte fraude' }
   }
 
   // Étape 3 : recherche du billet dans la base SQLite locale
   let ticket = await chercherTicket(qr.uuid)
   if (!ticket) {
-    await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.INCONNU)
+    await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.INCONNU, num)
     return { resultat: RESULTATS.INCONNU, message: 'Billet introuvable dans la base locale' }
   }
 
   // Étape 4 : vérification anti re-scan (déjà utilisé ?)
   if (ticket.statut === 'UTILISE_LOCAL') {
-    await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.DEJA_UTILISE)
+    await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.DEJA_UTILISE, num)
     return { resultat: RESULTATS.DEJA_UTILISE, message: 'Billet déjà scanné sur cet appareil' }
   }
 
   // Billet valide : marquer comme utilisé et enregistrer le scan
   await marquerUtilise(qr.uuid)
-  await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.VALIDE)
+  await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.VALIDE, num)
   return { resultat: RESULTATS.VALIDE, message: 'Entrée autorisée' }
 }
 

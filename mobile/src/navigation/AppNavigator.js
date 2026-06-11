@@ -342,7 +342,7 @@ export default function AppNavigator() {
       {(() => {
         const headerStyle = {
           headerShown: true,
-          headerStyle: { backgroundColor: glass.bg },
+          headerStyle: { backgroundColor: colors.surface },
           headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: colors.text },
           headerTintColor: colors.accent,
           headerBackTitle: 'Retour',
@@ -370,7 +370,7 @@ export default function AppNavigator() {
               <>
                 <Stack.Screen name="AcheteurTabs" component={AcheteurLayout} />
                 <Stack.Screen name="EventSearch" component={EventSearchScreen} />
-                <Stack.Screen name="EventDetail" component={EventDetailScreen} options={header('Détail')} />
+                <Stack.Screen name="EventDetail" component={EventDetailScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="Ticket" component={TicketScreen} />
                 <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="Support" component={SupportScreen} options={header('Support')} />

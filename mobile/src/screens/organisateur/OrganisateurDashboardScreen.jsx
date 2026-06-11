@@ -238,7 +238,7 @@ const s = StyleSheet.create({
   refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginTop: spacing.sm, marginBottom: 0 },
   // Stats
   statsColumn: { paddingHorizontal: spacing.lg, gap: spacing.sm, marginTop: spacing.lg },
-  statCard: { padding: spacing.md, minHeight: 80, justifyContent: 'space-between' },
+  statCard: { padding: spacing.md, minHeight: 80, justifyContent: 'space-between', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6 },
   statTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   statValue: { fontSize: 20, fontFamily: fonts.outfit.bold, color: colors.text, maxWidth: '70%', textAlign: 'right' },
   statLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },

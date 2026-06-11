@@ -20,7 +20,8 @@ async function initTables() {
       event_id INTEGER NOT NULL,
       category TEXT NOT NULL,
       timestamp_gen TEXT NOT NULL,
-      statut TEXT NOT NULL DEFAULT 'DISPONIBLE'
+      statut TEXT NOT NULL DEFAULT 'DISPONIBLE',
+      numero TEXT
     );
 
     CREATE TABLE IF NOT EXISTS scans (
@@ -29,7 +30,8 @@ async function initTables() {
       hmac TEXT NOT NULL,
       timestamp_scan TEXT NOT NULL,
       resultat TEXT NOT NULL,
-      synced INTEGER NOT NULL DEFAULT 0
+      synced INTEGER NOT NULL DEFAULT 0,
+      numero TEXT
     );
 
     CREATE INDEX IF NOT EXISTS idx_scans_synced ON scans(synced);
@@ -51,13 +53,25 @@ async function initTables() {
       qr_data TEXT
     );
   `)
+  try { await db.runAsync("ALTER TABLE tickets ADD COLUMN numero TEXT") } catch {}
+  try { await db.runAsync("ALTER TABLE scans ADD COLUMN numero TEXT") } catch {}
+  try {
+    await db.runAsync(
+      "UPDATE scans SET numero = (SELECT numero FROM tickets WHERE tickets.uuid = scans.uuid_billet) WHERE numero IS NULL"
+    )
+  } catch {}
 }
 
-// Insère ou remplace une liste de tickets dans la base locale (tickets téléchargés pour offline)
+// Insère ou met à jour les tickets sans réinitialiser ceux déjà scannés (UTILISE_LOCAL)
+// Empêche la faille : refresh périodique (30s) qui écrasait le statut → re-validation possible
 export async function insererTickets(tickets) {
   const bd = await getDb()
   const ins = await bd.prepareAsync(
-    'INSERT OR REPLACE INTO tickets (uuid, hmac, event_id, category, timestamp_gen, statut) VALUES ($uuid, $hmac, $event_id, $category, $timestamp_gen, $statut)'
+    `INSERT OR REPLACE INTO tickets (uuid, hmac, event_id, category, timestamp_gen, statut, numero)
+     SELECT $uuid, $hmac, $event_id, $category, $timestamp_gen, 'DISPONIBLE', $numero
+     WHERE NOT EXISTS (
+       SELECT 1 FROM tickets WHERE uuid = $uuid AND statut = 'UTILISE_LOCAL'
+     )`
   )
   for (const t of tickets) {
     await ins.executeAsync({
@@ -66,7 +80,7 @@ export async function insererTickets(tickets) {
       $event_id: t.event_id,
       $category: t.category,
       $timestamp_gen: t.timestamp_gen || new Date().toISOString(),
-      $statut: 'DISPONIBLE',
+      $numero: t.numero || null,
     })
   }
   await ins.finalizeAsync()
@@ -88,15 +102,16 @@ export async function marquerUtilise(uuid) {
 }
 
 // Enregistre un scan dans l'historique local (synced = 0 = en attente de synchro)
-export async function enregistrerScan(uuid, hmac, resultat) {
+export async function enregistrerScan(uuid, hmac, resultat, numero) {
   const bd = await getDb()
   await bd.runAsync(
-    'INSERT INTO scans (uuid_billet, hmac, timestamp_scan, resultat, synced) VALUES ($uuid, $hmac, $ts, $res, 0)',
+    'INSERT INTO scans (uuid_billet, hmac, timestamp_scan, resultat, synced, numero) VALUES ($uuid, $hmac, $ts, $res, 0, $numero)',
     {
       $uuid: uuid,
       $hmac: hmac,
       $ts: new Date().toISOString(),
       $res: resultat,
+      $numero: numero || null,
     }
   )
 }

@@ -182,7 +182,7 @@ export default function StatistiquesScreen() {
 // Sera remplacé par API — composant de carte statistique
 function StatCard({ label, value, icon, color }) {
   return (
-    <GlassContainer blurType="light" style={[s.card, { borderLeftColor: color, borderLeftWidth: 4 }]} intensity={40}>
+    <GlassContainer blurType="light" style={s.card} borderLeftColor={color} borderLeftWidth={8} intensity={40}>
       <MaterialCommunityIcons name={icon} size={20} color={color} />
       <Text style={s.cardValue}>{value}</Text>
       <Text style={s.cardLabel}>{label}</Text>
@@ -203,6 +203,11 @@ const s = StyleSheet.create({
   card: { 
     width: (screenWidth - spacing.lg * 2 - spacing.md) / 2,
     padding: spacing.md,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   },
   cardValue: { fontSize: 22, fontFamily: fonts.outfit.bold, color: colors.text },
   cardLabel: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary },

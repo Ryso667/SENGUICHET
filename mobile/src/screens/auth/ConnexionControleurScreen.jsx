@@ -87,9 +87,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   conteneur: {
-    flexGrow: 1,
+    flexGrow: 0,
     paddingHorizontal: 24,
-    justifyContent: 'center',
   },
   titre: {
     fontFamily: 'Outfit_700Bold',

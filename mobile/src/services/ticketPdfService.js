@@ -332,6 +332,80 @@ function construireHtmlTicket(ticket, qrDataUrl, logoBase64) {
 </html>`
 }
 
+// Génère le HTML du ticket pour l'export web (format paysage 3 colonnes, palette indigo)
+export function genererHtmlWebTicket(ticket, qrDataUrl) {
+  const nomEvent = (ticket.eventNom || 'ÉVÉNEMENT').toUpperCase()
+  const dateFmt = ticket.eventDate
+    ? new Date(ticket.eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+    : ''
+  const heure = ticket.eventHeure || ''
+  const lieu = (ticket.eventLieu || '').toUpperCase()
+  const categorie = (ticket.categorie || 'STANDARD').toUpperCase()
+  const prix = ticket.prix ? `${Number(ticket.prix).toLocaleString('fr-FR')} FCFA` : '—'
+  const ref = ticket.numero || '—'
+  const estInvalide = (ticket.statut || '').toLowerCase() === 'utilise' || (ticket.statut || '').toLowerCase() === 'expire'
+  const qrImg = qrDataUrl
+    ? `<img src="${qrDataUrl}" style="width:160px;height:160px;display:block" />`
+    : '<div style="width:160px;height:160px;"></div>'
+  const usedOverlay = estInvalide
+    ? '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,77,109,0.9);border-radius:50%;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff;font-weight:700;">✕</div>'
+    : ''
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="utf-8"/><title>Billet ${nomEvent}</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  @page{margin:0}*{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{background:#0F1A0F;display:flex;justify-content:center;align-items:center;height:100vh;padding:24px;font-family:'Outfit','Helvetica Neue',Arial,sans-serif}
+  .t{display:flex;flex-direction:row;width:100%;max-width:780px;height:480px;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.35);position:relative}
+  .cl{width:25%;background:#5C6BC0;border-radius:20px 0 0 20px;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;padding:32px 20px;flex-shrink:0}
+  .cl .o1{position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(92,107,192,0.35)}
+  .cl .o2{position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;border-radius:50%;background:rgba(212,175,55,0.15)}
+  .cl .brand{font-size:10px;letter-spacing:3px;color:rgba(255,255,255,0.7);font-weight:600;text-transform:uppercase;position:relative;z-index:1}
+  .cl .gl{width:60px;height:1px;background:#D4AF37;opacity:0.7;position:relative;z-index:1}
+  .cl .en{font-size:22px;font-weight:800;color:#fff;text-align:center;line-height:1.25;position:relative;z-index:1}
+  .cl .sub{font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;position:relative;z-index:1}
+  .cl .lw{position:relative;z-index:1}
+  .sp{width:24px;position:relative;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .sp.dc{background:linear-gradient(to right,#5C6BC0,#F9F6EE)}.sp.cb{background:linear-gradient(to right,#F9F6EE,#F0EAD6)}
+  .sp .d{position:absolute;left:50%;top:0;bottom:0;border-left:2px dashed rgba(37,43,122,0.2)}
+  .sp .sc{position:absolute;left:50%;transform:translateX(-50%);width:24px;height:24px;border-radius:50%;background:#0F1A0F;z-index:2}
+  .sp .sc.t{top:-12px}.sp .sc.b{bottom:-12px}
+  .cc{width:45%;background:#F9F6EE;padding:36px 28px;display:flex;flex-direction:column;justify-content:center;gap:16px;flex-shrink:0}
+  .cc .r2{display:flex;justify-content:space-between;align-items:flex-start}
+  .cc .lbl{font-size:8px;letter-spacing:2px;color:#B8944A;font-weight:600;text-transform:uppercase;margin-bottom:3px}
+  .cc .val{font-size:13px;color:#1E2250;font-weight:600}
+  .cc .lieu{color:#B8944A;letter-spacing:0.5px;font-weight:700;font-size:13px}
+  .cc .sl{height:1px;background:rgba(37,43,122,0.1)}
+  .cc .ref{font-size:9px;color:#B8944A;letter-spacing:2px;text-align:center;font-family:monospace}
+  .cc .qw{background:#fff;border-radius:12px;padding:12px;border:1px solid rgba(37,43,122,0.08);display:flex;justify-content:center;align-items:center;align-self:center;position:relative}
+  .cr{width:30%;background:#F0EAD6;border-radius:0 20px 20px 0;padding:32px 24px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;position:relative;flex-shrink:0}
+  .cr .bdg{background:#5C6BC0;border-radius:999px;padding:6px 24px}
+  .cr .bt{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#D4AF37;text-transform:uppercase}
+  .cr .pr{font-size:32px;font-weight:800;color:#1E2250;letter-spacing:-0.5px;text-align:center}
+  .cr .lg{font-size:9px;color:#B8944A;font-style:italic;text-align:center}
+  .cr .ts{width:40px;height:1px;background:rgba(37,43,122,0.15)}
+  .cr .wm{font-size:8px;color:rgba(37,43,122,0.25);letter-spacing:3px;position:absolute;bottom:16px;right:16px}
+</style></head>
+<body>
+<div class="t">
+  <div class="cl"><div class="o1"></div><div class="o2"></div><div class="lw"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='rgba(255,255,255,0.12)' stroke='rgba(255,255,255,0.2)' stroke-width='1'/%3E%3Ctext x='24' y='28' text-anchor='middle' font-size='20' font-weight='700' fill='%23D4AF37' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E" style="width:38px;height:38px;display:block;border-radius:8px" /></div><div class="brand">SENGUICHET</div><div class="gl"></div><div class="en">${nomEvent}</div><div class="sub">${categorie}</div></div>
+  <div class="sp dc"><div class="d"></div><div class="sc t"></div><div class="sc b"></div></div>
+  <div class="cc">
+    <div class="r2"><div><div class="lbl">DATE</div><div class="val">${dateFmt}</div></div>${heure ? '<div style="text-align:right"><div class="lbl">HEURE</div><div class="val">' + heure + '</div></div>' : ''}</div>
+    ${lieu ? '<div><div class="lbl">LIEU</div><div class="lieu">' + lieu + '</div></div>' : ''}
+    <div class="sl"></div>
+    <div class="ref">REF · ${ref}</div>
+    <div class="qw" style="${usedOverlay ? 'position:relative' : ''}">${qrImg}${usedOverlay}</div>
+  </div>
+  <div class="sp cb"><div class="d"></div><div class="sc t"></div><div class="sc b"></div></div>
+  <div class="cr"><div class="bdg"><div class="bt">${categorie}</div></div><div class="pr">${prix}</div><div class="lg">Entrée unique et non transférable</div><div class="ts"></div><div class="wm">SENGUICHET</div></div>
+</div>
+</body></html>`
+}
+
 export async function genererTicketPDF(ticket, qrDataUrl) {
   const logoBase64 = await chargerLogoBase64()
   const html = construireHtmlTicket(ticket, qrDataUrl, logoBase64)

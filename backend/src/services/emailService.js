@@ -127,162 +127,79 @@ const boutonCTA = (url, texte) => `
 // ticket: { uuid, numero, evenement, categorie, prix, dateAchat, qrPayload }
 // destinataire: email de l'acheteur
 const envoyerEmailBillet = async (destinataire, ticket) => {
-  const baseUrl = process.env.TICKET_URL || "https://senguichet.com/billet";
+  const baseUrl = process.env.TICKET_URL || "https://backend-beta-six-39.vercel.app/api/billets";
   const lienBillet = `${baseUrl}/${ticket.uuid}`;
-  const qrPayload = ticket.qrPayload || lienBillet;
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrPayload)}`;
-  const dateAchat = ticket.dateAchat ? new Date(ticket.dateAchat).toLocaleDateString("fr-FR") : "";
+  const dateDebut = ticket.dateDebut ? new Date(ticket.dateDebut).toLocaleDateString("fr-FR", {
+    day: "numeric", month: "long", year: "numeric"
+  }) : "";
+  const heureDebut = ticket.dateDebut ? new Date(ticket.dateDebut).toLocaleTimeString("fr-FR", {
+    hour: "2-digit", minute: "2-digit"
+  }) : "";
+  const dateAchat = ticket.dateAchat ? new Date(ticket.dateAchat).toLocaleDateString("fr-FR", {
+    day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
+  }) : "";
 
   const content = `
-    <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#152232" style="background-color:#152232;border-radius:16px;mso-border-radius:16px;">
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#152232" style="background-color:#152232;border-radius:16px;">
       <tr>
-        <td bgcolor="#152232" style="padding:24px;background-color:#152232;">
-          <h2 style="color:#FFFFFF;font-size:20px;margin:0 0 8px 0;font-family:Arial,Helvetica,sans-serif;text-align:center;">Votre billet est confirme !</h2>
+        <td style="padding:32px;">
 
-          <!-- TICKET CARD — design vert émeraude -->
-          <table cellpadding="0" cellspacing="0" border="0" width="340" align="center" style="border-radius:20px;mso-border-radius:20px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.15);">
-            <tr>
-              <td style="padding:0;">
-
-                <!-- HEADER — vert forêt #1B4332 -->
-                <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1B4332" style="background-color:#1B4332;">
-                  <tr>
-                    <td style="padding:24px;">
-                      <!-- Logo row -->
-                      <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                        <tr>
-                          <td style="padding:0;">
-                            <table cellpadding="0" cellspacing="0" border="0" align="left">
-                              <tr>
-                                <td style="padding:0;">
-                                  <table cellpadding="0" cellspacing="0" border="0" style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);">
-                                    <tr>
-                                      <td align="center" valign="middle" style="font-size:16px;font-weight:700;color:#D4AF37;font-family:Arial,sans-serif;text-align:center;">S</td>
-                                    </tr>
-                                  </table>
-                                </td>
-                                <td style="padding:0 0 0 10px;vertical-align:middle;">
-                                  <p style="font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.7);margin:0;font-family:Arial,sans-serif;">SENGUICHET</p>
-                                </td>
-                              </tr>
-                            </table>
-                          </td>
-                        </tr>
-                      </table>
-                      <!-- Ligne dorée -->
-                      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:16px 0;">
-                        <tr><td style="border-top:1px solid #D4AF37;font-size:0;line-height:0;opacity:.6;">&nbsp;</td></tr>
-                      </table>
-                      <!-- Nom événement -->
-                      <p style="font-size:22px;font-weight:700;color:#fff;text-align:center;letter-spacing:.5px;line-height:28px;margin:0;font-family:Arial,sans-serif;">${(ticket.evenement || '').toUpperCase()}</p>
-                      <!-- Catégorie -->
-                      <p style="font-size:10px;color:rgba(255,255,255,.5);text-align:center;letter-spacing:2px;margin:6px 0 0 0;font-family:Arial,sans-serif;">${(ticket.categorie || 'STANDARD').toUpperCase()}</p>
-                    </td>
-                  </tr>
-                </table>
-
-                <!-- PERFORATION HAUTE -->
-                <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                  <tr>
-                    <td style="height:22px;position:relative;background:linear-gradient(to bottom,#1B4332,#F9F6EE);">
-                      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="position:absolute;top:10px;left:0;">
-                        <tr>
-                          <td style="width:11px;font-size:0;">&nbsp;</td>
-                          <td style="border-top:2px dashed rgba(27,67,50,.2);font-size:0;line-height:0;">&nbsp;</td>
-                          <td style="width:11px;font-size:0;">&nbsp;</td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </table>
-
-                <!-- BODY — crème #F9F6EE -->
-                <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F9F6EE" style="background-color:#F9F6EE;">
-                  <tr>
-                    <td style="padding:20px 24px 8px;">
-                      <!-- Date/Heure row -->
-                      <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                        <tr>
-                          <td style="padding:0;">
-                            <p style="font-size:8px;font-weight:700;letter-spacing:2px;color:#40916C;margin:0;font-family:Arial,sans-serif;">DATE</p>
-                            <p style="font-size:12px;font-weight:600;color:#1B4332;margin:2px 0 0 0;font-family:Arial,sans-serif;">${dateAchat || ''}</p>
-                          </td>
-                        </tr>
-                      </table>
-                      <!-- Séparateur -->
-                      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:14px 0;">
-                        <tr><td style="border-top:1px solid rgba(27,67,50,.1);font-size:0;line-height:0;">&nbsp;</td></tr>
-                      </table>
-                      <!-- REF -->
-                      <p style="font-size:9px;color:#40916C;letter-spacing:2px;text-align:center;margin:0 0 4px 0;font-family:Arial,sans-serif;">REF · ${ticket.numero}</p>
-                      <!-- QR -->
-                      <table cellpadding="0" cellspacing="0" border="0" align="center" style="background:#fff;border-radius:12px;mso-border-radius:12px;padding:12px;margin:14px 0;border:1px solid rgba(27,67,50,.08);">
-                        <tr>
-                          <td align="center" style="padding:0;">
-                            <img src="${qrUrl}" alt="QR" width="160" height="160" style="display:block;width:160px;height:160px;" />
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </table>
-
-                <!-- PERFORATION BASSE -->
-                <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                  <tr>
-                    <td style="height:22px;position:relative;background:linear-gradient(to bottom,#F9F6EE,#F0EAD6);">
-                      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="position:absolute;top:10px;left:0;">
-                        <tr>
-                          <td style="width:11px;font-size:0;">&nbsp;</td>
-                          <td style="border-top:2px dashed rgba(27,67,50,.2);font-size:0;line-height:0;">&nbsp;</td>
-                          <td style="width:11px;font-size:0;">&nbsp;</td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </table>
-
-                <!-- FOOTER — beige #F0EAD6 -->
-                <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F0EAD6" style="background-color:#F0EAD6;border-radius:0 0 20px 20px;">
-                  <tr>
-                    <td style="padding:16px;text-align:center;">
-                      <table cellpadding="5" cellspacing="0" border="0" align="center" bgcolor="#1B4332" style="background-color:#1B4332;border-radius:999px;mso-border-radius:999px;">
-                        <tr>
-                          <td style="padding:5px 20px;font-size:9px;font-weight:700;letter-spacing:2.5px;color:#D4AF37;font-family:Arial,sans-serif;">${(ticket.categorie || 'STANDARD').toUpperCase()}</td>
-                        </tr>
-                      </table>
-                      <p style="font-size:28px;font-weight:700;color:#1B4332;text-align:center;letter-spacing:-.5px;margin:8px 0 4px 0;font-family:Arial,sans-serif;">${ticket.prix.toLocaleString()} FCFA</p>
-                      <p style="font-size:9px;color:#40916C;font-style:italic;text-align:center;margin:0;font-family:Arial,sans-serif;">Entree unique et non transferable</p>
-                    </td>
-                  </tr>
-                </table>
-
-              </td>
-            </tr>
-          </table>
-
-          <p style="color:#6B7280;font-size:12px;text-align:center;margin:16px 0 0 0;font-family:Arial,sans-serif;">REF : ${ticket.numero}</p>
-
+          <!-- Logo -->
           <table cellpadding="0" cellspacing="0" border="0" width="100%">
             <tr>
-              <td align="center" style="padding:16px 0 0 0;">
-                ${boutonCTA(lienBillet, "Voir mon billet >")}
+              <td align="center" style="padding-bottom:20px;">
+                <table cellpadding="0" cellspacing="0" border="0" style="width:48px;height:48px;border-radius:12px;background:#1B4332;">
+                  <tr>
+                    <td align="center" valign="middle" style="font-size:20px;font-weight:700;color:#D4AF37;font-family:Arial,sans-serif;">S</td>
+                  </tr>
+                </table>
               </td>
             </tr>
           </table>
 
-          <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <h2 style="color:#FFFFFF;font-size:22px;margin:0 0 4px 0;font-family:Arial,sans-serif;text-align:center;">Billet confirmé</h2>
+          <p style="color:#6B7280;font-size:14px;margin:0 0 24px 0;font-family:Arial,sans-serif;text-align:center;">${ticket.evenement || 'Événement'}</p>
+
+          <!-- Infos événement -->
+          <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#1E2A3A;border-radius:12px;">
             <tr>
-              <td style="padding:12px 12px;border-left:3px solid #FF4D6D;">
-                <p style="color:#FF4D6D;font-size:11px;margin:0;font-family:Arial,sans-serif;">Ne partagez pas votre billet. Le QR code est unique et personnel.</p>
+              <td style="padding:20px;">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr><td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;">Événement</span></td><td style="padding:4px 0;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,sans-serif;">${ticket.evenement || '—'}</span></td></tr>
+                  <tr><td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;">Date</span></td><td style="padding:4px 0;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,sans-serif;">${dateDebut || '—'}</span></td></tr>
+                  <tr><td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;">Heure</span></td><td style="padding:4px 0;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,sans-serif;">${heureDebut || '—'}</span></td></tr>
+                  <tr><td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;">Lieu</span></td><td style="padding:4px 0;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,sans-serif;">${ticket.lieu || '—'}</span></td></tr>
+                  <tr><td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;">Catégorie</span></td><td style="padding:4px 0;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,sans-serif;">${(ticket.categorie || 'STANDARD').toUpperCase()}</span></td></tr>
+                  <tr><td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;">Prix</span></td><td style="padding:4px 0;text-align:right;"><span style="color:#D4AF37;font-size:13px;font-weight:700;font-family:Arial,sans-serif;">${Number(ticket.prix).toLocaleString()} FCFA</span></td></tr>
+                  <tr><td style="padding:4px 0;border-top:1px solid #374151;padding-top:8px;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;">Référence</span></td><td style="padding:4px 0;border-top:1px solid #374151;padding-top:8px;text-align:right;"><span style="color:#D4AF37;font-size:12px;font-family:monospace;font-weight:600;">${ticket.numero}</span></td></tr>
+                </table>
               </td>
             </tr>
           </table>
+
+          <!-- CTA -->
+          <table cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr>
+              <td align="center" style="padding:24px 0 16px 0;">
+                ${boutonCTA(lienBillet, "Voir mon billet")}
+              </td>
+            </tr>
+          </table>
+
+          <!-- Sécurité -->
+          <table cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr>
+              <td style="padding:12px;border-left:3px solid #FF4D6D;background:#2A1A1A;border-radius:4px;">
+                <p style="color:#FF6B6B;font-size:11px;margin:0;font-family:Arial,sans-serif;">Ne partagez pas ce lien. Le billet est personnel et non transférable.</p>
+              </td>
+            </tr>
+          </table>
+
         </td>
       </tr>
     </table>`;
 
-  return envoyerEmail(destinataire, `Votre billet ${ticket.numero} - ${ticket.evenement}`, emailLayout(content, { preheader: `Votre billet pour ${ticket.evenement} est confirme !` }));
+  return envoyerEmail(destinataire, `Billet confirmé · ${ticket.evenement || 'SENGUICHET'}`, content);
 };
 
 // Envoie un code OTP à l'acheteur pour confirmer son email

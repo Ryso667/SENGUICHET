@@ -56,11 +56,8 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
-      const identifiant = numeroTel || profil?.email
-      if (identifiant) {
-        const data = await mesBillets(identifiant)
-        setTickets(data || [])
-      }
+      const data = await mesBillets(numeroTel, profil?.email)
+      setTickets(data || [])
       const events = await fetchEvenementsPublics()
       const formatted = events.map(formaterPourEventCard)
       setEvenements(formatted)

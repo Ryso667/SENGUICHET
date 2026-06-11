@@ -244,37 +244,31 @@ const mesBillets = async (req, res) => {
     const { telephone, email } = req.query;
     if (!telephone && !email) return res.status(400).json({ message: "Téléphone ou email requis" });
 
-    let rows;
+    // Construit dynamiquement les conditions selon les paramètres fournis
+    // Permet d'unionner les résultats par téléphone ET email simultanément
+    const conditions = [];
+    const params = [];
     if (telephone) {
-      [rows] = await pool.query(
-        `SELECT b.id, b.uuid, b.numero, b.prix_paye, b.statut, b.payload_signature, b.date_creation, b.telephone_acheteur,
-          b.evenement_id, e.titre AS evenement_titre, e.lieu AS evenement_lieu, e.date_debut,
-          ct.nom AS categorie_nom, ct.prix AS categorie_prix
-        FROM billet b
-        JOIN evenement e ON e.id = b.evenement_id
-        JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
-        WHERE b.telephone_acheteur = ?
-        ORDER BY b.date_creation DESC`,
-        [telephone]
-      );
-    } else {
-      // Recherche par email de l'acheteur
-      // 1) email_acheteur sur le billet (nouveaux achats)
-      // 2) telephone via la table acheteur (si renseigné)
-      // 3) téléphone direct (legacy)
-      [rows] = await pool.query(
-        `SELECT b.id, b.uuid, b.numero, b.prix_paye, b.statut, b.payload_signature, b.date_creation, b.telephone_acheteur,
-          b.evenement_id, e.titre AS evenement_titre, e.lieu AS evenement_lieu, e.date_debut,
-          ct.nom AS categorie_nom, ct.prix AS categorie_prix
-        FROM billet b
-        JOIN evenement e ON e.id = b.evenement_id
-        JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
-        WHERE b.email_acheteur = ?
-           OR b.telephone_acheteur IN (SELECT telephone FROM acheteur WHERE email = ? AND telephone IS NOT NULL)
-        ORDER BY b.date_creation DESC`,
-        [email, email]
-      );
+      conditions.push('b.telephone_acheteur = ?');
+      params.push(telephone);
     }
+    if (email) {
+      conditions.push('b.email_acheteur = ?');
+      conditions.push('b.telephone_acheteur IN (SELECT telephone FROM acheteur WHERE email = ? AND telephone IS NOT NULL)');
+      params.push(email, email);
+    }
+
+    const [rows] = await pool.query(
+      `SELECT DISTINCT b.id, b.uuid, b.numero, b.prix_paye, b.statut, b.payload_signature, b.date_creation, b.telephone_acheteur,
+        b.evenement_id, e.titre AS evenement_titre, e.lieu AS evenement_lieu, e.date_debut,
+        ct.nom AS categorie_nom, ct.prix AS categorie_prix
+      FROM billet b
+      JOIN evenement e ON e.id = b.evenement_id
+      JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+      WHERE (${conditions.join(' OR ')})
+      ORDER BY b.date_creation DESC`,
+      params
+    );
 
     res.json(rows.map(r => ({ ...r, statut: r.statut.toLowerCase() })));
   } catch (err) {

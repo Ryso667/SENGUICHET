@@ -37,7 +37,7 @@ export default function BlurBackground({ category, intensityOverlay = true, show
   }, [imageUrl])
 
   return (
-    <View style={StyleSheet.absoluteFill}>
+    <View style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
       <View style={styles.baseBg} />
       {imageUrl && (
         <Animated.Image
