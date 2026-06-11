@@ -47,13 +47,11 @@ export default function MesTicketsScreen() {
     setTickets(data || [])
 
     // 2. Synchro API en fond pour récupérer les tickets récents
-    setSyncing(true)
-    try {
-      const telephone = await GET('@senguichet_telephone')
-      const email = await GET('@senguichet_acheteur_email')
-      const identifiant = telephone || email
-      if (identifiant) {
-        const apiTickets = await mesBillets(identifiant)
+      setSyncing(true)
+      try {
+        const telephone = await GET('@senguichet_telephone')
+        const email = await GET('@senguichet_acheteur_email')
+        const apiTickets = await mesBillets(telephone, email)
         if (apiTickets.length > 0) {
           // Sauvegarde chaque ticket dans SQLite
           for (const t of apiTickets) {
@@ -63,7 +61,6 @@ export default function MesTicketsScreen() {
           const frais = await mesTicketsLocaux()
           setTickets(frais || [])
         }
-      }
     } catch (_) {
       // Pas de réseau — on conserve les données SQLite existantes
     } finally {

@@ -55,6 +55,11 @@ async function initTables() {
   `)
   try { await db.runAsync("ALTER TABLE tickets ADD COLUMN numero TEXT") } catch {}
   try { await db.runAsync("ALTER TABLE scans ADD COLUMN numero TEXT") } catch {}
+  try {
+    await db.runAsync(
+      "UPDATE scans SET numero = (SELECT numero FROM tickets WHERE tickets.uuid = scans.uuid_billet) WHERE numero IS NULL"
+    )
+  } catch {}
 }
 
 // Insère ou met à jour les tickets sans réinitialiser ceux déjà scannés (UTILISE_LOCAL)

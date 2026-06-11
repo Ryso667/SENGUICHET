@@ -18,17 +18,21 @@ export async function acheterBillet(evenementId, categorieTicketId, telephone, e
 
 
 // Récupère la liste des billets d'un acheteur par téléphone ou email
-// Appelle GET /api/billets/mes-billets?telephone=... ou ?email=...
+// Appelle GET /api/billets/mes-billets?telephone=...&email=...
+// Accepte téléphone + email séparément pour unionner les résultats côté API
+// Empêche la perte de tickets si l'identifiant utilisé pour la requête change en cours de session
 // Retourne un tableau de billets enrichis (nom événement, date, lieu, catégorie ticket)
-export async function mesBillets(identifiant) {
-  const telPropre = identifiant?.replace(/[^\d+]/g, '') || ''
+export async function mesBillets(telephone, email) {
   const params = new URLSearchParams()
-  if (telPropre.length > 3) {
-    params.append('telephone', telPropre)
-  } else {
-    params.append('email', identifiant)
+  if (telephone) {
+    const telPropre = telephone.replace(/[^\d+]/g, '')
+    if (telPropre.length > 3) params.append('telephone', telPropre)
+  }
+  if (email) {
+    params.append('email', email)
   }
   const query = params.toString()
+  if (!query) return []
   const data = await appelAPI(`/billets/mes-billets?${query}`)
   if (!Array.isArray(data)) return []
   return data.map(b => ({
@@ -42,7 +46,7 @@ export async function mesBillets(identifiant) {
     numero: b.numero || `TKT-${b.id}`,
     prix: b.prix_paye || 0,
     statut: (b.statut || 'EN_ATTENTE').toLowerCase(),
-    telephone: b.telephone_acheteur || identifiant,
+    telephone: b.telephone_acheteur || telephone || email,
     dateAchat: b.date_creation || '',
     qrData: b.payload_signature ? JSON.stringify({
       uuid: b.uuid,

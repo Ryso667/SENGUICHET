@@ -199,7 +199,7 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
       </tr>
     </table>`;
 
-  return envoyer(destinataire, `Billet confirmé · ${ticket.evenement || 'SENGUICHET'}`, content);
+  return envoyerEmail(destinataire, `Billet confirmé · ${ticket.evenement || 'SENGUICHET'}`, content);
 };
 
 // Envoie un code OTP à l'acheteur pour confirmer son email
