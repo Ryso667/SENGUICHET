@@ -87,7 +87,6 @@ export default function ScanHistoryScreen() {
       ],
     )
   }
-
   const { scrollY: tabScrollY } = useTabBarScroll()
 
   return (
