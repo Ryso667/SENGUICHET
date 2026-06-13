@@ -16,6 +16,7 @@ import BlurBackground, { optimiserUrlCloudinary } from '../components/BlurBackgr
 import GlassContainer from '../components/GlassContainer'
 import GlassButton from '../components/GlassButton'
 import EventCarousel from '../components/EventCarousel'
+import Skeleton from '../components/Skeleton'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { formaterPourEventCard } from '../utils/eventUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
@@ -37,6 +38,8 @@ export default function HomeScreen({ navigation }) {
   const [tickets, setTickets] = useState([])
   const [category, setCategory] = useState(null)
   const [activeEvent, setActiveEvent] = useState(null)
+  const [chargementEvenements, setChargementEvenements] = useState(true)
+  const [chargementTickets, setChargementTickets] = useState(true)
   const { deconnecter, numeroTel, profil, email } = useAuth()
   const headerSpring = useRef(new Animated.Value(0)).current
 
@@ -51,12 +54,17 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
+      setChargementTickets(true)
+      setChargementEvenements(true)
+
       // Charge les tickets depuis le cache SQLite d'abord (instantané, fonctionne hors-ligne)
       try {
         const locaux = await mesTicketsLocaux()
         if (locaux.length > 0) setTickets(locaux)
       } catch (e) {
         console.warn('[Home] Erreur chargement tickets SQLite:', e)
+      } finally {
+        setChargementTickets(false)
       }
 
       // Synchro tickets depuis l'API en fond
@@ -85,6 +93,8 @@ export default function HomeScreen({ navigation }) {
         }
       } catch (e) {
         console.warn('[Home] Erreur chargement événements:', e)
+      } finally {
+        setChargementEvenements(false)
       }
     })
     return unsubscribe
@@ -142,7 +152,16 @@ export default function HomeScreen({ navigation }) {
         </Animated.View>
 
         {/* Section événements — carousel Apple-style */}
-        {evenements.length > 0 && (
+        {chargementEvenements ? (
+          <>
+            <View style={styles.sectionHeader}>
+              <Skeleton type="text" width={140} height={20} />
+            </View>
+            <View style={styles.skeletonCarousel}>
+              <Skeleton type="event-card" />
+            </View>
+          </>
+        ) : evenements.length > 0 && (
           <>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>À découvrir</Text>
@@ -159,7 +178,16 @@ export default function HomeScreen({ navigation }) {
         )}
 
         {/* Section mes tickets */}
-        {tickets.length > 0 && (
+        {chargementTickets ? (
+          <>
+            <View style={styles.sectionHeader}>
+              <Skeleton type="text" width={120} height={20} />
+            </View>
+            <View style={styles.ticketsList}>
+              <Skeleton type="ticket-row" count={3} />
+            </View>
+          </>
+        ) : tickets.length > 0 && (
           <>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Mes tickets</Text>
@@ -267,6 +295,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary, marginVertical: spacing.lg,
   },
   eventsRow: { paddingLeft: spacing.lg, paddingRight: spacing.lg },
+  skeletonCarousel: { paddingHorizontal: spacing.lg, marginBottom: spacing.lg },
   ticketsList: { paddingHorizontal: spacing.lg, gap: spacing.sm },
   ticketCard: {
     flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12,
