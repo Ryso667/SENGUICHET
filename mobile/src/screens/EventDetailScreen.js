@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { colors, fonts } from '../constants/theme'
+import { colors, fonts, spacing, glass, textShadow, borderRadius } from '../constants/theme'
 import OrganisateurLayout from '../components/OrganisateurLayout'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
