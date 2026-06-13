@@ -2,7 +2,7 @@
 // Contacts pour contacter l'assistance
 import { View, Text, ScrollView, TouchableOpacity, Linking, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { fonts, spacing, glass, colors, borderRadius } from '../constants/theme'
+import { fonts, spacing, glass, colors } from '../constants/theme'
 import OrganisateurLayout from '../components/OrganisateurLayout'
 import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'

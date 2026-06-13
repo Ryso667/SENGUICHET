@@ -8,7 +8,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Animated, Image, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { fonts, colors, spacing, borderRadius, glass, animations } from '../constants/theme'
+import { colors } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
 import { useTabBarScroll } from '../context/TabBarScrollContext'
 import OrganisateurLayout from '../components/OrganisateurLayout'
@@ -20,13 +20,7 @@ import { formaterDateLisible } from '../utils/dateUtils'
 import { formaterPourEventCard } from '../utils/eventUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
 import { mesBillets } from '../services/billetService'
-
-const hexToRgba = (hex, a) => {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  return `rgba(${r},${g},${b},${a})`
-}
+import { hexToRgba } from '../utils/colors'
 
 const STATUTS = {
   actif: { label: 'VALIDE', color: colors.success, dot: colors.success },

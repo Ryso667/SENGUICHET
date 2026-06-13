@@ -1,10 +1,10 @@
 // Gestion des événements : liste complète calquée sur l'app web
 // Design glass (Apple Invites) — cartes avec hero image, overlay, stats
-import React, { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, gradients, spacing, borderRadius, fonts, categoryGradients } from '../../constants/theme'
+import { colors, fonts, categoryGradients } from '../../constants/theme'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
@@ -14,16 +14,7 @@ import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
-
-// Convertisseur hex → rgba pour fonds glass translucides
-const hexToRgba = (hex, a) => {
-  if (!hex || typeof hex !== 'string') return `rgba(0,0,0,${a})`
-  const clean = hex.replace('#', '')
-  const r = parseInt(clean.substring(0, 2), 16)
-  const g = parseInt(clean.substring(2, 4), 16)
-  const b = parseInt(clean.substring(4, 6), 16)
-  return `rgba(${r},${g},${b},${a})`
-}
+import { hexToRgba } from '../../utils/colors'
 
 const STATUT_CONFIG = {
   actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },

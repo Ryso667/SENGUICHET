@@ -210,8 +210,16 @@ export async function supprimerTicketLocal(uuid) {
 
 // Réinitialise les tickets locaux pour permettre un re-scan
 // Remet tous les tickets à DISPONIBLE et vide l'historique des scans
+// Utilise une transaction pour garantir l'atomicité des deux opérations
 export async function viderTickets() {
   const bd = await getDb()
-  await bd.runAsync("UPDATE tickets SET statut = 'DISPONIBLE' WHERE statut = 'UTILISE_LOCAL'")
-  await bd.runAsync('DELETE FROM scans')
+  try {
+    await bd.runAsync('BEGIN TRANSACTION')
+    await bd.runAsync("UPDATE tickets SET statut = 'DISPONIBLE' WHERE statut = 'UTILISE_LOCAL'")
+    await bd.runAsync('DELETE FROM scans')
+    await bd.runAsync('COMMIT')
+  } catch (err) {
+    await bd.runAsync('ROLLBACK')
+    throw err
+  }
 }

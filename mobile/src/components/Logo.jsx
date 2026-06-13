@@ -1,6 +1,5 @@
 // Logo officiel SENGUICHET — logo_app.jpeg (thème Cyan/Bleu)
 // Utilisé dans les écrans d'authentification et le header de l'application
-import React from 'react'
 import { View, Text, Image, StyleSheet } from 'react-native'
 import { fonts } from '../constants/theme'
 

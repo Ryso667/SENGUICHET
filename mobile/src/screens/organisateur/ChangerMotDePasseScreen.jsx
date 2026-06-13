@@ -1,10 +1,10 @@
 // Écran de changement de mot de passe de l'organisateur
 // Design glass (Apple Invites) avec animation d'entrée
-import React, { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Animated, Alert } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
-import { colors, spacing, borderRadius, fonts, glass } from '../../constants/theme'
+import { colors, fonts } from '../../constants/theme'
 import { useAuth } from '../../context/AuthContext'
 import { appelAPI } from '../../services/apiService'
 import OrganisateurLayout from '../../components/OrganisateurLayout'

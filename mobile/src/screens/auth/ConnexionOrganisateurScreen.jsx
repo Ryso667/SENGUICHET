@@ -2,7 +2,7 @@
 // Vérification via le backend — partagé avec le frontend-web
 import { useState, useEffect } from 'react'
 import {
-  View, Text, TextInput, ActivityIndicator,
+  View, Text, ActivityIndicator,
   KeyboardAvoidingView, Platform, ScrollView, StyleSheet,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'

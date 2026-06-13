@@ -14,7 +14,7 @@ export const colors = {
   accentLight: 'rgba(121, 134, 203, 0.15)',
   green: '#66BB6A',
   greenLight: 'rgba(102, 187, 106, 0.15)',
-  red: '#FF4D6D',
+  red: '#FF4D6D', // doublon de danger — conservé pour rétrocompatibilité
   violet: '#9575CD',
   orange: '#FFA726',
   cyan: '#4DD0E1',

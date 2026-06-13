@@ -6,7 +6,7 @@ import { View, Text, StyleSheet, Animated, TouchableOpacity, StatusBar, Image } 
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, fonts, spacing, borderRadius, shadows, gradients } from '../constants/theme'
+import { colors } from '../constants/theme'
 import GlassContainer from '../components/GlassContainer'
 import { useAuth } from '../context/AuthContext'
 

@@ -1,7 +1,7 @@
 // Statistiques Premium pour l'organisateur
 // Design glass (Apple Invites)
-import React, { useState, useEffect, useMemo } from 'react'
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native'
+import { useState, useEffect, useMemo } from 'react'
+import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BarChart, PieChart } from 'react-native-chart-kit'

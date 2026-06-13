@@ -1,7 +1,7 @@
 // Historique des scans effectués par le contrôleur
 // Statistiques par statut, liste chronologique, synchro offline
 import { useState, useEffect, useCallback } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl, Alert } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { formaterDateHeure } from '../../utils/dateUtils'
@@ -74,6 +74,20 @@ export default function ScanHistoryScreen() {
     }
   }
 
+  const handleVider = () => {
+    Alert.alert(
+      'Vider l\'historique',
+      'Cette action remet tous les tickets à DISPONIBLE et efface l\'historique des scans. Les scans non synchronisés seront perdus.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Vider', style: 'destructive',
+          onPress: async () => { await reinitialiser(); charger() },
+        },
+      ],
+    )
+  }
+
   const { scrollY: tabScrollY } = useTabBarScroll()
 
   return (
@@ -138,7 +152,7 @@ export default function ScanHistoryScreen() {
               </>
             )}
           </TouchableOpacity>
-          <GlassButton title="Vider" icon="trash-2" onPress={() => { reinitialiser(); charger() }} style={{flex: 1}} />
+          <GlassButton title="Vider" icon="trash-2" onPress={handleVider} style={{flex: 1}} />
         </View>
 
         {downloadMsg && (

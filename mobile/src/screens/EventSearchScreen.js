@@ -6,7 +6,7 @@ import { View, Text, TextInput, FlatList, StyleSheet, useWindowDimensions, Scrol
 import { useFocusEffect } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { fonts, spacing, glass, colors } from '../constants/theme'
+import { fonts, spacing, colors } from '../constants/theme'
 import OrganisateurLayout from '../components/OrganisateurLayout'
 import BlurBackground, { optimiserUrlCloudinary } from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
