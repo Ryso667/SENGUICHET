@@ -45,7 +45,7 @@ export default function InputOTP({ longueur = 6, onComplet }) {
           style={[styles.case, val ? styles.caseRemplie : null]}
           value={val}
           onChangeText={(t) => handleChangement(t, i)}
-          onPress={() => handleTouche(i)}
+          onFocus={() => handleTouche(i)}
           keyboardType="number-pad"
           maxLength={1}
           selectTextOnFocus

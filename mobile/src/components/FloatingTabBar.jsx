@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Text, TouchableOpacity, Animated, StyleSheet, Platform, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BlurView } from 'expo-blur'
-import { colors, fonts, shadows } from '../constants/theme'
+import { colors, fonts } from '../constants/theme'
 import { hapticLight } from '../utils/haptics'
 import { useTabBarScroll } from '../context/TabBarScrollContext'
 

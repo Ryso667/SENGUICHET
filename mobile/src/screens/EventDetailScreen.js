@@ -11,6 +11,8 @@ import {
 } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
+import { BlurView } from 'expo-blur'
+import MaskedView from '@react-native-masked-view/masked-view'
 import { colors, fonts, spacing, glass, textShadow, borderRadius } from '../constants/theme'
 import OrganisateurLayout from '../components/OrganisateurLayout'
 import BlurBackground from '../components/BlurBackground'

@@ -3,6 +3,7 @@
 // Étape 2 : vérification par code OTP à 6 chiffres reçu par email
 import { useState, useRef, useEffect } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, ScrollView, InputAccessoryView } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { colors, fonts, gradients, glass, spacing, borderRadius as br } from '../../constants/theme'

@@ -34,7 +34,7 @@ export async function fetchEvenementsAPI() {
 // Crée un événement via le backend
 // data : { nom, date, dateFin, lieu, ville, heure, categorie, description, categories }
 export async function creerEvenementAPI(data) {
-  const capacite = data.categories.reduce((sum, c) => sum + Number(c.capacite), 0)
+  const capacite = (data.categories || []).reduce((sum, c) => sum + Number(c.capacite), 0)
   const body = {
     titre: data.nom,
     description: data.description || '',
@@ -93,7 +93,7 @@ export async function fetchEvenementDetailAPI(id) {
 
 // Modifie un événement via le backend
 export async function modifierEvenementAPI(id, data) {
-  const capacite = data.categories.reduce((sum, c) => sum + Number(c.capacite), 0)
+  const capacite = (data.categories || []).reduce((sum, c) => sum + Number(c.capacite), 0)
   const body = {
     titre: data.nom,
     description: data.description || '',

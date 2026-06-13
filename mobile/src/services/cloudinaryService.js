@@ -11,26 +11,43 @@ const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`
  * @returns {Promise<string>} URL sécurisée de l'image uploadée
  */
 export const uploadImage = async (asset) => {
-  const formData = new FormData()
-  
-  // React Native nécessite un objet avec uri/type/name pour le champ file
-  formData.append('file', {
-    uri: asset.uri,
-    type: asset.mimeType || 'image/jpeg',
-    name: asset.fileName || 'photo.jpg',
-  })
-  formData.append('upload_preset', UPLOAD_PRESET)
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 15000)
 
-  const res = await fetch(UPLOAD_URL, {
-    method: 'POST',
-    body: formData,
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  try {
+    const formData = new FormData()
+    
+    // React Native nécessite un objet uri/type/name pour le champ file
+    formData.append('file', {
+      uri: asset.uri,
+      type: asset.mimeType || 'image/jpeg',
+      name: asset.fileName || 'photo.jpg',
+    })
+    formData.append('upload_preset', UPLOAD_PRESET)
 
-  if (!res.ok) {
-    const err = await res.text()
-    throw new Error(`Upload Cloudinary échoué: ${err}`)
+    const res = await fetch(UPLOAD_URL, {
+      method: 'POST',
+      body: formData,
+      headers: { 'Content-Type': 'multipart/form-data' },
+      signal: controller.signal,
+    })
+
+    if (!res.ok) {
+      const err = await res.text()
+      throw new Error(`Upload Cloudinary échoué: ${err}`)
+    }
+
+    const data = await res.json()
+    return data.secure_url
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error('Upload annulé (délai de 15s dépassé)')
+    }
+    throw new Error(`Échec upload: ${err.message}`)
+  } finally {
+    clearTimeout(timeout)
   }
+}
 
   const data = await res.json()
   return data.secure_url

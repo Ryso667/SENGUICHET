@@ -41,6 +41,7 @@ export async function mesBillets(telephone, email) {
     eventId: b.evenement_id,
     eventNom: b.evenement_titre || '',
     eventDate: b.date_debut || '',
+    eventHeure: b.heure_debut || b.event_heure || '',
     eventLieu: b.evenement_lieu || '',
     categorie: b.categorie_nom || '',
     numero: b.numero || `TKT-${b.id}`,

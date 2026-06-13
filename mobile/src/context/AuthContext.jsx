@@ -1,6 +1,6 @@
 // Contexte global d'authentification
 // Gère 3 rôles : acheteur (social Google/Apple), controleur (code 4 chiffres), organisateur (email+mdp)
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useMemo } from 'react'
 import { Alert } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as LocalAuthentication from 'expo-local-authentication'
@@ -25,11 +25,16 @@ const STORAGE_KEY_EVENEMENT_ID = '@senguichet_evenement_id'
 const STORAGE_KEY_EVENEMENT_TITRE = '@senguichet_evenement_titre'
 
 // Décode le payload d'un JWT sans vérifier la signature (lecture seule des claims)
-// Convertit base64url → base64 avant de décoder (les JWT utilisent base64url)
+// Convertit base64url → base64 avec padding avant de décoder
+// Évite atob() qui n'existe pas en React Native — utilise Buffer si dispo
 const decoderJWT = (token) => {
   try {
     const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-    return JSON.parse(atob(base64))
+    const padding = base64.length % 4 === 0 ? '' : '='.repeat(4 - base64.length % 4)
+    const decoded = typeof atob !== 'undefined'
+      ? atob(base64 + padding)
+      : Buffer.from(base64 + padding, 'base64').toString('utf8')
+    return JSON.parse(decoded)
   } catch {
     return {}
   }
@@ -115,7 +120,7 @@ export function AuthProvider({ children }) {
   // Connexion acheteur (ancien flow OTP, conservé pour compatibilité)
   const connecterAcheteur = async (tel) => {
     await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'acheteur')
-    await AsyncStorage.setItem(STORAGE_KEY_NUMERO, tel)
+    await Securite.SET(STORAGE_KEY_NUMERO, tel)
     setNumeroTel(tel)
     setRole('acheteur')
   }
@@ -165,6 +170,9 @@ export function AuthProvider({ children }) {
   // Vérifie le code OTP via le backend, stocke le JWT retourné
   const connecterAcheteurOTP = async (email, code) => {
     const data = await verifierCodeOTPAPI(email, code)
+    if (!data || !data.token) {
+      throw new Error('Réponse API invalide : token manquant')
+    }
     const { token, user } = data
     await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'acheteur')
     await Securite.SET(STORAGE_KEY_ACHETEUR_EMAIL, email)
@@ -203,6 +211,8 @@ export function AuthProvider({ children }) {
       STORAGE_KEY_ROLE,
       STORAGE_KEY_ACHETEUR_PIN,
       STORAGE_KEY_BIOMETRIC_EMAIL,
+      STORAGE_KEY_ORGA_EMAIL_SUGGESTION,
+      STORAGE_KEY_ACHETEUR_EMAIL_SUGGESTION,
     ])
     await Securite.SUPPRIMER(STORAGE_KEY_NUMERO)
     await Securite.SUPPRIMER(STORAGE_KEY_JWT)
@@ -222,6 +232,8 @@ export function AuthProvider({ children }) {
     setEvenementTitre(null)
     setHasSavedSession(false)
     setSessionEmail(null)
+    setOrgaEmailSuggestion(null)
+    setAcheteurEmailSuggestion(null)
   }
 
   const deconnecter = () => {
@@ -239,33 +251,38 @@ export function AuthProvider({ children }) {
     )
   }
 
+  const value = useMemo(() => ({
+    role,
+    numeroTel,
+    jwt,
+    email,
+    user,
+    profil,
+    evenementId,
+    evenementTitre,
+    chargement,
+    connecterAcheteur,
+    connecterAcheteurOTP,
+    definirTelephone,
+    connecterControleur,
+    connecterOrganisateur,
+    deconnecter,
+    nettoyerSession,
+    tenterBiometrie,
+    hasSavedSession,
+    sessionEmail,
+    orgaEmailSuggestion,
+    acheteurEmailSuggestion,
+    estConnecte: role !== null,
+  }), [
+    role, numeroTel, jwt, email, user, profil,
+    evenementId, evenementTitre, chargement,
+    hasSavedSession, sessionEmail,
+    orgaEmailSuggestion, acheteurEmailSuggestion,
+  ])
+
   return (
-    <AuthContext.Provider
-      value={{
-        role,
-        numeroTel,
-        jwt,
-        email,
-        user,
-        profil,
-        evenementId,
-        evenementTitre,
-        chargement,
-        connecterAcheteur,
-        connecterAcheteurOTP,
-        definirTelephone,
-        connecterControleur,
-        connecterOrganisateur,
-        deconnecter,
-        nettoyerSession,
-        tenterBiometrie,
-        hasSavedSession,
-        sessionEmail,
-        orgaEmailSuggestion,
-        acheteurEmailSuggestion,
-        estConnecte: role !== null,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )
