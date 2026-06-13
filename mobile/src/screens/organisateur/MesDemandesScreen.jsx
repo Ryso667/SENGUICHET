@@ -5,7 +5,7 @@ import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshCon
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, fonts } from '../../constants/theme'
+import { colors, fonts, gradients, spacing } from '../../constants/theme'
 import { listerMesDemandes, soumettreDemandeEvenement, fetchEvenementsAPI } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
 import * as ImagePicker from 'expo-image-picker'

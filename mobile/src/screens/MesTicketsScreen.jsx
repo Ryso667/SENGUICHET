@@ -9,7 +9,8 @@ import { colors, fonts, spacing } from '../constants/theme'
 import OrganisateurLayout from '../components/OrganisateurLayout'
 import BlurBackground from '../components/BlurBackground'
 import StatusBadge from '../components/StatusBadge'
-import { mesTicketsLocaux } from '../database/database'
+import Skeleton from '../components/Skeleton'
+import { mesTicketsLocaux, sauvegarderTicketAcheteur } from '../database/database'
 import { useTabBarScroll } from '../context/TabBarScrollContext'
 import { mesBillets } from '../services/billetService'
 import { GET } from '../utils/secureStorage'
@@ -38,29 +39,32 @@ export default function MesTicketsScreen() {
   const navigation = useNavigation()
   const [tickets, setTickets] = useState([])
   const [syncing, setSyncing] = useState(false)
+  const [chargement, setChargement] = useState(true)
   const categoryForBg = tickets[0]?.categorie || null
 
   // Charge les tickets depuis SQLite, puis synchronise avec l'API
   const loadTickets = useCallback(async () => {
+    setChargement(true)
     // 1. Affichage immédiat depuis le cache SQLite (hors-ligne)
     const data = await mesTicketsLocaux()
     setTickets(data || [])
+    setChargement(false)
 
     // 2. Synchro API en fond pour récupérer les tickets récents
-      setSyncing(true)
-      try {
-        const telephone = await GET('@senguichet_telephone')
-        const email = await GET('@senguichet_acheteur_email')
-        const apiTickets = await mesBillets(telephone, email)
-        if (apiTickets.length > 0) {
-          // Sauvegarde chaque ticket dans SQLite
-          for (const t of apiTickets) {
-            await sauvegarderTicketAcheteur(t)
-          }
-          // Recharge depuis SQLite pour avoir les données à jour
-          const frais = await mesTicketsLocaux()
-          setTickets(frais || [])
+    setSyncing(true)
+    try {
+      const telephone = await GET('@senguichet_telephone')
+      const email = await GET('@senguichet_acheteur_email')
+      const apiTickets = await mesBillets(telephone, email)
+      if (apiTickets.length > 0) {
+        // Sauvegarde chaque ticket dans SQLite
+        for (const t of apiTickets) {
+          await sauvegarderTicketAcheteur(t)
         }
+        // Recharge depuis SQLite pour avoir les données à jour
+        const frais = await mesTicketsLocaux()
+        setTickets(frais || [])
+      }
     } catch (_) {
       // Pas de réseau — on conserve les données SQLite existantes
     } finally {
@@ -138,45 +142,53 @@ export default function MesTicketsScreen() {
           </View>
         </View>
 
-        <FlatList
-          data={tickets}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.numero || item.uuid}
-          contentContainerStyle={styles.list}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          refreshControl={
-            <RefreshControl
-              refreshing={syncing}
-              onRefresh={loadTickets}
-              tintColor="#FFFFFF"
-              colors={["#FFFFFF"]}
-              progressBackgroundColor={colors.surface}
-            />
-          }
-          onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
-          scrollEventThrottle={16}
-          ListEmptyComponent={
-            !syncing ? (
-              <View style={styles.emptyContainer}>
-                <Ionicons name="ticket-outline" size={80} color="rgba(255,255,255,0.5)" />
-                <Text style={styles.emptyTitle}>Aucun billet pour le moment</Text>
-                <Text style={styles.emptySubtitle}>
-                  Explore les événements et achète ton premier billet
-                </Text>
-                <TouchableOpacity
-                  style={styles.emptyCta}
-                  onPress={() => {
-                    hapticLight()
-                    navigation.navigate('Home')
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.emptyCtaText}>Explorer</Text>
-                </TouchableOpacity>
-              </View>
-            ) : null
-          }
-        />
+        {chargement && tickets.length === 0 ? (
+          <View style={styles.list}>
+            <Skeleton type="ticket-row" count={5} />
+          </View>
+        ) : (
+          <FlatList
+            data={tickets}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.numero || item.uuid}
+            contentContainerStyle={styles.list}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            removeClippedSubviews
+            windowSize={5}
+            refreshControl={
+              <RefreshControl
+                refreshing={syncing}
+                onRefresh={loadTickets}
+                tintColor="#FFFFFF"
+                colors={["#FFFFFF"]}
+                progressBackgroundColor={colors.surface}
+              />
+            }
+            onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
+            scrollEventThrottle={16}
+            ListEmptyComponent={
+              !syncing ? (
+                <View style={styles.emptyContainer}>
+                  <Ionicons name="ticket-outline" size={80} color="rgba(255,255,255,0.5)" />
+                  <Text style={styles.emptyTitle}>Aucun billet pour le moment</Text>
+                  <Text style={styles.emptySubtitle}>
+                    Explore les événements et achète ton premier billet
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.emptyCta}
+                    onPress={() => {
+                      hapticLight()
+                      navigation.navigate('Home')
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.emptyCtaText}>Explorer</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null
+            }
+          />
+        )}
       </View>
     </View>
   )

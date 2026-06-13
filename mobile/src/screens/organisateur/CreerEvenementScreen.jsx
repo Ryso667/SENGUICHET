@@ -9,7 +9,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
-import { colors, fonts } from '../../constants/theme'
+import { colors, fonts, spacing } from '../../constants/theme'
 import { creerEvenementAPI } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
 import OrganisateurLayout from '../../components/OrganisateurLayout'

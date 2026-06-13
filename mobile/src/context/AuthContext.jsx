@@ -1,6 +1,6 @@
 // Contexte global d'authentification
 // Gère 3 rôles : acheteur (social Google/Apple), controleur (code 4 chiffres), organisateur (email+mdp)
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useMemo } from 'react'
 import { Alert } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as LocalAuthentication from 'expo-local-authentication'
@@ -25,11 +25,16 @@ const STORAGE_KEY_EVENEMENT_ID = '@senguichet_evenement_id'
 const STORAGE_KEY_EVENEMENT_TITRE = '@senguichet_evenement_titre'
 
 // Décode le payload d'un JWT sans vérifier la signature (lecture seule des claims)
-// Convertit base64url → base64 avant de décoder (les JWT utilisent base64url)
+// Convertit base64url → base64 avec padding avant de décoder
+// Évite atob() qui n'existe pas en React Native — utilise Buffer si dispo
 const decoderJWT = (token) => {
   try {
     const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-    return JSON.parse(atob(base64))
+    const padding = base64.length % 4 === 0 ? '' : '='.repeat(4 - base64.length % 4)
+    const decoded = typeof atob !== 'undefined'
+      ? atob(base64 + padding)
+      : Buffer.from(base64 + padding, 'base64').toString('utf8')
+    return JSON.parse(decoded)
   } catch {
     return {}
   }
@@ -67,7 +72,18 @@ export function AuthProvider({ children }) {
         if (token) setJwt(token)
         if (tel) setNumeroTel(tel)
         if (acheteurEmail) setEmail(acheteurEmail)
-        if (profilData) setProfil(JSON.parse(profilData))
+        if (profilData) {
+          try {
+            setProfil(JSON.parse(profilData))
+          } catch (e) {
+            console.warn('[Auth] Erreur parsing profil acheteur — reconstruction depuis email:', e)
+            // Reconstruit le profil depuis l'email si le JSON est corrompu
+            if (acheteurEmail) {
+              const nom = acheteurEmail.split('@')[0].replace(/\d+$/, '')
+              setProfil({ nom, email: acheteurEmail })
+            }
+          }
+        }
         setRole('acheteur')
       } else if (roleStocke === 'controleur') {
         const token = await Securite.GET(STORAGE_KEY_JWT)
@@ -85,12 +101,16 @@ export function AuthProvider({ children }) {
         const userData = await Securite.GET(STORAGE_KEY_USER)
         console.log('[Auth] token:', !!token, 'userData:', !!userData)
         if (token && userData) {
-          const parsed = JSON.parse(userData)
-          console.log('[Auth] organisateur restauré:', parsed.email)
-          setUser(parsed)
-          setJwt(token)
-          setEmail(parsed.email)
-          setRole('organisateur')
+          try {
+            const parsed = JSON.parse(userData)
+            console.log('[Auth] organisateur restauré:', parsed.email)
+            setUser(parsed)
+            setJwt(token)
+            setEmail(parsed.email)
+            setRole('organisateur')
+          } catch (e) {
+            console.warn('[Auth] Erreur parsing userData organisateur:', e)
+          }
         } else {
           console.log('[Auth] données manquantes pour restaurer organisateur')
         }
@@ -104,9 +124,10 @@ export function AuthProvider({ children }) {
 
       const orgaEmail = await AsyncStorage.getItem(STORAGE_KEY_ORGA_EMAIL_SUGGESTION)
       if (orgaEmail) setOrgaEmailSuggestion(orgaEmail)
-      const acheteurEmail = await AsyncStorage.getItem(STORAGE_KEY_ACHETEUR_EMAIL_SUGGESTION)
-      if (acheteurEmail) setAcheteurEmailSuggestion(acheteurEmail)
-    } catch {
+      const acheteurEmailSuggest = await AsyncStorage.getItem(STORAGE_KEY_ACHETEUR_EMAIL_SUGGESTION)
+      if (acheteurEmailSuggest) setAcheteurEmailSuggestion(acheteurEmailSuggest)
+    } catch (e) {
+      console.warn('[Auth] Erreur générale restauration session:', e)
     } finally {
       setChargement(false)
     }
@@ -115,7 +136,7 @@ export function AuthProvider({ children }) {
   // Connexion acheteur (ancien flow OTP, conservé pour compatibilité)
   const connecterAcheteur = async (tel) => {
     await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'acheteur')
-    await AsyncStorage.setItem(STORAGE_KEY_NUMERO, tel)
+    await Securite.SET(STORAGE_KEY_NUMERO, tel)
     setNumeroTel(tel)
     setRole('acheteur')
   }
@@ -165,6 +186,9 @@ export function AuthProvider({ children }) {
   // Vérifie le code OTP via le backend, stocke le JWT retourné
   const connecterAcheteurOTP = async (email, code) => {
     const data = await verifierCodeOTPAPI(email, code)
+    if (!data || !data.token) {
+      throw new Error('Réponse API invalide : token manquant')
+    }
     const { token, user } = data
     await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'acheteur')
     await Securite.SET(STORAGE_KEY_ACHETEUR_EMAIL, email)
@@ -173,6 +197,10 @@ export function AuthProvider({ children }) {
     const nom = email.split('@')[0].replace(/\d+$/, '')
     const profilData = { nom, email }
     await Securite.SET(STORAGE_KEY_PROFIL, JSON.stringify(profilData))
+    if (user?.telephone) {
+      await Securite.SET(STORAGE_KEY_NUMERO, user.telephone)
+      setNumeroTel(user.telephone)
+    }
     setEmail(email)
     setJwt(token)
     setProfil(profilData)
@@ -203,6 +231,8 @@ export function AuthProvider({ children }) {
       STORAGE_KEY_ROLE,
       STORAGE_KEY_ACHETEUR_PIN,
       STORAGE_KEY_BIOMETRIC_EMAIL,
+      STORAGE_KEY_ORGA_EMAIL_SUGGESTION,
+      STORAGE_KEY_ACHETEUR_EMAIL_SUGGESTION,
     ])
     await Securite.SUPPRIMER(STORAGE_KEY_NUMERO)
     await Securite.SUPPRIMER(STORAGE_KEY_JWT)
@@ -222,6 +252,8 @@ export function AuthProvider({ children }) {
     setEvenementTitre(null)
     setHasSavedSession(false)
     setSessionEmail(null)
+    setOrgaEmailSuggestion(null)
+    setAcheteurEmailSuggestion(null)
   }
 
   const deconnecter = () => {
@@ -239,33 +271,38 @@ export function AuthProvider({ children }) {
     )
   }
 
+  const value = useMemo(() => ({
+    role,
+    numeroTel,
+    jwt,
+    email,
+    user,
+    profil,
+    evenementId,
+    evenementTitre,
+    chargement,
+    connecterAcheteur,
+    connecterAcheteurOTP,
+    definirTelephone,
+    connecterControleur,
+    connecterOrganisateur,
+    deconnecter,
+    nettoyerSession,
+    tenterBiometrie,
+    hasSavedSession,
+    sessionEmail,
+    orgaEmailSuggestion,
+    acheteurEmailSuggestion,
+    estConnecte: role !== null,
+  }), [
+    role, numeroTel, jwt, email, user, profil,
+    evenementId, evenementTitre, chargement,
+    hasSavedSession, sessionEmail,
+    orgaEmailSuggestion, acheteurEmailSuggestion,
+  ])
+
   return (
-    <AuthContext.Provider
-      value={{
-        role,
-        numeroTel,
-        jwt,
-        email,
-        user,
-        profil,
-        evenementId,
-        evenementTitre,
-        chargement,
-        connecterAcheteur,
-        connecterAcheteurOTP,
-        definirTelephone,
-        connecterControleur,
-        connecterOrganisateur,
-        deconnecter,
-        nettoyerSession,
-        tenterBiometrie,
-        hasSavedSession,
-        sessionEmail,
-        orgaEmailSuggestion,
-        acheteurEmailSuggestion,
-        estConnecte: role !== null,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )

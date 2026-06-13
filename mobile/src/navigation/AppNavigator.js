@@ -1,8 +1,8 @@
 // Navigation principale de l'application
 // 3 piles distinctes selon le rôle : acheteur / controleur / organisateur
 // Les écrans non-connectés (auth) sont affichés quand aucun rôle n'est actif
-import { useRef, useEffect, useState, useCallback } from 'react'
-import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Platform, Image } from 'react-native'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Image } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { NavigationContainer, useFocusEffect, createNavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
@@ -10,6 +10,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '../context/AuthContext'
 import { colors, fonts } from '../constants/theme'
+import { listerMesDemandes } from '../services/eventService'
 import FloatingTabBar from '../components/FloatingTabBar'
 import { TabBarScrollProvider } from '../context/TabBarScrollContext'
 
@@ -157,11 +158,11 @@ function AcheteurTabs() {
 // Onglets organisateur : 4 tabs
 function OrganisateurTabs() {
   const { deconnecter } = useAuth()
-  const [demandesCount, setDemandesCount] = React.useState(0)
-  const badgeRef = React.useRef(false)
+  const [demandesCount, setDemandesCount] = useState(0)
+  const badgeRef = useRef(false)
 
   // Au premier montage : badge = nombre de demandes en attente
-  React.useEffect(() => {
+  useEffect(() => {
     (async () => {
       try {
         const data = await listerMesDemandes()
@@ -173,7 +174,7 @@ function OrganisateurTabs() {
 
   // Dès qu'on arrive sur l'onglet MesDemandes : badge disparaît
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       setDemandesCount(0)
     }, [])
   )
