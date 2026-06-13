@@ -72,7 +72,18 @@ export function AuthProvider({ children }) {
         if (token) setJwt(token)
         if (tel) setNumeroTel(tel)
         if (acheteurEmail) setEmail(acheteurEmail)
-        if (profilData) setProfil(JSON.parse(profilData))
+        if (profilData) {
+          try {
+            setProfil(JSON.parse(profilData))
+          } catch (e) {
+            console.warn('[Auth] Erreur parsing profil acheteur — reconstruction depuis email:', e)
+            // Reconstruit le profil depuis l'email si le JSON est corrompu
+            if (acheteurEmail) {
+              const nom = acheteurEmail.split('@')[0].replace(/\d+$/, '')
+              setProfil({ nom, email: acheteurEmail })
+            }
+          }
+        }
         setRole('acheteur')
       } else if (roleStocke === 'controleur') {
         const token = await Securite.GET(STORAGE_KEY_JWT)
@@ -90,12 +101,16 @@ export function AuthProvider({ children }) {
         const userData = await Securite.GET(STORAGE_KEY_USER)
         console.log('[Auth] token:', !!token, 'userData:', !!userData)
         if (token && userData) {
-          const parsed = JSON.parse(userData)
-          console.log('[Auth] organisateur restauré:', parsed.email)
-          setUser(parsed)
-          setJwt(token)
-          setEmail(parsed.email)
-          setRole('organisateur')
+          try {
+            const parsed = JSON.parse(userData)
+            console.log('[Auth] organisateur restauré:', parsed.email)
+            setUser(parsed)
+            setJwt(token)
+            setEmail(parsed.email)
+            setRole('organisateur')
+          } catch (e) {
+            console.warn('[Auth] Erreur parsing userData organisateur:', e)
+          }
         } else {
           console.log('[Auth] données manquantes pour restaurer organisateur')
         }
@@ -109,9 +124,10 @@ export function AuthProvider({ children }) {
 
       const orgaEmail = await AsyncStorage.getItem(STORAGE_KEY_ORGA_EMAIL_SUGGESTION)
       if (orgaEmail) setOrgaEmailSuggestion(orgaEmail)
-      const acheteurEmail = await AsyncStorage.getItem(STORAGE_KEY_ACHETEUR_EMAIL_SUGGESTION)
-      if (acheteurEmail) setAcheteurEmailSuggestion(acheteurEmail)
-    } catch {
+      const acheteurEmailSuggest = await AsyncStorage.getItem(STORAGE_KEY_ACHETEUR_EMAIL_SUGGESTION)
+      if (acheteurEmailSuggest) setAcheteurEmailSuggestion(acheteurEmailSuggest)
+    } catch (e) {
+      console.warn('[Auth] Erreur générale restauration session:', e)
     } finally {
       setChargement(false)
     }
@@ -181,6 +197,10 @@ export function AuthProvider({ children }) {
     const nom = email.split('@')[0].replace(/\d+$/, '')
     const profilData = { nom, email }
     await Securite.SET(STORAGE_KEY_PROFIL, JSON.stringify(profilData))
+    if (user?.telephone) {
+      await Securite.SET(STORAGE_KEY_NUMERO, user.telephone)
+      setNumeroTel(user.telephone)
+    }
     setEmail(email)
     setJwt(token)
     setProfil(profilData)

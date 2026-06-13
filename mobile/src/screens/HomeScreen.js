@@ -20,6 +20,7 @@ import { formaterDateLisible } from '../utils/dateUtils'
 import { formaterPourEventCard } from '../utils/eventUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
 import { mesBillets } from '../services/billetService'
+import { mesTicketsLocaux, sauvegarderTicketAcheteur } from '../database/database'
 import { hexToRgba } from '../utils/colors'
 
 const STATUTS = {
@@ -50,16 +51,40 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
-      const data = await mesBillets(numeroTel, profil?.email)
-      setTickets(data || [])
-      const events = await fetchEvenementsPublics()
-      const formatted = events.map(formaterPourEventCard)
-      setEvenements(formatted)
-      if (formatted.length > 0) {
-        setCategory(formatted[0].category)
-        setActiveEvent(formatted[0])
-        // Précharge TOUTES les images dès le chargement pour éviter le délai au swipe
-        formatted.forEach(ev => { if (ev.affiche_url) Image.prefetch(optimiserUrlCloudinary(ev.affiche_url)) })
+      // Charge les tickets depuis le cache SQLite d'abord (instantané, fonctionne hors-ligne)
+      try {
+        const locaux = await mesTicketsLocaux()
+        if (locaux.length > 0) setTickets(locaux)
+      } catch (e) {
+        console.warn('[Home] Erreur chargement tickets SQLite:', e)
+      }
+
+      // Synchro tickets depuis l'API en fond
+      try {
+        const data = await mesBillets(numeroTel, profil?.email)
+        if (data.length > 0) {
+          for (const t of data) {
+            try { await sauvegarderTicketAcheteur(t) } catch (_) {}
+          }
+          setTickets(data)
+        }
+      } catch (e) {
+        console.warn('[Home] Erreur synchro tickets API:', e)
+      }
+
+      // Charge les événements publics depuis l'API
+      try {
+        const events = await fetchEvenementsPublics()
+        const formatted = events.map(formaterPourEventCard)
+        setEvenements(formatted)
+        if (formatted.length > 0) {
+          setCategory(formatted[0].category)
+          setActiveEvent(formatted[0])
+          // Précharge TOUTES les images dès le chargement pour éviter le délai au swipe
+          formatted.forEach(ev => { if (ev.affiche_url) Image.prefetch(optimiserUrlCloudinary(ev.affiche_url)) })
+        }
+      } catch (e) {
+        console.warn('[Home] Erreur chargement événements:', e)
       }
     })
     return unsubscribe

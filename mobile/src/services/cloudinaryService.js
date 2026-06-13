@@ -47,8 +47,5 @@ export const uploadImage = async (asset) => {
   } finally {
     clearTimeout(timeout)
   }
-}
 
-  const data = await res.json()
-  return data.secure_url
 }
