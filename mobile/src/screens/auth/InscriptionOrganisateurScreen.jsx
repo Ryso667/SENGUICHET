@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import {
   View, Text, TextInput, ActivityIndicator,
-  KeyboardAvoidingView, Platform, StyleSheet, Alert,
+  KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Alert,
 } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
