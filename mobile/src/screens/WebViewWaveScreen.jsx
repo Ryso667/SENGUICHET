@@ -7,7 +7,7 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-na
 import { WebView } from 'react-native-webview'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { fonts, colors, gradients, spacing, borderRadius, shadows } from '../constants/theme'
+import { fonts, colors, gradients, spacing, borderRadius } from '../constants/theme'
 import OrganisateurLayout from '../components/OrganisateurLayout'
 import { statutPaiement } from '../services/paiementService'
 import { sauvegarderTicketAcheteur } from '../database/database'

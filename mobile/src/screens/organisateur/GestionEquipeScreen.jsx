@@ -1,6 +1,6 @@
 // Écran de gestion d'équipe (contrôleurs + code d'accès)
 // Design glass (Apple Invites)
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'

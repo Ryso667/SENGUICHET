@@ -1,7 +1,7 @@
 // Navigation principale de l'application
 // 3 piles distinctes selon le rôle : acheteur / controleur / organisateur
 // Les écrans non-connectés (auth) sont affichés quand aucun rôle n'est actif
-import React, { useRef, useEffect, useState, useCallback } from 'react'
+import { useRef, useEffect, useState, useCallback } from 'react'
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Platform, Image } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { NavigationContainer, useFocusEffect, createNavigationContainerRef } from '@react-navigation/native'
@@ -9,10 +9,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '../context/AuthContext'
-import { hapticLight } from '../utils/haptics'
-import { listerMesDemandes } from '../services/eventService'
-import { API_BASE_URL } from '../config'
-import { colors, fonts, glass } from '../constants/theme'
+import { colors, fonts } from '../constants/theme'
 import FloatingTabBar from '../components/FloatingTabBar'
 import { TabBarScrollProvider } from '../context/TabBarScrollContext'
 

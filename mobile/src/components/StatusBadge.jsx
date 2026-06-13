@@ -1,14 +1,8 @@
 // Badge de statut réutilisable pour événements et demandes
 // Props : status (ACTIF/EN_ATTENTE/VALIDE/TERMINE/ANNULE/EN_COURS/ACCEPTEE/REJETEE)
 import { View, Text, StyleSheet } from 'react-native'
+import { hexToRgba } from '../utils/colors'
 import { colors } from '../constants/theme'
-
-const hexToRgba = (hex, a) => {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  return `rgba(${r},${g},${b},${a})`
-}
 
 const CONFIG = {
   ACTIF: { label: 'ACTIF', color: colors.green, bg: hexToRgba(colors.green, 0.15) },

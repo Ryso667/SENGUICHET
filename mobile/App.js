@@ -1,7 +1,7 @@
 // Point d'entrée principal de l'application SENGUICHET
 // Charge les polices, initialise SplashScreen et rend le AuthProvider + AppNavigator
 import { useCallback } from 'react'
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native'
+import { View, ActivityIndicator, StyleSheet } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useFonts, Outfit_400Regular, Outfit_600SemiBold, Outfit_700Bold, Outfit_800ExtraBold, Outfit_900Black } from '@expo-google-fonts/outfit'

@@ -1,6 +1,6 @@
 // Consultation des tickets d'un événement (lecture seule)
 // Design glass (Apple Invites)
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, spacing, borderRadius, fonts } from '../../constants/theme'

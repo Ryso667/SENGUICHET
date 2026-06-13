@@ -1,10 +1,10 @@
 // Tableau de bord organisateur (calqué sur l'app web)
 // Design glass (Apple Invites) — fond dégradé, conteneurs verre dépoli
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, spacing, fonts, borderRadius, shadows, categoryGradients } from '../../constants/theme'
+import { colors, fonts, categoryGradients } from '../../constants/theme'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
@@ -14,16 +14,7 @@ import { getCategoryImageUrl } from '../../config/images'
 import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
-
-// Convertisseur hex → rgba pour fonds glass translucides
-const hexToRgba = (hex, a) => {
-  if (!hex || typeof hex !== 'string') return `rgba(0,0,0,${a})`
-  const clean = hex.replace('#', '')
-  const r = parseInt(clean.substring(0, 2), 16)
-  const g = parseInt(clean.substring(2, 4), 16)
-  const b = parseInt(clean.substring(4, 6), 16)
-  return `rgba(${r},${g},${b},${a})`
-}
+import { hexToRgba } from '../../utils/colors'
 
 const STATUT_CONFIG = {
   actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },

@@ -11,12 +11,10 @@ import {
 } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import MaskedView from '@react-native-masked-view/masked-view'
-import { fonts, colors, spacing, borderRadius, glass, gradients, textShadow } from '../constants/theme'
+import { colors } from '../constants/theme'
 import OrganisateurLayout from '../components/OrganisateurLayout'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
-import { BlurView } from 'expo-blur'
 import GlassButton from '../components/GlassButton'
 import { getDefaultImage } from '../config/images'
 import { fetchEvenementDetailPublic } from '../services/eventService'
@@ -25,20 +23,13 @@ import { sauvegarderTicketAcheteur } from '../database/database'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { useAuth } from '../context/AuthContext'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { hexToRgba } from '../utils/colors'
 
 export default function EventDetailScreen({ route, navigation }) {
   const { eventId } = route.params
   const { definirTelephone, numeroTel, email } = useAuth()
   const insets = useSafeAreaInsets()
   const { height: screenHeight } = useWindowDimensions()
-
-  // Convertit une couleur hex (#RRGGBB) en rgba — React Native ne supporte pas #RRGGBBAA
-  const hexToRgba = (hex, alpha) => {
-    const r = parseInt(hex.slice(1, 3), 16)
-    const g = parseInt(hex.slice(3, 5), 16)
-    const b = parseInt(hex.slice(5, 7), 16)
-    return `rgba(${r},${g},${b},${alpha})`
-  }
 
   // Éclaircit une couleur hex (#RRGGBB) — factor 0 = original, 1 = blanc
   const lightenColor = (hex, factor) => {

@@ -18,14 +18,20 @@ const telechargerTickets = async (req, res) => {
     if (parseInt(eventId) !== req.user.evenementId) {
       return res.status(403).json({ message: "Accès non autorisé à cet événement" });
     }
-    const [rows] = await pool.query(
-      `SELECT b.uuid, b.payload_signature AS hmac, b.evenement_id AS event_id,
-              ct.nom AS category, b.date_creation AS timestamp_gen, b.numero
-       FROM billet b
-       JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
-       WHERE b.evenement_id = ? AND b.statut = 'ACTIF'`,
-      [eventId]
-    );
+    let sql = `SELECT b.uuid, b.payload_signature AS hmac, b.evenement_id AS event_id,
+                      ct.nom AS category, b.date_creation AS timestamp_gen, b.numero
+               FROM billet b
+               JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+               WHERE b.evenement_id = ? AND b.statut = 'ACTIF'`
+    const params = [eventId]
+
+    // Filtre par zone si le contrôleur a une catégorie assignée
+    if (req.user.categorieTicketId) {
+      sql += ' AND b.categorie_ticket_id = ?'
+      params.push(req.user.categorieTicketId)
+    }
+
+    const [rows] = await pool.query(sql, params)
     res.json(rows);
   } catch (err) {
     console.error("telechargerTickets error:", err);
@@ -91,6 +97,7 @@ const synchroniserScans = async (req, res) => {
     }
 
     const evenementId = req.user.evenementId;
+    const controleurId = req.user.controleurId || null;
     const statutMap = { VALIDE: "VALIDE", DEJA_UTILISE: "DEJA_UTILISE", FRAUDE: "INVALIDE", INCONNU: "INVALIDE", EXPIRE: "INVALIDE" };
 
     let compteur = 0;
@@ -98,10 +105,10 @@ const synchroniserScans = async (req, res) => {
       const statutDB = statutMap[s.resultat] || "INVALIDE";
       await pool.query(
         `INSERT INTO scan_billet (billet_id, controleur_id, evenement_id, statut, horodatage_scan, horodatage_local, est_offline, date_synchronisation)
-         SELECT b.id, (SELECT controleur_id FROM affectation_controleur WHERE evenement_id = ? LIMIT 1), b.evenement_id, ?, ?, ?, 1, NOW()
+         SELECT b.id, ?, b.evenement_id, ?, ?, ?, 1, NOW()
          FROM billet b
          WHERE b.uuid = ?`,
-        [evenementId, statutDB, s.timestamp_scan, s.timestamp_scan, s.uuid_billet]
+        [controleurId, evenementId, statutDB, s.timestamp_scan, s.timestamp_scan, s.uuid_billet]
       );
       compteur++;
     }

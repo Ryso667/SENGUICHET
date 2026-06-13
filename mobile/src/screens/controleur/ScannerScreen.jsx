@@ -50,6 +50,7 @@ export default function ScannerScreen({ navigation, route }) {
       setNbTickets(nb)
       setSynchro('ok')
     } catch {
+      setSynchro('erreur')
     } finally {
       setChargeTickets(false)
     }
@@ -149,6 +150,9 @@ export default function ScannerScreen({ navigation, route }) {
           {synchro === 'ok' && nbTickets > 0 && (
             <Text style={styles.syncOk}>{nbTickets} tickets dispo</Text>
           )}
+          {synchro === 'erreur' && (
+            <Text style={styles.syncError}>Téléchargement impossible — vérifie ta connexion</Text>
+          )}
         </View>
         <View style={styles.zoneCadre}>
           <View style={styles.cadre} />
@@ -177,6 +181,7 @@ const styles = StyleSheet.create({
   infoRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   info: { fontFamily: fonts.outfit.regular, fontSize: 13, color: 'rgba(255,255,255,0.8)' },
   syncOk: { fontFamily: fonts.outfit.medium, fontSize: 12, color: colors.success, marginTop: 4 },
+  syncError: { fontFamily: fonts.outfit.medium, fontSize: 12, color: colors.orange, marginTop: 4 },
   zoneCadre: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   cadre: { width: 250, height: 250, borderWidth: 2, borderColor: colors.accent, borderRadius: 16, opacity: 0.8 },
   resultat: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },

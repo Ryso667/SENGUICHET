@@ -2,7 +2,7 @@
 // Champ de saisie avec label au-dessus, icône et placeholder toujours visible
 // Le placeholder reste affiché tant qu'aucune valeur n'est saisie
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View, TextInput, Text, StyleSheet, TouchableOpacity,
 } from 'react-native';

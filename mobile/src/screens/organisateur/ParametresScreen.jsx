@@ -1,6 +1,6 @@
 // Paramètres organisateur (lecture seule)
 // Design glass (Apple Invites)
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage'

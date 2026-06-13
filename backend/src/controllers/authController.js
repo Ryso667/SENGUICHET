@@ -351,8 +351,19 @@ const connexionControleur = async (req, res) => {
     }
 
     const c = rows[0];
+
+    // Récupère l'ID du premier contrôleur affecté à cet événement
+    // (nécessaire pour tracer les scans dans scan_billet.controleur_id)
+    // Inclut aussi la catégorie (zone) pour filtrer les tickets téléchargés
+    const [affectations] = await pool.query(
+      "SELECT controleur_id, categorie_ticket_id FROM affectation_controleur WHERE evenement_id = ? LIMIT 1",
+      [c.evenement_id]
+    );
+    const controleurId = affectations.length ? affectations[0].controleur_id : null;
+    const categorieTicketId = affectations.length ? affectations[0].categorie_ticket_id : null;
+
     const token = jwt.sign(
-      { codeId: c.code_id, evenementId: c.evenement_id, evenementTitre: c.evenement_titre, role: "CONTROLEUR" },
+      { codeId: c.code_id, evenementId: c.evenement_id, evenementTitre: c.evenement_titre, role: "CONTROLEUR", controleurId, categorieTicketId },
       JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
     );
@@ -363,6 +374,7 @@ const connexionControleur = async (req, res) => {
         role: "CONTROLEUR",
         evenementId: c.evenement_id,
         evenementTitre: c.evenement_titre,
+        controleurId,
       },
     });
   } catch (err) {

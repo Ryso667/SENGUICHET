@@ -1,11 +1,11 @@
 // Mes demandes — liste + création + détail (calqué sur l'app web)
 // Design glass (Apple Invites) — modale création avec upload Cloudinary
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput, Alert, Animated, ActivityIndicator, Keyboard, Modal, FlatList } from 'react-native'
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, gradients, spacing, borderRadius, fonts } from '../../constants/theme'
+import { colors, fonts } from '../../constants/theme'
 import { listerMesDemandes, soumettreDemandeEvenement, fetchEvenementsAPI } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
 import * as ImagePicker from 'expo-image-picker'
@@ -13,16 +13,7 @@ import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
-
-// Convertisseur hex → rgba pour fonds glass translucides
-const hexToRgba = (hex, a) => {
-  if (!hex || typeof hex !== 'string') return `rgba(0,0,0,${a})`
-  const clean = hex.replace('#', '')
-  const r = parseInt(clean.substring(0, 2), 16)
-  const g = parseInt(clean.substring(2, 4), 16)
-  const b = parseInt(clean.substring(4, 6), 16)
-  return `rgba(${r},${g},${b},${a})`
-}
+import { hexToRgba } from '../../utils/colors'
 
 const STATUT_CONFIG = {
   soumis: { label: 'Soumis', color: '#FFA726', bg: 'rgba(255,167,38,0.2)' },

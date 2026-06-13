@@ -1,6 +1,6 @@
 // Détail d'un événement (lecture seule)
 // Design glass (Apple Invites)
-import React, { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, spacing, fonts, borderRadius } from '../../constants/theme'
@@ -10,16 +10,7 @@ import Skeleton from '../../components/Skeleton'
 import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import GlassButton from '../../components/GlassButton'
-
-// Convertisseur hex → rgba pour fonds glass translucides
-const hexToRgba = (hex, a) => {
-  if (!hex || typeof hex !== 'string') return `rgba(0,0,0,${a})`
-  const clean = hex.replace('#', '')
-  const r = parseInt(clean.substring(0, 2), 16)
-  const g = parseInt(clean.substring(2, 4), 16)
-  const b = parseInt(clean.substring(4, 6), 16)
-  return `rgba(${r},${g},${b},${a})`
-}
+import { hexToRgba } from '../../utils/colors'
 
 const STATUT_CONFIG = {
   actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },

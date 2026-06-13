@@ -1,7 +1,7 @@
 // Squelette de chargement avec effet shimmer animé
 // Trois variantes prédéfinies : text (ligne), card (carte), circle (cercle)
 // Supporte le rendu multiple via la prop count
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { View, Animated, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 
