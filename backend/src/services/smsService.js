@@ -18,7 +18,7 @@ const obtenirTokenOrange = () => {
     const req = https.request(
       {
         hostname: "api.orange.com",
-        path: "/oauth/v2/token",
+        path: "/oauth/v3/token",
         method: "POST",
         headers: {
           Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
@@ -55,14 +55,18 @@ const envoyerSMSOrange = async (numero, message) => {
   const encodedAddress = encodeURIComponent(senderAddress);
   const apiPrefix = process.env.ORANGE_SANDBOX === "true" ? "/sandbox" : "";
 
+  const senderName = process.env.ORANGE_SENDER_NAME || undefined;
+  const payloadObj = {
+    outboundSMSMessageRequest: {
+      address: `tel:${numero}`,
+      senderAddress,
+      outboundSMSTextMessage: { message },
+    },
+  };
+  if (senderName) payloadObj.outboundSMSMessageRequest.senderName = senderName;
+
   return new Promise((resolve) => {
-    const payload = JSON.stringify({
-      outboundSMSMessageRequest: {
-        address: `tel:${numero}`,
-        senderAddress,
-        outboundTextMessage: { message },
-      },
-    });
+    const payload = JSON.stringify(payloadObj);
 
     const req = https.request(
       {
@@ -98,7 +102,7 @@ const envoyerSMSOrange = async (numero, message) => {
 const envoyerSMSBillet = async (numero, ticket) => {
   const numeroFull = numero.startsWith("+") ? numero : `+221${numero}`;
   const ticketBase = (process.env.TICKET_URL || "https://senguichet.com/billet").replace(/\/+$/, "");
-  const message = `SENGUICHET ✅ Ticket ${ticket.numero} confirmé pour "${ticket.evenement}". ${ticket.categorie} — ${ticket.prix.toLocaleString()} FCFA. Vois ton billet : ${ticketBase}/${ticket.uuid}`;
+  const message = `SENGUICHET 🎉 Merci pour votre achat ! Votre billet pour "${ticket.evenement}" (${ticket.categorie}) est confirmé. Montant : ${ticket.prix.toLocaleString()} FCFA. Accédez à votre billet ici : ${ticketBase}/${ticket.uuid}`;
 
   const result = await envoyerSMSOrange(numeroFull.replace("+", ""), message);
   if (result && result.outboundSMSMessageRequest) {

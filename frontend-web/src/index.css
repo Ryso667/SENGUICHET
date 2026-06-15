@@ -409,3 +409,90 @@ code { font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', mon
   100% { transform: scale(1); opacity: 0.8; }
 }
 @keyframes spinIcon { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* ─── Footer ─── */
+.footer-link {
+  color: rgba(255,255,255,0.45);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-link:hover { color: #00C8FF; }
+
+.footer-app-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #A0B4C8;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.footer-app-btn:hover { background: rgba(255,255,255,0.1); color: #FFF; }
+
+/* ─── Navbar ─── */
+.nav-link {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #A0B4C8;
+  text-decoration: none;
+  padding: 4px 0;
+  cursor: pointer;
+  background: none;
+  border: none;
+  transition: color 0.2s ease;
+  position: relative;
+}
+.nav-link:hover { color: #00C8FF; }
+
+.nav-link-active {
+  color: #00C8FF;
+}
+
+.nav-cta {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 10px 24px;
+  border-radius: 9999px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #00C8FF 0%, #0077FF 100%);
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 4px 16px rgba(0,200,255,0.3);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.nav-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,200,255,0.5); }
+
+.nav-ghost {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 10px 24px;
+  border-radius: 9999px;
+  cursor: pointer;
+  background: transparent;
+  color: #A0B4C8;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+.nav-ghost:hover { color: #00C8FF; border-color: rgba(0,200,255,0.4); }
+
+.nav-mobile-item {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.95rem;
+  text-align: left;
+  padding: 16px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: color 0.2s ease;
+}
