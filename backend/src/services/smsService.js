@@ -80,7 +80,7 @@ const envoyerSMSOrange = async (numero, message) => {
     const req = https.request(
       {
         hostname: "api.orange.com",
-        path: `${apiPrefix}/smsmessaging/v1/outbound/${encodedAddress}/requests`,
+        path: `${apiPrefix}/smsmessaging/v1/outbound/${encodedAddress}/requests?resource_type_parameter_management=SMS_OCB2`,
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
