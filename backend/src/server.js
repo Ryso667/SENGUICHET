@@ -31,6 +31,24 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
+// Route temporaire pour tester l'envoi SMS
+app.get("/api/test-sms/:numero", async (req, res) => {
+  try {
+    const { envoyerSMSBillet } = require("./services/smsService");
+    const { numero } = req.params;
+    const ticket = {
+      uuid: `test-${Date.now()}`,
+      evenement: "Test SMS SENGUICHET",
+      categorie: "TEST",
+      prix: 1500,
+    };
+    const result = await envoyerSMSBillet(numero, ticket);
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.use("/api", routes);
 
 app.use((err, req, res, next) => {
