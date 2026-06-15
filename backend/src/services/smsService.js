@@ -136,4 +136,31 @@ const envoyerSMSBillet = async (numero, ticket) => {
   throw new Error(`Orange API a retourné : ${JSON.stringify(result)}`);
 };
 
-module.exports = { envoyerSMSBillet };
+// Récupère les contrats SMS Orange (infos sur senderAddress, solde, etc.)
+const consulterContrats = async () => {
+  const token = await obtenirTokenOrange();
+  if (!token) return { error: "token null" };
+
+  return new Promise((resolve) => {
+    const req = https.request(
+      {
+        hostname: "api.orange.com",
+        path: "/sms/admin/v1/contracts",
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      },
+      (res) => {
+        let body = "";
+        res.on("data", (chunk) => (body += chunk));
+        res.on("end", () => {
+          try { resolve(JSON.parse(body)); }
+          catch { resolve({ error: "parse error", raw: body }); }
+        });
+      }
+    );
+    req.on("error", (e) => resolve({ error: e.message }));
+    req.end();
+  });
+};
+
+module.exports = { envoyerSMSBillet, consulterContrats };
