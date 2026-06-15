@@ -102,7 +102,7 @@ const envoyerSMSOrange = async (numero, message) => {
 const envoyerSMSBillet = async (numero, ticket) => {
   const numeroFull = numero.startsWith("+") ? numero : `+221${numero}`;
   const ticketBase = (process.env.TICKET_URL || "https://senguichet.com/billet").replace(/\/+$/, "");
-  const message = `SENGUICHET ✅ Ticket ${ticket.numero} confirmé pour "${ticket.evenement}". ${ticket.categorie} — ${ticket.prix.toLocaleString()} FCFA. Vois ton billet : ${ticketBase}/${ticket.uuid}`;
+  const message = `SENGUICHET 🎉 Merci pour votre achat ! Votre billet pour "${ticket.evenement}" (${ticket.categorie}) est confirmé. Montant : ${ticket.prix.toLocaleString()} FCFA. Accédez à votre billet ici : ${ticketBase}/${ticket.uuid}`;
 
   const result = await envoyerSMSOrange(numeroFull.replace("+", ""), message);
   if (result && result.outboundSMSMessageRequest) {
