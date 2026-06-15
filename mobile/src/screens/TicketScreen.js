@@ -287,8 +287,8 @@ const styles = StyleSheet.create({
     backgroundColor: C.pageBg,
   },
   backBtn: {
-    position: 'absolute', left: 24, zIndex: 10,
-    width: 40, height: 40, borderRadius: 20,
+    position: 'absolute', left: scale(24), zIndex: 10,
+    width: scale(40), height: scale(40), borderRadius: scale(20),
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center', justifyContent: 'center',
   },
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   },
   ticketCard: {
     width: '100%',
-    borderRadius: 20,
+    borderRadius: scale(20),
     overflow: 'hidden',
     position: 'relative',
   },
@@ -324,18 +324,18 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   orbe1: {
-    position: 'absolute', top: -40, right: -40,
-    width: 140, height: 140, borderRadius: 70,
+    position: 'absolute', top: scale(-40), right: scale(-40),
+    width: scale(140), height: scale(140), borderRadius: scale(70),
     backgroundColor: 'rgba(92,107,192,0.3)',
   },
   orbe2: {
-    position: 'absolute', bottom: -30, left: -30,
-    width: 100, height: 100, borderRadius: 50,
+    position: 'absolute', bottom: scale(-30), left: scale(-30),
+    width: scale(100), height: scale(100), borderRadius: scale(50),
     backgroundColor: 'rgba(212,175,55,0.12)',
   },
   orbe3: {
-    position: 'absolute', top: 60, left: -20,
-    width: 60, height: 60, borderRadius: 30,
+    position: 'absolute', top: scale(60), left: scale(-20),
+    width: scale(60), height: scale(60), borderRadius: scale(30),
     backgroundColor: 'rgba(255,255,255,0.03)',
   },
   logoRow: {
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.outfit.bold,
     color: C.white,
     textAlign: 'center',
-    letterSpacing: scale(0.5),
+    letterSpacing: fontScale(0.5),
     lineHeight: lineHeightScale(28),
   },
   catPill: {
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
     fontSize: fontScale(13),
     fontFamily: fonts.outfit.semiBold,
     color: C.label,
-    letterSpacing: 0.5,
+    letterSpacing: fontScale(0.5),
   },
   separator: {
     height: scale(1),

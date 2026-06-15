@@ -7,7 +7,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, spacing, fonts, borderRadius } from '../constants/theme'
-import { useWindowDimensions } from 'react-native'
 import { scale, fontScale, isPad } from '../utils/responsive'
 import GlassContainer from '../components/GlassContainer'
 import { useAuth } from '../context/AuthContext'
@@ -42,7 +41,6 @@ const ROLES = [
 export default function AccueilChoixScreen({ navigation }) {
   const { role } = useAuth()
   const insets = useSafeAreaInsets()
-  const { width: screenWidth } = useWindowDimensions()
   const anims = useRef(ROLES.map(() => new Animated.Value(0))).current
 
   useEffect(() => {

@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
     fontSize: fontScale(16),
     fontFamily: fonts.outfit.bold,
     color: '#fff',
-    letterSpacing: 0.5,
+    letterSpacing: fontScale(0.5),
   },
   heroLocationSub: {
     fontSize: fontScale(11),
