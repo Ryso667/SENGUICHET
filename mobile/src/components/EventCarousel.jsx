@@ -1,20 +1,20 @@
 // Carousel horizontal Apple Invites pour la page d'accueil
 // Carte principale centrée (80%), adjacentes visibles avec rotation oblique
 // Utilise AnimatedEventCard pour la cohérence visuelle avec la grille de recherche
-import { useRef, useCallback } from 'react'
-import { View, Animated, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
+import { useRef, useCallback, useMemo } from 'react'
+import { View, Animated, ScrollView, StyleSheet } from 'react-native'
 import { spacing } from '../constants/theme'
-import { scale } from '../utils/responsive'
+import useResponsive from '../utils/useResponsive'
 import AnimatedEventCard from './AnimatedEventCard'
 
 const CARD_WIDTH_RATIO = 0.8
 const SIDE_PEEK = 0.08
-const CARD_HEIGHT = scale(400)
 const SCALE_INACTIVE = 0.92
 const TILT_ANGLE = 3
 
 function EventCarousel({ events, onPress, onActiveIndexChange }) {
-  const { width: screenWidth } = useWindowDimensions()
+  const { scale, screenWidth } = useResponsive()
+  const CARD_HEIGHT = useMemo(() => scale(400), [scale])
   const scrollX = useRef(new Animated.Value(0)).current
   const lastIndexRef = useRef(-1)
 
@@ -60,6 +60,7 @@ function EventCarousel({ events, onPress, onActiveIndexChange }) {
           styles.cardOuter,
           {
             width: cardWidth,
+            height: CARD_HEIGHT + spacing.md * 2,
             marginRight: screenWidth * SIDE_PEEK,
             transform: [{ translateY: -CARD_HEIGHT / 2 }, { rotateZ: rotate }, { translateY: CARD_HEIGHT / 2 }, { scale: animatedScale }],
             opacity,
@@ -74,7 +75,7 @@ function EventCarousel({ events, onPress, onActiveIndexChange }) {
         />
       </Animated.View>
     )
-  }, [scrollX, cardWidth, itemWidth, screenWidth, onPress])
+  }, [scrollX, cardWidth, itemWidth, screenWidth, CARD_HEIGHT, onPress])
 
   if (!events || events.length === 0) return null
 
@@ -113,7 +114,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   cardOuter: {
-    height: CARD_HEIGHT + spacing.md * 2,
     paddingVertical: spacing.md,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
