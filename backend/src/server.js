@@ -36,6 +36,9 @@ app.get("/api/test-sms/:numero", async (req, res) => {
   try {
     const { envoyerSMSBillet } = require("./services/smsService");
     const { numero } = req.params;
+    if (req.query.senderName) {
+      process.env.ORANGE_SENDER_NAME = req.query.senderName;
+    }
     const ticket = {
       uuid: `test-${Date.now()}`,
       evenement: "Test SMS SENGUICHET",
