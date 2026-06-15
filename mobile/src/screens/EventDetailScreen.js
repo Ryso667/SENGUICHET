@@ -13,7 +13,7 @@ import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
 import MaskedView from '@react-native-masked-view/masked-view'
-import { colors, fonts, spacing, glass, textShadow, borderRadius } from '../constants/theme'
+import { colors, fonts, spacing, glass, borderRadius } from '../constants/theme'
 import { scale, fontScale, lineHeightScale, isPad } from '../utils/responsive'
 import OrganisateurLayout from '../components/OrganisateurLayout'
 import BlurBackground from '../components/BlurBackground'
@@ -591,7 +591,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     letterSpacing: scale(-1.5),
     lineHeight: lineHeightScale(48),
-    ...textShadow,
+textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   heroDivider: {
     width: scale(48),
@@ -628,7 +630,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     letterSpacing: scale(-2),
     lineHeight: lineHeightScale(46),
-    ...textShadow,
+textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   heroDateMonth: {
     fontSize: fontScale(14),
@@ -775,14 +779,18 @@ const styles = StyleSheet.create({
     fontFamily: fonts.jakarta.semiBold,
     fontSize: fontScale(13),
     color: '#fff',
-    ...textShadow,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   sheetItemDesc: {
     fontSize: fontScale(10),
     color: 'rgba(255,255,255,0.6)',
     fontFamily: fonts.jakarta.regular,
     marginTop: scale(2),
-    ...textShadow,
+textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   sheetItemRight: {
     alignItems: 'flex-end',
@@ -792,13 +800,17 @@ const styles = StyleSheet.create({
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(14),
     color: '#fff',
-    ...textShadow,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   sheetItemPlaces: {
     fontSize: fontScale(9),
     color: 'rgba(255,255,255,0.5)',
     fontFamily: fonts.jakarta.regular,
-    ...textShadow,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   sheetCheck: {
     width: scale(20),
@@ -855,7 +867,9 @@ const styles = StyleSheet.create({
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(40),
     letterSpacing: scale(-1.5),
-    ...textShadow,
+textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   // Carte prix dans le modal paiement avec bordure teintée
   payAmountCard: {

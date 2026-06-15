@@ -17,8 +17,8 @@ const screenWidth = Dimensions.get('window').width
 
 const chartConfig = {
   backgroundColor: 'transparent',
-  backgroundGradientFrom: 'rgba(255,255,255,0.05)',
-  backgroundGradientTo: 'rgba(255,255,255,0.05)',
+  backgroundGradientFrom: 'rgba(0,0,0,0.03)',
+  backgroundGradientTo: 'rgba(0,0,0,0.03)',
   decimalPlaces: 0,
   color: (opacity = 1) => `rgba(92, 107, 192, ${opacity})`,
   labelColor: (opacity = 1) => colors.text,

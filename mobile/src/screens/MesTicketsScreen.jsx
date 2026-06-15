@@ -114,7 +114,7 @@ export default function MesTicketsScreen() {
           ) : null}
           {/* Coin inférieur droit : icône QR code */}
           <View style={styles.bottomRow}>
-            <Ionicons name="qr-code-outline" size={22} color="rgba(255,255,255,0.25)" />
+            <Ionicons name="qr-code-outline" size={22} color="rgba(0,0,0,0.15)" />
           </View>
         </View>
       </TouchableOpacity>
@@ -159,8 +159,8 @@ export default function MesTicketsScreen() {
               <RefreshControl
                 refreshing={syncing}
                 onRefresh={loadTickets}
-                tintColor="#FFFFFF"
-                colors={["#FFFFFF"]}
+                tintColor="#1A56DB"
+                colors={["#1A56DB"]}
                 progressBackgroundColor={colors.surface}
               />
             }
@@ -169,7 +169,7 @@ export default function MesTicketsScreen() {
             ListEmptyComponent={
               !syncing ? (
                 <View style={styles.emptyContainer}>
-                  <Ionicons name="ticket-outline" size={80} color="rgba(255,255,255,0.5)" />
+                  <Ionicons name="ticket-outline" size={80} color="rgba(0,0,0,0.25)" />
                   <Text style={styles.emptyTitle}>Aucun billet pour le moment</Text>
                   <Text style={styles.emptySubtitle}>
                     Explore les événements et achète ton premier billet
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(0,0,0,0.04)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   countBadge: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(0,0,0,0.05)',
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 9999,
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   // SÉPARATEUR entre les cartes — ligne subtile
   separator: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(0,0,0,0.03)',
     marginVertical: 8,
   },
 

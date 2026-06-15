@@ -79,7 +79,7 @@ export default function DetailEvenementScreen({ route }) {
     <View style={[s.container, { paddingTop: insets.top }]}>
       <OrganisateurLayout />
       <ScrollView showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" colors={["#FFFFFF"]} />}>
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1A56DB" colors={["#1A56DB"]} />}>
         <GlassContainer blurType="light" style={s.header} intensity={35}>
           <Text style={s.title}>{evenement.nom}</Text>
           <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
@@ -166,7 +166,7 @@ const s = StyleSheet.create({
   fillSection: { margin: spacing.lg, padding: spacing.md },
   fillTitle: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  barBg: { flex: 1, height: 10, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 5, overflow: 'hidden' },
+  barBg: { flex: 1, height: 10, backgroundColor: 'rgba(0,0,0,0.06)', borderRadius: 5, overflow: 'hidden' },
   barFill: { height: 10, borderRadius: 5, backgroundColor: colors.accent },
   barCount: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary },
   fillPct: { fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.text, marginTop: spacing.sm },
@@ -176,9 +176,9 @@ const s = StyleSheet.create({
   empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.lg },
   ticketRow: {
     flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.15)',
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, flex: 1 },
   ticketPrix: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.green },
-  ticketStatut: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginLeft: spacing.sm, textTransform: 'capitalize' },
+  ticketStatut: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(0,0,0,0.35)', marginLeft: spacing.sm, textTransform: 'capitalize' },
 })

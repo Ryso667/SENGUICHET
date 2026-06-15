@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderTopWidth: 0, // Pas de bordure sur le nav style Apple
     paddingTop: scale(8),
-    backgroundColor: 'rgba(255,255,255,0.08)', // Verre translucide très subtil
+backgroundColor: 'rgba(0,0,0,0.04)', // Verre translucide très subtil
   },
   item: {
     flex: 1,
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   activeIcon: {
-    backgroundColor: 'rgba(121,134,203,0.15)', // Fond indigo semi-transparent pour l'icône active
+    backgroundColor: 'rgba(26,86,219,0.08)', // Fond bleu semi-transparent pour l'icône active
   },
   label: {
     fontSize: fontScale(10),

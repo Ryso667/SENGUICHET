@@ -82,7 +82,7 @@ export default function GestionEquipeScreen({ route, navigation }) {
 
         {equipe?.controleurs?.length === 0 ? (
           <GlassContainer style={s.emptyCard} intensity={25}>
-            <Feather name="users" size={32} color="rgba(255,255,255,0.3)" />
+            <Feather name="users" size={32} color="rgba(0,0,0,0.12)" />
             <Text style={s.emptyText}>Aucun contrôleur assigné</Text>
           </GlassContainer>
         ) : (
@@ -103,7 +103,7 @@ export default function GestionEquipeScreen({ route, navigation }) {
               </View>
               {ctrl.affectation ? (
                 <View style={s.ctrlZone}>
-                  <Feather name="map-pin" size={12} color="rgba(255,255,255,0.5)" style={{ marginRight: 4 }} />
+                  <Feather name="map-pin" size={12} color="rgba(0,0,0,0.25)" style={{ marginRight: 4 }} />
                   <Text style={s.ctrlZoneText}>{ctrl.affectation}</Text>
                 </View>
               ) : null}
@@ -131,7 +131,7 @@ const s = StyleSheet.create({
   regenerateBtn: {
     flexDirection: 'row', alignItems: 'center',
     paddingVertical: spacing.sm, paddingHorizontal: spacing.lg,
-    backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: borderRadius.full,
+    backgroundColor: 'rgba(0,0,0,0.04)', borderRadius: borderRadius.full,
     borderWidth: StyleSheet.hairlineWidth, borderColor: glass.border,
   },
   regenerateText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text },
@@ -140,7 +140,7 @@ const s = StyleSheet.create({
   statItem: { flex: 1, alignItems: 'center' },
   statNumber: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text },
   statLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.3 },
-  statDivider: { width: StyleSheet.hairlineWidth, height: 36, backgroundColor: 'rgba(255,255,255,0.15)' },
+  statDivider: { width: StyleSheet.hairlineWidth, height: 36, backgroundColor: 'rgba(0,0,0,0.06)' },
   listHeader: { paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
   listTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: colors.text },
   emptyCard: { marginHorizontal: spacing.lg, padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
@@ -148,7 +148,7 @@ const s = StyleSheet.create({
   ctrlCard: { marginHorizontal: spacing.lg, marginBottom: spacing.sm, padding: spacing.md },
   ctrlTop: { flexDirection: 'row', alignItems: 'center' },
   ctrlAvatar: {
-    width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.12)',
+    width: 34, height: 34, borderRadius: 17,     backgroundColor: 'rgba(0,0,0,0.06)',
     alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm,
   },
   ctrlInfo: { flex: 1 },
@@ -159,7 +159,7 @@ const s = StyleSheet.create({
   ctrlScanLabel: { fontSize: 9, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textTransform: 'uppercase' },
   ctrlZone: {
     flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm,
-    paddingTop: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.1)',
+    paddingTop: spacing.sm,     borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(0,0,0,0.04)',
   },
   ctrlZoneText: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textTertiary },
 })

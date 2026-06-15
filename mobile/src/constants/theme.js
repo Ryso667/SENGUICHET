@@ -1,60 +1,61 @@
-// Thème Indigo doux - Fond #1C2166, primary #5C6BC0, accent #7986CB
-// Palette professionnelle reposante, fatigue visuelle minimale
+// Thème clair — palette blanc/bleu (#1A56DB), fond blanc
 export const colors = {
-  bg: '#1C2166',
-  bgSecondary: '#252B7A',
-  surface: '#252B7A',
-  border: 'rgba(121, 134, 203, 0.15)',
-  primary: '#5C6BC0',
+  bg: '#FFFFFF',
+  bgSecondary: '#F9FAFB',
+  surface: '#FFFFFF',
+  border: '#E5E7EB',
+  primary: '#1A56DB',
+  primaryLight: '#EFF6FF',
   white: '#FFFFFF',
-  text: '#FFFFFF',
-  textSecondary: '#C5CAE9',
-  textTertiary: '#B0BEC5',
-  accent: '#7986CB',
-  accentLight: 'rgba(121, 134, 203, 0.15)',
-  green: '#66BB6A',
-  greenLight: 'rgba(102, 187, 106, 0.15)',
-  red: '#FF4D6D', // doublon de danger — conservé pour rétrocompatibilité
-  violet: '#9575CD',
-  orange: '#FFA726',
-  cyan: '#4DD0E1',
-  glassWhite: 'rgba(255,255,255,0.08)',
-  glassBorder: 'rgba(255,255,255,0.12)',
-  glassDark: 'rgba(0,0,0,0.15)',
-  inputBg: '#2A3190',
-  inputBorder: '#3F4DB0',
-  inputBorderFocus: '#7986CB',
-  textWhite: '#FFFFFF',
-  textWhiteMuted: 'rgba(255,255,255,0.7)',
-  slate: '#252B7A',
-  mid: '#C5CAE9',
-  muted: '#9FA8DA',
-  placeholder: '#9FA8DA',
-  navInactive: '#9FA8DA',
-  navActive: '#FFFFFF',
-  danger: '#FF4D6D',
-  warning: '#FFA726',
-  success: '#66BB6A',
+  text: '#111827',
+  textSecondary: '#6B7280',
+  textTertiary: '#9CA3AF',
+  accent: '#1A56DB',
+  accentLight: '#EFF6FF',
+  green: '#10B981',
+  greenLight: '#D1FAE5',
+  red: '#EF4444',
+  violet: '#7C3AED',
+  orange: '#F97316',
+  orangeLight: '#FFF7ED',
+  cyan: '#06B6D4',
+  glassWhite: 'rgba(255,255,255,0.8)',
+  glassBorder: 'rgba(0,0,0,0.06)',
+  glassDark: 'rgba(0,0,0,0.04)',
+  inputBg: '#F3F4F6',
+  inputBorder: 'transparent',
+  inputBorderFocus: '#1A56DB',
+  textWhite: '#111827',
+  textWhiteMuted: '#6B7280',
+  slate: '#1E293B',
+  mid: '#6B7280',
+  muted: '#9CA3AF',
+  placeholder: '#9CA3AF',
+  navInactive: '#9CA3AF',
+  navActive: '#1A56DB',
+  danger: '#EF4444',
+  warning: '#F59E0B',
+  success: '#10B981',
 }
 
 // === GLASS (verre dépoli) ===
 export const glass = {
-  bg: 'rgba(255,255,255,0.08)',
-  bgLight: 'rgba(255,255,255,0.04)',
-  bgHeavy: 'rgba(255,255,255,0.12)',
-  border: 'rgba(255,255,255,0.08)',
-  borderLight: 'rgba(255,255,255,0.04)',
-  blur: 30,
-  radius: 20,
-  darkBg: 'rgba(0,0,0,0.08)',
-  darkBgHeavy: 'rgba(0,0,0,0.15)',
+  bg: 'rgba(255,255,255,0.8)',
+  bgLight: 'rgba(255,255,255,0.6)',
+  bgHeavy: 'rgba(255,255,255,0.95)',
+  border: 'rgba(0,0,0,0.06)',
+  borderLight: 'rgba(0,0,0,0.03)',
+  blur: 20,
+  radius: 16,
+  darkBg: 'rgba(0,0,0,0.03)',
+  darkBgHeavy: 'rgba(0,0,0,0.06)',
 }
 
 export const gradients = {
-  primary: ['#5C6BC0', '#7986CB'],
-  organisateur: ['#5C6BC0', '#7986CB'],
-  success: ['#66BB6A', '#5C6BC0'],
-  error: ['#FF4D6D', '#FF6B8A'],
+  primary: ['#1A56DB', '#2563EB'],
+  organisateur: ['#1A56DB', '#2563EB'],
+  success: ['#10B981', '#059669'],
+  error: ['#EF4444', '#DC2626'],
 }
 
 // Dégradés par catégorie d'événement — style Apple Music
@@ -71,13 +72,6 @@ export const categoryGradients = {
   default: ['rgba(99,102,241,0.5)', 'rgba(236,72,153,0.2)'],
 }
 
-// Ombre portée pour lisibilité du texte blanc
-export const textShadow = {
-  textShadowColor: 'rgba(0,0,0,0.75)',
-  textShadowOffset: { width: 0, height: 2 },
-  textShadowRadius: 8,
-}
-
 export const spacing = {
   xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 40,
 }
@@ -89,17 +83,17 @@ export const borderRadius = {
 export const shadows = {
   sm: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   md: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
   },
 }
 

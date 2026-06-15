@@ -1,329 +1,238 @@
-// Écran d'accueil acheteur — version Apple Invites
-// Fond : image Unsplash plein écran + overlay
-// Header : carte glass "Bonjour" avec compteur tickets
-// Section : cartes événements horizontales animées
-// Section : tickets récents en glass
-// CTA : Explorer les événements en glass button
-import { useEffect, useState, useRef, useCallback } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, Animated, Image, StyleSheet } from 'react-native'
+// Écran d'accueil — thème clair
+// Affiche directement les événements disponibles
+// Header : logo + icône profil + Contact
+// Search bar, filtres catégories, carousel à la une, liste verticale
+import { useEffect, useState } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, Image, TextInput, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, fonts, animations, spacing, glass, borderRadius } from '../constants/theme'
-import { useAuth } from '../context/AuthContext'
-import { useTabBarScroll } from '../context/TabBarScrollContext'
-import OrganisateurLayout from '../components/OrganisateurLayout'
-import BlurBackground, { optimiserUrlCloudinary } from '../components/BlurBackground'
-import GlassContainer from '../components/GlassContainer'
-import GlassButton from '../components/GlassButton'
+import { spacing } from '../constants/theme'
 import EventCarousel from '../components/EventCarousel'
 import Skeleton from '../components/Skeleton'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { formaterPourEventCard } from '../utils/eventUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
-import { mesBillets } from '../services/billetService'
-import { mesTicketsLocaux, sauvegarderTicketAcheteur } from '../database/database'
-import { hexToRgba } from '../utils/colors'
 
-const STATUTS = {
-  actif: { label: 'VALIDE', color: colors.success, dot: colors.success },
-  en_attente: { label: 'EN ATTENTE', color: colors.warning, dot: colors.warning },
-  utilise: { label: 'UTILISÉ', color: colors.mid, dot: colors.mid },
-  rembourse: { label: 'REMBOURSÉ', color: colors.danger, dot: colors.danger },
-}
+const CATEGORIES = ['Tout', 'Concert', 'Festival', 'Sport', 'Théâtre', 'Conférence', 'Atelier']
 
 export default function HomeScreen({ navigation }) {
   const insets = useSafeAreaInsets()
-  const { scrollY: tabScrollY } = useTabBarScroll()
   const [evenements, setEvenements] = useState([])
-  const [tickets, setTickets] = useState([])
-  const [category, setCategory] = useState(null)
-  const [activeEvent, setActiveEvent] = useState(null)
-  const [chargementEvenements, setChargementEvenements] = useState(true)
-  const [chargementTickets, setChargementTickets] = useState(true)
-  const { deconnecter, numeroTel, profil, email } = useAuth()
-  const headerSpring = useRef(new Animated.Value(0)).current
-
-  useEffect(() => {
-    Animated.spring(headerSpring, {
-      toValue: 1,
-      friction: animations.spring.friction,
-      tension: animations.spring.tension,
-      useNativeDriver: true,
-    }).start()
-  }, [headerSpring])
+  const [categorieActive, setCategorieActive] = useState('Tout')
+  const [chargement, setChargement] = useState(true)
+  const [recherche, setRecherche] = useState('')
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
-      setChargementTickets(true)
-      setChargementEvenements(true)
-
-      // Charge les tickets depuis le cache SQLite d'abord (instantané, fonctionne hors-ligne)
-      try {
-        const locaux = await mesTicketsLocaux()
-        if (locaux.length > 0) setTickets(locaux)
-      } catch (e) {
-        console.warn('[Home] Erreur chargement tickets SQLite:', e)
-      } finally {
-        setChargementTickets(false)
-      }
-
-      // Synchro tickets depuis l'API en fond
-      try {
-        const data = await mesBillets(numeroTel, profil?.email)
-        if (data.length > 0) {
-          for (const t of data) {
-            try { await sauvegarderTicketAcheteur(t) } catch (_) {}
-          }
-          setTickets(data)
-        }
-      } catch (e) {
-        console.warn('[Home] Erreur synchro tickets API:', e)
-      }
-
-      // Charge les événements publics depuis l'API
+      setChargement(true)
       try {
         const events = await fetchEvenementsPublics()
         const formatted = events.map(formaterPourEventCard)
         setEvenements(formatted)
-        if (formatted.length > 0) {
-          setCategory(formatted[0].category)
-          setActiveEvent(formatted[0])
-          // Précharge TOUTES les images dès le chargement pour éviter le délai au swipe
-          formatted.forEach(ev => { if (ev.affiche_url) Image.prefetch(optimiserUrlCloudinary(ev.affiche_url)) })
-        }
       } catch (e) {
-        console.warn('[Home] Erreur chargement événements:', e)
+        console.warn('[Home] Erreur chargement:', e)
       } finally {
-        setChargementEvenements(false)
+        setChargement(false)
       }
     })
     return unsubscribe
-  }, [navigation, numeroTel, profil])
+  }, [navigation])
 
-  const headerStyle = {
-    opacity: headerSpring,
-    transform: [{ translateY: headerSpring.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }],
-  }
+  const evenementsFiltres = evenements.filter(ev => {
+    const matchCategorie = categorieActive === 'Tout' || ev.category === categorieActive
+    const matchRecherche = !recherche || ev.title?.toLowerCase().includes(recherche.toLowerCase())
+    return matchCategorie && matchRecherche
+  })
+
+  const une = evenementsFiltres.slice(0, 5)
+  const tous = evenementsFiltres.slice(5)
+
+  const renderEventCard = (item) => (
+    <TouchableOpacity
+      key={item.id}
+      style={styles.eventCard}
+      onPress={() => navigation.navigate('EventDetail', { eventId: item.id, event: item })}
+      activeOpacity={0.7}
+    >
+      <View style={styles.eventCardImage}>
+        <View style={[styles.eventCardImgBg, { backgroundColor: item.categoryColor || '#EFF6FF' }]}>
+          <Text style={styles.eventCardEmoji}>{item.emoji || '\uD83C\uDFAB'}</Text>
+        </View>
+        <View style={[styles.eventCardBadge, { backgroundColor: item.isPaid ? '#FFF7ED' : '#D1FAE5' }]}>
+          <Text style={[styles.eventCardBadgeText, { color: item.isPaid ? '#F97316' : '#10B981' }]}>
+            {item.isPaid ? item.prix + ' FCFA' : 'Gratuit'}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.eventCardBody}>
+        <Text style={styles.eventCardTitle} numberOfLines={1}>{item.title}</Text>
+        <Text style={styles.eventCardMeta}>
+          {formaterDateLisible(item.date)} · {item.lieu}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  )
 
   return (
     <View style={styles.container}>
-      <OrganisateurLayout />
-      <BlurBackground
-        category={activeEvent?.category || category}
-        showImage={!!activeEvent?.affiche_url}
-        afficheUrl={activeEvent?.affiche_url}
-      />
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <View style={styles.headerLeft}>
+          <Image
+            source={require('../../assets/logo_app.jpeg')}
+            style={styles.headerLogo}
+            resizeMode="contain"
+          />
+          <Text style={styles.headerTitle}>
+            <Text style={styles.headerSen}>SEN</Text><Text style={styles.headerGuichet}>GUICHET</Text>
+          </Text>
+        </View>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => navigation.navigate('Profil')} style={styles.headerIcon}>
+            <Feather name="user" size={20} color="#111827" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Support')} style={styles.headerContact}>
+            <Text style={styles.headerContactText}>Contact</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.sm }]}
+        contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
-        onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
-        scrollEventThrottle={16}
       >
-        {/* Header Bonjour */}
-        <Animated.View style={[styles.headerWrap, headerStyle]}>
-          <GlassContainer style={styles.headerCard}>
-            <View style={styles.headerRow}>
-              <Image
-                source={require('../../assets/logo_app.jpeg')}
-                style={styles.avatar}
-                resizeMode="cover"
-              />
-              <View style={styles.headerText}>
-                <Text style={styles.greeting}>Bonjour</Text>
-                <Text style={styles.name}>{profil?.nom || (email ? email.split('@')[0].replace(/\d+$/, '') : 'Invité')}</Text>
-              </View>
-              <TouchableOpacity onPress={() => navigation.navigate('AccueilChoix')} style={styles.homeBtn}>
-                <Feather name="home" size={18} color={colors.textWhiteMuted} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={deconnecter} style={styles.logoutBtn}>
-                <Feather name="log-out" size={16} color={colors.textWhiteMuted} />
-              </TouchableOpacity>
-            </View>
-            {tickets.length > 0 && (
-              <View style={styles.ticketCount}>
-                <Feather name="tag" size={12} color={colors.green} />
-                <Text style={styles.ticketCountText}>
-                  {tickets.length} ticket{tickets.length > 1 ? 's' : ''} actif{tickets.length > 1 ? 's' : ''}
-                </Text>
-              </View>
-            )}
-          </GlassContainer>
-        </Animated.View>
+        {/* Search bar */}
+        <View style={styles.searchBar}>
+          <Feather name="search" size={16} color="#9CA3AF" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Rechercher un événement..."
+            placeholderTextColor="#9CA3AF"
+            value={recherche}
+            onChangeText={setRecherche}
+          />
+        </View>
 
-        {/* Section événements — carousel Apple-style */}
-        {chargementEvenements ? (
+        {/* Category filters */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catRow}>
+          {CATEGORIES.map(cat => (
+            <TouchableOpacity
+              key={cat}
+              style={[styles.catChip, categorieActive === cat && styles.catChipActive]}
+              onPress={() => setCategorieActive(cat)}
+            >
+              <Text style={[styles.catChipText, categorieActive === cat && styles.catChipTextActive]}>
+                {cat}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Section À la une — EventCarousel conservé */}
+        {chargement ? (
           <>
             <View style={styles.sectionHeader}>
               <Skeleton type="text" width={140} height={20} />
             </View>
-            <View style={styles.skeletonCarousel}>
+            <View style={{ paddingHorizontal: spacing.lg }}>
               <Skeleton type="event-card" />
             </View>
           </>
-        ) : evenements.length > 0 && (
+        ) : une.length > 0 && (
           <>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>À découvrir</Text>
+              <Text style={styles.sectionTitle}>Événements à la une</Text>
             </View>
             <EventCarousel
-              events={evenements}
+              events={une}
               onPress={(event) => navigation.navigate('EventDetail', { eventId: event.id, event })}
-              onActiveIndexChange={(index) => {
-                const ev = evenements[index]
-                if (ev) setActiveEvent(ev)
-              }}
             />
           </>
         )}
 
-        {/* Section mes tickets */}
-        {chargementTickets ? (
+        {/* Section Tous les événements */}
+        {!chargement && tous.length > 0 && (
           <>
             <View style={styles.sectionHeader}>
-              <Skeleton type="text" width={120} height={20} />
+              <Text style={styles.sectionTitle}>Tous les événements</Text>
             </View>
-            <View style={styles.ticketsList}>
-              <Skeleton type="ticket-row" count={3} />
-            </View>
-          </>
-        ) : tickets.length > 0 && (
-          <>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Mes tickets</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('MesTickets')}>
-                <Text style={styles.voirTout}>Voir tout</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.ticketsList}>
-              {tickets.slice(0, 3).map((t, i) => (
-                <TouchableOpacity
-                  key={t.numero || t.id}
-                  onPress={() => navigation.navigate('Ticket', { ticket: t })}
-                  activeOpacity={0.7}
-                >
-                  <GlassContainer style={styles.ticketCard} intensity={40}>
-                    <View style={[styles.ticketDot, { backgroundColor: (STATUTS[t.statut]?.dot || colors.green) }]} />
-                    <View style={styles.ticketInfo}>
-                      <Text style={styles.ticketTitle}>{t.eventNom || 'Événement'}</Text>
-                      <Text style={styles.ticketMeta}>
-                        {t.categorie} · {formaterDateLisible(t.eventDate)}
-                      </Text>
-                    </View>
-                    <View style={[styles.statusBadge, { backgroundColor: hexToRgba(STATUTS[t.statut]?.color || colors.green, 0.15) }]}>
-                      <Text style={[styles.statusText, { color: STATUTS[t.statut]?.color || colors.green }]}>
-                        {STATUTS[t.statut]?.label || 'VALIDE'}
-                      </Text>
-                    </View>
-                  </GlassContainer>
-                </TouchableOpacity>
-              ))}
+            <View style={styles.eventsList}>
+              {tous.map(item => renderEventCard(item))}
             </View>
           </>
         )}
 
-        {/* CTA Explorer */}
-        <View style={styles.ctaWrap}>
-          <GlassButton
-            title="Explorer les événements"
-            icon="search"
-            onPress={() => navigation.navigate('EventSearch')}
-          />
-        </View>
-
-        {/* Lien support */}
-        <TouchableOpacity onPress={() => navigation.navigate('Support')} style={styles.supportLink}>
-          <Feather name="message-circle" size={12} color={colors.textWhiteMuted} />
-          <Text style={styles.supportLinkText}>Support</Text>
-        </TouchableOpacity>
-
+        {!chargement && evenementsFiltres.length === 0 && (
+          <View style={styles.emptyState}>
+            <Feather name="calendar" size={48} color="#9CA3AF" />
+            <Text style={styles.emptyTitle}>Aucun événement</Text>
+            <Text style={styles.emptySub}>Aucun événement trouvé pour cette recherche</Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingBottom: 10,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#F1F5F9',
+  },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headerLogo: { width: 32, height: 32, borderRadius: 8 },
+  headerTitle: { fontSize: 18, fontFamily: 'Outfit_800ExtraBold' },
+  headerSen: { color: '#111827' },
+  headerGuichet: { color: '#1A56DB' },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
+  headerContact: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: '#EFF6FF' },
+  headerContactText: { fontSize: 12, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#1A56DB' },
   scroll: { flex: 1 },
-  scrollContent: { paddingBottom: spacing.lg },
-  headerWrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
-  headerCard: { padding: spacing.md },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  avatar: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: colors.bgSecondary,
-    alignItems: 'center', justifyContent: 'center',
+  searchBar: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: '#F3F4F6', borderRadius: 24,
+    marginHorizontal: 16, marginTop: 12, marginBottom: 8,
+    paddingHorizontal: 16, paddingVertical: 10,
   },
-  headerText: { flex: 1 },
-  greeting: { fontSize: 12, color: colors.textWhiteMuted, fontFamily: fonts.jakarta.regular },
-  name: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.textWhite, letterSpacing: -0.3 },
-  homeBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(121,134,203,0.1)',
-    alignItems: 'center', justifyContent: 'center', marginRight: 8,
+  searchInput: { flex: 1, fontSize: 14, fontFamily: 'PlusJakartaSans_400Regular', color: '#111827', padding: 0 },
+  catRow: { paddingHorizontal: 16, marginBottom: 12 },
+  catChip: {
+    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
+    backgroundColor: '#F3F4F6', marginRight: 8,
   },
-  logoutBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255,77,109,0.1)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  ticketCount: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    marginTop: spacing.sm, paddingTop: spacing.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: glass.borderLight,
-  },
-  ticketCountText: {
-    fontSize: 12, fontFamily: fonts.jakarta.semiBold,
-    color: colors.green,
-    letterSpacing: 0.3,
-  },
+  catChipActive: { backgroundColor: '#1A56DB' },
+  catChipText: { fontSize: 13, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#374151' },
+  catChipTextActive: { color: '#FFFFFF' },
   sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: spacing.lg, marginTop: 24, marginBottom: 12,
+    paddingHorizontal: spacing.lg, marginTop: 20, marginBottom: 12,
   },
-  sectionTitle: {
-    fontSize: 16, fontFamily: fonts.outfit.bold, color: colors.textWhite, letterSpacing: -0.3,
+  sectionTitle: { fontSize: 18, fontFamily: 'Outfit_700Bold', color: '#111827' },
+  eventsList: { paddingHorizontal: 16, gap: 12 },
+  eventCard: {
+    backgroundColor: '#FFFFFF', borderRadius: 14,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08, shadowRadius: 8, elevation: 3,
+    overflow: 'hidden', marginBottom: 4,
   },
-  voirTout: {
-    fontSize: 12, fontFamily: fonts.jakarta.semiBold,
-    color: colors.textWhiteMuted,
+  eventCardImage: { height: 140, position: 'relative' },
+  eventCardImgBg: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  eventCardEmoji: { fontSize: 40 },
+  eventCardBadge: {
+    position: 'absolute', top: 10, right: 10,
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8,
   },
-  emptyText: {
-    textAlign: 'center', fontSize: 14, fontFamily: fonts.jakarta.regular,
-    color: colors.textSecondary, marginVertical: spacing.lg,
-  },
-  eventsRow: { paddingLeft: spacing.lg, paddingRight: spacing.lg },
-  skeletonCarousel: { paddingHorizontal: spacing.lg, marginBottom: spacing.lg },
-  ticketsList: { paddingHorizontal: spacing.lg, gap: spacing.sm },
-  ticketCard: {
-    flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12,
-  },
-  ticketDot: {
-    width: 8, height: 8, borderRadius: 4,
-  },
-  ticketInfo: { flex: 1 },
-  ticketTitle: {
-    fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.textWhite, letterSpacing: -0.1,
-  },
-  ticketMeta: {
-    fontSize: 11, color: colors.textWhiteMuted, fontFamily: fonts.jakarta.regular, marginTop: 2,
-  },
-  statusBadge: {
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: borderRadius.sm,
-  },
-  statusText: {
-    fontSize: 10, fontFamily: fonts.jakarta.semiBold,
-  },
-  ctaWrap: { paddingHorizontal: spacing.lg, marginTop: 24 },
-  supportLink: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, marginTop: spacing.xl, marginBottom: spacing.md,
-    paddingVertical: 8,
-  },
-  supportLinkText: {
-    fontSize: 12, fontFamily: fonts.jakarta.regular,
-    color: colors.textWhiteMuted,
-  },
+  eventCardBadgeText: { fontSize: 11, fontFamily: 'Outfit_700Bold' },
+  eventCardBody: { padding: 14 },
+  eventCardTitle: { fontSize: 16, fontFamily: 'Outfit_700Bold', color: '#111827', marginBottom: 4 },
+  eventCardMeta: { fontSize: 12, fontFamily: 'PlusJakartaSans_400Regular', color: '#6B7280' },
+  emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
+  emptyTitle: { fontSize: 18, fontFamily: 'Outfit_700Bold', color: '#111827', marginTop: 12 },
+  emptySub: { fontSize: 13, fontFamily: 'PlusJakartaSans_400Regular', color: '#6B7280', marginTop: 4, textAlign: 'center' },
 })

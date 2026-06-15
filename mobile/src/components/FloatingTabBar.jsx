@@ -41,7 +41,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
   }, [compact, scaleAnim])
   return (
     <Animated.View style={[styles.wrapper, { bottom: bottomOffset, transform: [{ scale: scaleAnim }] }]}>
-      <BlurView tint="dark" intensity={80} style={styles.container}>
+      <BlurView tint="light" intensity={80} style={styles.container}>
         <View style={styles.waterSurface} pointerEvents="none" />
         <View style={styles.waterDepth} pointerEvents="none" />
         {state.routes.map((route, index) => {
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: scale(32),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 8,
   },
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: scale(32),
     alignItems: 'center',
-    backgroundColor: 'rgba(37, 43, 122, 0.25)',
+backgroundColor: 'rgba(255,255,255,0.8)',
     paddingVertical: scale(4),
     paddingHorizontal: scale(6),
     overflow: 'hidden',
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     height: scale(1.5),
     borderBottomLeftRadius: 1,
     borderBottomRightRadius: 1,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(0,0,0,0.03)',
   },
   waterDepth: {
     position: 'absolute',
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     height: scale(6),
     borderBottomLeftRadius: scale(3),
     borderBottomRightRadius: scale(3),
-    backgroundColor: 'rgba(255,255,255,0.04)',
+backgroundColor: 'rgba(0,0,0,0.02)',
   },
   tab: {
     flex: 1,
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   activeIconWrap: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(26,86,219,0.08)',
   },
   bubbleGlow: {
     ...StyleSheet.absoluteFillObject,
@@ -159,8 +159,8 @@ const styles = StyleSheet.create({
   },
   activeGlow: {
     opacity: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    shadowColor: '#5C6BC0',
+    backgroundColor: 'transparent',
+    shadowColor: '#1A56DB',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
