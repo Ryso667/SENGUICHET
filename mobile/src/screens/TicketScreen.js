@@ -11,6 +11,7 @@ import { colors, fonts, spacing } from '../constants/theme'
 import OrganisateurLayout from '../components/OrganisateurLayout'
 import BlurBackground from '../components/BlurBackground'
 import { formaterDateLisible } from '../utils/dateUtils'
+import { scale, fontScale, isPad } from '../utils/responsive'
 import { genererTicketPDF, genererHtmlWebTicket } from '../services/ticketPdfService'
 import { HMAC_SECRET } from '../config'
 
@@ -217,11 +218,11 @@ export default function TicketScreen({ route, navigation }) {
                 {qrReady ? (
                   <QRCode
                     value={qrValue}
-                    size={200}
+                    size={scale(200)}
                     color={C.dark}
                     backgroundColor={C.white}
                     ecl="H"
-                    quietZone={16}
+                    quietZone={scale(16)}
                     getRef={(c) => { qrRef.current = c }}
                   />
                 ) : (
@@ -300,7 +301,7 @@ const styles = StyleSheet.create({
   ticketWrapper: {
     position: 'relative',
     width: '100%',
-    maxWidth: 340,
+    maxWidth: scale(340),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 20 },
     shadowOpacity: 0.25,
@@ -317,8 +318,8 @@ const styles = StyleSheet.create({
   // ===== 1. HEADER =====
   header: {
     backgroundColor: C.headerBg,
-    paddingVertical: 32,
-    paddingHorizontal: 28,
+    paddingVertical: scale(32),
+    paddingHorizontal: scale(28),
     position: 'relative',
     overflow: 'hidden',
   },
@@ -343,54 +344,54 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   logoBox: {
-    width: 38, height: 38, borderRadius: 10,
+    width: scale(38), height: scale(38), borderRadius: scale(10),
     backgroundColor: 'rgba(255,255,255,0.12)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
+    borderWidth: scale(1), borderColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center', justifyContent: 'center',
     overflow: 'hidden',
   },
   logoImg: {
-    width: 28, height: 28, borderRadius: 6,
+    width: scale(28), height: scale(28), borderRadius: scale(6),
   },
   brandLabel: {
-    fontSize: 10,
+    fontSize: fontScale(10),
     fontFamily: fonts.outfit.bold,
-    letterSpacing: 3,
+    letterSpacing: scale(3),
     color: 'rgba(255,255,255,0.7)',
   },
   goldLine: {
     height: 1,
     backgroundColor: C.accent,
     opacity: 0.5,
-    marginTop: 20,
-    marginBottom: 18,
+    marginTop: scale(20),
+    marginBottom: scale(18),
   },
   eventName: {
-    fontSize: 22,
+    fontSize: fontScale(22),
     fontFamily: fonts.outfit.bold,
     color: C.white,
     textAlign: 'center',
     letterSpacing: 0.5,
-    lineHeight: 28,
+    lineHeight: scale(28),
   },
   catPill: {
     alignSelf: 'center',
     backgroundColor: 'rgba(212,175,55,0.15)',
     borderRadius: 999,
-    paddingVertical: 4,
-    paddingHorizontal: 14,
-    marginTop: 10,
+    paddingVertical: scale(4),
+    paddingHorizontal: scale(14),
+    marginTop: scale(10),
   },
   catPillText: {
-    fontSize: 9,
+    fontSize: fontScale(9),
     fontFamily: fonts.outfit.bold,
-    letterSpacing: 2,
+    letterSpacing: scale(2),
     color: C.accent,
   },
 
   // ===== 2. PERFORATION =====
   perforation: {
-    height: 24,
+    height: scale(24),
     position: 'relative',
     justifyContent: 'center',
     zIndex: 1,
@@ -399,38 +400,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    paddingHorizontal: 30,
+    paddingHorizontal: scale(30),
     position: 'absolute',
     left: 0, right: 0,
   },
   perfDot: {
-    width: 5,
-    height: 2,
+    width: scale(5),
+    height: scale(2),
     backgroundColor: C.perfDot,
-    borderRadius: 1,
+    borderRadius: scale(1),
   },
   halfCircle: {
     position: 'absolute',
     top: '50%',
-    width: 24, height: 24,
-    borderRadius: 12,
+    width: scale(24), height: scale(24),
+    borderRadius: scale(12),
     backgroundColor: C.pageBg,
     zIndex: 2,
-    marginTop: -12,
+    marginTop: scale(-12),
   },
   halfCircleLeft: {
-    left: -12,
+    left: scale(-12),
   },
   halfCircleRight: {
-    right: -12,
+    right: scale(-12),
   },
 
   // ===== 3. CORPS =====
   body: {
     backgroundColor: C.cream,
-    paddingHorizontal: 28,
-    paddingTop: 28,
-    paddingBottom: 16,
+    paddingHorizontal: scale(28),
+    paddingTop: scale(28),
+    paddingBottom: scale(16),
   },
   infoRow: {
     flexDirection: 'row',
@@ -444,53 +445,53 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   infoDateLabel: {
-    fontSize: 8,
+    fontSize: fontScale(8),
     fontFamily: fonts.outfit.bold,
-    letterSpacing: 2,
+    letterSpacing: scale(2),
     color: C.label,
-    marginBottom: 3,
+    marginBottom: scale(3),
   },
   infoDateValue: {
-    fontSize: 14,
+    fontSize: fontScale(14),
     fontFamily: fonts.outfit.semiBold,
     color: C.dark,
   },
   lieuBlock: {
-    marginTop: 14,
+    marginTop: scale(14),
   },
   infoLabel: {
-    fontSize: 8,
+    fontSize: fontScale(8),
     fontFamily: fonts.outfit.bold,
-    letterSpacing: 2,
+    letterSpacing: scale(2),
     color: C.label,
-    marginBottom: 3,
+    marginBottom: scale(3),
   },
   lieuValue: {
-    fontSize: 13,
+    fontSize: fontScale(13),
     fontFamily: fonts.outfit.semiBold,
     color: C.label,
     letterSpacing: 0.5,
   },
   separator: {
-    height: 1,
+    height: scale(1),
     backgroundColor: 'rgba(37,43,122,0.08)',
-    marginVertical: 18,
+    marginVertical: scale(18),
   },
   refText: {
-    fontSize: 9,
+    fontSize: fontScale(9),
     fontFamily: fonts.jakarta.regular,
     color: C.label,
     textAlign: 'center',
-    letterSpacing: 2,
-    marginBottom: 6,
+    letterSpacing: scale(2),
+    marginBottom: scale(6),
   },
   qrWrapper: {
     backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
-    marginTop: 10,
-    marginBottom: 6,
-    borderWidth: 1,
+    borderRadius: scale(14),
+    padding: scale(16),
+    marginTop: scale(10),
+    marginBottom: scale(6),
+    borderWidth: scale(1),
     borderColor: 'rgba(37,43,122,0.06)',
     alignItems: 'center',
     position: 'relative',
@@ -505,14 +506,14 @@ const styles = StyleSheet.create({
     top: '50%',
     left: '50%',
     transform: [{ translateX: -28 }, { translateY: -28 }],
-    width: 56, height: 56, borderRadius: 28,
+    width: scale(56), height: scale(56), borderRadius: scale(28),
     backgroundColor: C.watermarkRed,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 5,
   },
   qrCross: {
-    fontSize: 26,
+    fontSize: fontScale(26),
     color: C.white,
     fontWeight: '700',
   },
@@ -520,8 +521,8 @@ const styles = StyleSheet.create({
   // ===== 4. FOOTER =====
   footer: {
     backgroundColor: C.beige,
-    paddingVertical: 24,
-    paddingHorizontal: 28,
+    paddingVertical: scale(24),
+    paddingHorizontal: scale(28),
     alignItems: 'center',
     gap: 10,
     position: 'relative',
@@ -529,36 +530,36 @@ const styles = StyleSheet.create({
   categoryBadge: {
     backgroundColor: C.headerBg,
     borderRadius: 999,
-    paddingVertical: 6,
-    paddingHorizontal: 24,
+    paddingVertical: scale(6),
+    paddingHorizontal: scale(24),
   },
   categoryBadgeText: {
-    fontSize: 9,
+    fontSize: fontScale(9),
     fontFamily: fonts.outfit.bold,
-    letterSpacing: 2.5,
+    letterSpacing: scale(2.5),
     color: C.accent,
   },
   priceText: {
-    fontSize: 28,
+    fontSize: fontScale(28),
     fontFamily: fonts.outfit.bold,
     color: C.dark,
-    letterSpacing: -0.5,
+    letterSpacing: scale(-0.5),
     textAlign: 'center',
   },
   legalText: {
-    fontSize: 9,
+    fontSize: fontScale(9),
     fontFamily: fonts.jakarta.regular,
     color: C.label,
     fontStyle: 'italic',
     textAlign: 'center',
   },
   wmText: {
-    fontSize: 8,
+    fontSize: fontScale(8),
     color: 'rgba(37,43,122,0.25)',
     fontFamily: fonts.outfit.bold,
     letterSpacing: 3,
     alignSelf: 'flex-end',
-    marginTop: 4,
+    marginTop: scale(4),
   },
 
   // Watermark diagonal (UTILISÉ / EXPIRÉ)
@@ -570,8 +571,8 @@ const styles = StyleSheet.create({
   },
   watermarkText: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 60,
-    letterSpacing: 8,
+    fontSize: fontScale(60),
+    letterSpacing: scale(8),
     opacity: 0.12,
     transform: [{ rotate: '-30deg' }],
   },
@@ -580,8 +581,8 @@ const styles = StyleSheet.create({
   exportBtn: {
     backgroundColor: C.headerBg,
     borderRadius: 999,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
+    paddingVertical: scale(14),
+    paddingHorizontal: scale(32),
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
@@ -590,8 +591,8 @@ const styles = StyleSheet.create({
   },
   exportText: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 14,
+    fontSize: fontScale(14),
     color: C.accent,
-    letterSpacing: 1,
+    letterSpacing: scale(1),
   },
 })
