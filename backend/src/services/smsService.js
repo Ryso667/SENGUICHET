@@ -163,4 +163,31 @@ const consulterContrats = async () => {
   });
 };
 
-module.exports = { envoyerSMSBillet, consulterContrats };
+// Récupère les statistiques d'utilisation SMS
+const consulterStats = async () => {
+  const token = await obtenirTokenOrange();
+  if (!token) return { error: "token null" };
+
+  return new Promise((resolve) => {
+    const req = https.request(
+      {
+        hostname: "api.orange.com",
+        path: "/sms/admin/v1/statistics",
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      },
+      (res) => {
+        let body = "";
+        res.on("data", (chunk) => (body += chunk));
+        res.on("end", () => {
+          try { resolve(JSON.parse(body)); }
+          catch { resolve({ error: "parse error", raw: body }); }
+        });
+      }
+    );
+    req.on("error", (e) => resolve({ error: e.message }));
+    req.end();
+  });
+};
+
+module.exports = { envoyerSMSBillet, consulterContrats, consulterStats };

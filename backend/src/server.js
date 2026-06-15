@@ -60,6 +60,17 @@ app.get("/api/contrats-orange", async (req, res) => {
   }
 });
 
+// Statistiques Orange SMS (consommation)
+app.get("/api/stats-orange", async (req, res) => {
+  try {
+    const { consulterStats } = require("./services/smsService");
+    const stats = await consulterStats();
+    res.json(stats);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.use("/api", routes);
 
 app.use((err, req, res, next) => {
