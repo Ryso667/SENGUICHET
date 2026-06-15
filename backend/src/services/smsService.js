@@ -18,7 +18,7 @@ const obtenirTokenOrange = () => {
     const req = https.request(
       {
         hostname: "api.orange.com",
-        path: "/oauth/v2/token",
+        path: "/oauth/v3/token",
         method: "POST",
         headers: {
           Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
@@ -55,14 +55,18 @@ const envoyerSMSOrange = async (numero, message) => {
   const encodedAddress = encodeURIComponent(senderAddress);
   const apiPrefix = process.env.ORANGE_SANDBOX === "true" ? "/sandbox" : "";
 
+  const senderName = process.env.ORANGE_SENDER_NAME || undefined;
+  const payloadObj = {
+    outboundSMSMessageRequest: {
+      address: `tel:${numero}`,
+      senderAddress,
+      outboundSMSTextMessage: { message },
+    },
+  };
+  if (senderName) payloadObj.outboundSMSMessageRequest.senderName = senderName;
+
   return new Promise((resolve) => {
-    const payload = JSON.stringify({
-      outboundSMSMessageRequest: {
-        address: `tel:${numero}`,
-        senderAddress,
-        outboundTextMessage: { message },
-      },
-    });
+    const payload = JSON.stringify(payloadObj);
 
     const req = https.request(
       {
