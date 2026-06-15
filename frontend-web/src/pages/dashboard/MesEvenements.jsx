@@ -40,9 +40,10 @@ const MesEvenements = () => {
   }, []);
 
   const filtered = events.filter((e) => {
-    if (activeTab === "Actifs" && e.statut !== "active" && e.statut !== "sold-out") return false;
+    if (activeTab === "Actifs" && e.statut !== "active") return false;
     if (activeTab === "En attente" && e.statut !== "en_attente") return false;
-    if (activeTab === "Terminés" && e.statut !== "sold-out" && e.statut !== "refuse" && e.statut !== "suspendu") return false;
+    if (activeTab === "Terminés" && e.statut !== "sold-out") return false;
+    if (activeTab === "Annulés" && e.statut !== "refuse" && e.statut !== "suspendu" && e.statut !== "annule") return false;
     if (search && !e.nom.toLowerCase().includes(search.toLowerCase())) return false;
     if (catFilter && e.categorie !== catFilter) return false;
     return true;
