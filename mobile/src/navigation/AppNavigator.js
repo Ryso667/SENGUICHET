@@ -27,7 +27,6 @@ import HomeScreen from '../screens/HomeScreen'
 import EventSearchScreen from '../screens/EventSearchScreen'
 import EventDetailScreen from '../screens/EventDetailScreen'
 import TicketScreen from '../screens/TicketScreen'
-import MesTicketsScreen from '../screens/MesTicketsScreen'
 import SupportScreen from '../screens/SupportScreen'
 import WebViewWaveScreen from '../screens/WebViewWaveScreen'
 
