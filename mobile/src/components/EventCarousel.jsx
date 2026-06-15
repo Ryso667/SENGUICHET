@@ -23,7 +23,7 @@ function EventCarousel({ events, onPress, onActiveIndexChange }) {
   const paddingLeft = (screenWidth - cardWidth) / 2
 
   const renderCard = useCallback((item, index) => {
-    const scale = scrollX.interpolate({
+    const animatedScale = scrollX.interpolate({
       inputRange: [
         (index - 1) * itemWidth,
         index * itemWidth,
@@ -61,7 +61,7 @@ function EventCarousel({ events, onPress, onActiveIndexChange }) {
           {
             width: cardWidth,
             marginRight: screenWidth * SIDE_PEEK,
-            transform: [{ translateY: -CARD_HEIGHT / 2 }, { rotateZ: rotate }, { translateY: CARD_HEIGHT / 2 }, { scale }],
+            transform: [{ translateY: -CARD_HEIGHT / 2 }, { rotateZ: rotate }, { translateY: CARD_HEIGHT / 2 }, { scale: animatedScale }],
             opacity,
           },
         ]}

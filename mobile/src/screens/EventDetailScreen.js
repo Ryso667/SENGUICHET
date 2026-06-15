@@ -14,7 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
 import MaskedView from '@react-native-masked-view/masked-view'
 import { colors, fonts, spacing, glass, textShadow, borderRadius } from '../constants/theme'
-import { scale, fontScale, isPad } from '../utils/responsive'
+import { scale, fontScale, lineHeightScale, isPad } from '../utils/responsive'
 import OrganisateurLayout from '../components/OrganisateurLayout'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
@@ -590,7 +590,7 @@ const styles = StyleSheet.create({
     fontSize: fontScale(42),
     color: '#fff',
     letterSpacing: scale(-1.5),
-    lineHeight: scale(48),
+    lineHeight: lineHeightScale(48),
     ...textShadow,
   },
   heroDivider: {
@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.outfit.extraBold,
     color: '#fff',
     letterSpacing: scale(-2),
-    lineHeight: scale(46),
+    lineHeight: lineHeightScale(46),
     ...textShadow,
   },
   heroDateMonth: {
@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
     fontSize: fontScale(15),
     color: colors.textWhite,
     fontFamily: fonts.jakarta.regular,
-    lineHeight: scale(26),
+    lineHeight: lineHeightScale(26),
   },
   // Sections
   sectionHeader: {

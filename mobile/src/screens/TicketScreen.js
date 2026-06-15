@@ -11,7 +11,7 @@ import { colors, fonts, spacing } from '../constants/theme'
 import OrganisateurLayout from '../components/OrganisateurLayout'
 import BlurBackground from '../components/BlurBackground'
 import { formaterDateLisible } from '../utils/dateUtils'
-import { scale, fontScale, isPad } from '../utils/responsive'
+import { scale, fontScale, lineHeightScale, isPad } from '../utils/responsive'
 import { genererTicketPDF, genererHtmlWebTicket } from '../services/ticketPdfService'
 import { HMAC_SECRET } from '../config'
 
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     color: C.white,
     textAlign: 'center',
     letterSpacing: scale(0.5),
-    lineHeight: scale(28),
+    lineHeight: lineHeightScale(28),
   },
   catPill: {
     alignSelf: 'center',
