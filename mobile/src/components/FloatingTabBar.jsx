@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: scale(32),
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.8)',
+backgroundColor: 'rgba(255,255,255,0.8)',
     paddingVertical: scale(4),
     paddingHorizontal: scale(6),
     overflow: 'hidden',
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     height: scale(6),
     borderBottomLeftRadius: scale(3),
     borderBottomRightRadius: scale(3),
-    backgroundColor: 'rgba(0,0,0,0.02)',
+backgroundColor: 'rgba(0,0,0,0.02)',
   },
   tab: {
     flex: 1,

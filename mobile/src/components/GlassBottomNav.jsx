@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderTopWidth: 0, // Pas de bordure sur le nav style Apple
     paddingTop: scale(8),
-    backgroundColor: 'rgba(0,0,0,0.04)', // Verre translucide très subtil
+backgroundColor: 'rgba(0,0,0,0.04)', // Verre translucide très subtil
   },
   item: {
     flex: 1,
