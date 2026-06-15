@@ -49,11 +49,18 @@ const obtenirTokenOrange = () => {
 // numero: numéro destinataire au format international (+221XXXXXXXXX)
 const envoyerSMSOrange = async (numero, message) => {
   const token = await obtenirTokenOrange();
-  if (!token) return null;
+  if (!token) {
+    console.error("SMSDEBUG: token null — credentials absentes ou invalides");
+    return null;
+  }
 
-  const senderAddress = process.env.ORANGE_SENDER_ADDRESS || "tel:+221000000000";
+  // senderAddress = numéro pays Sénégal (tel:+2210000) ou celui fourni si provisionné
+  // Ne PAS utiliser senderName comme senderAddress — ce sont deux champs distincts
+  const senderAddress = process.env.ORANGE_SENDER_ADDRESS || "tel:+2210000";
   const encodedAddress = encodeURIComponent(senderAddress);
   const apiPrefix = process.env.ORANGE_SANDBOX === "true" ? "/sandbox" : "";
+
+  console.log(`SMSDEBUG: token obtenu, sender=${senderAddress}, prefix=${apiPrefix || "production"}`);
 
   const senderName = process.env.ORANGE_SENDER_NAME || undefined;
   const payloadObj = {
@@ -64,6 +71,8 @@ const envoyerSMSOrange = async (numero, message) => {
     },
   };
   if (senderName) payloadObj.outboundSMSMessageRequest.senderName = senderName;
+
+  console.log(`SMSDEBUG: payload=${JSON.stringify(payloadObj, null, 2)}`);
 
   return new Promise((resolve) => {
     const payload = JSON.stringify(payloadObj);
@@ -80,17 +89,24 @@ const envoyerSMSOrange = async (numero, message) => {
       },
       (res) => {
         let body = "";
+        console.log(`SMSDEBUG: statusCode=${res.statusCode}`);
         res.on("data", (chunk) => (body += chunk));
         res.on("end", () => {
+          console.log(`SMSDEBUG: rawBody=${body}`);
           try {
-            resolve(JSON.parse(body));
+            const json = JSON.parse(body);
+            resolve(json);
           } catch {
+            console.error(`SMSDEBUG: JSON parse error on body=${body}`);
             resolve(null);
           }
         });
       }
     );
-    req.on("error", () => resolve(null));
+    req.on("error", (e) => {
+      console.error(`SMSDEBUG: request error=${e.message}`);
+      resolve(null);
+    });
     req.write(payload);
     req.end();
   });
@@ -102,11 +118,19 @@ const envoyerSMSOrange = async (numero, message) => {
 const envoyerSMSBillet = async (numero, ticket) => {
   const numeroFull = numero.startsWith("+") ? numero : `+221${numero}`;
   const ticketBase = (process.env.TICKET_URL || "https://senguichet.com/billet").replace(/\/+$/, "");
-  const message = `SENGUICHET 🎉 Merci pour votre achat ! Votre billet pour "${ticket.evenement}" (${ticket.categorie}) est confirmé. Montant : ${ticket.prix.toLocaleString()} FCFA. Accédez à votre billet ici : ${ticketBase}/${ticket.uuid}`;
+  const message = `SENGUICHET: Achat confirmé ! "${ticket.evenement}" (${ticket.categorie}). Montant : ${ticket.prix.toLocaleString()} FCFA. Voir billet : ${ticketBase}/${ticket.uuid}`;
 
-  const result = await envoyerSMSOrange(numeroFull.replace("+", ""), message);
+  console.log(`SMSDEBUG: envoi vers=${numeroFull}, sender=${process.env.ORANGE_SENDER_ADDRESS}, sandbox=${process.env.ORANGE_SANDBOX}, message=${message.substring(0,60)}...`);
+
+  const result = await envoyerSMSOrange(numeroFull, message);
+  console.log(`SMSDEBUG: response=${JSON.stringify(result)}`);
+
   if (result && result.outboundSMSMessageRequest) {
-    console.log(`SMS envoyé à ${numeroFull}`);
+    const status = result.outboundSMSMessageRequest.deliveryInfoList?.deliveryInfo?.[0]?.deliveryStatus;
+    console.log(`SMSDEBUG: resourceURL=${result.outboundSMSMessageRequest.resourceURL}, status=${status}`);
+    if (status === "Impossible") {
+      console.error(`SMSDEBUG: DELIVERY IMPOSSIBLE — sender address probablement invalide`);
+    }
     return { success: true, result };
   }
   throw new Error(`Orange API a retourné : ${JSON.stringify(result)}`);
