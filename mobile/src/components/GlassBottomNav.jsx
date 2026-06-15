@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { fonts, colors } from '../constants/theme'
+import { scale, fontScale } from '../utils/responsive'
 
 const TABS = [
   { key: 'Home', icon: 'home', label: 'Accueil' },
@@ -51,7 +52,7 @@ export default function GlassBottomNav() {
             activeOpacity={0.7}
           >
             <View style={[styles.iconWrap, active && styles.activeIcon]}>
-              <Feather name={tab.icon} size={20} color={active ? colors.accent : colors.textSecondary} />
+              <Feather name={tab.icon} size={scale(20)} color={active ? colors.accent : colors.textSecondary} />
             </View>
             <Text style={[styles.label, active && styles.activeLabel]}>
               {tab.label}
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     borderTopWidth: 0, // Pas de bordure sur le nav style Apple
-    paddingTop: 8,
+    paddingTop: scale(8),
     backgroundColor: 'rgba(255,255,255,0.08)', // Verre translucide très subtil
   },
   item: {
@@ -76,9 +77,9 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   iconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: scale(40),
+    height: scale(40),
+    borderRadius: scale(20),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -86,10 +87,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(121,134,203,0.15)', // Fond indigo semi-transparent pour l'icône active
   },
   label: {
-    fontSize: 10,
+    fontSize: fontScale(10),
     fontFamily: fonts.jakarta.medium,
     color: colors.textSecondary,
-    letterSpacing: 0.2,
+    letterSpacing: scale(0.2),
   },
   activeLabel: {
     color: colors.accent,
