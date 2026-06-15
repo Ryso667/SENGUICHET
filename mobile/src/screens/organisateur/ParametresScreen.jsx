@@ -66,8 +66,8 @@ export default function ParametresScreen({ navigation }) {
             <Switch
               value={notifications.smsVente}
               onValueChange={() => toggleNotif('smsVente')}
-              trackColor={{ true: 'rgba(121,134,203,0.6)', false: 'rgba(255,255,255,0.2)' }}
-              thumbColor={notifications.smsVente ? colors.accent : 'rgba(255,255,255,0.5)'}
+              trackColor={{ true: 'rgba(26,86,219,0.6)', false: 'rgba(0,0,0,0.15)' }}
+              thumbColor={notifications.smsVente ? colors.accent : 'rgba(0,0,0,0.3)'}
             />
           </View>
           <View style={s.divider} />
@@ -76,8 +76,8 @@ export default function ParametresScreen({ navigation }) {
             <Switch
               value={notifications.emailRecap}
               onValueChange={() => toggleNotif('emailRecap')}
-              trackColor={{ true: 'rgba(121,134,203,0.6)', false: 'rgba(255,255,255,0.2)' }}
-              thumbColor={notifications.emailRecap ? colors.accent : 'rgba(255,255,255,0.5)'}
+              trackColor={{ true: 'rgba(26,86,219,0.6)', false: 'rgba(0,0,0,0.15)' }}
+              thumbColor={notifications.emailRecap ? colors.accent : 'rgba(0,0,0,0.3)'}
             />
           </View>
           <View style={s.divider} />
@@ -86,8 +86,8 @@ export default function ParametresScreen({ navigation }) {
             <Switch
               value={notifications.stockFaible}
               onValueChange={() => toggleNotif('stockFaible')}
-              trackColor={{ true: 'rgba(121,134,203,0.6)', false: 'rgba(255,255,255,0.2)' }}
-              thumbColor={notifications.stockFaible ? colors.accent : 'rgba(255,255,255,0.5)'}
+              trackColor={{ true: 'rgba(26,86,219,0.6)', false: 'rgba(0,0,0,0.15)' }}
+              thumbColor={notifications.stockFaible ? colors.accent : 'rgba(0,0,0,0.3)'}
             />
           </View>
         </GlassContainer>
@@ -104,13 +104,13 @@ const s = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.sm },
   label: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.text },
   value: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary, textAlign: 'right', flex: 1, marginLeft: spacing.md },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.15)' },
-  infoText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', lineHeight: 20 },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(0,0,0,0.06)' },
+  infoText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(0,0,0,0.45)', lineHeight: 20 },
   securityBtn: {
     paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md,
     backgroundColor: 'rgba(121,134,203,0.12)', borderRadius: borderRadius.md,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(121,134,203,0.25)',
     alignItems: 'center',
   },
-  securityBtnText: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
+  securityBtnText: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 })

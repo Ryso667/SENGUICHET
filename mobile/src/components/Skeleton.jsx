@@ -59,7 +59,7 @@ export default function Skeleton({ width, height, borderRadius: br, type, count 
     >
       <Animated.View style={[s.shimmer, { transform: [{ translateX }] }]}>
         <LinearGradient
-          colors={['transparent', 'rgba(255,255,255,0.12)', 'transparent']}
+          colors={['transparent', 'rgba(0,0,0,0.06)', 'transparent']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={StyleSheet.absoluteFill}
@@ -82,7 +82,7 @@ export default function Skeleton({ width, height, borderRadius: br, type, count 
 
 const s = StyleSheet.create({
   base: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(0,0,0,0.03)',
     overflow: 'hidden',
   },
   shimmer: {

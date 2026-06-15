@@ -73,7 +73,7 @@ export default function GestionEvenementsScreen({ navigation }) {
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" colors={["#FFFFFF"]} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1A56DB" colors={["#1A56DB"]} />}
           onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
           scrollEventThrottle={16}
         >
@@ -130,7 +130,7 @@ export default function GestionEvenementsScreen({ navigation }) {
           ) : filtered.length === 0 ? (
             /* État vide — calqué sur le web */
             <GlassContainer blurType="light" style={s.emptyState}>
-              <MaterialCommunityIcons name="ticket-outline" size={56} color="rgba(255,255,255,0.3)" />
+              <MaterialCommunityIcons name="ticket-outline" size={56} color="rgba(0,0,0,0.12)" />
               <Text style={s.emptyTitle}>Aucun événement trouvé</Text>
               <Text style={s.emptySub}>Vous n'avez pas encore d'événement. Faites une demande à l'équipe SENGUICHET.</Text>
               <TouchableOpacity onPress={() => navigation.navigate('MesDemandesTab')} activeOpacity={0.8}>
@@ -224,7 +224,7 @@ const s = StyleSheet.create({
   tabsBar: {
     flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.md,
     padding: 6, borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: 'rgba(0,0,0,0.02)',
   },
   tab: { flex: 1, borderRadius: 14, overflow: 'hidden' },
   tabActive: {},
@@ -274,7 +274,7 @@ const s = StyleSheet.create({
   cardRevenu: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.green },
 
   cardBarRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
-  cardBarBg: { flex: 1, height: 6, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden' },
+  cardBarBg: { flex: 1, height: 6, backgroundColor: 'rgba(0,0,0,0.04)', borderRadius: 3, overflow: 'hidden' },
   cardBarFill: { height: 6, borderRadius: 3, backgroundColor: colors.accent },
   cardBarPct: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary, width: 36, textAlign: 'right' },
 
@@ -282,5 +282,5 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(121,134,203,0.12)', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
-  cardBtnText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
+  cardBtnText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 })

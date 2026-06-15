@@ -1,7 +1,7 @@
 // Écran de profil universel (acheteur / controleur)
 // Design glass (Apple Invites)
 import { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { colors, spacing, borderRadius, fonts, glass } from '../constants/theme'
@@ -12,7 +12,7 @@ import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import { useTabBarScroll } from '../context/TabBarScrollContext'
 
-export default function ProfilScreen({ route }) {
+export default function ProfilScreen({ route, navigation }) {
   const insets = useSafeAreaInsets()
   const { scrollY: tabScrollY } = useTabBarScroll()
   const { role, email, user, profil } = useAuth()
@@ -56,6 +56,12 @@ export default function ProfilScreen({ route }) {
                 <Feather name="headphones" size={14} color={colors.accent} />
                 <Text style={s.supportText}>Support : contact@senguichet.com</Text>
               </View>
+              {/* Lien vers espace organisateur */}
+              <TouchableOpacity style={s.proLink} onPress={() => navigation.navigate('ConnexionOrganisateur')}>
+                <Feather name="briefcase" size={18} color={colors.accent} />
+                <Text style={s.proLinkText}>Espace organisateur</Text>
+                <Feather name="chevron-right" size={18} color={colors.textTertiary} />
+              </TouchableOpacity>
             </>
           ) : currentRole === 'controleur' ? (
             <>
@@ -115,6 +121,16 @@ const s = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(121,134,203,0.2)',
   },
   supportText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textWhiteMuted },
+  proLink: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingVertical: spacing.sm, paddingHorizontal: spacing.md,
+    backgroundColor: colors.accentLight, borderRadius: borderRadius.md,
+    marginTop: spacing.sm,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(26,86,219,0.15)',
+  },
+  proLinkText: {
+    flex: 1, fontSize: 13, fontFamily: fonts.jakarta.semiBold, color: colors.accent,
+  },
   statsGrid: {
     flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%',
   },

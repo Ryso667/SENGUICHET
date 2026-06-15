@@ -411,7 +411,7 @@ export default function MesDemandesScreen({ navigation }) {
   const renderInput = (placeholder, value, onChange, extra) => {
     const { style: extraStyle, ...rest } = extra || {}
     return (
-      <TextInput style={[f.input, extraStyle]} placeholder={placeholder} placeholderTextColor={colors.textTertiary} value={value} onChangeText={onChange} selectionColor="rgba(255,255,255,0.5)" {...rest} />
+      <TextInput style={[f.input, extraStyle]} placeholder={placeholder} placeholderTextColor={colors.textTertiary} value={value} onChangeText={onChange} selectionColor="rgba(0,0,0,0.25)" {...rest} />
     )
   }
 
@@ -423,7 +423,7 @@ export default function MesDemandesScreen({ navigation }) {
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" colors={["#FFFFFF"]} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1A56DB" colors={["#1A56DB"]} />}
           onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
           scrollEventThrottle={16}
         >
@@ -657,7 +657,7 @@ export default function MesDemandesScreen({ navigation }) {
                         ) : (
                           <>
                             <MaterialCommunityIcons name="image-plus-outline" size={28} color={colors.textTertiary} />
-                            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>Ajouter une affiche</Text>
+                            <Text style={{ fontSize: 11, color: 'rgba(0,0,0,0.35)', marginTop: 4 }}>Ajouter une affiche</Text>
                           </>
                         )}
                       </TouchableOpacity>
@@ -838,7 +838,7 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(121,134,203,0.3)', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 6, marginLeft: spacing.sm,
   },
-  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
+  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 
   /* Modal */
   modalOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'flex-end' },
@@ -880,7 +880,7 @@ const s = StyleSheet.create({
   picker: { padding: 20, maxHeight: 400 },
   pickerTitle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: '#fff', marginBottom: 16, textAlign: 'center' },
   pickerItem: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 12, marginBottom: 4 },
-  pickerItemActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
+  pickerItemActive: { backgroundColor: 'rgba(0,0,0,0.06)' },
   pickerItemText: { fontFamily: fonts.outfit.regular, fontSize: 16, color: '#fff' },
   pickerItemTextActive: { fontFamily: fonts.outfit.semiBold, color: '#fff' },
 })
@@ -902,7 +902,7 @@ const f = StyleSheet.create({
   selectOptTextActive: { color: '#fff' },
   twoCol: { flexDirection: 'row', gap: spacing.sm },
   uploadZone: {
-    borderWidth: 2, borderStyle: 'dashed', borderColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 2, borderStyle: 'dashed', borderColor: 'rgba(0,0,0,0.06)',
     borderRadius: 12, paddingVertical: 30, alignItems: 'center', justifyContent: 'center',
     marginBottom: spacing.sm,
   },

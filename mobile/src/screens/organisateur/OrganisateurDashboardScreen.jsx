@@ -98,7 +98,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
       <OrganisateurLayout />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" colors={["#FFFFFF"]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1A56DB" colors={["#1A56DB"]} />}
         onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
         scrollEventThrottle={16}
       >
@@ -260,17 +260,17 @@ const s = StyleSheet.create({
   eventMeta: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
   eventBody: { padding: spacing.md },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
-  barBg: { flex: 1, height: 8, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 4, overflow: 'hidden' },
+  barBg: { flex: 1, height: 8, backgroundColor: 'rgba(0,0,0,0.06)', borderRadius: 4, overflow: 'hidden' },
   barFill: { height: 8, borderRadius: 4, backgroundColor: colors.accent },
   barCount: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary },
   eventFooter: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.15)', paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(0,0,0,0.06)', paddingTop: spacing.sm,
   },
   revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.green },
   detailsBtn: {
     backgroundColor: 'rgba(121,134,203,0.15)', borderRadius: 8,
     paddingHorizontal: 14, paddingVertical: 6,
   },
-  detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
+  detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
 })
