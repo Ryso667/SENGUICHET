@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: scale(10),
   },
   logoBox: {
     width: scale(38), height: scale(38), borderRadius: scale(10),
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.outfit.bold,
     color: C.white,
     textAlign: 'center',
-    letterSpacing: 0.5,
+    letterSpacing: scale(0.5),
     lineHeight: scale(28),
   },
   catPill: {
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: scale(4),
   },
   infoBlock: {
     flex: 1,
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
     paddingVertical: scale(24),
     paddingHorizontal: scale(28),
     alignItems: 'center',
-    gap: 10,
+    gap: scale(10),
     position: 'relative',
   },
   categoryBadge: {
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
     fontSize: fontScale(8),
     color: 'rgba(37,43,122,0.25)',
     fontFamily: fonts.outfit.bold,
-    letterSpacing: 3,
+    letterSpacing: scale(3),
     alignSelf: 'flex-end',
     marginTop: scale(4),
   },

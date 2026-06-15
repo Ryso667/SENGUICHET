@@ -639,11 +639,11 @@ const styles = StyleSheet.create({
   heroTimeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    marginTop: 4,
+    gap: scale(5),
+    marginTop: scale(4),
   },
   heroTimeText: {
-    fontSize: 12,
+    fontSize: fontScale(12),
     fontFamily: fonts.jakarta.regular,
     color: 'rgba(255,255,255,0.5)',
   },
@@ -651,7 +651,7 @@ const styles = StyleSheet.create({
   heroLocationCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: scale(14),
     paddingVertical: scale(14),
     paddingHorizontal: scale(16),
     marginBottom: spacing.sm,
@@ -666,7 +666,7 @@ const styles = StyleSheet.create({
     fontSize: fontScale(11),
     fontFamily: fonts.jakarta.regular,
     color: 'rgba(255,255,255,0.4)',
-    marginTop: 2,
+    marginTop: scale(2),
   },
   // Carte description — épurée, généreuse
   descCard: {
@@ -685,7 +685,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 14,
+    fontSize: fontScale(14),
     color: colors.textWhite,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -694,9 +694,8 @@ const styles = StyleSheet.create({
     fontSize: fontScale(11),
     fontFamily: fonts.jakarta.regular,
     color: colors.textWhiteMuted,
-    marginTop: 3,
+    marginTop: scale(3),
   },
-  // Sélecteur de catégorie premium
   categorySelector: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -705,7 +704,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   categorySelectorLeft: {
-    gap: 6,
+    gap: scale(6),
   },
   categorySelectorLabel: {
     fontFamily: fonts.outfit.semiBold,
@@ -725,7 +724,7 @@ const styles = StyleSheet.create({
   },
   priceChip: {
     backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 20,
+    borderRadius: scale(20),
     paddingHorizontal: scale(12),
     paddingVertical: scale(5),
   },
@@ -782,21 +781,21 @@ const styles = StyleSheet.create({
     fontSize: fontScale(10),
     color: 'rgba(255,255,255,0.6)',
     fontFamily: fonts.jakarta.regular,
-    marginTop: 2,
+    marginTop: scale(2),
     ...textShadow,
   },
   sheetItemRight: {
     alignItems: 'flex-end',
-    gap: 2,
+    gap: scale(2),
   },
   sheetItemPrice: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 14,
+    fontSize: fontScale(14),
     color: '#fff',
     ...textShadow,
   },
   sheetItemPlaces: {
-    fontSize: 9,
+    fontSize: fontScale(9),
     color: 'rgba(255,255,255,0.5)',
     fontFamily: fonts.jakarta.regular,
     ...textShadow,
@@ -807,7 +806,7 @@ const styles = StyleSheet.create({
     borderRadius: scale(10),
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
+    marginTop: scale(4),
   },
 
   // Champ téléphone dans le modal de paiement
@@ -825,31 +824,31 @@ const styles = StyleSheet.create({
   modalPhoneRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 4,
+    gap: scale(8),
+    paddingHorizontal: scale(14),
+    paddingVertical: scale(4),
     width: '100%',
     marginBottom: spacing.md,
   },
   modalPhoneCode: {
     fontFamily: fonts.jakarta.semiBold,
-    fontSize: 15,
+    fontSize: fontScale(15),
     color: colors.textWhiteMuted,
   },
   modalPhoneInput: {
     flex: 1,
-    fontSize: 15,
+    fontSize: fontScale(15),
     fontFamily: fonts.jakarta.semiBold,
     color: colors.textWhite,
-    paddingVertical: 10,
+    paddingVertical: scale(10),
   },
   // Montant dans le modal de paiement
   payAmountLabel: {
     fontFamily: fonts.outfit.semiBold,
-    fontSize: 14,
+    fontSize: fontScale(14),
     color: 'rgba(255,255,255,0.5)',
     textTransform: 'uppercase',
-    letterSpacing: 2,
+    letterSpacing: scale(2),
     marginBottom: spacing.xs,
   },
   payAmountValue: {
@@ -956,7 +955,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    gap: 14,
+    gap: scale(14),
   },
   confirmBtnLogo: {
     width: scale(36),
@@ -1013,7 +1012,7 @@ const styles = StyleSheet.create({
   },
   payErrorDetail: {
     fontFamily: fonts.jakarta.regular,
-    fontSize: 12,
+    fontSize: fontScale(12),
     color: 'rgba(255,255,255,0.6)',
     textAlign: 'center',
     paddingHorizontal: spacing.xl,
@@ -1026,13 +1025,13 @@ const styles = StyleSheet.create({
   payRetryGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: scale(8),
     paddingHorizontal: scale(28),
     paddingVertical: scale(14),
   },
   payRetryText: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 14,
+    fontSize: fontScale(14),
     color: '#fff',
   },
 })
