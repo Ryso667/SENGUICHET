@@ -46,6 +46,7 @@ import ParametresScreen from '../screens/organisateur/ParametresScreen'
 // Nouveaux écrans (gap 2, 3, 5)
 import ChangerMotDePasseScreen from '../screens/organisateur/ChangerMotDePasseScreen'
 import ProfilScreen from '../screens/ProfilScreen'
+import NotificationsScreen from '../screens/NotificationsScreen'
 
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
@@ -123,14 +124,36 @@ const headerStyles = StyleSheet.create({
   },
 })
 
-// Onglets acheteur : 4 tabs sans barre de navigation
+// Onglets acheteur : 4 tabs avec barre de navigation inférieure
 function AcheteurTabs() {
   return (
     <TabBarScrollProvider>
     <Tab.Navigator
-      tabBar={() => null}
       screenOptions={{
         headerShown: false,
+        tabBarActiveTintColor: '#1A56DB',
+        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 1,
+          borderTopColor: '#F1F5F9',
+          paddingBottom: 4,
+          paddingTop: 4,
+          height: 56,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 4,
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontFamily: 'PlusJakartaSans_600SemiBold',
+          marginTop: 0,
+        },
+        tabBarIconStyle: {
+          marginBottom: 0,
+        },
       }}
     >
       <Tab.Screen
@@ -138,18 +161,33 @@ function AcheteurTabs() {
         component={HomeScreen}
         options={{
           tabBarLabel: 'Accueil',
-          tabBarIcon: ({ color, size }) => <Feather name="home" size={size} color={color} />,
+          tabBarIcon: ({ color }) => <Feather name="home" size={20} color={color} />,
         }}
       />
       <Tab.Screen
-        name="MesTickets"
-        component={MesTicketsScreen}
+        name="EventSearch"
+        component={EventSearchScreen}
         options={{
-          tabBarLabel: 'Mes Tickets',
-          tabBarIcon: ({ color, size }) => <Feather name="tag" size={size} color={color} />,
+          tabBarLabel: 'Recherche',
+          tabBarIcon: ({ color }) => <Feather name="search" size={20} color={color} />,
         }}
       />
-
+      <Tab.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{
+          tabBarLabel: 'Notifications',
+          tabBarIcon: ({ color }) => <Feather name="bell" size={20} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="Profil"
+        component={ProfilScreen}
+        options={{
+          tabBarLabel: 'Compte',
+          tabBarIcon: ({ color }) => <Feather name="user" size={20} color={color} />,
+        }}
+      />
     </Tab.Navigator>
     </TabBarScrollProvider>
   )
@@ -318,7 +356,7 @@ export default function AppNavigator() {
         : 'OrganisateurTabs'
       navigationRef.current.reset({ index: 0, routes: [{ name: routeName }] })
     } else {
-      navigationRef.current.reset({ index: 0, routes: [{ name: 'AccueilChoix' }] })
+      navigationRef.current.reset({ index: 0, routes: [{ name: 'AcheteurTabs' }] })
     }
   }, [role])
 
@@ -363,11 +401,10 @@ export default function AppNavigator() {
             <Stack.Screen name="InscriptionOrganisateur" component={InscriptionOrganisateurScreen} options={header('Inscription')} />
             <Stack.Screen name="EnAttenteValidation" component={EnAttenteValidationScreen} />
 
-            {/* Acheteur connecté */}
-            {role === 'acheteur' && (
+            {/* Acheteur connecté ou non-connecté */}
+            {(!role || role === 'acheteur') && (
               <>
                 <Stack.Screen name="AcheteurTabs" component={AcheteurLayout} />
-                <Stack.Screen name="EventSearch" component={EventSearchScreen} />
                 <Stack.Screen name="EventDetail" component={EventDetailScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="Ticket" component={TicketScreen} />
                 <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
