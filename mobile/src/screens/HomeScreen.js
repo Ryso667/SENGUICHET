@@ -6,8 +6,7 @@ import { useEffect, useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Image, TextInput, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, fonts, spacing } from '../constants/theme'
-import { useAuth } from '../context/AuthContext'
+import { spacing } from '../constants/theme'
 import EventCarousel from '../components/EventCarousel'
 import Skeleton from '../components/Skeleton'
 import { formaterDateLisible } from '../utils/dateUtils'
@@ -18,7 +17,6 @@ const CATEGORIES = ['Tout', 'Concert', 'Festival', 'Sport', 'Théâtre', 'Confé
 
 export default function HomeScreen({ navigation }) {
   const insets = useSafeAreaInsets()
-  const { email } = useAuth()
   const [evenements, setEvenements] = useState([])
   const [categorieActive, setCategorieActive] = useState('Tout')
   const [chargement, setChargement] = useState(true)
