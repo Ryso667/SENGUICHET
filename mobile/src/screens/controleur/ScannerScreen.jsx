@@ -11,6 +11,7 @@ import { useFocusEffect } from '@react-navigation/native'
 import { verifierBillet, telechargerTickets, synchroniser } from '../../services/scanService'
 import { useAuth } from '../../context/AuthContext'
 import { colors, fonts } from '../../constants/theme'
+import { scale, fontScale } from '../../utils/responsive'
 import ControleurLayout from '../../components/ControleurLayout'
 import GlassButton from '../../components/GlassButton'
 
@@ -144,7 +145,7 @@ export default function ScannerScreen({ navigation, route }) {
           <View style={styles.infoRow}>
             <Text style={styles.info}>{evenementTitre || `Événement #${eventId}`} — {zone}</Text>
             {(chargeTickets || synchro === 'chargement') && (
-              <ActivityIndicator size="small" color="#FFFFFF" style={{ marginLeft: 8 }} />
+              <ActivityIndicator size="small" color="#FFFFFF" style={{ marginLeft: scale(8) }} />
             )}
           </View>
           {synchro === 'ok' && nbTickets > 0 && (
@@ -161,7 +162,7 @@ export default function ScannerScreen({ navigation, route }) {
 
       {scanne && (
         <View style={[styles.resultat, { backgroundColor: (COULEURS[scanne.resultat] || COULEURS.INCONNU).fond }]}>
-          <MaterialCommunityIcons name={(COULEURS[scanne.resultat] || COULEURS.INCONNU).icone} size={64} color="#fff" />
+          <MaterialCommunityIcons name={(COULEURS[scanne.resultat] || COULEURS.INCONNU).icone} size={scale(64)} color="#fff" />
           <Text style={styles.resultatMessage}>{(COULEURS[scanne.resultat] || COULEURS.INCONNU).label}</Text>
           {scanne.message && <Text style={styles.resultatDetail}>{scanne.message}</Text>}
         </View>
@@ -172,19 +173,19 @@ export default function ScannerScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   conteneur: { flex: 1, backgroundColor: colors.bg },
-  centre: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  textePermission: { fontFamily: fonts.outfit.medium, fontSize: 16, color: colors.text, textAlign: 'center', marginBottom: 16 },
+  centre: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: scale(24) },
+  textePermission: { fontFamily: fonts.outfit.medium, fontSize: fontScale(16), color: colors.text, textAlign: 'center', marginBottom: scale(16) },
   camera: { flex: 1 },
   overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
-  masqueHaut: { backgroundColor: 'rgba(0,0,0,0.6)', paddingBottom: 20, alignItems: 'center' },
-  titre: { fontFamily: fonts.outfit.bold, fontSize: 22, color: '#FFFFFF' },
+  masqueHaut: { backgroundColor: 'rgba(0,0,0,0.6)', paddingBottom: scale(20), alignItems: 'center' },
+  titre: { fontFamily: fonts.outfit.bold, fontSize: fontScale(22), color: '#FFFFFF' },
   infoRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  info: { fontFamily: fonts.outfit.regular, fontSize: 13, color: 'rgba(255,255,255,0.8)' },
-  syncOk: { fontFamily: fonts.outfit.medium, fontSize: 12, color: colors.success, marginTop: 4 },
-  syncError: { fontFamily: fonts.outfit.medium, fontSize: 12, color: colors.orange, marginTop: 4 },
+  info: { fontFamily: fonts.outfit.regular, fontSize: fontScale(13), color: 'rgba(255,255,255,0.8)' },
+  syncOk: { fontFamily: fonts.outfit.medium, fontSize: fontScale(12), color: colors.success, marginTop: 4 },
+  syncError: { fontFamily: fonts.outfit.medium, fontSize: fontScale(12), color: colors.orange, marginTop: 4 },
   zoneCadre: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  cadre: { width: 250, height: 250, borderWidth: 2, borderColor: colors.accent, borderRadius: 16, opacity: 0.8 },
+  cadre: { width: scale(250), height: scale(250), borderWidth: scale(2), borderColor: colors.accent, borderRadius: scale(16), opacity: 0.8 },
   resultat: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
-  resultatMessage: { fontFamily: fonts.outfit.bold, fontSize: 24, color: '#FFFFFF', marginBottom: 8 },
-  resultatDetail: { fontFamily: fonts.outfit.regular, fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: 32 },
+  resultatMessage: { fontFamily: fonts.outfit.bold, fontSize: fontScale(24), color: '#FFFFFF', marginBottom: scale(8) },
+  resultatDetail: { fontFamily: fonts.outfit.regular, fontSize: fontScale(14), color: 'rgba(255,255,255,0.8)', marginBottom: scale(32) },
 })

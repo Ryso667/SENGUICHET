@@ -6,6 +6,7 @@ import { Text, TouchableOpacity, Animated, StyleSheet, Platform, View } from 're
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BlurView } from 'expo-blur'
 import { colors, fonts } from '../constants/theme'
+import { scale, fontScale, isPad } from '../utils/responsive'
 import { hapticLight } from '../utils/haptics'
 import { useTabBarScroll } from '../context/TabBarScrollContext'
 
@@ -51,7 +52,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
           const icon = options.tabBarIcon({
             focused: isFocused,
             color: isFocused ? colors.navActive : colors.navInactive,
-            size: 22,
+            size: scale(22),
           })
 
           const onPress = () => {
@@ -95,9 +96,9 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    left: 16,
-    right: 16,
-    borderRadius: 32,
+    left: scale(16),
+    right: scale(16),
+    borderRadius: scale(32),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
@@ -106,31 +107,31 @@ const styles = StyleSheet.create({
   },
   container: {
     flexDirection: 'row',
-    borderRadius: 32,
+    borderRadius: scale(32),
     alignItems: 'center',
     backgroundColor: 'rgba(37, 43, 122, 0.25)',
-    paddingVertical: 4,
-    paddingHorizontal: 6,
+    paddingVertical: scale(4),
+    paddingHorizontal: scale(6),
     overflow: 'hidden',
   },
   waterSurface: {
     position: 'absolute',
     top: 0,
-    left: 12,
-    right: 12,
-    height: 1.5,
+    left: scale(12),
+    right: scale(12),
+    height: scale(1.5),
     borderBottomLeftRadius: 1,
     borderBottomRightRadius: 1,
     backgroundColor: 'rgba(255,255,255,0.18)',
   },
   waterDepth: {
     position: 'absolute',
-    top: 1.5,
-    left: 12,
-    right: 12,
-    height: 6,
-    borderBottomLeftRadius: 3,
-    borderBottomRightRadius: 3,
+    top: scale(1.5),
+    left: scale(12),
+    right: scale(12),
+    height: scale(6),
+    borderBottomLeftRadius: scale(3),
+    borderBottomRightRadius: scale(3),
     backgroundColor: 'rgba(255,255,255,0.04)',
   },
   tab: {
@@ -138,12 +139,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 1,
-    paddingVertical: 4,
+    paddingVertical: scale(4),
   },
   iconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: scale(42),
+    height: scale(42),
+    borderRadius: scale(21),
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
   },
   bubbleGlow: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 21,
+    borderRadius: scale(21),
     opacity: 0,
   },
   activeGlow: {
@@ -166,10 +167,10 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   label: {
-    fontSize: 10,
+    fontSize: fontScale(10),
     fontFamily: fonts.jakarta.medium,
     color: colors.navInactive,
-    letterSpacing: 0.2,
+    letterSpacing: scale(0.2),
   },
   activeLabel: {
     color: colors.navActive,
