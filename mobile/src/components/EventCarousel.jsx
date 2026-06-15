@@ -4,11 +4,12 @@
 import { useRef, useCallback } from 'react'
 import { View, Animated, ScrollView, StyleSheet, useWindowDimensions } from 'react-native'
 import { spacing } from '../constants/theme'
+import { scale } from '../utils/responsive'
 import AnimatedEventCard from './AnimatedEventCard'
 
 const CARD_WIDTH_RATIO = 0.8
 const SIDE_PEEK = 0.08
-const CARD_HEIGHT = 400
+const CARD_HEIGHT = scale(400)
 const SCALE_INACTIVE = 0.92
 const TILT_ANGLE = 3
 
