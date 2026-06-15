@@ -135,71 +135,73 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
   const heureDebut = ticket.dateDebut ? new Date(ticket.dateDebut).toLocaleTimeString("fr-FR", {
     hour: "2-digit", minute: "2-digit"
   }) : "";
-  const dateAchat = ticket.dateAchat ? new Date(ticket.dateAchat).toLocaleDateString("fr-FR", {
-    day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
-  }) : "";
 
   const content = `
-    <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#152232" style="background-color:#152232;border-radius:16px;">
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#152232" style="background-color:#152232;border-radius:16px;mso-border-radius:16px;">
       <tr>
-        <td style="padding:32px;">
-
-          <!-- Logo -->
+        <td bgcolor="#152232" style="padding:32px;background-color:#152232;">
           <table cellpadding="0" cellspacing="0" border="0" width="100%">
             <tr>
-              <td align="center" style="padding-bottom:20px;">
-                <table cellpadding="0" cellspacing="0" border="0" style="width:48px;height:48px;border-radius:12px;background:#1B4332;">
+              <td align="center" style="padding-bottom:16px;">
+                <table cellpadding="0" cellspacing="0" border="0" style="width:56px;height:56px;border-radius:14px;background:#5C6BC0;">
                   <tr>
-                    <td align="center" valign="middle" style="font-size:20px;font-weight:700;color:#D4AF37;font-family:Arial,sans-serif;">S</td>
+                    <td align="center" valign="middle" style="font-size:24px;font-weight:700;color:#D4AF37;font-family:Arial,sans-serif;">
+                      <img src="cid:${LOGO_CID}" alt="S" width="36" height="36" style="display:block;border:0;width:36px;height:36px;border-radius:6px;" />
+                    </td>
                   </tr>
                 </table>
               </td>
             </tr>
           </table>
 
-          <h2 style="color:#FFFFFF;font-size:22px;margin:0 0 4px 0;font-family:Arial,sans-serif;text-align:center;">Billet confirmé</h2>
-          <p style="color:#6B7280;font-size:14px;margin:0 0 24px 0;font-family:Arial,sans-serif;text-align:center;">${ticket.evenement || 'Événement'}</p>
+          <h2 style="color:#FFFFFF;font-size:20px;margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;text-align:center;">Achat confirmé ! 🎉</h2>
+          <p style="color:#6B7280;font-size:14px;margin:0 0 24px 0;font-family:Arial,Helvetica,sans-serif;text-align:center;">${ticket.evenement || 'Événement'}</p>
 
-          <!-- Infos événement -->
-          <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#1E2A3A;border-radius:12px;">
+          <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1E2A3A" style="background-color:#1E2A3A;border-radius:12px;mso-border-radius:12px;">
             <tr>
-              <td style="padding:20px;">
+              <td bgcolor="#1E2A3A" style="padding:20px;background-color:#1E2A3A;">
                 <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                  <tr><td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;">Événement</span></td><td style="padding:4px 0;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,sans-serif;">${ticket.evenement || '—'}</span></td></tr>
-                  <tr><td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;">Date</span></td><td style="padding:4px 0;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,sans-serif;">${dateDebut || '—'}</span></td></tr>
-                  <tr><td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;">Heure</span></td><td style="padding:4px 0;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,sans-serif;">${heureDebut || '—'}</span></td></tr>
-                  <tr><td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;">Lieu</span></td><td style="padding:4px 0;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,sans-serif;">${ticket.lieu || '—'}</span></td></tr>
-                  <tr><td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;">Catégorie</span></td><td style="padding:4px 0;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,sans-serif;">${(ticket.categorie || 'STANDARD').toUpperCase()}</span></td></tr>
-                  <tr><td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;">Prix</span></td><td style="padding:4px 0;text-align:right;"><span style="color:#D4AF37;font-size:13px;font-weight:700;font-family:Arial,sans-serif;">${Number(ticket.prix).toLocaleString()} FCFA</span></td></tr>
-                  <tr><td style="padding:4px 0;border-top:1px solid #374151;padding-top:8px;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;">Référence</span></td><td style="padding:4px 0;border-top:1px solid #374151;padding-top:8px;text-align:right;"><span style="color:#D4AF37;font-size:12px;font-family:monospace;font-weight:600;">${ticket.numero}</span></td></tr>
+                  <tr>
+                    <td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Événement</span></td>
+                    <td style="padding:4px 0;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,Helvetica,sans-serif;">${ticket.evenement || '—'}</span></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Date</span></td>
+                    <td style="padding:4px 0;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,Helvetica,sans-serif;">${dateDebut || '—'}</span></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Heure</span></td>
+                    <td style="padding:4px 0;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,Helvetica,sans-serif;">${heureDebut || '—'}</span></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Lieu</span></td>
+                    <td style="padding:4px 0;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,Helvetica,sans-serif;">${ticket.lieu || '—'}</span></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;border-top:1px solid #374151;padding-top:8px;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Catégorie</span></td>
+                    <td style="padding:4px 0;border-top:1px solid #374151;padding-top:8px;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,Helvetica,sans-serif;">${(ticket.categorie || 'STANDARD').toUpperCase()}</span></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Référence</span></td>
+                    <td style="padding:4px 0;text-align:right;"><span style="color:#D4AF37;font-size:12px;font-family:monospace;font-weight:600;">${ticket.numero}</span></td>
+                  </tr>
                 </table>
               </td>
             </tr>
           </table>
 
-          <!-- CTA -->
           <table cellpadding="0" cellspacing="0" border="0" width="100%">
             <tr>
-              <td align="center" style="padding:24px 0 16px 0;">
-                ${boutonCTA(lienBillet, "Voir mon billet")}
+              <td align="center" style="padding:24px 0 0;">
+                <a href="${lienBillet}" style="background:linear-gradient(135deg,#5C6BC0,#3F51B5);border-radius:8px;color:#ffffff;font-family:Arial;font-size:14px;font-weight:700;line-height:44px;text-align:center;text-decoration:none;display:inline-block;padding:0 28px;">Voir mon billet →</a>
               </td>
             </tr>
           </table>
-
-          <!-- Sécurité -->
-          <table cellpadding="0" cellspacing="0" border="0" width="100%">
-            <tr>
-              <td style="padding:12px;border-left:3px solid #FF4D6D;background:#2A1A1A;border-radius:4px;">
-                <p style="color:#FF6B6B;font-size:11px;margin:0;font-family:Arial,sans-serif;">Ne partagez pas ce lien. Le billet est personnel et non transférable.</p>
-              </td>
-            </tr>
-          </table>
-
         </td>
       </tr>
     </table>`;
 
-  return envoyerEmail(destinataire, `Billet confirmé · ${ticket.evenement || 'SENGUICHET'}`, content);
+  return envoyerEmail(destinataire, `Votre billet · ${ticket.evenement || 'SENGUICHET'}`, emailLayout(content));
 };
 
 // Envoie un code OTP à l'acheteur pour confirmer son email
