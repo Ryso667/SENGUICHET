@@ -7,6 +7,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, spacing, fonts, borderRadius } from '../constants/theme'
+import { useWindowDimensions } from 'react-native'
+import { scale, fontScale, isPad } from '../utils/responsive'
 import GlassContainer from '../components/GlassContainer'
 import { useAuth } from '../context/AuthContext'
 
@@ -40,6 +42,7 @@ const ROLES = [
 export default function AccueilChoixScreen({ navigation }) {
   const { role } = useAuth()
   const insets = useSafeAreaInsets()
+  const { width: screenWidth } = useWindowDimensions()
   const anims = useRef(ROLES.map(() => new Animated.Value(0))).current
 
   useEffect(() => {
@@ -65,18 +68,19 @@ export default function AccueilChoixScreen({ navigation }) {
       </View>
 
       {/* Cartes glass */}
-      <View style={styles.cards}>
+      <View style={[styles.cards, isPad && { flexDirection: 'row', justifyContent: 'center', gap: scale(16) }]}>
         {ROLES.map((r, i) => {
-          const scale = anims[i].interpolate({
+          const animScale = anims[i].interpolate({
             inputRange: [0, 1], outputRange: [0.92, 1],
           })
           const opacity = anims[i].interpolate({
             inputRange: [0, 1], outputRange: [0, 1],
           })
           return (
-            <Animated.View key={r.key} style={[styles.cardWrap, { opacity, transform: [{ scale }] }]}>
-              <TouchableOpacity
-                activeOpacity={0.85}
+            <Animated.View key={r.key} style={[styles.cardWrap, { opacity, transform: [{ scale: animScale }] }]}>
+              <View style={isPad && { flex: 1, maxWidth: scale(300) }}>
+                <TouchableOpacity
+                  activeOpacity={0.85}
                   onPress={() => {
                     // Si déjà connecté avec ce rôle, retour direct sans ré-authentification
                     if (r.key === role) {
@@ -87,18 +91,19 @@ export default function AccueilChoixScreen({ navigation }) {
                       navigation.navigate(target)
                     }
                   }}
-              >
-                <GlassContainer style={styles.card} blurType="regular" intensity={40} borderLeftColor={r.accent}>
-                  <View style={styles.cardContent}>
-                    <MaterialCommunityIcons name={r.icon} size={32} color={r.accent} />
-                    <View style={styles.cardText}>
-                      <Text style={styles.cardTitle}>{r.title}</Text>
-                      <Text style={styles.cardSubtitle}>{r.subtitle}</Text>
+                >
+                  <GlassContainer style={styles.card} blurType="regular" intensity={40} borderLeftColor={r.accent}>
+                    <View style={styles.cardContent}>
+                      <MaterialCommunityIcons name={r.icon} size={scale(32)} color={r.accent} />
+                      <View style={styles.cardText}>
+                        <Text style={styles.cardTitle}>{r.title}</Text>
+                        <Text style={styles.cardSubtitle}>{r.subtitle}</Text>
+                      </View>
+                      <MaterialCommunityIcons name="chevron-right" size={scale(20)} color={colors.navInactive} />
                     </View>
-                    <MaterialCommunityIcons name="chevron-right" size={20} color={colors.navInactive} />
-                  </View>
-                </GlassContainer>
-              </TouchableOpacity>
+                  </GlassContainer>
+                </TouchableOpacity>
+              </View>
             </Animated.View>
           )
         })}
@@ -109,10 +114,10 @@ export default function AccueilChoixScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { alignItems: 'center', paddingTop: 60, paddingBottom: spacing.xl },
-  logo: { width: 88, height: 88, marginBottom: spacing.sm, borderRadius: 20 },
-  title: { fontSize: 32, fontFamily: fonts.outfit.bold, color: colors.text, letterSpacing: 1 },
-  cards: { flex: 1, justifyContent: 'center', gap: spacing.md, paddingHorizontal: spacing.xl, paddingBottom: 60 },
+  header: { alignItems: 'center', paddingTop: scale(60), paddingBottom: spacing.xl },
+  logo: { width: scale(88), height: scale(88), marginBottom: spacing.sm, borderRadius: scale(20) },
+  title: { fontSize: fontScale(32), fontFamily: fonts.outfit.bold, color: colors.text, letterSpacing: scale(1) },
+  cards: { flex: 1, justifyContent: 'center', gap: spacing.md, paddingHorizontal: spacing.xl, paddingBottom: scale(60) },
   cardWrap: { borderRadius: borderRadius.xl },
   card: {
     borderRadius: borderRadius.xl,
@@ -125,6 +130,6 @@ const styles = StyleSheet.create({
     padding: spacing.lg, gap: spacing.md,
   },
   cardText: { flex: 1 },
-  cardTitle: { fontSize: 20, fontFamily: fonts.outfit.bold, color: colors.text, letterSpacing: -0.3 },
-  cardSubtitle: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 2 },
+  cardTitle: { fontSize: fontScale(20), fontFamily: fonts.outfit.bold, color: colors.text, letterSpacing: scale(-0.3) },
+  cardSubtitle: { fontSize: fontScale(13), fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: scale(2) },
 })

@@ -53,6 +53,13 @@ async function initTables() {
       qr_data TEXT
     );
   `)
+  try { await db.runAsync("ALTER TABLE tickets ADD COLUMN numero TEXT") } catch (e) { console.warn('Migration tickets.numero ignorée:', e.message) }
+  try { await db.runAsync("ALTER TABLE scans ADD COLUMN numero TEXT") } catch (e) { console.warn('Migration scans.numero ignorée:', e.message) }
+  try {
+    await db.runAsync(
+      "UPDATE scans SET numero = (SELECT numero FROM tickets WHERE tickets.uuid = scans.uuid_billet) WHERE numero IS NULL"
+    )
+  } catch (e) { console.warn('Migration UPDATE numero ignorée:', e.message) }
 }
 
 // Insère ou met à jour les tickets sans réinitialiser ceux déjà scannés (UTILISE_LOCAL)
