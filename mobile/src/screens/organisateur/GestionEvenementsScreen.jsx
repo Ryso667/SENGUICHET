@@ -208,7 +208,7 @@ export default function GestionEvenementsScreen({ navigation }) {
 }
 
 const makeStyles = (colors) => StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },
 
   /* Header */

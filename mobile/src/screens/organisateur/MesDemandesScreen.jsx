@@ -811,7 +811,7 @@ const DetailField = ({ label, value }) => (
 )
 
 const makeStyles = (colors) => StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },
 
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },

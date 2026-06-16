@@ -93,11 +93,10 @@ export default function ScanHistoryScreen() {
   const { scrollY: tabScrollY } = useTabBarScroll()
 
   return (
-    <View style={{flex: 1}}>
-      <ControleurLayout />
+    <View style={{flex: 1, backgroundColor: colors.bg}}>
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 16 }]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" colors={["#FFFFFF"]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
         onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
         scrollEventThrottle={16}
       >

@@ -248,7 +248,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
 const absoluteFill = StyleSheet.absoluteFill
 
 const makeStyles = (colors) => StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: colors.bg },
   // Greeting
   greeting: { marginHorizontal: spacing.lg, marginTop: spacing.sm, padding: spacing.lg },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

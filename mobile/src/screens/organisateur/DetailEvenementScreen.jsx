@@ -195,7 +195,7 @@ export default function DetailEvenementScreen({ route }) {
 }
 
 const makeStyles = (colors) => StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   errorText: { fontSize: 16, fontFamily: fonts.jakarta.regular, color: colors.textSecondary },
   header: {

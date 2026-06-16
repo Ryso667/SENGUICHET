@@ -150,7 +150,7 @@ export default function ChangerMotDePasseScreen({ navigation }) {
 }
 
 const makeStyles = (colors) => StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: colors.bg },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: spacing.md, paddingVertical: spacing.sm,

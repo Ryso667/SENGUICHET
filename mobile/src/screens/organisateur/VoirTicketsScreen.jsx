@@ -88,7 +88,7 @@ export default function VoirTicketsScreen({ route }) {
 }
 
 const makeStyles = (colors) => StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: colors.bg },
   content: { paddingHorizontal: spacing.lg },
   eventInfo: { marginBottom: spacing.lg, padding: spacing.md },
   eventName: { fontSize: 22, fontFamily: fonts.outfit.bold, color: colors.text },

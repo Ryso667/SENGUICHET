@@ -275,7 +275,7 @@ export default function StatistiquesScreen() {
 
 // Sera remplacé par API — composant de carte statistique
 const makeStyles = (colors) => StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: colors.bg },
   header: { 
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: spacing.lg, marginBottom: spacing.md

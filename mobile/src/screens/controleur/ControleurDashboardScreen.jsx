@@ -41,10 +41,10 @@ export default function ControleurDashboardScreen({ navigation }) {
 
 const makeStyles = (colors) => StyleSheet.create({
   safe: {
-    flex: 1,
+    flex: 1, backgroundColor: colors.bg,
   },
   conteneur: {
-    flex: 1,
+    flex: 1, backgroundColor: colors.bg,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
