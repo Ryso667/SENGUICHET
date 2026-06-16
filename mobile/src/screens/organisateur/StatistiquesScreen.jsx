@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { BarChart, PieChart } from 'react-native-chart-kit'
+import { PieChart } from 'react-native-chart-kit'
 import { spacing, borderRadius, fonts } from '../../constants/theme'
 import { useTheme } from '../../context/ThemeContext'
 import { fetchEvenementsAPI, fetchEvenementStats } from '../../services/eventService'
@@ -100,22 +100,15 @@ export default function StatistiquesScreen() {
     }
   }, [events])
 
-  // Données pour le BarChart des ventes par jour (événement sélectionné)
-  const ventesParJourData = useMemo(() => {
-    if (!eventStats || !eventStats.ventesParJour || eventStats.ventesParJour.length === 0) return null
-    const jours = eventStats.ventesParJour
-    // Limiter à 7 labels max pour la lisibilité
-    const maxLabels = 7
-    const step = Math.max(1, Math.floor(jours.length / maxLabels))
-    return {
-      labels: jours.map((j, i) => {
-        const d = new Date(j.date)
-        return i % step === 0 ? `${d.getDate()}/${d.getMonth() + 1}` : ''
-      }),
-      datasets: [{
-        data: jours.map(j => j.total)
-      }]
-    }
+  // Calcule le prix unitaire moyen par catégorie de billet
+  const categoriesData = useMemo(() => {
+    if (!eventStats || !eventStats.repartitionParCategorie) return []
+    return eventStats.repartitionParCategorie.map(cat => ({
+      ...cat,
+      vendus: Number(cat.vendus) || 0,
+      total: Number(cat.total) || 0,
+      revenu: Number(cat.revenu) || 0,
+    }))
   }, [eventStats])
 
   // Données pour le PieChart de répartition par catégorie
@@ -210,26 +203,31 @@ export default function StatistiquesScreen() {
               </Text>
             </GlassContainer>
 
-            {/* Ventes par jour — BarChart */}
-            <GlassContainer blurType="light" style={s.section} intensity={30}>
-              <Text style={s.sectionTitle}>Ventes par jour</Text>
-              <View style={s.chartWrapper}>
-                {ventesParJourData ? (
-                  <BarChart
-                    data={ventesParJourData}
-                    width={screenWidth - spacing.lg * 2 - spacing.md * 2}
-                    height={220}
-                    chartConfig={chartConfig}
-                    verticalLabelRotation={0}
-                    fromZero
-                    showValuesOnTopOfBars
-                    style={s.chart}
-                  />
-                ) : (
-                  <Text style={s.emptyText}>Aucune vente enregistrée</Text>
-                )}
-              </View>
-            </GlassContainer>
+            {/* Ventes par catégorie de billet — barres horizontales */}
+            {categoriesData.length > 0 && (
+              <GlassContainer blurType="light" style={s.section} intensity={30}>
+                <Text style={s.sectionTitle}>Ventes par catégorie</Text>
+                <View style={s.listeVentes}>
+                  {categoriesData.map(cat => {
+                    const ratio = cat.total > 0 ? (cat.vendus / cat.total) * 100 : 0
+                    const prixUnitaire = cat.vendus > 0 ? Math.round(cat.revenu / cat.vendus) : 0
+                    return (
+                      <View key={cat.categorie} style={s.ligneVente}>
+                        <Text style={s.catNom}>{cat.categorie}</Text>
+                        <View style={s.ligneBarre}>
+                          <View style={[s.barreVente, { width: `${Math.min(ratio, 100)}%` }]} />
+                        </View>
+                        <View style={s.catChiffres}>
+                          <Text style={s.catVendus}>{cat.vendus}/{cat.total}</Text>
+                          <Text style={s.catRevenu}>{cat.revenu.toLocaleString()} F</Text>
+                          {prixUnitaire > 0 && <Text style={s.catPrix}>{prixUnitaire} F/unité</Text>}
+                        </View>
+                      </View>
+                    )
+                  })}
+                </View>
+              </GlassContainer>
+            )}
 
             {/* Répartition par catégorie — PieChart */}
             <GlassContainer blurType="light" style={s.section} intensity={30}>
@@ -283,7 +281,7 @@ const makeStyles = (colors) => StyleSheet.create({
   title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text },
   pills: { flexDirection: 'row', gap: 8 },
   
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.lg, gap: spacing.md },
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.lg, gap: spacing.md, marginBottom: spacing.md },
   card: { 
     width: (screenWidth - spacing.lg * 2 - spacing.md) / 2,
     padding: spacing.md,
@@ -303,7 +301,7 @@ const makeStyles = (colors) => StyleSheet.create({
   emptyText: { padding: 40, color: colors.textTertiary, fontFamily: fonts.jakarta.regular },
 
   // Sélecteur d'événement
-  eventPicker: { paddingHorizontal: spacing.lg, marginTop: spacing.xl },
+  eventPicker: { paddingHorizontal: spacing.lg, marginTop: spacing.xl, marginBottom: spacing.lg },
   eventChips: { flexDirection: 'row', marginTop: spacing.sm },
   eventChip: {
     paddingHorizontal: spacing.md,
@@ -339,6 +337,8 @@ const makeStyles = (colors) => StyleSheet.create({
     backgroundColor: colors.bgSecondary,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   remplissageBarFill: {
     height: '100%',
@@ -357,5 +357,47 @@ const makeStyles = (colors) => StyleSheet.create({
     fontFamily: fonts.jakarta.regular,
     color: colors.textSecondary,
     marginTop: spacing.xs,
+  },
+
+  // Liste des ventes par catégorie
+  listeVentes: { width: '100%', paddingVertical: spacing.sm },
+  ligneVente: {
+    flexDirection: 'row', alignItems: 'center',
+    marginBottom: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  ligneBarre: {
+    flex: 1, height: 22,
+    backgroundColor: colors.bgSecondary,
+    borderRadius: borderRadius.sm,
+    overflow: 'hidden',
+    marginHorizontal: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  barreVente: {
+    height: '100%',
+    backgroundColor: colors.accent,
+    borderRadius: borderRadius.sm,
+  },
+  catNom: {
+    width: 80, fontSize: 12,
+    fontFamily: fonts.jakarta.semiBold,
+    color: colors.text,
+  },
+  catChiffres: {
+    width: 80, alignItems: 'flex-end',
+  },
+  catVendus: {
+    fontSize: 13, fontFamily: fonts.outfit.bold,
+    color: colors.text,
+  },
+  catRevenu: {
+    fontSize: 11, fontFamily: fonts.jakarta.regular,
+    color: colors.textSecondary, marginTop: 2,
+  },
+  catPrix: {
+    fontSize: 10, fontFamily: fonts.jakarta.regular,
+    color: colors.textTertiary, marginTop: 1,
   },
 })

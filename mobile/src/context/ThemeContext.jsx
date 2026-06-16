@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { lightColors, darkColors } from '../constants/theme'
 
 const STORAGE_KEY = '@senguichet_theme'
-const ThemeContext = createContext({ colors: lightColors, isDark: false, toggleTheme: () => {} })
+const ThemeContext = createContext({ colors: lightColors, isDark: false, mode: 'system', setTheme: () => {} })
 
 export function ThemeProvider({ children }) {
   const systemScheme = useColorScheme()
@@ -22,16 +22,16 @@ export function ThemeProvider({ children }) {
   const isDark = mode === 'dark' || (mode === 'system' && systemScheme === 'dark')
   const colors = isDark ? darkColors : lightColors
 
-  const toggleTheme = useCallback(async () => {
-    const next = mode === 'system' ? 'dark' : mode === 'dark' ? 'light' : mode === 'light' ? 'system' : 'dark'
-    setMode(next)
-    await AsyncStorage.setItem(STORAGE_KEY, next)
-  }, [mode])
+  const setTheme = useCallback(async (newMode) => {
+    if (newMode !== 'light' && newMode !== 'dark' && newMode !== 'system') return
+    setMode(newMode)
+    await AsyncStorage.setItem(STORAGE_KEY, newMode)
+  }, [])
 
   if (!saved) return null
 
   return (
-    <ThemeContext.Provider value={{ colors, isDark, mode, toggleTheme }}>
+    <ThemeContext.Provider value={{ colors, isDark, mode, setTheme }}>
       {children}
     </ThemeContext.Provider>
   )

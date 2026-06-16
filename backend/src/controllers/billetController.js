@@ -179,6 +179,17 @@ const acheter = async (req, res) => {
         console.error("SMS error:", e.message);
       }
 
+      // Envoyer une notification push à l'organisateur
+      try {
+        await envoyerNotification(events[0].organisateur_id, {
+          type: 'vente',
+          message: `Nouvelle vente : ${cat.nom} pour ${events[0].titre}`,
+          evenementId: evenementId,
+        });
+      } catch (e) {
+        console.error("Push notif error:", e.message);
+      }
+
       // Lier l'acheteur au téléphone pour que la recherche par email fonctionne
       if (ticketEmail && telephone) {
         try {
