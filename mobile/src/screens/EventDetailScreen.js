@@ -1,11 +1,11 @@
 // Écran détail d'un événement avec sélection de catégorie et paiement
-// Design immersif : image événement en fond, GlassContainer pour les cartes
+// Design clair : photo large en haut, cartes blanches avec ombre en dessous
 // Conserve le flux de paiement Wave/Orange Money existant
 import { useState, useEffect, useRef } from 'react'
 import {
   View, Text, ScrollView,
   TouchableOpacity, StyleSheet, Alert, Modal,
-  Platform, Image, KeyboardAvoidingView,
+  Platform, Image, ImageBackground, KeyboardAvoidingView,
   Animated, ActivityIndicator, Easing, TextInput,
   useWindowDimensions,
 } from 'react-native'
@@ -15,7 +15,6 @@ import { BlurView } from 'expo-blur'
 import MaskedView from '@react-native-masked-view/masked-view'
 import { colors, fonts, spacing, glass, borderRadius } from '../constants/theme'
 import { scale, fontScale, lineHeightScale, isPad } from '../utils/responsive'
-import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassButton from '../components/GlassButton'
 import { getDefaultImage } from '../config/images'
@@ -217,16 +216,15 @@ export default function EventDetailScreen({ route, navigation }) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <BlurBackground category={event?.category} afficheUrl={event?.affiche_url} />
-      {/* Bouton retour flottant avec cercle glass */}
+      {/* Bouton retour flottant — visible sur l'image */}
       <TouchableOpacity style={[styles.floatingBack, { top: insets.top + 8 }]} onPress={() => navigation.goBack()}>
-        <Feather name="arrow-left" size={20} color="#fff" />
+        <Feather name="arrow-left" size={20} color={colors.text} />
       </TouchableOpacity>
 
       <Animated.ScrollView
         style={styles.flex}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 60 }]}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -234,36 +232,45 @@ export default function EventDetailScreen({ route, navigation }) {
         )}
         scrollEventThrottle={16}
       >
+        {/* Hero banner — photo pleine largeur */}
+        <View style={styles.heroBanner}>
+          <ImageBackground
+            source={event?.affiche_url ? { uri: event.affiche_url } : getDefaultImage(event?.category)}
+            style={styles.heroBg}
+            resizeMode="cover"
+          >
+            <LinearGradient
+              colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.65)']}
+              style={styles.heroGradient}
+            />
+            <Animated.View style={[styles.heroContent, {
+              paddingTop: insets.top + 60,
+              opacity: heroFade,
+              transform: [{ translateY: heroFade.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
+            }]}>
+              <Text style={styles.heroCategory}>{event.category || 'ÉVÉNEMENT'}</Text>
+              <Text style={styles.heroTitle}>{event.title}</Text>
+              <View style={[styles.heroDivider, { backgroundColor: colors.accent }]} />
+            </Animated.View>
+          </ImageBackground>
+        </View>
 
-        {/* Hero invitation — titre XXL + date mise en avant */}
-        <Animated.View style={{
-          opacity: heroFade,
-          transform: [{ translateY: heroFade.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
-        }}>
-        <View style={styles.heroSection}>
-          <Text style={[styles.heroCategory, { color: '#90CAF9' }]}>{event.category || 'ÉVÉNEMENT'}</Text>
-          <MaskedView maskElement={<Text style={styles.heroTitle}>{event.title}</Text>}>
-            <LinearGradient colors={['#5C6BC0', '#7986CB']} start={{x:0,y:0}} end={{x:1,y:0}}>
-              <Text style={[styles.heroTitle, { opacity: 0 }]}>{event.title}</Text>
-            </LinearGradient>
-          </MaskedView>
-
-          <View style={[styles.heroDivider, { backgroundColor: 'rgba(255,255,255,0.5)' }]} />
-
+        {/* Cartes info — fond blanc avec ombre portée */}
+        <View style={styles.infoCards}>
           {event.date && (
-            <GlassContainer style={styles.heroDateCard}>
-              <View style={[styles.heroIconBadge, { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
-                <Feather name="calendar" size={22} color={colors.accent} />
+            <GlassContainer style={styles.infoCard}>
+              <View style={[styles.iconBadge, { backgroundColor: hexToRgba(colors.accent, 0.12) }]}>
+                <Feather name="calendar" size={20} color={colors.accent} />
               </View>
               <View style={{ flex: 1 }}>
-                <View style={styles.heroDateRow}>
-                  <Text style={styles.heroDateDayNum}>{dayNumber}</Text>
-                  <Text style={styles.heroDateMonth}>{monthYear?.toUpperCase()}</Text>
+                <View style={styles.infoDateRow}>
+                  <Text style={styles.infoDayNum}>{dayNumber}</Text>
+                  <Text style={styles.infoMonth}>{monthYear?.toUpperCase()}</Text>
                 </View>
                 {!!event.time && (
-                  <View style={styles.heroTimeRow}>
-                    <Feather name="clock" size={11} color="rgba(255,255,255,0.5)" />
-                    <Text style={styles.heroTimeText}>{event.time}</Text>
+                  <View style={styles.infoTimeRow}>
+                    <Feather name="clock" size={11} color={colors.textTertiary} />
+                    <Text style={styles.infoTimeText}>{event.time}</Text>
                   </View>
                 )}
               </View>
@@ -271,20 +278,19 @@ export default function EventDetailScreen({ route, navigation }) {
           )}
 
           {!!event.location && (
-            <GlassContainer style={styles.heroLocationCard}>
-              <View style={[styles.heroIconBadge, { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
-                <Feather name="map-pin" size={22} color={colors.accent} />
+            <GlassContainer style={styles.infoCard}>
+              <View style={[styles.iconBadge, { backgroundColor: hexToRgba(colors.accent, 0.12) }]}>
+                <Feather name="map-pin" size={20} color={colors.accent} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.heroLocationMain} numberOfLines={2}>{event.location}</Text>
-                <Text style={styles.heroLocationSub}>Lieu de l'événement</Text>
+                <Text style={styles.infoLocationMain} numberOfLines={2}>{event.location}</Text>
+                <Text style={styles.infoLocationSub}>Lieu de l'événement</Text>
               </View>
             </GlassContainer>
           )}
         </View>
-        </Animated.View>
 
-        {/* Description — carte large */}
+        {/* Description — carte blanche */}
         {!!event.desc && (
           <GlassContainer style={styles.descCard}>
             <Text style={styles.descText}>{event.desc}</Text>
@@ -320,7 +326,7 @@ export default function EventDetailScreen({ route, navigation }) {
         </Animated.ScrollView>
         {/* Barre d'achat fixe en bas — effet glass */}
         <BlurView tint="dark" intensity={90} style={styles.bottomBar}>
-          <GlassContainer style={styles.bottomBarTotal}>
+          <GlassContainer intensity={30} style={styles.bottomBarTotal}>
             <Text style={styles.bottomBarTotalLabel}>Total</Text>
             <Text style={styles.bottomBarTotalPrice}>{selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
           </GlassContainer>
@@ -548,149 +554,164 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
   },
-  // Bouton retour flottant avec cercle glass — top défini avec useSafeAreaInsets
+  // Bouton retour flottant — visible sur fond blanc
   floatingBack: {
     position: 'absolute',
     left: spacing.lg,
     width: scale(40),
     height: scale(40),
     borderRadius: scale(20),
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    borderWidth: 0,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
-    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  // Hero section — invitation XXL
-  heroSection: {
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xs,
-    marginBottom: spacing.sm,
+  // Hero banner — photo pleine largeur
+  heroBanner: {
+    height: scale(280),
+    marginBottom: spacing.md,
+    overflow: 'hidden',
+    borderRadius: borderRadius.xl,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+  },
+  heroBg: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  heroGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  heroContent: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
   },
   heroCategory: {
     fontSize: fontScale(12),
     fontFamily: fonts.jakarta.semiBold,
+    color: '#90CAF9',
     letterSpacing: scale(3),
-    marginBottom: spacing.sm,
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    marginBottom: spacing.xs,
   },
   heroTitle: {
     fontFamily: fonts.outfit.extraBold,
-    fontSize: fontScale(42),
+    fontSize: fontScale(32),
     color: '#fff',
-    letterSpacing: scale(-1.5),
-    lineHeight: lineHeightScale(48),
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
+    letterSpacing: scale(-1),
+    lineHeight: lineHeightScale(38),
   },
   heroDivider: {
-    width: scale(48),
-    height: scale(2),
-    borderRadius: scale(1),
-    marginVertical: scale(20),
+    width: scale(40),
+    height: scale(2.5),
+    borderRadius: scale(1.5),
+    marginTop: scale(14),
   },
-  // Badge icône dans les cartes hero — rond translucide
-  heroIconBadge: {
-    width: scale(44),
-    height: scale(44),
-    borderRadius: scale(14),
+  // Badge icône dans les cartes
+  iconBadge: {
+    width: scale(40),
+    height: scale(40),
+    borderRadius: scale(12),
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Carte date mise en avant
-  heroDateCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: scale(16),
-    paddingVertical: scale(18),
-    paddingHorizontal: scale(18),
-    marginBottom: spacing.sm,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+  // Conteneur des cartes info (date + lieu)
+  infoCards: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+    marginBottom: spacing.md,
   },
-  heroDateRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: scale(10),
-  },
-  // Jour en énorme — style billet de concert
-  heroDateDayNum: {
-    fontSize: fontScale(42),
-    fontFamily: fonts.outfit.extraBold,
-    color: '#fff',
-    letterSpacing: scale(-2),
-    lineHeight: lineHeightScale(46),
-  },
-  heroDateMonth: {
-    fontSize: fontScale(14),
-    fontFamily: fonts.outfit.semiBold,
-    color: 'rgba(255,255,255,0.7)',
-    letterSpacing: scale(2),
-    textTransform: 'uppercase',
-  },
-  heroTimeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: scale(5),
-    marginTop: scale(4),
-  },
-  heroTimeText: {
-    fontSize: fontScale(12),
-    fontFamily: fonts.jakarta.regular,
-    color: 'rgba(255,255,255,0.5)',
-  },
-  // Carte localisation — mise en avant
-  heroLocationCard: {
+  infoCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: scale(14),
-    paddingVertical: scale(14),
+    paddingVertical: scale(16),
     paddingHorizontal: scale(16),
-    marginBottom: spacing.sm,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
   },
-  heroLocationMain: {
-    fontSize: fontScale(16),
-    fontFamily: fonts.outfit.bold,
-    color: '#fff',
-    letterSpacing: fontScale(0.5),
+  infoDateRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: scale(8),
   },
-  heroLocationSub: {
+  infoDayNum: {
+    fontSize: fontScale(28),
+    fontFamily: fonts.outfit.extraBold,
+    color: colors.text,
+    letterSpacing: scale(-1),
+  },
+  infoMonth: {
+    fontSize: fontScale(13),
+    fontFamily: fonts.outfit.semiBold,
+    color: colors.textSecondary,
+    letterSpacing: scale(1.5),
+    textTransform: 'uppercase',
+  },
+  infoTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: scale(4),
+    marginTop: scale(4),
+  },
+  infoTimeText: {
+    fontSize: fontScale(12),
+    fontFamily: fonts.jakarta.regular,
+    color: colors.textTertiary,
+  },
+  infoLocationMain: {
+    fontSize: fontScale(15),
+    fontFamily: fonts.outfit.semiBold,
+    color: colors.text,
+  },
+  infoLocationSub: {
     fontSize: fontScale(11),
     fontFamily: fonts.jakarta.regular,
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.textSecondary,
     marginTop: scale(2),
   },
-  // Carte description — épurée, généreuse
+  // Carte description
   descCard: {
-    padding: spacing.xl,
-    marginBottom: spacing.xl,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    marginHorizontal: spacing.lg,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
   },
   descText: {
-    fontSize: fontScale(15),
-    color: '#fff',
+    fontSize: fontScale(14),
+    color: colors.text,
     fontFamily: fonts.jakarta.regular,
-    lineHeight: lineHeightScale(26),
+    lineHeight: lineHeightScale(24),
   },
   // Sections
   sectionHeader: {
     marginBottom: spacing.sm,
+    paddingHorizontal: spacing.lg,
   },
   sectionTitle: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(14),
-    color: '#fff',
+    color: colors.text,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   sectionSub: {
     fontSize: fontScale(11),
     fontFamily: fonts.jakarta.regular,
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
     marginTop: scale(3),
   },
   categorySelector: {
@@ -698,8 +719,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: spacing.lg,
+    marginHorizontal: spacing.lg,
     marginBottom: spacing.xl,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
   },
   categorySelectorLeft: {
     gap: scale(6),
@@ -707,12 +733,12 @@ const styles = StyleSheet.create({
   categorySelectorLabel: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: fontScale(16),
-    color: '#fff',
+    color: colors.text,
   },
   categorySelectorPrice: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(22),
-    color: '#fff',
+    color: colors.text,
     letterSpacing: scale(-0.5),
   },
   categorySelectorRight: {
@@ -721,7 +747,7 @@ const styles = StyleSheet.create({
     gap: scale(10),
   },
   priceChip: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: hexToRgba(colors.accent, 0.12),
     borderRadius: scale(20),
     paddingHorizontal: scale(12),
     paddingVertical: scale(5),
@@ -729,7 +755,7 @@ const styles = StyleSheet.create({
   priceChipText: {
     fontSize: fontScale(10),
     fontFamily: fonts.jakarta.semiBold,
-    color: 'rgba(255,255,255,0.7)',
+    color: colors.textSecondary,
   },
   // Overlay et conteneur sheet
   sheetOverlay: {
@@ -875,7 +901,6 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
-    backgroundColor: 'transparent',
   },
   bottomBarTotalLabel: {
     fontSize: fontScale(10),
