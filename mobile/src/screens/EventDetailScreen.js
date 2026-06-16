@@ -24,6 +24,7 @@ import { formaterDateLisible } from '../utils/dateUtils'
 import { useAuth } from '../context/AuthContext'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { hexToRgba } from '../utils/colors'
+import FavoriButton from '../components/FavoriButton'
 
 export default function EventDetailScreen({ route, navigation }) {
   const { eventId } = route.params
@@ -219,6 +220,18 @@ export default function EventDetailScreen({ route, navigation }) {
       <TouchableOpacity style={[styles.floatingBack, { top: insets.top + 8 }]} onPress={() => navigation.goBack()}>
         <Feather name="arrow-left" size={20} color={colors.text} />
       </TouchableOpacity>
+      <FavoriButton
+        eventId={event?.id}
+        eventData={{
+          title: event?.title,
+          date: event?.date,
+          location: event?.lieu,
+          category: event?.category,
+          affiche_url: event?.affiche_url,
+        }}
+        size={24}
+        style={[styles.floatingFavori, { top: insets.top + 8 }]}
+      />
 
       <Animated.ScrollView
         style={styles.flex}
@@ -570,6 +583,11 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
+  },
+  floatingFavori: {
+    position: 'absolute',
+    right: 16,
+    zIndex: 10,
     shadowRadius: 4,
   },
   // Hero banner — photo pleine largeur

@@ -14,9 +14,9 @@
 - Fallback : si pas assez de données, afficher les 3 premiers événements
 
 ### 1.2 Filtres enrichis
-- Ajouter un filtre par **prix** : gratuit / payant
 - Ajouter un filtre par **période** : aujourd'hui / cette semaine / ce mois
 - Les chips deviennent scrollables horizontalement (déjà le cas) avec une ligne supplémentaire
+- ~~Filtre gratuit/payant~~ retiré (non pertinent pour une billetterie payante)
 
 ### 1.3 Vue calendrier
 - Bouton bascule "Liste" ↔ "Calendrier" en haut à droite
@@ -44,7 +44,7 @@
 ### 2.1 Favoris ❤️
 - Icône cœur sur chaque carte événement (Home, Explorer, EventDetail)
 - Tap toggles le statut favori
-- Stockage local : AsyncStorage ou colonne `favoris` dans SQLite
+- Stockage local : AsyncStorage (clé `favoris_<id>`)
 - Nouvel onglet ou section "Mes favoris" dans Profil ou MesTickets
 - Heart animation (scale bounce)
 
@@ -76,10 +76,9 @@
 - Génère un CSV avec : nom, email, catégorie, prix, date d'achat, statut
 - Partagé via `Share` API ou téléchargé
 
-### 3.2 Notifications push temps réel
-- Quand un billet est vendu, notification locale/push
-- Expo Notifications + backend envoie une notification via le provider
-- Option à activer/désactiver dans Paramètres
+### 3.2 Statistiques avancées
+- Graphiques interactifs dans StatistiquesScreen : ventes par jour/semaine, répartition par catégorie, taux de remplissage
+- Données via API dédiée `/evenements/:id/stats`
 
 ### 3.3 Aperçu billet
 - Depuis VoirTicketsScreen, tap sur un billet → aperçu visuel du QR
@@ -117,6 +116,7 @@
 | 🥈 | Suggestions personnalisées | Moyen | Fort |
 | 🥈 | Ajout calendrier natif | Faible | Moyen |
 | 🥈 | Export CSV | Faible | Moyen (orga) |
+| 🥈 | Statistiques avancées | Moyen | Fort (orga) |
 | 🥉 | Mode sombre | Élevé | Très fort |
 | 🥉 | Notifications push | Moyen | Fort |
 | 🥉 | Vue calendrier | Moyen | Moyen |

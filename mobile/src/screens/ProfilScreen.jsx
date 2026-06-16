@@ -3,7 +3,7 @@
 // (organisateur/controleur ont leur propre drawer)
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Feather, Ionicons } from '@expo/vector-icons'
+import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { colors, spacing, borderRadius, fonts } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
 
@@ -25,18 +25,26 @@ export default function ProfilScreen({ navigation }) {
             <Text style={styles.titre}>Compte</Text>
             <Text style={styles.sousTitre}>Connecte-toi pour accéder à tes billets</Text>
           </View>
+          <Text style={styles.sectionLabel}>Acheteur</Text>
           <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('SocialAuth')}>
             <Feather name="log-in" size={20} color={colors.primary} />
             <Text style={styles.actionBtnText}>Se connecter</Text>
             <Feather name="chevron-right" size={18} color={colors.textTertiary} />
           </TouchableOpacity>
+          <View style={styles.divider} />
+          <Text style={styles.sectionLabel}>Organisateur</Text>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('ConnexionOrganisateur')}>
+            <Feather name="briefcase" size={20} color={colors.accent} />
+            <Text style={styles.actionBtnText}>Se connecter</Text>
+            <Feather name="chevron-right" size={18} color={colors.textTertiary} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('InscriptionOrganisateur')}>
             <Feather name="user-plus" size={20} color={colors.primary} />
-            <Text style={styles.actionBtnText}>Créer un compte organisateur</Text>
+            <Text style={styles.actionBtnText}>Créer un compte</Text>
             <Feather name="chevron-right" size={18} color={colors.textTertiary} />
           </TouchableOpacity>
           <View style={styles.divider} />
-          <Text style={styles.sectionLabel}>Déjà un code contrôleur ?</Text>
+          <Text style={styles.sectionLabel}>Contrôleur</Text>
           <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('ConnexionControleur')}>
             <Feather name="shield" size={20} color={colors.accent} />
             <Text style={styles.actionBtnText}>Mode contrôleur</Text>
@@ -61,6 +69,11 @@ export default function ProfilScreen({ navigation }) {
           <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('MesTickets')}>
             <Ionicons name="ticket-outline" size={20} color={colors.primary} />
             <Text style={styles.actionBtnText}>Mes billets</Text>
+            <Feather name="chevron-right" size={18} color={colors.textTertiary} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('MesFavoris')}>
+            <MaterialCommunityIcons name="heart-outline" size={20} color={colors.red} />
+            <Text style={styles.actionBtnText}>Mes favoris</Text>
             <Feather name="chevron-right" size={18} color={colors.textTertiary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('ConnexionOrganisateur')}>

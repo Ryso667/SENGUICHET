@@ -6,9 +6,10 @@ import { useEffect, useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Image, TextInput, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { spacing } from '../constants/theme'
+import { spacing, colors } from '../constants/theme'
 import EventCarousel from '../components/EventCarousel'
 import Skeleton from '../components/Skeleton'
+import FavoriButton from '../components/FavoriButton'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { formaterPourEventCard } from '../utils/eventUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
@@ -55,7 +56,7 @@ export default function HomeScreen({ navigation }) {
       activeOpacity={0.7}
     >
       <View style={styles.eventCardImage}>
-        <View style={[styles.eventCardImgBg, { backgroundColor: item.categoryColor || '#EFF6FF' }]}>
+        <View style={[styles.eventCardImgBg, { backgroundColor: item.categoryColor || '#D1FAE5' }]}>
           <Text style={styles.eventCardEmoji}>{item.emoji || '\uD83C\uDFAB'}</Text>
         </View>
         <View style={[styles.eventCardBadge, { backgroundColor: item.isPaid ? '#FFF7ED' : '#D1FAE5' }]}>
@@ -63,6 +64,23 @@ export default function HomeScreen({ navigation }) {
             {item.isPaid ? item.prix + ' FCFA' : 'Gratuit'}
           </Text>
         </View>
+        <FavoriButton
+          eventId={item.id}
+          eventData={{
+            title: item.title,
+            date: item.date,
+            location: item.lieu,
+            category: item.category,
+            affiche_url: item.affiche_url,
+            month: item.month,
+            day: item.day,
+            emoji: item.emoji,
+            priceLabel: item.priceLabel,
+          }}
+          size={20}
+          inactiveColor={colors.textTertiary}
+          style={styles.favoriBtn}
+        />
       </View>
       <View style={styles.eventCardBody}>
         <Text style={styles.eventCardTitle} numberOfLines={1}>{item.title}</Text>
@@ -188,11 +206,11 @@ const styles = StyleSheet.create({
   headerLogo: { width: 32, height: 32, borderRadius: 8 },
   headerTitle: { fontSize: 18, fontFamily: 'Outfit_800ExtraBold' },
   headerSen: { color: '#111827' },
-  headerGuichet: { color: '#1A56DB' },
+  headerGuichet: { color: '#10B981' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
-  headerContact: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: '#EFF6FF' },
-  headerContactText: { fontSize: 12, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#1A56DB' },
+  headerContact: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: '#D1FAE5' },
+  headerContactText: { fontSize: 12, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#10B981' },
   scroll: { flex: 1 },
   searchBar: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
@@ -206,7 +224,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
     backgroundColor: '#F3F4F6', marginRight: 8,
   },
-  catChipActive: { backgroundColor: '#1A56DB' },
+  catChipActive: { backgroundColor: '#10B981' },
   catChipText: { fontSize: 13, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#374151' },
   catChipTextActive: { color: '#FFFFFF' },
   sectionHeader: {
@@ -229,6 +247,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8,
   },
   eventCardBadgeText: { fontSize: 11, fontFamily: 'Outfit_700Bold' },
+  favoriBtn: {
+    position: 'absolute',
+    top: 8,
+    left: 10,
+    zIndex: 10,
+  },
   eventCardBody: { padding: 14 },
   eventCardTitle: { fontSize: 16, fontFamily: 'Outfit_700Bold', color: '#111827', marginBottom: 4 },
   eventCardMeta: { fontSize: 12, fontFamily: 'PlusJakartaSans_400Regular', color: '#6B7280' },

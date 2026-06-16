@@ -3,7 +3,7 @@
 // Organisateur   : Drawer hamburger (Dashboard, Événements, ...)
 // Contrôleur     : Drawer hamburger (Scanner, Historique, ...)
 import { View, ActivityIndicator, StyleSheet } from 'react-native'
-import { Feather } from '@expo/vector-icons'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
@@ -26,6 +26,7 @@ import TicketScreen from '../screens/TicketScreen'
 import SupportScreen from '../screens/SupportScreen'
 import WebViewWaveScreen from '../screens/WebViewWaveScreen'
 import NotificationsScreen from '../screens/NotificationsScreen'
+import MesFavorisScreen from '../screens/MesFavorisScreen'
 
 import OrganizerDrawer from './OrganizerDrawer'
 import ControllerDrawer from './ControllerDrawer'
@@ -82,7 +83,7 @@ function MainTabs() {
         component={MesTicketsScreen}
         options={{
           tabBarLabel: 'Mes billets',
-          tabBarIcon: ({ color }) => <Feather name="ticket" size={20} color={color} />,
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="ticket-outline" size={21} color={color} />,
         }}
       />
       <Tab.Screen
@@ -128,6 +129,7 @@ function GuestNavigator() {
       <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Support" component={SupportScreen} options={header('Support')} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={header('Notifications')} />
+      <Stack.Screen name="MesFavoris" component={MesFavorisScreen} options={header('Mes favoris')} />
     </Stack.Navigator>
   )
 }
@@ -155,7 +157,7 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer ref={navigationRef}>
-      {!role && <GuestNavigator />}
+      {(!role || role === 'acheteur') && <GuestNavigator />}
       {role === 'organisateur' && <OrganizerDrawer />}
       {role === 'controleur' && <ControllerDrawer />}
     </NavigationContainer>
