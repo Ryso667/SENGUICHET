@@ -6,7 +6,7 @@ import {
   View, Text,
   TouchableOpacity, StyleSheet, Alert, Modal,
   Platform, Image, ImageBackground, KeyboardAvoidingView,
-  Animated, ActivityIndicator, Easing, TextInput,
+  Animated, ActivityIndicator, Easing, TextInput, Share,
   useWindowDimensions,
 } from 'react-native'
 import { Feather } from '@expo/vector-icons'
@@ -49,6 +49,12 @@ export default function EventDetailScreen({ route, navigation }) {
   const [error, setError] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
   const [telephone, setTelephone] = useState(numeroTel || '')
+
+  // Partage de l'événement via l'API Share native
+  const partagerEvenement = () => {
+    const message = `🎫 ${event?.title || 'Événement'}${event?.date ? ` — ${formaterDateLisible(event.date)}` : ''}${event?.lieu ? ` à ${event.lieu}` : ''}\n\nDécouvre-le sur SENGUICHET !`
+    Share.share({ message, title: event?.title || 'Événement SENGUICHET' })
+  }
 
   // Formate le numéro en groupes XX XXX XX XX, limité à 9 chiffres
   const formaterTel = (texte) => {
@@ -232,6 +238,9 @@ export default function EventDetailScreen({ route, navigation }) {
         size={24}
         style={[styles.floatingFavori, { top: insets.top + 8 }]}
       />
+      <TouchableOpacity style={[styles.floatingShare, { top: insets.top + 8 }]} onPress={partagerEvenement}>
+        <Feather name="share-2" size={20} color={colors.text} />
+      </TouchableOpacity>
 
       <Animated.ScrollView
         style={styles.flex}
@@ -589,6 +598,17 @@ const styles = StyleSheet.create({
     right: 16,
     zIndex: 10,
     shadowRadius: 4,
+  },
+  floatingShare: {
+    position: 'absolute',
+    right: 52,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.bgSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
   },
   // Hero banner — photo pleine largeur
   heroBanner: {
