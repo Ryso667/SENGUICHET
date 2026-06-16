@@ -1,4 +1,4 @@
-// Thème clair — palette blanc/bleu (#1A56DB), fond blanc
+// Thème clair SENGUICHET
 export const colors = {
   bg: '#FFFFFF',
   bgSecondary: '#F9FAFB',
@@ -25,8 +25,6 @@ export const colors = {
   inputBg: '#F3F4F6',
   inputBorder: 'transparent',
   inputBorderFocus: '#1A56DB',
-  textWhite: '#111827',
-  textWhiteMuted: '#6B7280',
   slate: '#1E293B',
   mid: '#6B7280',
   muted: '#9CA3AF',
