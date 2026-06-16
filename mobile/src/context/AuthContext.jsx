@@ -7,6 +7,7 @@ import * as LocalAuthentication from 'expo-local-authentication'
 import { nettoyerDonneesLegacy } from '../utils/cleanupLegacyData'
 import { verifierCodeOTP as verifierCodeOTPAPI } from '../services/authService'
 import * as Securite from '../utils/secureStorage'
+import { configurerNotifications, obtenirTokenPush, enregistrerToken, supprimerToken } from '../services/notificationService'
 
 const AuthContext = createContext(null)
 
@@ -180,6 +181,10 @@ export function AuthProvider({ children }) {
     setHasSavedSession(true)
     setSessionEmail(userData.email)
     setOrgaEmailSuggestion(userData.email)
+    // Enregistrer le token push pour les notifications
+    configurerNotifications()
+    const pushToken = await obtenirTokenPush()
+    if (pushToken) await enregistrerToken(pushToken)
   }
 
   // Connexion acheteur par OTP email
@@ -227,6 +232,7 @@ export function AuthProvider({ children }) {
   }
 
   const nettoyerSession = async () => {
+    await supprimerToken()
     await AsyncStorage.multiRemove([
       STORAGE_KEY_ROLE,
       STORAGE_KEY_ACHETEUR_PIN,
