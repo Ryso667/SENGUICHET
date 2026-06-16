@@ -2,19 +2,19 @@
 // Contacts pour contacter l'assistance
 import { View, Text, ScrollView, TouchableOpacity, Linking, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, spacing, glass, colors } from '../constants/theme'
-import OrganisateurLayout from '../components/OrganisateurLayout'
 import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
 
 export default function SupportScreen() {
+  const insets = useSafeAreaInsets()
 
   const handleWhatsApp = () => { Linking.openURL('https://wa.me/xxx') }
   const handleEmail = () => { Linking.openURL('mailto:support@senguichet.com') }
 
   return (
-    <View style={styles.container}>
-      <OrganisateurLayout />
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}

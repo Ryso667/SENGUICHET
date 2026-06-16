@@ -178,6 +178,42 @@ async function migrate() {
     console.error("⚠️  Impossible de créer le contrôleur par défaut:", e.message);
   }
 
+  // Table des tokens push pour les notifications
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS push_tokens (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        organisateur_id INT NOT NULL,
+        token VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (organisateur_id) REFERENCES organisateur(id) ON DELETE CASCADE
+      )
+    `)
+    console.log("✅ Table push_tokens créée")
+  } catch (e) {
+    console.log("ℹ️  push_tokens peut-être déjà créée:", e.message)
+  }
+
+  // Table des notifications persistées
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        organisateur_id INT NOT NULL,
+        evenement_id INT,
+        type VARCHAR(50) NOT NULL DEFAULT 'vente',
+        message TEXT NOT NULL,
+        lue BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (organisateur_id) REFERENCES organisateur(id) ON DELETE CASCADE,
+        FOREIGN KEY (evenement_id) REFERENCES evenement(id) ON DELETE SET NULL
+      )
+    `)
+    console.log("✅ Table notifications créée")
+  } catch (e) {
+    console.log("ℹ️  notifications peut-être déjà créée:", e.message)
+  }
+
   console.log("✅ Migration terminée");
   await connection.end();
 }

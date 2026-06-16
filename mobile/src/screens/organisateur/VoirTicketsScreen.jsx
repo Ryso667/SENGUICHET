@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
 import { fetchEvenementDetailAPI } from '../../services/eventService'
 import Skeleton from '../../components/Skeleton'
-import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 
 const STATUS_BADGE = {
@@ -39,7 +38,6 @@ export default function VoirTicketsScreen({ route }) {
   if (loading) {
     return (
       <View style={s.container}>
-        <OrganisateurLayout />
         <View style={{ padding: spacing.lg, paddingTop: insets.top }}>
           <Skeleton type="card" count={5} />
         </View>
@@ -49,7 +47,6 @@ export default function VoirTicketsScreen({ route }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <OrganisateurLayout />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={s.content}>
           {evenement && (

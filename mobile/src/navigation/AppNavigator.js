@@ -1,7 +1,7 @@
-// Navigation principale — 4 tabs fixes avec piles contextuelles
-// Tous les rôles (acheteur/organisateur/controleur) partagent les mêmes tabs
-// Les écrans auth/orga/contrôleur sont dans la stack, accessibles depuis Compte
-import { useEffect, useState } from 'react'
+// Navigation principale
+// Guest/Acheteur : 4 tabs (Accueil, Explorer, Mes billets, Compte)
+// Organisateur   : Drawer hamburger (Dashboard, Événements, ...)
+// Contrôleur     : Drawer hamburger (Scanner, Historique, ...)
 import { View, ActivityIndicator, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native'
@@ -11,13 +11,11 @@ import { useAuth } from '../context/AuthContext'
 import { colors, fonts } from '../constants/theme'
 import { TabBarScrollProvider } from '../context/TabBarScrollContext'
 
-// Écrans tabs
 import HomeScreen from '../screens/HomeScreen'
 import EventSearchScreen from '../screens/EventSearchScreen'
 import MesTicketsScreen from '../screens/MesTicketsScreen'
 import ProfilScreen from '../screens/ProfilScreen'
 
-// Écrans stack (auth, organisateur, contrôleur)
 import SocialAuthScreen from '../screens/auth/SocialAuthScreen'
 import ConnexionControleurScreen from '../screens/auth/ConnexionControleurScreen'
 import ConnexionOrganisateurScreen from '../screens/auth/ConnexionOrganisateurScreen'
@@ -27,17 +25,10 @@ import EventDetailScreen from '../screens/EventDetailScreen'
 import TicketScreen from '../screens/TicketScreen'
 import SupportScreen from '../screens/SupportScreen'
 import WebViewWaveScreen from '../screens/WebViewWaveScreen'
-import OrganisateurDashboardScreen from '../screens/organisateur/OrganisateurDashboardScreen'
-import GestionEvenementsScreen from '../screens/organisateur/GestionEvenementsScreen'
-import DetailEvenementScreen from '../screens/organisateur/DetailEvenementScreen'
-import StatistiquesScreen from '../screens/organisateur/StatistiquesScreen'
-import MesDemandesScreen from '../screens/organisateur/MesDemandesScreen'
-import ParametresScreen from '../screens/organisateur/ParametresScreen'
-import ChangerMotDePasseScreen from '../screens/organisateur/ChangerMotDePasseScreen'
 import NotificationsScreen from '../screens/NotificationsScreen'
-import ScannerScreen from '../screens/controleur/ScannerScreen'
-import ScanHistoryScreen from '../screens/controleur/ScanHistoryScreen'
-import VoirTicketsScreen from '../screens/organisateur/VoirTicketsScreen'
+
+import OrganizerDrawer from './OrganizerDrawer'
+import ControllerDrawer from './ControllerDrawer'
 
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
@@ -109,6 +100,39 @@ function MainTabs() {
 
 const navigationRef = createNavigationContainerRef()
 
+const headerStyle = {
+  headerShown: true,
+  headerStyle: { backgroundColor: colors.surface },
+  headerTitleStyle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text },
+  headerTintColor: colors.accent,
+  headerBackTitle: 'Retour',
+}
+const header = (titre) => ({ ...headerStyle, headerTitle: titre })
+
+function GuestNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{
+      headerShown: false,
+      gestureEnabled: true,
+      animation: 'slide_from_right',
+      animationDuration: 250,
+    }}>
+      <Stack.Screen name="MainTabs" component={MainTabs} />
+      <Stack.Screen name="SocialAuth" component={SocialAuthScreen} />
+      <Stack.Screen name="ConnexionControleur" component={ConnexionControleurScreen} options={header('Connexion')} />
+      <Stack.Screen name="ConnexionOrganisateur" component={ConnexionOrganisateurScreen} options={header('Connexion')} />
+      <Stack.Screen name="InscriptionOrganisateur" component={InscriptionOrganisateurScreen} options={header('Inscription')} />
+      <Stack.Screen name="EnAttenteValidation" component={EnAttenteValidationScreen} />
+      <Stack.Screen name="EventDetail" component={EventDetailScreen} />
+      <Stack.Screen name="Ticket" component={TicketScreen} />
+      <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Support" component={SupportScreen} options={header('Support')} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} options={header('Notifications')} />
+    </Stack.Navigator>
+  )
+}
+
+
 export default function AppNavigator() {
   const { role, chargement } = useAuth()
 
@@ -131,43 +155,9 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer ref={navigationRef}>
-      <Stack.Navigator screenOptions={{
-        headerShown: false,
-        gestureEnabled: true,
-        animation: 'slide_from_right',
-        animationDuration: 250,
-      }}>
-        {/* Tabs principaux — toujours visibles */}
-        <Stack.Screen name="MainTabs" component={MainTabs} />
-
-        {/* Écrans auth (empilés depuis Compte) */}
-        <Stack.Screen name="SocialAuth" component={SocialAuthScreen} />
-        <Stack.Screen name="ConnexionControleur" component={ConnexionControleurScreen} options={header('Connexion')} />
-        <Stack.Screen name="ConnexionOrganisateur" component={ConnexionOrganisateurScreen} options={header('Connexion')} />
-        <Stack.Screen name="InscriptionOrganisateur" component={InscriptionOrganisateurScreen} options={header('Inscription')} />
-        <Stack.Screen name="EnAttenteValidation" component={EnAttenteValidationScreen} />
-
-        {/* Écrans acheteur */}
-        <Stack.Screen name="EventDetail" component={EventDetailScreen} />
-        <Stack.Screen name="Ticket" component={TicketScreen} />
-        <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Support" component={SupportScreen} options={header('Support')} />
-
-        {/* Écrans organisateur */}
-        <Stack.Screen name="OrganisateurDashboard" component={OrganisateurDashboardScreen} />
-        <Stack.Screen name="GestionEvenements" component={GestionEvenementsScreen} />
-        <Stack.Screen name="DetailEvenement" component={DetailEvenementScreen} />
-        <Stack.Screen name="VoirTickets" component={VoirTicketsScreen} />
-        <Stack.Screen name="Statistiques" component={StatistiquesScreen} />
-        <Stack.Screen name="MesDemandes" component={MesDemandesScreen} />
-        <Stack.Screen name="Parametres" component={ParametresScreen} options={header('Paramètres')} />
-        <Stack.Screen name="ChangerMotDePasse" component={ChangerMotDePasseScreen} options={header('Changer le mot de passe')} />
-        <Stack.Screen name="Notifications" component={NotificationsScreen} options={header('Notifications')} />
-
-        {/* Écrans contrôleur */}
-        <Stack.Screen name="Scanner" component={ScannerScreen} />
-        <Stack.Screen name="ScanHistory" component={ScanHistoryScreen} />
-      </Stack.Navigator>
+      {!role && <GuestNavigator />}
+      {role === 'organisateur' && <OrganizerDrawer />}
+      {role === 'controleur' && <ControllerDrawer />}
     </NavigationContainer>
   )
 }

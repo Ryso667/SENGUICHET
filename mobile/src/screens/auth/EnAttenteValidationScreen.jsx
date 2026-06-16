@@ -6,7 +6,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 import GlassButton from '../../components/GlassButton'
 import GlassContainer from '../../components/GlassContainer'
 import { colors, spacing, fonts } from '../../constants/theme'
-import BlurBackground from '../../components/BlurBackground'
+
 
 // Composant de la barre de progression à 3 étapes
 const Stepper = ({ etapeCourante }) => {
@@ -121,8 +121,7 @@ export default function EnAttenteValidationScreen({ navigation }) {
   const insets = useSafeAreaInsets()
 
   return (
-    <View style={{ flex: 1 }}>
-      <BlurBackground />
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScrollView
         contentContainerStyle={[styles.conteneur, { paddingTop: insets.top }]}
         keyboardShouldPersistTaps="handled"
@@ -155,7 +154,7 @@ export default function EnAttenteValidationScreen({ navigation }) {
         <View style={{ height: 24 }} />
         <GlassButton
           title="Retour à l'accueil"
-          onPress={() => navigation.navigate('AccueilChoix')}
+          onPress={() => navigation.navigate('MainTabs')}
         />
       </ScrollView>
     </View>

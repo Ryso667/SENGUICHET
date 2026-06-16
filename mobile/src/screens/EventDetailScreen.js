@@ -1,22 +1,19 @@
 // Écran détail d'un événement avec sélection de catégorie et paiement
-// Design immersif : BlurBackground + GlassContainer pour tous les éléments
+// Design clair : photo large en haut, cartes blanches avec ombre en dessous
 // Conserve le flux de paiement Wave/Orange Money existant
 import { useState, useEffect, useRef } from 'react'
 import {
-  View, Text, ScrollView,
+  View, Text,
   TouchableOpacity, StyleSheet, Alert, Modal,
-  Platform, Image, KeyboardAvoidingView,
+  Platform, Image, ImageBackground, KeyboardAvoidingView,
   Animated, ActivityIndicator, Easing, TextInput,
   useWindowDimensions,
 } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
-import MaskedView from '@react-native-masked-view/masked-view'
 import { colors, fonts, spacing, glass, borderRadius } from '../constants/theme'
 import { scale, fontScale, lineHeightScale, isPad } from '../utils/responsive'
-import OrganisateurLayout from '../components/OrganisateurLayout'
-import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassButton from '../components/GlassButton'
 import { getDefaultImage } from '../config/images'
@@ -191,10 +188,9 @@ export default function EventDetailScreen({ route, navigation }) {
   // État erreur
   if (error) {
     return (
-      <View style={styles.container}>
-        <BlurBackground category={event?.category} afficheUrl={event?.affiche_url} />
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.loadingContainer}>
-          <Feather name="alert-circle" size={32} color={colors.textWhiteMuted} />
+          <Feather name="alert-circle" size={32} color={colors.textSecondary} />
           <Text style={styles.loadingText}>{error}</Text>
           <GlassButton title="Réessayer" icon="refresh-cw" onPress={() => setRetryCount(c => c + 1)} />
         </View>
@@ -205,10 +201,9 @@ export default function EventDetailScreen({ route, navigation }) {
   // État chargement
   if (!event) {
     return (
-      <View style={styles.container}>
-        <BlurBackground />
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#fff" />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </View>
@@ -220,23 +215,15 @@ export default function EventDetailScreen({ route, navigation }) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Fond immersif plein écran avec parallax */}
-      <OrganisateurLayout />
-      <BlurBackground category={event?.category} afficheUrl={event?.affiche_url} parallaxOffset={scrollY.interpolate({
-        inputRange: [-100, 0, 200],
-        outputRange: [-30, 0, 60],
-        extrapolate: 'clamp',
-      })} />
-
-      {/* Bouton retour flottant avec cercle glass */}
+      {/* Bouton retour flottant — visible sur l'image */}
       <TouchableOpacity style={[styles.floatingBack, { top: insets.top + 8 }]} onPress={() => navigation.goBack()}>
-        <Feather name="arrow-left" size={20} color="#fff" />
+        <Feather name="arrow-left" size={20} color={colors.text} />
       </TouchableOpacity>
 
       <Animated.ScrollView
         style={styles.flex}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 60 }]}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -244,36 +231,45 @@ export default function EventDetailScreen({ route, navigation }) {
         )}
         scrollEventThrottle={16}
       >
+        {/* Hero banner — photo pleine largeur */}
+        <View style={styles.heroBanner}>
+          <ImageBackground
+            source={event?.affiche_url ? { uri: event.affiche_url } : getDefaultImage(event?.category)}
+            style={styles.heroBg}
+            resizeMode="cover"
+          >
+            <LinearGradient
+              colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.65)']}
+              style={styles.heroGradient}
+            />
+            <Animated.View style={[styles.heroContent, {
+              paddingTop: insets.top + 60,
+              opacity: heroFade,
+              transform: [{ translateY: heroFade.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
+            }]}>
+              <Text style={styles.heroCategory}>{event.category || 'ÉVÉNEMENT'}</Text>
+              <Text style={styles.heroTitle}>{event.title}</Text>
+              <View style={[styles.heroDivider, { backgroundColor: colors.accent }]} />
+            </Animated.View>
+          </ImageBackground>
+        </View>
 
-        {/* Hero invitation — titre XXL + date mise en avant */}
-        <Animated.View style={{
-          opacity: heroFade,
-          transform: [{ translateY: heroFade.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
-        }}>
-        <View style={styles.heroSection}>
-          <Text style={[styles.heroCategory, { color: '#90CAF9' }]}>{event.category || 'ÉVÉNEMENT'}</Text>
-          <MaskedView maskElement={<Text style={styles.heroTitle}>{event.title}</Text>}>
-            <LinearGradient colors={['#5C6BC0', '#7986CB']} start={{x:0,y:0}} end={{x:1,y:0}}>
-              <Text style={[styles.heroTitle, { opacity: 0 }]}>{event.title}</Text>
-            </LinearGradient>
-          </MaskedView>
-
-          <View style={[styles.heroDivider, { backgroundColor: colors.accent }]} />
-
+        {/* Cartes info — fond blanc avec ombre portée */}
+        <View style={styles.infoCards}>
           {event.date && (
-            <GlassContainer intensity={30} style={styles.heroDateCard}>
-              <View style={[styles.heroIconBadge, { backgroundColor: hexToRgba(colors.accent, 0.15) }]}>
-                <Feather name="calendar" size={22} color="#fff" />
+            <GlassContainer style={styles.infoCard}>
+              <View style={[styles.iconBadge, { backgroundColor: hexToRgba(colors.accent, 0.12) }]}>
+                <Feather name="calendar" size={20} color={colors.accent} />
               </View>
               <View style={{ flex: 1 }}>
-                <View style={styles.heroDateRow}>
-                  <Text style={styles.heroDateDayNum}>{dayNumber}</Text>
-                  <Text style={styles.heroDateMonth}>{monthYear?.toUpperCase()}</Text>
+                <View style={styles.infoDateRow}>
+                  <Text style={styles.infoDayNum}>{dayNumber}</Text>
+                  <Text style={styles.infoMonth}>{monthYear?.toUpperCase()}</Text>
                 </View>
                 {!!event.time && (
-                  <View style={styles.heroTimeRow}>
-                    <Feather name="clock" size={11} color="rgba(255,255,255,0.5)" />
-                    <Text style={styles.heroTimeText}>{event.time}</Text>
+                  <View style={styles.infoTimeRow}>
+                    <Feather name="clock" size={11} color={colors.textTertiary} />
+                    <Text style={styles.infoTimeText}>{event.time}</Text>
                   </View>
                 )}
               </View>
@@ -281,22 +277,21 @@ export default function EventDetailScreen({ route, navigation }) {
           )}
 
           {!!event.location && (
-            <GlassContainer intensity={30} style={styles.heroLocationCard}>
-              <View style={[styles.heroIconBadge, { backgroundColor: hexToRgba(colors.accent, 0.15) }]}>
-                <Feather name="map-pin" size={22} color="#fff" />
+            <GlassContainer style={styles.infoCard}>
+              <View style={[styles.iconBadge, { backgroundColor: hexToRgba(colors.accent, 0.12) }]}>
+                <Feather name="map-pin" size={20} color={colors.accent} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.heroLocationMain} numberOfLines={2}>{event.location}</Text>
-                <Text style={styles.heroLocationSub}>Lieu de l'événement</Text>
+                <Text style={styles.infoLocationMain} numberOfLines={2}>{event.location}</Text>
+                <Text style={styles.infoLocationSub}>Lieu de l'événement</Text>
               </View>
             </GlassContainer>
           )}
         </View>
-        </Animated.View>
 
-        {/* Description — carte large */}
+        {/* Description — carte blanche */}
         {!!event.desc && (
-          <GlassContainer intensity={30} style={styles.descCard}>
+          <GlassContainer style={styles.descCard}>
             <Text style={styles.descText}>{event.desc}</Text>
           </GlassContainer>
         )}
@@ -311,7 +306,7 @@ export default function EventDetailScreen({ route, navigation }) {
           onPress={() => setShowCategorySheet(true)}
           activeOpacity={0.7}
         >
-          <GlassContainer intensity={30} style={styles.categorySelector}>
+          <GlassContainer style={styles.categorySelector}>
             <View style={styles.categorySelectorLeft}>
               <Text style={styles.categorySelectorLabel}>{selectedTicket.name}</Text>
               <Text style={styles.categorySelectorPrice}>{selectedTicket.price.toLocaleString()} FCFA</Text>
@@ -322,7 +317,7 @@ export default function EventDetailScreen({ route, navigation }) {
                   <Text style={styles.priceChipText}>{selectedTicket.placesDisponibles}/{selectedTicket.capacite} places</Text>
                 </View>
               )}
-              <Feather name="chevron-down" size={16} color={colors.textWhiteMuted} />
+              <Feather name="chevron-down" size={16} color={colors.textSecondary} />
             </View>
           </GlassContainer>
         </TouchableOpacity>
@@ -330,10 +325,10 @@ export default function EventDetailScreen({ route, navigation }) {
         </Animated.ScrollView>
         {/* Barre d'achat fixe en bas — effet glass */}
         <BlurView tint="dark" intensity={90} style={styles.bottomBar}>
-          <GlassContainer intensity={30} style={styles.bottomBarTotal}>
+          <View style={styles.bottomBarTotal}>
             <Text style={styles.bottomBarTotalLabel}>Total</Text>
             <Text style={styles.bottomBarTotalPrice}>{selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
-          </GlassContainer>
+          </View>
           <TouchableOpacity
             onPress={handleBuy}
             activeOpacity={0.9}
@@ -432,7 +427,7 @@ export default function EventDetailScreen({ route, navigation }) {
             {/* Bouton de fermeture */}
             {paymentEtape === 'confirm' && (
               <TouchableOpacity style={styles.payCloseBtn} onPress={() => setShowPaymentSheet(false)}>
-                <Feather name="x" size={20} color="#fff" />
+                <Feather name="x" size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             )}
 
@@ -442,7 +437,7 @@ export default function EventDetailScreen({ route, navigation }) {
                 {/* Montant uniquement */}
                 <Text style={styles.payAmountLabel}>{selectedTicket.name}</Text>
                 <GlassContainer intensity={30} style={[styles.payAmountCard, { borderColor: hexToRgba(colors.accent, 0.27) }]}>
-                  <Text style={[styles.payAmountValue, { color: colors.textWhite }]}>
+                  <Text style={styles.payAmountValue}>
                     {selectedTicket.price.toLocaleString()} FCFA
                   </Text>
                 </GlassContainer>
@@ -450,7 +445,7 @@ export default function EventDetailScreen({ route, navigation }) {
                 {/* Champ téléphone dans le modal */}
                 <Text style={styles.modalPhoneLabel}>Ton téléphone</Text>
                 <GlassContainer intensity={30} style={styles.modalPhoneRow}>
-                  <Feather name="smartphone" size={16} color={colors.textWhiteMuted} />
+                  <Feather name="smartphone" size={16} color={colors.textTertiary} />
                   <Text style={styles.modalPhoneCode}>+221</Text>
                   <TextInput
                     style={styles.modalPhoneInput}
@@ -458,7 +453,7 @@ export default function EventDetailScreen({ route, navigation }) {
                     onChangeText={(t) => setTelephone(formaterTel(t))}
                     keyboardType="phone-pad"
                     placeholder="77 XXX XX XX"
-                    placeholderTextColor={colors.textWhiteMuted}
+                    placeholderTextColor={colors.textSecondary}
                   />
                 </GlassContainer>
 
@@ -553,151 +548,169 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: fontScale(13),
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
     fontFamily: fonts.jakarta.regular,
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
   },
-  // Bouton retour flottant avec cercle glass — top défini avec useSafeAreaInsets
+  // Bouton retour flottant — visible sur fond blanc
   floatingBack: {
     position: 'absolute',
     left: spacing.lg,
     width: scale(40),
     height: scale(40),
     borderRadius: scale(20),
-    backgroundColor: glass.bg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: glass.border,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
-    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  // Hero section — invitation XXL
-  heroSection: {
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xs,
-    marginBottom: spacing.sm,
+  // Hero banner — photo pleine largeur
+  heroBanner: {
+    height: scale(280),
+    marginBottom: spacing.md,
+    overflow: 'hidden',
+    borderRadius: borderRadius.xl,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+  },
+  heroBg: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  heroGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  heroContent: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
   },
   heroCategory: {
     fontSize: fontScale(12),
     fontFamily: fonts.jakarta.semiBold,
+    color: '#90CAF9',
     letterSpacing: scale(3),
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   heroTitle: {
     fontFamily: fonts.outfit.extraBold,
-    fontSize: fontScale(42),
+    fontSize: fontScale(32),
     color: '#fff',
-    letterSpacing: scale(-1.5),
-    lineHeight: lineHeightScale(48),
-textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    letterSpacing: scale(-1),
+    lineHeight: lineHeightScale(38),
   },
   heroDivider: {
-    width: scale(48),
-    height: scale(2),
-    borderRadius: scale(1),
-    marginVertical: scale(20),
+    width: scale(40),
+    height: scale(2.5),
+    borderRadius: scale(1.5),
+    marginTop: scale(14),
   },
-  // Badge icône dans les cartes hero — rond translucide teinté
-  heroIconBadge: {
-    width: scale(42),
-    height: scale(42),
-    borderRadius: scale(14),
+  // Badge icône dans les cartes
+  iconBadge: {
+    width: scale(40),
+    height: scale(40),
+    borderRadius: scale(12),
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Carte date mise en avant
-  heroDateCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: scale(16),
-    paddingVertical: scale(18),
-    paddingHorizontal: scale(18),
-    marginBottom: spacing.sm,
+  // Conteneur des cartes info (date + lieu)
+  infoCards: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+    marginBottom: spacing.md,
   },
-  heroDateRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: scale(10),
-  },
-  // Jour en énorme — style billet de concert
-  heroDateDayNum: {
-    fontSize: fontScale(42),
-    fontFamily: fonts.outfit.extraBold,
-    color: '#fff',
-    letterSpacing: scale(-2),
-    lineHeight: lineHeightScale(46),
-textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  heroDateMonth: {
-    fontSize: fontScale(14),
-    fontFamily: fonts.outfit.semiBold,
-    color: 'rgba(255,255,255,0.6)',
-    letterSpacing: scale(2),
-  },
-  heroTimeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: scale(5),
-    marginTop: scale(4),
-  },
-  heroTimeText: {
-    fontSize: fontScale(12),
-    fontFamily: fonts.jakarta.regular,
-    color: 'rgba(255,255,255,0.5)',
-  },
-  // Carte localisation — mise en avant
-  heroLocationCard: {
+  infoCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: scale(14),
-    paddingVertical: scale(14),
+    paddingVertical: scale(16),
     paddingHorizontal: scale(16),
-    marginBottom: spacing.sm,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
   },
-  heroLocationMain: {
-    fontSize: fontScale(16),
-    fontFamily: fonts.outfit.bold,
-    color: '#fff',
-    letterSpacing: fontScale(0.5),
+  infoDateRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: scale(8),
   },
-  heroLocationSub: {
+  infoDayNum: {
+    fontSize: fontScale(28),
+    fontFamily: fonts.outfit.extraBold,
+    color: colors.text,
+    letterSpacing: scale(-1),
+  },
+  infoMonth: {
+    fontSize: fontScale(13),
+    fontFamily: fonts.outfit.semiBold,
+    color: colors.textSecondary,
+    letterSpacing: scale(1.5),
+    textTransform: 'uppercase',
+  },
+  infoTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: scale(4),
+    marginTop: scale(4),
+  },
+  infoTimeText: {
+    fontSize: fontScale(12),
+    fontFamily: fonts.jakarta.regular,
+    color: colors.textTertiary,
+  },
+  infoLocationMain: {
+    fontSize: fontScale(15),
+    fontFamily: fonts.outfit.semiBold,
+    color: colors.text,
+  },
+  infoLocationSub: {
     fontSize: fontScale(11),
     fontFamily: fonts.jakarta.regular,
-    color: 'rgba(255,255,255,0.4)',
+    color: colors.textSecondary,
     marginTop: scale(2),
   },
-  // Carte description — épurée, généreuse
+  // Carte description
   descCard: {
-    padding: spacing.xl,
-    marginBottom: spacing.xl,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    marginHorizontal: spacing.lg,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
   },
   descText: {
-    fontSize: fontScale(15),
-    color: colors.textWhite,
+    fontSize: fontScale(14),
+    color: colors.text,
     fontFamily: fonts.jakarta.regular,
-    lineHeight: lineHeightScale(26),
+    lineHeight: lineHeightScale(24),
   },
   // Sections
   sectionHeader: {
     marginBottom: spacing.sm,
+    paddingHorizontal: spacing.lg,
   },
   sectionTitle: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(14),
-    color: colors.textWhite,
+    color: colors.text,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   sectionSub: {
     fontSize: fontScale(11),
     fontFamily: fonts.jakarta.regular,
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
     marginTop: scale(3),
   },
   categorySelector: {
@@ -705,7 +718,13 @@ textShadowColor: 'rgba(0,0,0,0.4)',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: spacing.lg,
+    marginHorizontal: spacing.lg,
     marginBottom: spacing.xl,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
   },
   categorySelectorLeft: {
     gap: scale(6),
@@ -713,12 +732,12 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   categorySelectorLabel: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: fontScale(16),
-    color: colors.textWhite,
+    color: colors.text,
   },
   categorySelectorPrice: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(22),
-    color: colors.textWhite,
+    color: colors.text,
     letterSpacing: scale(-0.5),
   },
   categorySelectorRight: {
@@ -727,7 +746,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
     gap: scale(10),
   },
   priceChip: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: hexToRgba(colors.accent, 0.12),
     borderRadius: scale(20),
     paddingHorizontal: scale(12),
     paddingVertical: scale(5),
@@ -735,7 +754,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   priceChipText: {
     fontSize: fontScale(10),
     fontFamily: fonts.jakarta.semiBold,
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
   },
   // Overlay et conteneur sheet
   sheetOverlay: {
@@ -756,14 +775,14 @@ textShadowColor: 'rgba(0,0,0,0.4)',
     width: scale(36),
     height: scale(4),
     borderRadius: scale(2),
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.1)',
     alignSelf: 'center',
     marginBottom: spacing.md,
   },
   sheetTitle: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(16),
-    color: '#fff',
+    color: colors.text,
     marginBottom: spacing.md,
   },
   sheetItem: {
@@ -778,19 +797,13 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   sheetItemName: {
     fontFamily: fonts.jakarta.semiBold,
     fontSize: fontScale(13),
-    color: '#fff',
-    textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    color: colors.text,
   },
   sheetItemDesc: {
     fontSize: fontScale(10),
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
     fontFamily: fonts.jakarta.regular,
     marginTop: scale(2),
-textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
   sheetItemRight: {
     alignItems: 'flex-end',
@@ -799,18 +812,12 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   sheetItemPrice: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(14),
-    color: '#fff',
-    textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    color: colors.text,
   },
   sheetItemPlaces: {
     fontSize: fontScale(9),
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.textTertiary,
     fontFamily: fonts.jakarta.regular,
-    textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
   sheetCheck: {
     width: scale(20),
@@ -825,7 +832,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   modalPhoneLabel: {
     fontFamily: fonts.jakarta.semiBold,
     fontSize: fontScale(12),
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: scale(1.5),
     marginBottom: spacing.sm,
@@ -845,20 +852,20 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   modalPhoneCode: {
     fontFamily: fonts.jakarta.semiBold,
     fontSize: fontScale(15),
-    color: colors.textWhiteMuted,
+    color: colors.textTertiary,
   },
   modalPhoneInput: {
     flex: 1,
     fontSize: fontScale(15),
     fontFamily: fonts.jakarta.semiBold,
-    color: colors.textWhite,
+    color: colors.text,
     paddingVertical: scale(10),
   },
   // Montant dans le modal de paiement
   payAmountLabel: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: fontScale(14),
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: scale(2),
     marginBottom: spacing.xs,
@@ -866,10 +873,8 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   payAmountValue: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(40),
+    color: colors.text,
     letterSpacing: scale(-1.5),
-textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
   // Carte prix dans le modal paiement avec bordure teintée
   payAmountCard: {
@@ -893,7 +898,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   },
   bottomBarTotal: {
     gap: 4,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
   },
   bottomBarTotalLabel: {
@@ -953,7 +958,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
     width: scale(32),
     height: scale(32),
     borderRadius: scale(16),
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,

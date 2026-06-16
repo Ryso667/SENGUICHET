@@ -4,7 +4,6 @@ import { View, Text, StyleSheet } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { useAuth } from '../context/AuthContext'
-import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassButton from '../components/GlassButton'
 import { colors, spacing } from '../constants/theme'
@@ -14,7 +13,6 @@ export default function ControleurDashboardScreen() {
 
   return (
     <View style={styles.safe}>
-      <BlurBackground category="Concert" />
       <View style={[styles.conteneur, { paddingTop: insets.top }]}>
         <GlassContainer style={styles.card}>
           <Feather name="shield" size={48} color={colors.accent} />
@@ -42,12 +40,12 @@ const styles = StyleSheet.create({
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: colors.textWhite,
+    color: colors.text,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
     marginBottom: 24,
   },
 })

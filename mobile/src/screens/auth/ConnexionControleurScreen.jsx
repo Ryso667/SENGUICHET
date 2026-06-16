@@ -8,15 +8,16 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { connecterControleur as apiConnecterControleur } from '../../services/authService'
+import { useToast } from '../../context/ToastContext'
 import { hapticLight } from '../../utils/haptics'
 import InputOTP from '../../components/InputOTP'
 import GlassButton from '../../components/GlassButton'
 import { useAuth } from '../../context/AuthContext'
-import BlurBackground from '../../components/BlurBackground'
 import { colors, spacing } from '../../constants/theme'
 
 export default function ConnexionControleurScreen({ navigation }) {
   const { connecterControleur } = useAuth()
+  const toast = useToast()
   const [codeAcces, setCodeAcces] = useState('')
   const [chargement, setChargement] = useState(false)
   const insets = useSafeAreaInsets()
@@ -29,6 +30,8 @@ export default function ConnexionControleurScreen({ navigation }) {
     try {
       const result = await apiConnecterControleur(codeAcces)
       await connecterControleur(result.token, result.user)
+      toast.success('Accès contrôleur activé')
+      navigation.goBack()
     } catch (e) {
       console.error('Erreur connexion controleur:', e.message)
       alert(e.message || "Code d'accès invalide")
@@ -45,7 +48,6 @@ export default function ConnexionControleurScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <BlurBackground />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -71,8 +73,8 @@ export default function ConnexionControleurScreen({ navigation }) {
           ) : (
             <GlassButton
               title="Se connecter"
-              onPress={codeAcces.length !== 4 ? undefined : handleConnecter}
-              style={codeAcces.length !== 4 ? { opacity: 0.5 } : undefined}
+              variant="primary"
+              onPress={handleConnecter}
             />
           )}
         </ScrollView>
@@ -92,13 +94,13 @@ const styles = StyleSheet.create({
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: colors.textWhite,
+    color: colors.text,
     marginBottom: 8,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
     marginBottom: 32,
   },
   espace: {

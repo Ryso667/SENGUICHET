@@ -7,14 +7,13 @@ import { useFocusEffect } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, spacing, colors } from '../constants/theme'
-import OrganisateurLayout from '../components/OrganisateurLayout'
-import BlurBackground, { optimiserUrlCloudinary } from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
 import EmptyState from '../components/EmptyState'
 import AnimatedEventCard from '../components/AnimatedEventCard'
 import { fetchEvenementsPublics } from '../services/eventService'
 import { formaterPourEventCard } from '../utils/eventUtils'
+import { optimiserUrlCloudinary } from '../components/BlurBackground'
 
 const CATEGORIES = ['Tout', 'Concert', 'Festival', 'Sport', 'Theatre', 'Conference']
 
@@ -105,12 +104,6 @@ export default function EventSearchScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <OrganisateurLayout />
-      <BlurBackground
-        category={activeEvent?.category || (activeCat === 'Tout' ? null : activeCat)}
-        showImage={!!activeEvent?.affiche_url}
-        afficheUrl={activeEvent?.affiche_url}
-      />
       <FlatList
         data={filtered}
         renderItem={({ item, index }) => (
