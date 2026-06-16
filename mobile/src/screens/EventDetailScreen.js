@@ -3,7 +3,7 @@
 // Conserve le flux de paiement Wave/Orange Money existant
 import { useState, useEffect, useRef } from 'react'
 import {
-  View, Text, ScrollView,
+  View, Text,
   TouchableOpacity, StyleSheet, Alert, Modal,
   Platform, Image, ImageBackground, KeyboardAvoidingView,
   Animated, ActivityIndicator, Easing, TextInput,
@@ -12,7 +12,6 @@ import {
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
-import MaskedView from '@react-native-masked-view/masked-view'
 import { colors, fonts, spacing, glass, borderRadius } from '../constants/theme'
 import { scale, fontScale, lineHeightScale, isPad } from '../utils/responsive'
 import GlassContainer from '../components/GlassContainer'
