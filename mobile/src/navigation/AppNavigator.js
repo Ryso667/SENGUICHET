@@ -3,7 +3,7 @@
 // Organisateur   : Drawer hamburger (Dashboard, Événements, ...)
 // Contrôleur     : Drawer hamburger (Scanner, Historique, ...)
 import { View, ActivityIndicator, StyleSheet } from 'react-native'
-import { Feather, Ionicons } from '@expo/vector-icons'
+import { Feather } from '@expo/vector-icons'
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
@@ -82,7 +82,7 @@ function MainTabs() {
         component={MesTicketsScreen}
         options={{
           tabBarLabel: 'Mes billets',
-          tabBarIcon: ({ color }) => <Ionicons name="ticket-outline" size={20} color={color} />,
+          tabBarIcon: ({ color }) => <Feather name="ticket" size={20} color={color} />,
         }}
       />
       <Tab.Screen
@@ -132,6 +132,7 @@ function GuestNavigator() {
   )
 }
 
+
 export default function AppNavigator() {
   const { role, chargement } = useAuth()
 
@@ -142,6 +143,15 @@ export default function AppNavigator() {
       </View>
     )
   }
+
+  const headerStyle = {
+    headerShown: true,
+    headerStyle: { backgroundColor: colors.surface },
+    headerTitleStyle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text },
+    headerTintColor: colors.accent,
+    headerBackTitle: 'Retour',
+  }
+  const header = (titre) => ({ ...headerStyle, headerTitle: titre })
 
   return (
     <NavigationContainer ref={navigationRef}>
