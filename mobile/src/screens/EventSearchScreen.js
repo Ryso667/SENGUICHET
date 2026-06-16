@@ -66,9 +66,51 @@ export default function EventSearchScreen({ navigation }) {
   const [events, setEvents] = useState([])
   const [showFilters, setShowFilters] = useState(false)
   const [filtres, setFiltres] = useState({ dateDebut: '', dateFin: '', prixMin: '', prixMax: '', lieu: '' })
+  const [selectedDatePreset, setSelectedDatePreset] = useState(null)
+  const [selectedBudgetPreset, setSelectedBudgetPreset] = useState(null)
   const { width } = useWindowDimensions()
 
   const nbFiltresActifs = [filtres.dateDebut, filtres.dateFin, filtres.prixMin, filtres.prixMax, filtres.lieu].filter(Boolean).length
+
+  const lieuxDisponibles = useMemo(() => {
+    const lieux = events.map(e => e.lieu).filter(Boolean)
+    return [...new Set(lieux)].sort()
+  }, [events])
+
+  // Prédéfinit les plages de dates pour les chips de filtre
+  const formaterDateJJMMAAAA = (date) => {
+    const d = new Date(date)
+    const j = String(d.getDate()).padStart(2, '0')
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    return `${j}/${m}/${d.getFullYear()}`
+  }
+
+  const PRESETS_DATE = [
+    { label: 'Toutes', fn: () => ({ dateDebut: '', dateFin: '' }) },
+    { label: 'Cette semaine', fn: () => {
+      const now = new Date()
+      const fin = new Date(now)
+      fin.setDate(fin.getDate() + (6 - now.getDay()))
+      return { dateDebut: formaterDateJJMMAAAA(now), dateFin: formaterDateJJMMAAAA(fin) }
+    }},
+    { label: 'Ce mois-ci', fn: () => {
+      const now = new Date()
+      return { dateDebut: formaterDateJJMMAAAA(new Date(now.getFullYear(), now.getMonth(), 1)), dateFin: formaterDateJJMMAAAA(new Date(now.getFullYear(), now.getMonth() + 1, 0)) }
+    }},
+    { label: 'Mois prochain', fn: () => {
+      const now = new Date()
+      return { dateDebut: formaterDateJJMMAAAA(new Date(now.getFullYear(), now.getMonth() + 1, 1)), dateFin: formaterDateJJMMAAAA(new Date(now.getFullYear(), now.getMonth() + 2, 0)) }
+    }},
+  ]
+
+  const PRESETS_BUDGET = [
+    { label: 'Tous', prixMin: '', prixMax: '' },
+    { label: '< 5k', prixMin: '', prixMax: '5000' },
+    { label: '5k - 10k', prixMin: '5000', prixMax: '10000' },
+    { label: '10k - 25k', prixMin: '10000', prixMax: '25000' },
+    { label: '25k - 50k', prixMin: '25000', prixMax: '50000' },
+    { label: '50k +', prixMin: '50000', prixMax: '' },
+  ]
 
   useFocusEffect(useCallback(() => {
     (async () => {
@@ -157,7 +199,7 @@ export default function EventSearchScreen({ navigation }) {
         }
       />
 
-      {/* Modal filtres — tap sur l'overlay pour fermer */}
+      {/* Modal filtres — sélection par chips uniquement (pas de saisie manuelle) */}
       <Modal visible={showFilters} animationType="slide" transparent onRequestClose={() => setShowFilters(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setShowFilters(false)}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
@@ -165,40 +207,44 @@ export default function EventSearchScreen({ navigation }) {
               <View style={styles.modalContent}>
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitre}>Filtres</Text>
-                  <TouchableOpacity onPress={() => { setFiltres({ dateDebut: '', dateFin: '', prixMin: '', prixMax: '', lieu: '' }) }}>
+                  <TouchableOpacity onPress={() => { setFiltres({ dateDebut: '', dateFin: '', prixMin: '', prixMax: '', lieu: '' }); setSelectedDatePreset(null); setSelectedBudgetPreset(null) }}>
                     <Text style={styles.modalReset}>Tout effacer</Text>
                   </TouchableOpacity>
                 </View>
 
-                <Text style={styles.filterLabel}>Période</Text>
-                <View style={styles.filterRow}>
-                  <TextInput style={[styles.filterInput, { flex: 1 }]} placeholder="Du (JJ/MM/AAAA)" placeholderTextColor={colors.textTertiary} value={filtres.dateDebut} onChangeText={v => setFiltres(f => ({ ...f, dateDebut: v }))} />
-                  <TextInput style={[styles.filterInput, { flex: 1 }]} placeholder="Au (JJ/MM/AAAA)" placeholderTextColor={colors.textTertiary} value={filtres.dateFin} onChangeText={v => setFiltres(f => ({ ...f, dateFin: v }))} />
-                </View>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 8 }}>
+                  <Text style={styles.filterLabel}>Période</Text>
+                  <View style={styles.chipsWrap}>
+                    {PRESETS_DATE.map(p => (
+                      <GlassChip key={p.label} label={p.label} active={selectedDatePreset === p.label} onPress={() => {
+                        setSelectedDatePreset(p.label)
+                        setFiltres(f => ({ ...f, ...p.fn() }))
+                      }} />
+                    ))}
+                  </View>
 
-                <Text style={styles.filterLabel}>Budget</Text>
-                <View style={styles.filterRow}>
-                  <TextInput style={[styles.filterInput, { flex: 1 }]} placeholder="Min (FCFA)" placeholderTextColor={colors.textTertiary} keyboardType="numeric" value={filtres.prixMin} onChangeText={v => setFiltres(f => ({ ...f, prixMin: v }))} />
-                  <TextInput style={[styles.filterInput, { flex: 1 }]} placeholder="Max (FCFA)" placeholderTextColor={colors.textTertiary} keyboardType="numeric" value={filtres.prixMax} onChangeText={v => setFiltres(f => ({ ...f, prixMax: v }))} />
-                </View>
+                  <Text style={styles.filterLabel}>Budget</Text>
+                  <View style={styles.chipsWrap}>
+                    {PRESETS_BUDGET.map(p => (
+                      <GlassChip key={p.label} label={p.label} active={selectedBudgetPreset === p.label} onPress={() => {
+                        setSelectedBudgetPreset(p.label)
+                        setFiltres(f => ({ ...f, prixMin: p.prixMin, prixMax: p.prixMax }))
+                      }} />
+                    ))}
+                  </View>
 
-                <Text style={styles.filterLabel}>Lieu</Text>
-                <TextInput style={[styles.filterInput]} placeholder="Ville ou lieu" placeholderTextColor={colors.textTertiary} value={filtres.lieu} onChangeText={v => setFiltres(f => ({ ...f, lieu: v }))} />
+                  <Text style={styles.filterLabel}>Lieu</Text>
+                  <View style={styles.chipsWrap}>
+                    <GlassChip label="Tous" active={!filtres.lieu} onPress={() => setFiltres(f => ({ ...f, lieu: '' }))} />
+                    {lieuxDisponibles.map(l => (
+                      <GlassChip key={l} label={l} active={filtres.lieu === l} onPress={() => setFiltres(f => ({ ...f, lieu: f.lieu === l ? '' : l }))} />
+                    ))}
+                  </View>
 
-                <TouchableOpacity style={styles.modalValider} onPress={() => setShowFilters(false)}>
-                  <Text style={styles.modalValiderText}>Appliquer ({events.filter(e => {
-                    const matchCat = activeCat === 'Tout' || e.category === activeCat
-                    const matchSearch = !search || e.title?.toLowerCase().includes(search.toLowerCase())
-                    const matchLieu = !filtres.lieu || e.lieu?.toLowerCase().includes(filtres.lieu.toLowerCase())
-                    const dateEvent = e.date ? new Date(e.date) : null
-                    const matchDateDebut = !filtres.dateDebut || !dateEvent || dateEvent >= new Date(filtres.dateDebut.split('/').reverse().join('-'))
-                    const matchDateFin = !filtres.dateFin || !dateEvent || dateEvent <= new Date(filtres.dateFin.split('/').reverse().join('-'))
-                    const prix = e.priceMin || 0
-                    const matchPrixMin = !filtres.prixMin || prix >= parseInt(filtres.prixMin)
-                    const matchPrixMax = !filtres.prixMax || prix <= parseInt(filtres.prixMax)
-                    return matchCat && matchSearch && matchLieu && matchDateDebut && matchDateFin && matchPrixMin && matchPrixMax
-                  }).length} résultats)</Text>
-                </TouchableOpacity>
+                  <TouchableOpacity style={styles.modalValider} onPress={() => setShowFilters(false)}>
+                    <Text style={styles.modalValiderText}>Appliquer ({filtered.length} résultats)</Text>
+                  </TouchableOpacity>
+                </ScrollView>
               </View>
             </Pressable>
           </KeyboardAvoidingView>
@@ -233,8 +279,12 @@ const makeStyles = (colors) => StyleSheet.create({
   modalTitre: { fontSize: 18, fontFamily: 'Outfit_600SemiBold', color: colors.text },
   modalReset: { fontSize: 13, fontFamily: 'PlusJakartaSans_500Medium', color: colors.accent },
   filterLabel: { fontSize: 13, fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.textSecondary, marginBottom: 8, marginTop: 4 },
-  filterRow: { flexDirection: 'row', gap: 12 },
-  filterInput: { backgroundColor: colors.inputBg, borderRadius: 10, padding: 12, fontSize: 14, fontFamily: 'PlusJakartaSans_400Regular', color: colors.text, marginBottom: 12 },
+  chipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
   modalValider: { backgroundColor: colors.accent, borderRadius: 12, padding: 14, alignItems: 'center', marginTop: 8 },
   modalValiderText: { fontSize: 15, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#fff' },
 })
