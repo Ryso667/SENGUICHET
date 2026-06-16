@@ -106,6 +106,9 @@ export default function HomeScreen({ navigation }) {
           </Text>
         </View>
         <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => navigation.navigate('Calendar')} style={styles.headerIcon}>
+            <Feather name="calendar" size={20} color="#111827" />
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Profil')} style={styles.headerIcon}>
             <Feather name="user" size={20} color="#111827" />
           </TouchableOpacity>

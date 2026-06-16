@@ -27,6 +27,7 @@ import SupportScreen from '../screens/SupportScreen'
 import WebViewWaveScreen from '../screens/WebViewWaveScreen'
 import NotificationsScreen from '../screens/NotificationsScreen'
 import MesFavorisScreen from '../screens/MesFavorisScreen'
+import CalendarScreen from '../screens/CalendarScreen'
 
 import OrganizerDrawer from './OrganizerDrawer'
 import ControllerDrawer from './ControllerDrawer'
@@ -130,6 +131,7 @@ function GuestNavigator() {
       <Stack.Screen name="Support" component={SupportScreen} options={header('Support')} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={header('Notifications')} />
       <Stack.Screen name="MesFavoris" component={MesFavorisScreen} options={header('Mes favoris')} />
+      <Stack.Screen name="Calendar" component={CalendarScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   )
 }
