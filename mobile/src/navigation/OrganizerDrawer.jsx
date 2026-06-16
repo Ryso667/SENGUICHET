@@ -3,6 +3,9 @@
 // Chaque item a son propre NativeStackNavigator
 import { createDrawerNavigator } from '@react-navigation/drawer'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import { useState, useEffect, useCallback } from 'react'
+import { fetchCompteurNonLues } from '../services/notificationService'
+import { useFocusEffect } from '@react-navigation/native'
 import DrawerContent from '../components/DrawerContent'
 
 import OrganisateurDashboardScreen from '../screens/organisateur/OrganisateurDashboardScreen'
@@ -17,16 +20,6 @@ import SupportScreen from '../screens/SupportScreen'
 const Drawer = createDrawerNavigator()
 const Stack = createNativeStackNavigator()
 const screenOptions = { headerShown: false, animation: 'slide_from_right' }
-
-const DRAWER_ITEMS = [
-  { label: 'Dashboard', icon: 'layout', route: 'Dashboard' },
-  { label: 'Événements', icon: 'calendar', route: 'Evenements' },
-  { label: 'Statistiques', icon: 'bar-chart-2', route: 'Statistiques' },
-  { label: 'Demandes', icon: 'file-text', route: 'Demandes' },
-  { label: 'Notifications', icon: 'bell', route: 'Notifications' },
-  { label: 'Support', icon: 'headphones', route: 'Support' },
-  { label: 'Déconnexion', icon: 'log-out', route: 'Deconnexion', danger: true },
-]
 
 function DashboardStack() {
   return (
@@ -59,9 +52,34 @@ function SimpleStack(Component) {
 }
 
 export default function OrganizerDrawer() {
+  const [nbNonLues, setNbNonLues] = useState(0)
+
+  useFocusEffect(useCallback(() => {
+    let actif = true
+    const charger = async () => {
+      try {
+        const total = await fetchCompteurNonLues()
+        if (actif) setNbNonLues(total)
+      } catch {}
+    }
+    charger()
+    const interval = setInterval(charger, 30000)
+    return () => { actif = false; clearInterval(interval) }
+  }, []))
+
+  const items = [
+    { label: 'Dashboard', icon: 'layout', route: 'Dashboard' },
+    { label: 'Événements', icon: 'calendar', route: 'Evenements' },
+    { label: 'Statistiques', icon: 'bar-chart-2', route: 'Statistiques' },
+    { label: 'Demandes', icon: 'file-text', route: 'Demandes' },
+    { label: 'Notifications', icon: 'bell', route: 'Notifications', badge: nbNonLues },
+    { label: 'Support', icon: 'headphones', route: 'Support' },
+    { label: 'Déconnexion', icon: 'log-out', route: 'Deconnexion', danger: true },
+  ]
+
   return (
     <Drawer.Navigator
-      drawerContent={(props) => <DrawerContent items={DRAWER_ITEMS} {...props} />}
+      drawerContent={(props) => <DrawerContent items={items} {...props} />}
       screenOptions={{
         headerShown: false,
         drawerType: 'front',
