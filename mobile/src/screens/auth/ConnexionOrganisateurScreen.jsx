@@ -1,14 +1,15 @@
 // Écran de connexion organisateur (email + mot de passe)
 // Vérification via le backend — partagé avec le frontend-web
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, ActivityIndicator,
-  KeyboardAvoidingView, Platform, ScrollView, StyleSheet,
+  KeyboardAvoidingView, Platform, ScrollView, Animated, StyleSheet,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { connecterOrganisateur } from '../../services/authService'
 import { useAuth } from '../../context/AuthContext'
-import { hapticMedium } from '../../utils/haptics'
+import { useToast } from '../../context/ToastContext'
+import { hapticMedium, hapticError } from '../../utils/haptics'
 import GlassButton from '../../components/GlassButton'
 import { colors, spacing } from '../../constants/theme'
 import GlassContainer from '../../components/GlassContainer'
@@ -17,7 +18,21 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
   const [email, setEmail] = useState('')
   const [mdp, setMdp] = useState('')
   const [chargement, setChargement] = useState(false)
+  const [erreurValidation, setErreurValidation] = useState('')
+  const shakeAnim = useRef(new Animated.Value(0)).current
   const { connecterOrganisateur: connecter, orgaEmailSuggestion } = useAuth()
+  const toast = useToast()
+
+  // Animation de secousse pour indiquer un champ vide
+  const secouer = () => {
+    Animated.sequence([
+      Animated.timing(shakeAnim, { toValue: 10, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -10, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 6, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -6, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0, duration: 60, useNativeDriver: true }),
+    ]).start()
+  }
 
   // Pré-remplit l'email organisateur suggéré depuis la dernière connexion
   useEffect(() => {
@@ -26,14 +41,23 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
   const insets = useSafeAreaInsets()
 
   // Authentifie l'organisateur via le backend et stocke la session
-  // Déclenche un feedback haptique moyen pour confirmer l'action
+  // Si email ou mdp vide → feedback visuel immédiat
+  // Sinon → spinner + appel API
   const handleConnexion = async () => {
-    if (!email || !mdp) return
+    if (!email || !mdp) {
+      hapticError()
+      setErreurValidation('Veuillez remplir tous les champs')
+      secouer()
+      return
+    }
+    setErreurValidation('')
     hapticMedium()
     setChargement(true)
     try {
       const reponse = await connecterOrganisateur(email, mdp)
       await connecter(reponse.token, reponse.user)
+      toast.success('Connexion réussie !')
+      navigation.goBack()
     } catch (err) {
       alert(err.message)
     } finally {
@@ -84,25 +108,30 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
           </GlassContainer>
 
           <View style={{ height: 24 }} />
-          {chargement ? (
-            <View style={styles.glassLoadingBtn}>
-              <ActivityIndicator size="small" color="#fff" />
-            </View>
-          ) : (
-            <GlassButton
-              title="Se connecter"
-              onPress={!email || !mdp ? undefined : handleConnexion}
-              style={!email || !mdp ? { opacity: 0.5 } : undefined}
-            />
-          )}
+          {erreurValidation ? (
+            <Text style={styles.erreurText}>{erreurValidation}</Text>
+          ) : null}
+          <Animated.View style={{ transform: [{ translateX: shakeAnim }] }}>
+            {chargement ? (
+              <View style={styles.glassLoadingBtn}>
+                <ActivityIndicator size="small" color="#fff" />
+              </View>
+            ) : (
+              <GlassButton
+                title="Se connecter"
+                variant="primary"
+                onPress={handleConnexion}
+              />
+            )}
+          </Animated.View>
 
           {/* Lien vers l'inscription organisateur */}
           <View style={styles.inscriptionRow}>
             <Text style={styles.inscriptionText}>Pas encore de compte ?{' '}</Text>
             <GlassButton
               title="S'inscrire"
+              variant="ghost"
               onPress={() => navigation.navigate('InscriptionOrganisateur')}
-              style={styles.inscriptionLink}
             />
           </View>
         </ScrollView>
@@ -138,6 +167,13 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 6,
   },
+  erreurText: {
+    fontFamily: 'Outfit_400Regular',
+    fontSize: 13,
+    color: colors.red,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
   inscriptionRow: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -149,11 +185,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
   },
-  inscriptionLink: {
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    minWidth: undefined,
-  },
+
   inputWrap: { marginBottom: 16, borderRadius: 14, height: 56, justifyContent: 'center', paddingHorizontal: 16 },
   input: {
     fontFamily: 'Outfit_400Regular',

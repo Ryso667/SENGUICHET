@@ -2,7 +2,7 @@
 // Envoie les données au backend — mêmes données partagées avec le frontend-web
 import { useState, useMemo } from 'react'
 import {
-  View, Text, TextInput, ActivityIndicator,
+  View, Text, TextInput, ActivityIndicator, ScrollView,
   KeyboardAvoidingView, Platform, StyleSheet, Alert,
 } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'

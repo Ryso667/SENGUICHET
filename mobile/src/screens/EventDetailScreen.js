@@ -188,7 +188,7 @@ export default function EventDetailScreen({ route, navigation }) {
   // État erreur
   if (error) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.loadingContainer}>
           <Feather name="alert-circle" size={32} color={colors.textSecondary} />
           <Text style={styles.loadingText}>{error}</Text>
@@ -201,7 +201,7 @@ export default function EventDetailScreen({ route, navigation }) {
   // État chargement
   if (!event) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Chargement...</Text>
@@ -325,10 +325,10 @@ export default function EventDetailScreen({ route, navigation }) {
         </Animated.ScrollView>
         {/* Barre d'achat fixe en bas — effet glass */}
         <BlurView tint="dark" intensity={90} style={styles.bottomBar}>
-          <GlassContainer intensity={30} style={styles.bottomBarTotal}>
+          <View style={styles.bottomBarTotal}>
             <Text style={styles.bottomBarTotalLabel}>Total</Text>
             <Text style={styles.bottomBarTotalPrice}>{selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
-          </GlassContainer>
+          </View>
           <TouchableOpacity
             onPress={handleBuy}
             activeOpacity={0.9}
@@ -898,7 +898,7 @@ const styles = StyleSheet.create({
   },
   bottomBarTotal: {
     gap: 4,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
   },
   bottomBarTotalLabel: {

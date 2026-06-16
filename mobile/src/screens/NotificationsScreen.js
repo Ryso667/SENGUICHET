@@ -2,10 +2,13 @@
 // Affiche un état vide quand aucune notification n'est présente
 import { View, Text, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { colors } from '../constants/theme'
 
 export default function NotificationsScreen() {
+  const insets = useSafeAreaInsets()
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <Feather name="bell" size={48} color="#9CA3AF" />
       <Text style={styles.title}>Notifications</Text>
       <Text style={styles.subtitle}>Aucune notification pour le moment</Text>
@@ -16,7 +19,7 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.bg,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
