@@ -13,15 +13,22 @@ import FavoriButton from '../components/FavoriButton'
 import { formaterDateLisible, formaterCompteRebours } from '../utils/dateUtils'
 import { formaterPourEventCard } from '../utils/eventUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
+import { mesBillets } from '../services/billetService'
+import { useAuth } from '../context/AuthContext'
+import * as Location from 'expo-location'
 
 const CATEGORIES = ['Tout', 'Concert', 'Festival', 'Sport', 'Théâtre', 'Conférence', 'Atelier']
 
 export default function HomeScreen({ navigation }) {
   const insets = useSafeAreaInsets()
+  const { role, email: authEmail, numeroTel, acheteurEmailSuggestion } = useAuth()
   const [evenements, setEvenements] = useState([])
   const [categorieActive, setCategorieActive] = useState('Tout')
   const [chargement, setChargement] = useState(true)
   const [recherche, setRecherche] = useState('')
+  const [userLocation, setUserLocation] = useState(null)
+  const [locationPermission, setLocationPermission] = useState(false)
+  const [categoriesAchetees, setCategoriesAchetees] = useState([])
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
@@ -39,16 +46,76 @@ export default function HomeScreen({ navigation }) {
     return unsubscribe
   }, [navigation])
 
+  // Demande la permission de localisation au montage
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') return
+      setLocationPermission(true)
+      const loc = await Location.getCurrentPositionAsync({})
+      setUserLocation(loc.coords)
+    })()
+  }, [])
+
+  // Récupère les catégories des billets déjà achetés pour les suggestions
+  useEffect(() => {
+    if (!role && !authEmail && !acheteurEmailSuggestion) return
+    (async () => {
+      try {
+        const email = authEmail || acheteurEmailSuggestion
+        const tickets = await mesBillets(numeroTel, email)
+        const categories = [...new Set(tickets.map(t => t.categorie).filter(Boolean))]
+        setCategoriesAchetees(categories)
+      } catch (e) {
+        console.warn('[Home] Erreur récupération catégories achetées:', e)
+      }
+    })()
+  }, [role, authEmail, acheteurEmailSuggestion, numeroTel])
+
   const evenementsFiltres = evenements.filter(ev => {
     const matchCategorie = categorieActive === 'Tout' || ev.category === categorieActive
     const matchRecherche = !recherche || ev.title?.toLowerCase().includes(recherche.toLowerCase())
     return matchCategorie && matchRecherche
   })
 
+  // Calcule la distance Haversine en km entre deux points GPS
+  function calculerDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371
+    const dLat = (lat2 - lat1) * Math.PI / 180
+    const dLon = (lon2 - lon1) * Math.PI / 180
+    const a = Math.sin(dLat / 2) ** 2
+      + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  }
+
+  // Section "Incontournables" : top 3 par popularite (fallback premiers 3)
+  const incontournables = evenements
+    .filter(ev => ev.popularite !== undefined)
+    .sort((a, b) => (b.popularite || 0) - (a.popularite || 0))
+    .slice(0, 3)
+  const fallbackIncontournables = evenements.slice(0, 3)
+
+  // Section "Près de chez toi" : événements dans un rayon de 50 km
+  const proximite = locationPermission && userLocation
+    ? evenements
+        .filter(ev => ev.latitude && ev.longitude)
+        .map(ev => ({
+          ...ev,
+          distance: calculerDistance(userLocation.latitude, userLocation.longitude, ev.latitude, ev.longitude),
+        }))
+        .filter(ev => ev.distance <= 50)
+        .sort((a, b) => a.distance - b.distance)
+    : []
+
+  // Section "Ça pourrait te plaire" : événements dont la catégorie correspond aux achats précédents
+  const suggestions = categoriesAchetees.length > 0
+    ? evenements.filter(ev => categoriesAchetees.includes(ev.category))
+    : []
+
   const une = evenementsFiltres.slice(0, 5)
   const tous = evenementsFiltres.slice(5)
 
-  const renderEventCard = (item) => {
+  const renderEventCard = (item, distance = null) => {
     const compteRebours = formaterCompteRebours(item.date)
     return (
     <TouchableOpacity
@@ -61,6 +128,12 @@ export default function HomeScreen({ navigation }) {
         <View style={[styles.eventCardImgBg, { backgroundColor: item.categoryColor || '#D1FAE5' }]}>
           <Text style={styles.eventCardEmoji}>{item.emoji || '\uD83C\uDFAB'}</Text>
         </View>
+        {distance !== null && (
+          <View style={styles.eventCardDistance}>
+            <Feather name="map-pin" size={10} color="#065F46" />
+            <Text style={styles.eventCardDistanceText}>{Math.round(distance)} km</Text>
+          </View>
+        )}
         {compteRebours && (
           <View style={styles.eventCardCountdown}>
             <Feather name="clock" size={10} color="#92400E" />
@@ -181,6 +254,42 @@ export default function HomeScreen({ navigation }) {
           </>
         )}
 
+        {/* Section 🔥 Incontournables : top 3 événements les plus populaires */}
+        {!chargement && (incontournables.length >= 2 || fallbackIncontournables.length >= 2) && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>🔥 Incontournables</Text>
+            </View>
+            <View style={styles.eventsList}>
+              {(incontournables.length >= 2 ? incontournables : fallbackIncontournables).map(item => renderEventCard(item))}
+            </View>
+          </>
+        )}
+
+        {/* Section 💡 Ça pourrait te plaire : basé sur les catégories des achats précédents */}
+        {!chargement && suggestions.length >= 2 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>💡 Ça pourrait te plaire</Text>
+            </View>
+            <View style={styles.eventsList}>
+              {suggestions.map(item => renderEventCard(item))}
+            </View>
+          </>
+        )}
+
+        {/* Section 📍 Près de chez toi : événements dans un rayon de 50 km */}
+        {!chargement && proximite.length >= 2 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>📍 Près de chez toi</Text>
+            </View>
+            <View style={styles.eventsList}>
+              {proximite.map(item => renderEventCard(item, item.distance))}
+            </View>
+          </>
+        )}
+
         {/* Section Tous les événements */}
         {!chargement && tous.length > 0 && (
           <>
@@ -282,6 +391,24 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: 'PlusJakartaSans_700Bold',
     color: '#92400E',
+  },
+  eventCardDistance: {
+    position: 'absolute',
+    top: 42,
+    left: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#D1FAE5',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    gap: 4,
+    zIndex: 10,
+  },
+  eventCardDistanceText: {
+    fontSize: 10,
+    fontFamily: 'PlusJakartaSans_700Bold',
+    color: '#065F46',
   },
   eventCardBody: { padding: 14 },
   eventCardTitle: { fontSize: 16, fontFamily: 'Outfit_700Bold', color: '#111827', marginBottom: 4 },

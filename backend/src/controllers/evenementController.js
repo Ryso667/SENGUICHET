@@ -348,16 +348,18 @@ const adminDetail = async (req, res) => {
 
 // Liste les événements publics avec statut='actif' et date_fin >= NOW
 // Accessible sans authentification — uniquement les événements validés par l'admin
+// Calcule aussi popularite = nombre de billets ACTIF vendus
 const listerPublic = async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT e.id, e.titre, e.description, e.lieu, e.ville, e.categorie,
         e.date_debut, e.date_fin, e.capacite_totale, e.affiche_url,
         (SELECT MIN(ct.prix) FROM categorie_ticket ct WHERE ct.evenement_id = e.id) AS prix_min,
-        (SELECT MAX(ct.prix) FROM categorie_ticket ct WHERE ct.evenement_id = e.id) AS prix_max
+        (SELECT MAX(ct.prix) FROM categorie_ticket ct WHERE ct.evenement_id = e.id) AS prix_max,
+        (SELECT COUNT(*) FROM billet b JOIN categorie_ticket ct ON b.categorie_ticket_id = ct.id WHERE ct.evenement_id = e.id AND b.statut = 'ACTIF') AS popularite
       FROM evenement e
       WHERE e.statut = 'actif' AND (e.date_fin IS NULL OR e.date_fin >= NOW())
-      ORDER BY e.date_debut ASC`
+      ORDER BY popularite DESC, e.date_debut ASC`
     );
 
     res.json(rows.map(r => ({
@@ -373,6 +375,7 @@ const listerPublic = async (req, res) => {
       affiche_url: r.affiche_url,
       prix_min: r.prix_min || 0,
       prix_max: r.prix_max || 0,
+      popularite: r.popularite || 0,
     })));
   } catch (err) {
     console.error("Lister public error:", err);
