@@ -121,7 +121,6 @@ export default function EventDetailScreen({ route, navigation }) {
   const [selectedProvider, setSelectedProvider] = useState('WAVE')
   const spinAnim = useRef(new Animated.Value(0)).current
   const scaleAnim = useRef(new Animated.Value(0)).current
-  const scrollY = useRef(new Animated.Value(0)).current
   const heroFade = useRef(new Animated.Value(0)).current
   const dateParts = event?.date ? formaterDateLisible(event.date).split(' ') : null
   const dayNumber = dateParts?.[0]
@@ -288,62 +287,65 @@ export default function EventDetailScreen({ route, navigation }) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Bouton retour flottant — visible sur l'image */}
+      {/* Bouton retour flottant — gauche */}
       <TouchableOpacity style={[styles.floatingBack, { top: insets.top + 8 }]} onPress={() => navigation.goBack()}>
         <Feather name="arrow-left" size={20} color={colors.text} />
       </TouchableOpacity>
-      <FavoriButton
-        eventId={event?.id}
-        eventData={{
-          title: event?.title,
-          date: event?.date,
-          location: event?.lieu,
-          category: event?.category,
-          affiche_url: event?.affiche_url,
-        }}
-        size={24}
-        style={[styles.floatingFavori, { top: insets.top + 8 }]}
-      />
-      <TouchableOpacity style={[styles.floatingShare, { top: insets.top + 8 }]} onPress={partagerEvenement}>
-        <Feather name="share-2" size={20} color={colors.text} />
-      </TouchableOpacity>
-      <TouchableOpacity style={[styles.floatingCalendar, { top: insets.top + 8 }]} onPress={ajouterAuCalendrier}>
-        <MaterialCommunityIcons name="calendar-plus" size={20} color={colors.text} />
-      </TouchableOpacity>
+
+      {/* Groupe d'actions flottant — cœur, partage, calendrier */}
+      <View style={[styles.actionPill, { top: insets.top + 8 }]}>
+        <FavoriButton
+          eventId={event?.id}
+          eventData={{
+            title: event?.title,
+            date: event?.date,
+            location: event?.lieu,
+            category: event?.category,
+            affiche_url: event?.affiche_url,
+          }}
+          size={20}
+          inactiveColor={colors.textSecondary}
+          style={styles.pillButton}
+        />
+        <View style={[styles.pillDivider, { backgroundColor: colors.border }]} />
+        <TouchableOpacity style={styles.pillButton} onPress={partagerEvenement}>
+          <Feather name="share-2" size={18} color={colors.text} />
+        </TouchableOpacity>
+        <View style={[styles.pillDivider, { backgroundColor: colors.border }]} />
+        <TouchableOpacity style={styles.pillButton} onPress={ajouterAuCalendrier}>
+          <MaterialCommunityIcons name="calendar-plus" size={18} color={colors.text} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Hero banner — fixe en haut (ne défile pas) */}
+      <View style={[styles.heroBanner, { marginTop: insets.top + 12 }]}>
+        <ImageBackground
+          source={event?.affiche_url ? { uri: event.affiche_url } : getDefaultImage(event?.category)}
+          style={styles.heroBg}
+          resizeMode="cover"
+        >
+          <LinearGradient
+            colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.65)']}
+            style={styles.heroGradient}
+          />
+          <Animated.View style={[styles.heroContent, {
+            paddingTop: insets.top + 60,
+            opacity: heroFade,
+            transform: [{ translateY: heroFade.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
+          }]}>
+            <Text style={styles.heroCategory}>{event.category || 'ÉVÉNEMENT'}</Text>
+            <Text style={styles.heroTitle}>{event.title}</Text>
+            <View style={[styles.heroDivider, { backgroundColor: colors.accent }]} />
+          </Animated.View>
+        </ImageBackground>
+      </View>
 
       <Animated.ScrollView
         style={styles.flex}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
-        )}
-        scrollEventThrottle={16}
       >
-        {/* Hero banner — photo pleine largeur */}
-        <View style={[styles.heroBanner, { marginTop: insets.top + 20 }]}>
-          <ImageBackground
-            source={event?.affiche_url ? { uri: event.affiche_url } : getDefaultImage(event?.category)}
-            style={styles.heroBg}
-            resizeMode="cover"
-          >
-            <LinearGradient
-              colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.65)']}
-              style={styles.heroGradient}
-            />
-            <Animated.View style={[styles.heroContent, {
-              paddingTop: insets.top + 60,
-              opacity: heroFade,
-              transform: [{ translateY: heroFade.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
-            }]}>
-              <Text style={styles.heroCategory}>{event.category || 'ÉVÉNEMENT'}</Text>
-              <Text style={styles.heroTitle}>{event.title}</Text>
-              <View style={[styles.heroDivider, { backgroundColor: colors.accent }]} />
-            </Animated.View>
-          </ImageBackground>
-        </View>
 
         {/* Cartes info — fond blanc avec ombre portée */}
         <View style={styles.infoCards}>
@@ -628,6 +630,7 @@ const makeStyles = (colors) => StyleSheet.create({
   },
   flex: { flex: 1 },
   scrollContent: {
+    paddingTop: spacing.sm,
     paddingHorizontal: spacing.lg,
     paddingBottom: scale(120),
   },
@@ -662,33 +665,33 @@ const makeStyles = (colors) => StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
   },
-  floatingFavori: {
+  actionPill: {
     position: 'absolute',
-    right: 16,
+    right: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+    paddingHorizontal: 4,
     zIndex: 10,
-    shadowRadius: 4,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
-  floatingShare: {
-    position: 'absolute',
-    right: 82,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.bgSecondary,
+  pillButton: {
+    width: 38,
+    height: 38,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 10,
   },
-  floatingCalendar: {
-    position: 'absolute',
-    right: 130,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.bgSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
+  pillDivider: {
+    width: 1,
+    height: 22,
   },
   // Hero banner — photo pleine largeur
   heroBanner: {
