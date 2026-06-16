@@ -58,6 +58,31 @@ export function formatDateTicket(dateStr) {
   return dateStr
 }
 
+// Vérifie si une date est passée (comparaison au jour, pas à l'heure)
+// Retourne true si la date est avant aujourd'hui
+export function estDatePassee(dateStr) {
+  if (!dateStr) return false
+  let d
+  if (dateStr.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+    d = new Date(dateStr)
+  } else if (dateStr.includes('/')) {
+    const [j, m, a] = dateStr.split('/')
+    d = new Date(parseInt(a), parseInt(m) - 1, parseInt(j))
+  } else {
+    const parts = dateStr.split(' ')
+    if (parts.length >= 3) {
+      const idx = MOIS.findIndex(m => m.toLowerCase().startsWith(parts[1].toLowerCase().substring(0, 3)))
+      d = new Date(parseInt(parts[2]), idx, parseInt(parts[0]))
+    } else {
+      return false
+    }
+  }
+  if (isNaN(d.getTime())) return false
+  const maintenant = new Date()
+  const aujourdhui = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate())
+  return d < aujourdhui
+}
+
 // Calcule le compte à rebours pour un événement à venir dans les 7 jours
 // Retourne "Aujourd'hui", "Demain", "Dans Xj Yh", ou null si >7j ou passé
 export function formaterCompteRebours(dateStr) {

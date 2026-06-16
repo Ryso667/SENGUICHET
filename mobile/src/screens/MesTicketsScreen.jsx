@@ -13,7 +13,7 @@ import { mesTicketsLocaux, sauvegarderTicketAcheteur } from '../database/databas
 import { useTabBarScroll } from '../context/TabBarScrollContext'
 import { mesBillets } from '../services/billetService'
 import { GET } from '../utils/secureStorage'
-import { formaterDateLisible } from '../utils/dateUtils'
+import { formaterDateLisible, estDatePassee } from '../utils/dateUtils'
 import { hapticLight } from '../utils/haptics'
 
 // Mapping des statuts tickets vers le composant StatusBadge réutilisable
@@ -39,7 +39,12 @@ export default function MesTicketsScreen() {
   const [tickets, setTickets] = useState([])
   const [syncing, setSyncing] = useState(false)
   const [chargement, setChargement] = useState(true)
+  const [ongletActif, setOngletActif] = useState('actifs')
   const categoryForBg = tickets[0]?.categorie || null
+
+  const ticketsActifs = tickets.filter(t => !estDatePassee(t.eventDate))
+  const ticketsPasses = tickets.filter(t => estDatePassee(t.eventDate))
+  const ticketsAffiches = ongletActif === 'actifs' ? ticketsActifs : ticketsPasses
 
   // Charge les tickets depuis SQLite, puis synchronise avec l'API
   const loadTickets = useCallback(async () => {
@@ -122,7 +127,7 @@ export default function MesTicketsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.content, { paddingTop: insets.top }]}>
+          <View style={[styles.content, { paddingTop: insets.top }]}>
         {/* Header natif avec bouton retour et compteur */}
         <View style={styles.headerBar}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.7}>
@@ -131,12 +136,37 @@ export default function MesTicketsScreen() {
           <Text style={styles.headerTitle}>Mes tickets</Text>
           <View style={styles.headerRight}>
             {syncing && <ActivityIndicator size="small" color={colors.accent} />}
-            {tickets.length > 0 && (
+            {ticketsAffiches.length > 0 && (
               <View style={styles.countBadge}>
-                <Text style={styles.countText}>{tickets.length}</Text>
+                <Text style={styles.countText}>{ticketsAffiches.length}</Text>
               </View>
             )}
           </View>
+        </View>
+
+        {/* Onglets Actifs / Passés */}
+        <View style={styles.tabBar}>
+          {['actifs', 'passés'].map(tab => {
+            const isActif = ongletActif === tab
+            const count = tab === 'actifs' ? ticketsActifs.length : ticketsPasses.length
+            return (
+              <TouchableOpacity
+                key={tab}
+                style={[styles.tabBtn, isActif && styles.tabBtnActif]}
+                onPress={() => setOngletActif(tab)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.tabText, isActif && styles.tabTextActif]}>
+                  {tab === 'actifs' ? 'Actifs' : 'Passés'}
+                </Text>
+                {count > 0 && (
+                  <View style={[styles.tabCount, isActif && styles.tabCountActif]}>
+                    <Text style={[styles.tabCountText, isActif && styles.tabCountTextActif]}>{count}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )
+          })}
         </View>
 
         {chargement && tickets.length === 0 ? (
@@ -145,7 +175,7 @@ export default function MesTicketsScreen() {
           </View>
         ) : (
           <FlatList
-            data={tickets}
+            data={ticketsAffiches}
             renderItem={renderItem}
             keyExtractor={(item) => item.numero || item.uuid}
             contentContainerStyle={styles.list}
@@ -156,34 +186,40 @@ export default function MesTicketsScreen() {
               <RefreshControl
                 refreshing={syncing}
                 onRefresh={loadTickets}
-                tintColor="#1A56DB"
-                colors={["#1A56DB"]}
+                tintColor="#10B981"
+                colors={["#10B981"]}
                 progressBackgroundColor={colors.surface}
               />
             }
             onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
             scrollEventThrottle={16}
-            ListEmptyComponent={
-              !syncing ? (
-                <View style={styles.emptyContainer}>
-                  <Ionicons name="ticket-outline" size={80} color="rgba(0,0,0,0.25)" />
-                  <Text style={styles.emptyTitle}>Aucun billet pour le moment</Text>
-                  <Text style={styles.emptySubtitle}>
-                    Explore les événements et achète ton premier billet
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.emptyCta}
-                    onPress={() => {
-                      hapticLight()
-                      navigation.navigate('Home')
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.emptyCtaText}>Explorer</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : null
-            }
+              ListEmptyComponent={
+                !syncing ? (
+                  <View style={styles.emptyContainer}>
+                    <Ionicons name="ticket-outline" size={80} color="rgba(0,0,0,0.25)" />
+                    <Text style={styles.emptyTitle}>
+                      {ongletActif === 'actifs' ? 'Aucun billet actif' : 'Aucun billet passé'}
+                    </Text>
+                    <Text style={styles.emptySubtitle}>
+                      {ongletActif === 'actifs'
+                        ? 'Explore les événements et achète ton premier billet'
+                        : 'Tes billets utilisés ou expirés apparaîtront ici'}
+                    </Text>
+                    {ongletActif === 'actifs' && (
+                      <TouchableOpacity
+                        style={styles.emptyCta}
+                        onPress={() => {
+                          hapticLight()
+                          navigation.navigate('Home')
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.emptyCtaText}>Explorer</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                ) : null
+              }
           />
         )}
       </View>
@@ -233,6 +269,59 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fonts.jakarta.semiBold,
     color: colors.text,
+  },
+
+  // ONGLETS Actifs / Passés
+  tabBar: {
+    flexDirection: 'row',
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    borderRadius: 10,
+    padding: 3,
+  },
+  tabBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  tabBtnActif: {
+    backgroundColor: colors.surface,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  tabText: {
+    fontSize: 13,
+    fontFamily: fonts.jakarta.semiBold,
+    color: colors.textSecondary,
+  },
+  tabTextActif: {
+    color: colors.text,
+  },
+  tabCount: {
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    paddingHorizontal: 7,
+    paddingVertical: 1,
+    borderRadius: 9999,
+  },
+  tabCountActif: {
+    backgroundColor: colors.accent,
+  },
+  tabCountText: {
+    fontSize: 11,
+    fontFamily: fonts.jakarta.semiBold,
+    color: colors.textSecondary,
+  },
+  tabCountTextActif: {
+    color: colors.white,
   },
 
   // LISTE
