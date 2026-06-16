@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { spacing } from '../constants/theme'
 import { useTheme } from '../context/ThemeContext'
 import EventCarousel from '../components/EventCarousel'
+import AnimatedEventCard from '../components/AnimatedEventCard'
 import Skeleton from '../components/Skeleton'
 import FavoriButton from '../components/FavoriButton'
 import { formaterDateLisible, formaterCompteRebours } from '../utils/dateUtils'
@@ -256,15 +257,28 @@ export default function HomeScreen({ navigation }) {
           </>
         )}
 
-        {/* Section 🔥 Incontournables : top 3 événements les plus populaires */}
+        {/* Section 🔥 Incontournables : top 3 en horizontal avec images réelles */}
         {!chargement && (incontournables.length >= 2 || fallbackIncontournables.length >= 2) && (
           <>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>🔥 Incontournables</Text>
             </View>
-            <View style={styles.eventsList}>
-              {(incontournables.length >= 2 ? incontournables : fallbackIncontournables).map(item => renderEventCard(item))}
-            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: spacing.lg, gap: 12 }}
+            >
+              {(incontournables.length >= 2 ? incontournables : fallbackIncontournables).map(item => (
+                <View key={item.id} style={{ width: 200 }}>
+                  <AnimatedEventCard
+                    event={item}
+                    onPress={() => navigation.navigate('EventDetail', { eventId: item.id, event: item })}
+                    cardStyle={{ width: 200 }}
+                    height={260}
+                  />
+                </View>
+              ))}
+            </ScrollView>
           </>
         )}
 
