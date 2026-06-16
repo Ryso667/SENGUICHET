@@ -122,10 +122,12 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <ScrollView
-          contentContainerStyle={[styles.conteneur, { paddingTop: insets.top + spacing.lg }]}
+          contentContainerStyle={[styles.conteneur, { paddingTop: insets.top + spacing.lg, paddingBottom: 120 }]}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           <Text style={styles.titre}>Créer un compte organisateur</Text>
           <Text style={styles.sousTitre}>
@@ -226,11 +228,13 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
           <View style={{ height: 24 }} />
           {chargement ? (
             <View style={styles.glassLoadingBtn}>
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={colors.accent} />
+              <Text style={styles.glassLoadingText}>Inscription en cours...</Text>
             </View>
           ) : (
             <GlassButton
               title="S'inscrire"
+              variant="primary"
               onPress={!formulaireValide ? undefined : handleInscription}
               style={!formulaireValide ? { opacity: 0.5 } : undefined}
             />
@@ -243,8 +247,8 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
             </Text>
             <GlassButton
               title="Se connecter"
+              variant="ghost"
               onPress={() => navigation.navigate('ConnexionOrganisateur')}
-              style={styles.lienConnexionBtn}
             />
           </View>
         </ScrollView>
@@ -258,7 +262,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   conteneur: {
-    flexGrow: 0,
+    flexGrow: 1,
     paddingHorizontal: 24,
     paddingBottom: 40,
   },
@@ -331,18 +335,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
   },
-  lienConnexionBtn: {
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    minWidth: undefined,
-  },
   glassLoadingBtn: {
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
     backgroundColor: 'rgba(0,0,0,0.04)',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
+  },
+  glassLoadingText: {
+    fontFamily: 'Outfit_400Regular',
+    fontSize: 13,
+    color: colors.textSecondary,
   },
 })

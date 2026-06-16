@@ -109,7 +109,7 @@ export default function ScanHistoryScreen() {
               const p = PROFIL[cle]
               return (
                 <View key={cle} style={styles.statMini}>
-                  <View style={[styles.statMiniDot, { backgroundColor: p.dot }]} />
+                  <Feather name={p.icon} size={14} color={p.dot} />
                   <Text style={styles.statMiniNombre}>{stats[cle] || 0}</Text>
                   <Text style={styles.statMiniLabel}>{p.label}</Text>
                 </View>
@@ -171,20 +171,24 @@ export default function ScanHistoryScreen() {
             const p = PROFIL[item.resultat] || PROFIL.INCONNU
             return (
               <GlassContainer key={item.id} style={styles.carte}>
-                <View style={styles.carteGauche}>
+                <View style={[styles.carteGauche, { backgroundColor: p.dot + '18', borderColor: p.dot + '30' }]}>
                   <Feather name={p.icon} size={18} color={p.dot} />
                 </View>
                 <View style={styles.carteCentre}>
-                  <Text style={styles.carteNumero}>{item.numero || item.uuid_billet?.substring(0, 12) || '—'}</Text>
+                  <Text style={styles.carteNumero} numberOfLines={1}>{item.numero || item.uuid_billet?.substring(0, 12) || '—'}</Text>
                   <Text style={styles.carteDate}>{formaterDateHeure(item.timestamp_scan)}</Text>
                 </View>
                 <View style={styles.carteDroite}>
-                  <Text style={styles.carteStatut}>{p.label}</Text>
-                  {item.synced === 0 && (
+                  {item.synced === 0 ? (
                     <View style={styles.badge}>
-                      <Text style={styles.badgeTexte}>OFFLINE</Text>
+                      <Text style={styles.badgeTexte}>NON SYNCHRONISÉ</Text>
                     </View>
+                  ) : (
+                    <Feather name="check-circle" size={12} color={colors.green} />
                   )}
+                  <View style={[styles.carteStatutBadge, { backgroundColor: p.dot + '18' }]}>
+                    <Text style={[styles.carteStatut, { color: p.dot }]}>{p.label}</Text>
+                  </View>
                 </View>
               </GlassContainer>
             )
@@ -209,9 +213,8 @@ const styles = StyleSheet.create({
   statTicketLabel: { fontFamily: fonts.outfit.regular, fontSize: 11, color: colors.textSecondary, marginTop: 2 },
   statDivider: { width: 1, height: 60, backgroundColor: colors.border, marginRight: 12 },
   statGrille: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  statMini: { flexDirection: 'row', alignItems: 'center', gap: 4, width: '45%' },
-  statMiniDot: { width: 8, height: 8, borderRadius: 4 },
-  statMiniNombre: { fontFamily: fonts.outfit.bold, fontSize: 14, color: colors.text, minWidth: 20 },
+  statMini: { flexDirection: 'row', alignItems: 'center', gap: 5, width: '46%' },
+  statMiniNombre: { fontFamily: fonts.outfit.bold, fontSize: 14, color: colors.text, minWidth: 18 },
   statMiniLabel: { fontFamily: fonts.outfit.regular, fontSize: 10, color: colors.textSecondary },
   eventName: {
     fontFamily: fonts.outfit.medium, fontSize: 13, color: colors.textSecondary,
@@ -235,15 +238,26 @@ const styles = StyleSheet.create({
   },
   carte: {
     flexDirection: 'row', alignItems: 'center',
-    marginHorizontal: 16, marginBottom: 6,
-    padding: 12,
+    marginHorizontal: 16, marginBottom: 8,
+    padding: 14, gap: 14,
   },
-  carteGauche: { width: 36, alignItems: 'center' },
-  carteCentre: { flex: 1 },
-  carteDate: { fontFamily: fonts.outfit.regular, fontSize: 12, color: colors.textSecondary, marginTop: 1 },
+  carteGauche: {
+    width: 38, height: 38, borderRadius: 10,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1,
+  },
+  carteCentre: { flex: 1, gap: 3 },
   carteNumero: { fontFamily: fonts.outfit.semiBold, fontSize: 14, color: colors.text },
-  carteDroite: { alignItems: 'flex-end', gap: 4 },
-  carteStatut: { fontFamily: fonts.outfit.bold, fontSize: 12, color: colors.text },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors.accentLight, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
-  badgeTexte: { fontFamily: fonts.outfit.bold, fontSize: 9, color: colors.accent },
+  carteDate: { fontFamily: fonts.outfit.regular, fontSize: 12, color: colors.textSecondary },
+  carteDroite: { alignItems: 'flex-end', gap: 6 },
+  carteStatutBadge: {
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6,
+  },
+  carteStatut: { fontFamily: fonts.outfit.bold, fontSize: 11 },
+  badge: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#FEF3C7', paddingHorizontal: 8, paddingVertical: 3,
+    borderRadius: 6,
+  },
+  badgeTexte: { fontFamily: fonts.outfit.bold, fontSize: 9, color: '#D97706' },
 })

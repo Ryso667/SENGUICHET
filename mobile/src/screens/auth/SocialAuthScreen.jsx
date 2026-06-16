@@ -101,21 +101,21 @@ export default function SocialAuthScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      {/* Bouton retour positionné en haut dans la zone de sécurité */}
+      <TouchableOpacity style={[styles.backBtn, { top: insets.top + 8 }]} onPress={etape === 'email' ? () => navigation.goBack() : handleRetour}>
+        <Ionicons name="arrow-back" size={24} color={colors.text} />
+      </TouchableOpacity>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
-            contentContainerStyle={{ flexGrow: 0 }}
+            contentContainerStyle={{ flexGrow: 1 }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-        <View style={[styles.container, { paddingTop: insets.top + 40 }]}>
-          {/* Bouton retour natif toujours visible */}
-          <TouchableOpacity style={styles.backBtn} onPress={etape === 'email' ? () => navigation.goBack() : handleRetour}>
-            <Ionicons name="arrow-back" size={20} color={colors.text} />
-          </TouchableOpacity>
+        <View style={styles.container}>
 
           <GlassContainer style={styles.card}>
             <View style={styles.header}>
@@ -135,7 +135,7 @@ export default function SocialAuthScreen({ navigation }) {
                       style={styles.input}
                       value={email}
                       onChangeText={setEmail}
-                      placeholder="email"
+                      placeholder="exemple@email.com"
                       placeholderTextColor={colors.textTertiary}
                       keyboardType="email-address"
                       autoCapitalize="none"
@@ -234,14 +234,9 @@ const styles = StyleSheet.create({
   },
   backBtn: {
     position: 'absolute',
-    top: spacing.lg,
-    left: spacing.xl,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: glass.darkBg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: glass.border,
+    left: spacing.md,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
@@ -337,7 +332,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   keyboardToolbarBtnText: {
-    color: colors.accent,
+    color: colors.green,
     fontFamily: fonts.outfit.semiBold,
     fontSize: 15,
   },

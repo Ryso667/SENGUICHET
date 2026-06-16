@@ -15,14 +15,15 @@ import { useTabBarScroll } from '../../context/TabBarScrollContext'
 const screenWidth = Dimensions.get('window').width
 
 const chartConfig = {
-  backgroundColor: 'transparent',
-  backgroundGradientFrom: 'rgba(0,0,0,0.03)',
-  backgroundGradientTo: 'rgba(0,0,0,0.03)',
+  backgroundColor: colors.bg,
+  backgroundGradientFrom: colors.bg,
+  backgroundGradientTo: colors.bgSecondary,
   decimalPlaces: 0,
-  color: (opacity = 1) => `rgba(92, 107, 192, ${opacity})`,
+  color: (opacity = 1) => `rgba(16, 185, 129, ${opacity})`,
   labelColor: (opacity = 1) => colors.text,
   style: { borderRadius: 16 },
   propsForDots: { r: '6', strokeWidth: '2', stroke: colors.accent },
+  propsForBackgroundLines: { strokeDasharray: '', stroke: 'rgba(0,0,0,0.06)' },
 }
 
 export default function StatistiquesScreen() {
@@ -64,7 +65,7 @@ export default function StatistiquesScreen() {
     }
   }, [events])
 
-  const barColors = ['#5C6BC0', '#FFA726', '#66BB6A', '#FF4D6D', '#9575CD']
+  const barColors = [colors.accent, colors.cyan, colors.violet, colors.orange, colors.green]
 
   const barData = useMemo(() => {
     const top5 = [...events].sort((a, b) => (b.remplis || 0) - (a.remplis || 0)).slice(0, 5)
@@ -80,7 +81,7 @@ export default function StatistiquesScreen() {
   const pieData = useMemo(() => {
     const top3 = [...events].sort((a, b) => (b.remplis || 0) - (a.remplis || 0)).slice(0, 3)
 
-    const chartColors = ['#5C6BC0', '#FFA726', '#66BB6A']
+    const chartColors = [colors.accent, colors.cyan, colors.violet]
     return top3.map((e, i) => ({
       name: e.nom.length > 12 ? e.nom.substring(0, 12) + '…' : e.nom,
       population: e.remplis || 0,

@@ -36,7 +36,7 @@ export default function GlassButton({ title, icon, onPress, style, textStyle, va
   return (
     <Animated.View style={[{ transform: [{ scale }] }, style]}>
       <TouchableOpacity
-        onPress={() => { hapticLight(); onPress?.() }}
+        onPress={() => { if (onPress) { hapticLight(); onPress() } }}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={0.9}

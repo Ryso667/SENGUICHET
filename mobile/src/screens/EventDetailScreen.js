@@ -9,7 +9,8 @@ import {
   Animated, ActivityIndicator, Easing, TextInput, Share,
   useWindowDimensions,
 } from 'react-native'
-import { Feather } from '@expo/vector-icons'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
+import * as Calendar from 'expo-calendar'
 import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
 import { colors, fonts, spacing, glass, borderRadius } from '../constants/theme'
@@ -54,6 +55,49 @@ export default function EventDetailScreen({ route, navigation }) {
   const partagerEvenement = () => {
     const message = `🎫 ${event?.title || 'Événement'}${event?.date ? ` — ${formaterDateLisible(event.date)}` : ''}${event?.lieu ? ` à ${event.lieu}` : ''}\n\nDécouvre-le sur SENGUICHET !`
     Share.share({ message, title: event?.title || 'Événement SENGUICHET' })
+  }
+
+  // Ajoute l'événement au calendrier natif iOS/Android via expo-calendar
+  const ajouterAuCalendrier = async () => {
+    const { status } = await Calendar.requestCalendarPermissionsAsync()
+    if (status !== 'granted') {
+      Alert.alert('Permission refusée', 'Autorise l\'accès au calendrier dans les réglages')
+      return
+    }
+
+    const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT)
+    let calendarId = calendars.length > 0 ? calendars[0].id : null
+
+    if (!calendarId) {
+      const defaultCalendarSource =
+        Platform.OS === 'ios'
+          ? { type: 'default', isLocal: true }
+          : { isLocalAccount: true, name: 'SENGUICHET' }
+      calendarId = await Calendar.createCalendarAsync({
+        title: 'SENGUICHET',
+        color: '#5C6BC0',
+        entityType: Calendar.EntityTypes.EVENT,
+        source: defaultCalendarSource,
+        name: 'senguichet',
+        ownerAccount: 'senguichet',
+        accessLevel: Calendar.CalendarAccessLevel.OWNER,
+      }).catch(() => null)
+    }
+
+    if (!calendarId) return
+
+    const debut = new Date(event.date)
+    const fin = new Date(debut.getTime() + 2 * 60 * 60 * 1000)
+
+    await Calendar.createEventAsync(calendarId, {
+      title: event.title || 'Événement SENGUICHET',
+      startDate: debut,
+      endDate: fin,
+      location: event.lieu || '',
+      notes: event.desc || '',
+    })
+
+    Alert.alert('Succès', 'Événement ajouté à votre calendrier')
   }
 
   // Formate le numéro en groupes XX XXX XX XX, limité à 9 chiffres
@@ -240,6 +284,9 @@ export default function EventDetailScreen({ route, navigation }) {
       />
       <TouchableOpacity style={[styles.floatingShare, { top: insets.top + 8 }]} onPress={partagerEvenement}>
         <Feather name="share-2" size={20} color={colors.text} />
+      </TouchableOpacity>
+      <TouchableOpacity style={[styles.floatingCalendar, { top: insets.top + 8 }]} onPress={ajouterAuCalendrier}>
+        <MaterialCommunityIcons name="calendar-plus" size={20} color={colors.text} />
       </TouchableOpacity>
 
       <Animated.ScrollView
@@ -602,6 +649,17 @@ const styles = StyleSheet.create({
   floatingShare: {
     position: 'absolute',
     right: 52,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.bgSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  floatingCalendar: {
+    position: 'absolute',
+    right: 88,
     width: 36,
     height: 36,
     borderRadius: 18,

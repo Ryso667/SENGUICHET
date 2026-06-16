@@ -71,14 +71,14 @@ export default function GestionEvenementsScreen({ navigation }) {
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1A56DB" colors={["#1A56DB"]} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" colors={["#10B981"]} />}
           onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
           scrollEventThrottle={16}
         >
           {/* Header : titre + bouton demander — calqué sur le web */}
           <View style={s.header}>
             <Text style={s.headerTitle}>Mes événements</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('MesDemandesTab')} activeOpacity={0.8}>
+            <TouchableOpacity onPress={() => navigation.navigate('Demandes')} activeOpacity={0.8}>
               <LinearGradient colors={gradients.primary} style={s.demanderBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
                 <MaterialCommunityIcons name="clipboard-text-outline" size={16} color="#fff" />
                 <Text style={s.demanderBtnText}>Demander</Text>
@@ -131,7 +131,7 @@ export default function GestionEvenementsScreen({ navigation }) {
               <MaterialCommunityIcons name="ticket-outline" size={56} color="rgba(0,0,0,0.12)" />
               <Text style={s.emptyTitle}>Aucun événement trouvé</Text>
               <Text style={s.emptySub}>Vous n'avez pas encore d'événement. Faites une demande à l'équipe SENGUICHET.</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('MesDemandesTab')} activeOpacity={0.8}>
+              <TouchableOpacity onPress={() => navigation.navigate('Demandes')} activeOpacity={0.8}>
                 <LinearGradient colors={gradients.primary} style={s.emptyBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
                   <Text style={s.emptyBtnText}>Demander un événement</Text>
                 </LinearGradient>
@@ -280,5 +280,5 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(121,134,203,0.12)', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
-  cardBtnText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  cardBtnText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.green },
 })

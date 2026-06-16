@@ -39,8 +39,8 @@ export default function NotificationsScreen({ navigation }) {
       )
     }
     if (item.evenement_id) {
-      // Navigue via le stack Dashboard du drawer
-      navigation.navigate('Dashboard', { screen: 'DetailEvenement', params: { id: item.evenement_id } })
+      // Navigue vers le détail de l'événement dans la stack
+      navigation.navigate('DetailEvenement', { eventId: item.evenement_id })
     }
   }
 

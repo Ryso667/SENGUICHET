@@ -421,7 +421,7 @@ export default function MesDemandesScreen({ navigation }) {
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1A56DB" colors={["#1A56DB"]} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" colors={["#10B981"]} />}
           onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
           scrollEventThrottle={16}
         >
@@ -820,7 +820,7 @@ const s = StyleSheet.create({
   emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
   emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center' },
   emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, backgroundColor: 'rgba(121,134,203,0.15)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
-  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.green },
 
   list: { gap: spacing.sm },
   card: { padding: spacing.md },
@@ -836,7 +836,7 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(121,134,203,0.3)', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 6, marginLeft: spacing.sm,
   },
-  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.green },
 
   /* Modal */
   modalOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'flex-end' },
@@ -852,7 +852,7 @@ const s = StyleSheet.create({
   /* Détail */
   detailBadgeRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
   detailTypeBadge: { backgroundColor: 'rgba(121,134,203,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.green },
   detailSub: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, marginBottom: spacing.md },
   detailImageWrap: { height: 160, borderRadius: 12, overflow: 'hidden', marginBottom: spacing.md },
   detailImage: { width: '100%', height: '100%' },
@@ -867,7 +867,7 @@ const s = StyleSheet.create({
   successTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text },
   successSub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
   successBtn: { marginTop: spacing.md, backgroundColor: 'rgba(121,134,203,0.15)', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
-  successBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  successBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.green },
 
   /* Erreur */
   errorBox: { padding: spacing.sm, marginBottom: spacing.md },
