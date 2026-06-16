@@ -248,12 +248,12 @@ export default function EventDetailScreen({ route, navigation }) {
             </LinearGradient>
           </MaskedView>
 
-          <View style={[styles.heroDivider, { backgroundColor: colors.accent }]} />
+          <View style={[styles.heroDivider, { backgroundColor: 'rgba(255,255,255,0.5)' }]} />
 
           {event.date && (
-            <GlassContainer intensity={30} style={styles.heroDateCard}>
-              <View style={[styles.heroIconBadge, { backgroundColor: hexToRgba(colors.accent, 0.15) }]}>
-                <Feather name="calendar" size={22} color="#fff" />
+            <GlassContainer style={styles.heroDateCard}>
+              <View style={[styles.heroIconBadge, { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
+                <Feather name="calendar" size={22} color={colors.accent} />
               </View>
               <View style={{ flex: 1 }}>
                 <View style={styles.heroDateRow}>
@@ -262,7 +262,7 @@ export default function EventDetailScreen({ route, navigation }) {
                 </View>
                 {!!event.time && (
                   <View style={styles.heroTimeRow}>
-                    <Feather name="clock" size={11} color={colors.textSecondary} />
+                    <Feather name="clock" size={11} color="rgba(255,255,255,0.5)" />
                     <Text style={styles.heroTimeText}>{event.time}</Text>
                   </View>
                 )}
@@ -271,9 +271,9 @@ export default function EventDetailScreen({ route, navigation }) {
           )}
 
           {!!event.location && (
-            <GlassContainer intensity={30} style={styles.heroLocationCard}>
-              <View style={[styles.heroIconBadge, { backgroundColor: hexToRgba(colors.accent, 0.15) }]}>
-                <Feather name="map-pin" size={22} color="#fff" />
+            <GlassContainer style={styles.heroLocationCard}>
+              <View style={[styles.heroIconBadge, { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
+                <Feather name="map-pin" size={22} color={colors.accent} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.heroLocationMain} numberOfLines={2}>{event.location}</Text>
@@ -286,7 +286,7 @@ export default function EventDetailScreen({ route, navigation }) {
 
         {/* Description — carte large */}
         {!!event.desc && (
-          <GlassContainer intensity={30} style={styles.descCard}>
+          <GlassContainer style={styles.descCard}>
             <Text style={styles.descText}>{event.desc}</Text>
           </GlassContainer>
         )}
@@ -301,7 +301,7 @@ export default function EventDetailScreen({ route, navigation }) {
           onPress={() => setShowCategorySheet(true)}
           activeOpacity={0.7}
         >
-          <GlassContainer intensity={30} style={styles.categorySelector}>
+          <GlassContainer style={styles.categorySelector}>
             <View style={styles.categorySelectorLeft}>
               <Text style={styles.categorySelectorLabel}>{selectedTicket.name}</Text>
               <Text style={styles.categorySelectorPrice}>{selectedTicket.price.toLocaleString()} FCFA</Text>
@@ -320,7 +320,7 @@ export default function EventDetailScreen({ route, navigation }) {
         </Animated.ScrollView>
         {/* Barre d'achat fixe en bas — effet glass */}
         <BlurView tint="dark" intensity={90} style={styles.bottomBar}>
-          <GlassContainer intensity={30} style={styles.bottomBarTotal}>
+          <GlassContainer style={styles.bottomBarTotal}>
             <Text style={styles.bottomBarTotalLabel}>Total</Text>
             <Text style={styles.bottomBarTotalPrice}>{selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
           </GlassContainer>
@@ -555,9 +555,8 @@ const styles = StyleSheet.create({
     width: scale(40),
     height: scale(40),
     borderRadius: scale(20),
-    backgroundColor: glass.bg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: glass.border,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderWidth: 0,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
@@ -574,6 +573,9 @@ const styles = StyleSheet.create({
     fontFamily: fonts.jakarta.semiBold,
     letterSpacing: scale(3),
     marginBottom: spacing.sm,
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   heroTitle: {
     fontFamily: fonts.outfit.extraBold,
@@ -581,9 +583,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     letterSpacing: scale(-1.5),
     lineHeight: lineHeightScale(48),
-textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
   heroDivider: {
     width: scale(48),
@@ -591,10 +593,10 @@ textShadowColor: 'rgba(0,0,0,0.4)',
     borderRadius: scale(1),
     marginVertical: scale(20),
   },
-  // Badge icône dans les cartes hero — rond translucide teinté
+  // Badge icône dans les cartes hero — rond translucide
   heroIconBadge: {
-    width: scale(42),
-    height: scale(42),
+    width: scale(44),
+    height: scale(44),
     borderRadius: scale(14),
     alignItems: 'center',
     justifyContent: 'center',
@@ -607,6 +609,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
     paddingVertical: scale(18),
     paddingHorizontal: scale(18),
     marginBottom: spacing.sm,
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   heroDateRow: {
     flexDirection: 'row',
@@ -617,14 +620,14 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   heroDateDayNum: {
     fontSize: fontScale(42),
     fontFamily: fonts.outfit.extraBold,
-    color: colors.text,
+    color: '#fff',
     letterSpacing: scale(-2),
     lineHeight: lineHeightScale(46),
   },
   heroDateMonth: {
     fontSize: fontScale(14),
     fontFamily: fonts.outfit.semiBold,
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.7)',
     letterSpacing: scale(2),
     textTransform: 'uppercase',
   },
@@ -637,7 +640,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   heroTimeText: {
     fontSize: fontScale(12),
     fontFamily: fonts.jakarta.regular,
-    color: colors.textTertiary,
+    color: 'rgba(255,255,255,0.5)',
   },
   // Carte localisation — mise en avant
   heroLocationCard: {
@@ -647,27 +650,29 @@ textShadowColor: 'rgba(0,0,0,0.4)',
     paddingVertical: scale(14),
     paddingHorizontal: scale(16),
     marginBottom: spacing.sm,
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   heroLocationMain: {
     fontSize: fontScale(16),
     fontFamily: fonts.outfit.bold,
-    color: colors.text,
+    color: '#fff',
     letterSpacing: fontScale(0.5),
   },
   heroLocationSub: {
     fontSize: fontScale(11),
     fontFamily: fonts.jakarta.regular,
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.5)',
     marginTop: scale(2),
   },
   // Carte description — épurée, généreuse
   descCard: {
     padding: spacing.xl,
     marginBottom: spacing.xl,
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   descText: {
     fontSize: fontScale(15),
-    color: colors.text,
+    color: '#fff',
     fontFamily: fonts.jakarta.regular,
     lineHeight: lineHeightScale(26),
   },
@@ -678,14 +683,14 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   sectionTitle: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(14),
-    color: colors.text,
+    color: '#fff',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   sectionSub: {
     fontSize: fontScale(11),
     fontFamily: fonts.jakarta.regular,
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.6)',
     marginTop: scale(3),
   },
   categorySelector: {
@@ -694,6 +699,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'space-between',
     padding: spacing.lg,
     marginBottom: spacing.xl,
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   categorySelectorLeft: {
     gap: scale(6),
@@ -701,12 +707,12 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   categorySelectorLabel: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: fontScale(16),
-    color: colors.text,
+    color: '#fff',
   },
   categorySelectorPrice: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(22),
-    color: colors.text,
+    color: '#fff',
     letterSpacing: scale(-0.5),
   },
   categorySelectorRight: {
@@ -715,7 +721,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
     gap: scale(10),
   },
   priceChip: {
-    backgroundColor: hexToRgba(colors.accent, 0.12),
+    backgroundColor: 'rgba(255,255,255,0.12)',
     borderRadius: scale(20),
     paddingHorizontal: scale(12),
     paddingVertical: scale(5),
@@ -723,7 +729,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   priceChipText: {
     fontSize: fontScale(10),
     fontFamily: fonts.jakarta.semiBold,
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.7)',
   },
   // Overlay et conteneur sheet
   sheetOverlay: {
@@ -869,6 +875,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
     gap: 4,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
+    backgroundColor: 'transparent',
   },
   bottomBarTotalLabel: {
     fontSize: fontScale(10),
