@@ -20,7 +20,7 @@ const acheter = async (req, res) => {
 
     // Vérifier que l'événement existe et est actif
     const [events] = await pool.query(
-      "SELECT id, titre, lieu, date_debut FROM evenement WHERE id = ? AND statut = 'actif'",
+      "SELECT id, titre, lieu, date_debut, organisateur_id FROM evenement WHERE id = ? AND statut = 'actif'",
       [evenementId]
     );
     if (!events.length) return res.status(404).json({ message: "Événement introuvable ou inactif" });
@@ -197,6 +197,18 @@ const acheter = async (req, res) => {
         });
       } catch (e) {
         console.error("SMS error:", e.message);
+      }
+
+      // Envoyer une notification push à l'organisateur
+      try {
+        const { envoyerNotification } = require("../services/NotificationService");
+        await envoyerNotification(events[0].organisateur_id, {
+          type: 'vente',
+          message: `Nouvelle vente : ${cat.nom} pour ${events[0].titre}`,
+          evenementId: evenementId,
+        });
+      } catch (e) {
+        console.error("Push notif error:", e.message);
       }
 
       // Lier l'acheteur au téléphone pour que la recherche par email fonctionne
