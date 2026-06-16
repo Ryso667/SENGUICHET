@@ -2,7 +2,7 @@
 // Affiche directement les événements disponibles
 // Header : logo + icône profil + Contact
 // Search bar, filtres catégories, carousel à la une, liste verticale
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Image, TextInput, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -23,6 +23,7 @@ const CATEGORIES = ['Tout', 'Concert', 'Festival', 'Sport', 'Théâtre', 'Confé
 
 export default function HomeScreen({ navigation }) {
   const { colors } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { role, email: authEmail, numeroTel, acheteurEmailSuggestion } = useAuth()
   const [evenements, setEvenements] = useState([])
@@ -128,23 +129,23 @@ export default function HomeScreen({ navigation }) {
       activeOpacity={0.7}
     >
       <View style={styles.eventCardImage}>
-        <View style={[styles.eventCardImgBg, { backgroundColor: item.categoryColor || '#D1FAE5' }]}>
+        <View style={[styles.eventCardImgBg, { backgroundColor: item.categoryColor || colors.primaryLight }]}>
           <Text style={styles.eventCardEmoji}>{item.emoji || '\uD83C\uDFAB'}</Text>
         </View>
         {distance !== null && (
           <View style={styles.eventCardDistance}>
-            <Feather name="map-pin" size={10} color="#065F46" />
+            <Feather name="map-pin" size={10} color={colors.green} />
             <Text style={styles.eventCardDistanceText}>{Math.round(distance)} km</Text>
           </View>
         )}
         {compteRebours && (
           <View style={styles.eventCardCountdown}>
-            <Feather name="clock" size={10} color="#92400E" />
+            <Feather name="clock" size={10} color={colors.orange} />
             <Text style={styles.eventCardCountdownText}>{compteRebours}</Text>
           </View>
         )}
-        <View style={[styles.eventCardBadge, { backgroundColor: item.isPaid ? '#FFF7ED' : '#D1FAE5' }]}>
-          <Text style={[styles.eventCardBadgeText, { color: item.isPaid ? '#F97316' : '#10B981' }]}>
+        <View style={[styles.eventCardBadge, { backgroundColor: item.isPaid ? colors.orangeLight : colors.primaryLight }]}>
+          <Text style={[styles.eventCardBadgeText, { color: item.isPaid ? colors.orange : colors.accent }]}>
             {item.isPaid ? item.prix + ' FCFA' : 'Gratuit'}
           </Text>
         </View>
@@ -192,10 +193,10 @@ export default function HomeScreen({ navigation }) {
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity onPress={() => navigation.navigate('Calendar')} style={styles.headerIcon}>
-            <Feather name="calendar" size={20} color="#111827" />
+            <Feather name="calendar" size={20} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Profil')} style={styles.headerIcon}>
-            <Feather name="user" size={20} color="#111827" />
+            <Feather name="user" size={20} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Support')} style={styles.headerContact}>
             <Text style={styles.headerContactText}>Contact</Text>
@@ -210,11 +211,11 @@ export default function HomeScreen({ navigation }) {
       >
         {/* Search bar */}
         <View style={styles.searchBar}>
-          <Feather name="search" size={16} color="#9CA3AF" />
+          <Feather name="search" size={16} color={colors.textTertiary} />
           <TextInput
             style={styles.searchInput}
             placeholder="Rechercher un événement..."
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textTertiary}
             value={recherche}
             onChangeText={setRecherche}
           />
@@ -320,7 +321,7 @@ export default function HomeScreen({ navigation }) {
 
         {!chargement && evenementsFiltres.length === 0 && (
           <View style={styles.emptyState}>
-            <Feather name="calendar" size={48} color="#9CA3AF" />
+            <Feather name="calendar" size={48} color={colors.textTertiary} />
             <Text style={styles.emptyTitle}>Aucun événement</Text>
             <Text style={styles.emptySub}>Aucun événement trouvé pour cette recherche</Text>
           </View>
@@ -330,48 +331,48 @@ export default function HomeScreen({ navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+const makeStyles = (colors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingBottom: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.bg,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: colors.border,
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerLogo: { width: 32, height: 32, borderRadius: 8 },
   headerTitle: { fontSize: 18, fontFamily: 'Outfit_800ExtraBold' },
-  headerSen: { color: '#111827' },
-  headerGuichet: { color: '#10B981' },
+  headerSen: { color: colors.text },
+  headerGuichet: { color: colors.accent },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
-  headerContact: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: '#D1FAE5' },
-  headerContactText: { fontSize: 12, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#10B981' },
+  headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.inputBg, alignItems: 'center', justifyContent: 'center' },
+  headerContact: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: colors.primaryLight },
+  headerContactText: { fontSize: 12, fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.accent },
   scroll: { flex: 1 },
   searchBar: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#F3F4F6', borderRadius: 24,
+    backgroundColor: colors.inputBg, borderRadius: 24,
     marginHorizontal: 16, marginTop: 12, marginBottom: 8,
     paddingHorizontal: 16, paddingVertical: 10,
   },
-  searchInput: { flex: 1, fontSize: 14, fontFamily: 'PlusJakartaSans_400Regular', color: '#111827', padding: 0 },
+  searchInput: { flex: 1, fontSize: 14, fontFamily: 'PlusJakartaSans_400Regular', color: colors.text, padding: 0 },
   catRow: { paddingHorizontal: 16, marginBottom: 12 },
   catChip: {
     paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
-    backgroundColor: '#F3F4F6', marginRight: 8,
+    backgroundColor: colors.inputBg, marginRight: 8,
   },
-  catChipActive: { backgroundColor: '#10B981' },
-  catChipText: { fontSize: 13, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#374151' },
-  catChipTextActive: { color: '#FFFFFF' },
+  catChipActive: { backgroundColor: colors.accent },
+  catChipText: { fontSize: 13, fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.textSecondary },
+  catChipTextActive: { color: colors.white },
   sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: spacing.lg, marginTop: 20, marginBottom: 12,
   },
-  sectionTitle: { fontSize: 18, fontFamily: 'Outfit_700Bold', color: '#111827' },
+  sectionTitle: { fontSize: 18, fontFamily: 'Outfit_700Bold', color: colors.text },
   eventsList: { paddingHorizontal: 16, gap: 12 },
   eventCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 14,
+    backgroundColor: colors.surface, borderRadius: 14,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08, shadowRadius: 8, elevation: 3,
     overflow: 'hidden', marginBottom: 4,
@@ -396,7 +397,7 @@ const styles = StyleSheet.create({
     left: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF3C7',
+    backgroundColor: colors.orangeLight,
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -406,7 +407,7 @@ const styles = StyleSheet.create({
   eventCardCountdownText: {
     fontSize: 10,
     fontFamily: 'PlusJakartaSans_700Bold',
-    color: '#92400E',
+    color: colors.orange,
   },
   eventCardDistance: {
     position: 'absolute',
@@ -414,7 +415,7 @@ const styles = StyleSheet.create({
     left: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#D1FAE5',
+    backgroundColor: colors.primaryLight,
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -424,12 +425,12 @@ const styles = StyleSheet.create({
   eventCardDistanceText: {
     fontSize: 10,
     fontFamily: 'PlusJakartaSans_700Bold',
-    color: '#065F46',
+    color: colors.green,
   },
   eventCardBody: { padding: 14 },
-  eventCardTitle: { fontSize: 16, fontFamily: 'Outfit_700Bold', color: '#111827', marginBottom: 4 },
-  eventCardMeta: { fontSize: 12, fontFamily: 'PlusJakartaSans_400Regular', color: '#6B7280' },
+  eventCardTitle: { fontSize: 16, fontFamily: 'Outfit_700Bold', color: colors.text, marginBottom: 4 },
+  eventCardMeta: { fontSize: 12, fontFamily: 'PlusJakartaSans_400Regular', color: colors.textSecondary },
   emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
-  emptyTitle: { fontSize: 18, fontFamily: 'Outfit_700Bold', color: '#111827', marginTop: 12 },
-  emptySub: { fontSize: 13, fontFamily: 'PlusJakartaSans_400Regular', color: '#6B7280', marginTop: 4, textAlign: 'center' },
+  emptyTitle: { fontSize: 18, fontFamily: 'Outfit_700Bold', color: colors.text, marginTop: 12 },
+  emptySub: { fontSize: 13, fontFamily: 'PlusJakartaSans_400Regular', color: colors.textSecondary, marginTop: 4, textAlign: 'center' },
 })
