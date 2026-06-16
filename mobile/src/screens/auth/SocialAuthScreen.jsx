@@ -1,17 +1,20 @@
 // Écran de connexion acheteur en 2 étapes
 // Étape 1 : saisie de l'email → envoi du code OTP
 // Étape 2 : vérification par code OTP à 6 chiffres reçu par email
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, ScrollView, InputAccessoryView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { colors, fonts, gradients, glass, spacing, borderRadius as br } from '../../constants/theme'
+import { fonts, gradients, glass, spacing, borderRadius as br } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
 import { envoyerCodeOTP } from '../../services/authService'
 import GlassContainer from '../../components/GlassContainer'
 
 export default function SocialAuthScreen({ navigation }) {
+  const { colors } = useTheme()
+  const s = useMemo(() => makeStyles(colors), [colors])
   // État du formulaire : email → OTP
   const { connecterAcheteurOTP, acheteurEmailSuggestion } = useAuth()
   const [email, setEmail] = useState('')
@@ -102,7 +105,7 @@ export default function SocialAuthScreen({ navigation }) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Bouton retour positionné en haut dans la zone de sécurité */}
-      <TouchableOpacity style={[styles.backBtn, { top: insets.top + 8 }]} onPress={etape === 'email' ? () => navigation.goBack() : handleRetour}>
+      <TouchableOpacity style={[s.backBtn, { top: insets.top + 8 }]} onPress={etape === 'email' ? () => navigation.goBack() : handleRetour}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </TouchableOpacity>
       <KeyboardAvoidingView
@@ -115,24 +118,24 @@ export default function SocialAuthScreen({ navigation }) {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-        <View style={styles.container}>
+        <View style={s.container}>
 
-          <GlassContainer style={styles.card}>
-            <View style={styles.header}>
-              <LinearGradient colors={gradients.primary} style={styles.logoCircle}>
+          <GlassContainer style={s.card}>
+            <View style={s.header}>
+              <LinearGradient colors={gradients.primary} style={s.logoCircle}>
                 <Ionicons name={getIcone()} size={28} color="#fff" />
               </LinearGradient>
-              <Text style={styles.title}>{getTitre()}</Text>
-              <Text style={styles.subtitle}>{getSousTitre()}</Text>
+              <Text style={s.title}>{getTitre()}</Text>
+              <Text style={s.subtitle}>{getSousTitre()}</Text>
             </View>
 
-            <View style={styles.form}>
+            <View style={s.form}>
               {etape === 'email' && (
                 <>
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Email</Text>
+                  <View style={s.inputGroup}>
+                    <Text style={s.label}>Email</Text>
                     <TextInput
-                      style={styles.input}
+                      style={s.input}
                       value={email}
                       onChangeText={setEmail}
                       placeholder="exemple@email.com"
@@ -147,17 +150,17 @@ export default function SocialAuthScreen({ navigation }) {
                       onSubmitEditing={handleEnvoyerCode}
                     />
                   </View>
-                  <LinearGradient colors={gradients.primary} style={styles.submitBtn}>
+                  <LinearGradient colors={gradients.primary} style={s.submitBtn}>
                     <TouchableOpacity
                       onPress={handleEnvoyerCode}
                       disabled={loading}
                       activeOpacity={0.8}
-                      style={styles.submitBtnInner}
+                      style={s.submitBtnInner}
                     >
                       {loading ? (
                         <ActivityIndicator size="small" color="#fff" />
                       ) : (
-                        <Text style={styles.submitBtnText}>Envoyer le code</Text>
+                        <Text style={s.submitBtnText}>Envoyer le code</Text>
                       )}
                     </TouchableOpacity>
                   </LinearGradient>
@@ -166,11 +169,11 @@ export default function SocialAuthScreen({ navigation }) {
 
               {etape === 'otp' && (
                 <>
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Code de confirmation</Text>
+                  <View style={s.inputGroup}>
+                    <Text style={s.label}>Code de confirmation</Text>
                     <TextInput
                       ref={otpRef}
-                      style={[styles.input, styles.otpInput]}
+                      style={[s.input, s.otpInput]}
                       value={code}
                       onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 6))}
                       placeholder="••••••"
@@ -183,22 +186,22 @@ export default function SocialAuthScreen({ navigation }) {
                       onSubmitEditing={handleVerifierCode}
                     />
                   </View>
-                  <LinearGradient colors={gradients.primary} style={styles.submitBtn}>
+                  <LinearGradient colors={gradients.primary} style={s.submitBtn}>
                     <TouchableOpacity
                       onPress={handleVerifierCode}
                       disabled={loading}
                       activeOpacity={0.8}
-                      style={styles.submitBtnInner}
+                      style={s.submitBtnInner}
                     >
                       {loading ? (
                         <ActivityIndicator size="small" color="#fff" />
                       ) : (
-                        <Text style={styles.submitBtnText}>Confirmer</Text>
+                        <Text style={s.submitBtnText}>Confirmer</Text>
                       )}
                     </TouchableOpacity>
                   </LinearGradient>
-                  <TouchableOpacity style={styles.renvoyerBtn} onPress={handleEnvoyerCode} disabled={loading || resendCooldown > 0}>
-                    <Text style={[styles.renvoyerBtnText, resendCooldown > 0 && { color: colors.textTertiary, textDecorationLine: 'none' }]}>
+                  <TouchableOpacity style={s.renvoyerBtn} onPress={handleEnvoyerCode} disabled={loading || resendCooldown > 0}>
+                    <Text style={[s.renvoyerBtnText, resendCooldown > 0 && { color: colors.textTertiary, textDecorationLine: 'none' }]}>
                       {resendCooldown > 0 ? `Renvoyer (${resendCooldown}s)` : 'Renvoyer le code'}
                     </Text>
                   </TouchableOpacity>
@@ -210,9 +213,9 @@ export default function SocialAuthScreen({ navigation }) {
           </ScrollView>
         </TouchableWithoutFeedback>
         <InputAccessoryView nativeID="otpAccessory">
-          <View style={styles.keyboardToolbar}>
-            <TouchableOpacity onPress={Keyboard.dismiss} style={styles.keyboardToolbarBtn}>
-              <Text style={styles.keyboardToolbarBtnText}>Terminé</Text>
+          <View style={s.keyboardToolbar}>
+            <TouchableOpacity onPress={Keyboard.dismiss} style={s.keyboardToolbarBtn}>
+              <Text style={s.keyboardToolbarBtnText}>Terminé</Text>
             </TouchableOpacity>
           </View>
         </InputAccessoryView>
@@ -221,7 +224,7 @@ export default function SocialAuthScreen({ navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: spacing.xl,

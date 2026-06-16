@@ -10,12 +10,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { inscrireOrganisateur } from '../../services/authService'
 import { hapticMedium } from '../../utils/haptics'
 import GlassButton from '../../components/GlassButton'
-import { colors, spacing } from '../../constants/theme'
+import { spacing } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import GlassContainer from '../../components/GlassContainer'
 
 // Calcule le niveau de force du mot de passe (0-4)
 // Retourne { score, label, couleur }
-const evaluerForceMotDePasse = (mdp) => {
+const evaluerForceMotDePasse = (colors) => (mdp) => {
   if (!mdp) return { score: 0, label: '', couleur: colors.textSecondary }
   const len = mdp.length
   if (len <= 3) return { score: 1, label: 'Faible', couleur: colors.red }
@@ -52,7 +53,8 @@ const formatterTelephone = (texte) => {
 }
 
 export default function InscriptionOrganisateurScreen({ navigation }) {
-  const [nom, setNom] = useState('')
+  const { colors } = useTheme()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const [telephone, setTelephone] = useState('+221 ')
   const [email, setEmail] = useState('')
   const [mdp, setMdp] = useState('')
@@ -60,7 +62,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
   const [chargement, setChargement] = useState(false)
   const insets = useSafeAreaInsets()
 
-  const forceMdp = useMemo(() => evaluerForceMotDePasse(mdp), [mdp])
+  const forceMdp = useMemo(() => evaluerForceMotDePasse(colors)(mdp), [mdp, colors])
   const mdpNeCorrespondPas = confirmMdp.length > 0 && mdp !== confirmMdp
 
   // Calcule si le formulaire est valide pour activer/désactiver le bouton
@@ -120,25 +122,25 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <KeyboardAvoidingView
-        style={styles.flex}
+        style={s.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <ScrollView
-          contentContainerStyle={[styles.conteneur, { paddingTop: insets.top + spacing.lg, paddingBottom: 120 }]}
+          contentContainerStyle={[s.conteneur, { paddingTop: insets.top + spacing.lg, paddingBottom: 120 }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.titre}>Créer un compte organisateur</Text>
-          <Text style={styles.sousTitre}>
+          <Text style={s.titre}>Créer un compte organisateur</Text>
+          <Text style={s.sousTitre}>
             Inscris-toi pour gérer tes événements
           </Text>
 
           {/* Champ Nom */}
-          <Text style={styles.label}>Nom</Text>
-          <GlassContainer style={styles.inputWrap}>
+          <Text style={s.label}>Nom</Text>
+          <GlassContainer style={s.inputWrap}>
             <TextInput
-              style={styles.input}
+              style={s.input}
               value={nom}
               onChangeText={setNom}
               placeholder="Ton nom"
@@ -148,10 +150,10 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
           </GlassContainer>
 
           {/* Champ Téléphone */}
-          <Text style={styles.label}>Téléphone</Text>
-          <GlassContainer style={styles.inputWrap}>
+          <Text style={s.label}>Téléphone</Text>
+          <GlassContainer style={s.inputWrap}>
             <TextInput
-              style={styles.input}
+              style={s.input}
               value={telephone}
               onChangeText={(t) => setTelephone(formatterTelephone(t))}
               keyboardType="phone-pad"
@@ -161,10 +163,10 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
           </GlassContainer>
 
           {/* Champ Email */}
-          <Text style={styles.label}>Email</Text>
-          <GlassContainer style={styles.inputWrap}>
+          <Text style={s.label}>Email</Text>
+          <GlassContainer style={s.inputWrap}>
             <TextInput
-              style={styles.input}
+              style={s.input}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -175,10 +177,10 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
           </GlassContainer>
 
           {/* Champ Mot de passe */}
-          <Text style={styles.label}>Mot de passe</Text>
-          <GlassContainer style={styles.inputWrap}>
+          <Text style={s.label}>Mot de passe</Text>
+          <GlassContainer style={s.inputWrap}>
             <TextInput
-              style={styles.input}
+              style={s.input}
               value={mdp}
               onChangeText={setMdp}
               secureTextEntry
@@ -189,29 +191,29 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
 
           {/* Indicateur de force du mot de passe */}
           {mdp.length > 0 && (
-            <View style={styles.forceConteneur}>
-              <View style={styles.barreGroupe}>
+            <View style={s.forceConteneur}>
+              <View style={s.barreGroupe}>
                 {[1, 2, 3, 4].map((n) => (
                   <View
                     key={n}
                     style={[
-                      styles.barreForce,
+                      s.barreForce,
                       { backgroundColor: n <= forceMdp.score ? forceMdp.couleur : 'rgba(0,0,0,0.08)' },
                     ]}
                   />
                 ))}
               </View>
-              <Text style={[styles.forceLabel, { color: forceMdp.couleur }]}>
+              <Text style={[s.forceLabel, { color: forceMdp.couleur }]}>
                 {forceMdp.label}
               </Text>
             </View>
           )}
 
           {/* Champ Confirmer le mot de passe */}
-          <Text style={styles.label}>Confirmer le mot de passe</Text>
-          <GlassContainer style={styles.inputWrap}>
+          <Text style={s.label}>Confirmer le mot de passe</Text>
+          <GlassContainer style={s.inputWrap}>
             <TextInput
-              style={styles.input}
+              style={s.input}
               value={confirmMdp}
               onChangeText={setConfirmMdp}
               secureTextEntry
@@ -222,14 +224,14 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
 
           {/* Message d'erreur si les mots de passe ne correspondent pas */}
           {mdpNeCorrespondPas && (
-            <Text style={styles.erreurText}>Les mots de passe ne correspondent pas</Text>
+            <Text style={s.erreurText}>Les mots de passe ne correspondent pas</Text>
           )}
 
           <View style={{ height: 24 }} />
           {chargement ? (
-            <View style={styles.glassLoadingBtn}>
+            <View style={s.glassLoadingBtn}>
               <ActivityIndicator size="small" color={colors.accent} />
-              <Text style={styles.glassLoadingText}>Inscription en cours...</Text>
+              <Text style={s.glassLoadingText}>Inscription en cours...</Text>
             </View>
           ) : (
             <GlassButton
@@ -241,8 +243,8 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
           )}
 
           {/* Lien vers la connexion */}
-          <View style={styles.lienConnexion}>
-            <Text style={styles.lienConnexionText}>
+          <View style={s.lienConnexion}>
+            <Text style={s.lienConnexionText}>
               Déjà un compte ?{' '}
             </Text>
             <GlassButton
@@ -257,7 +259,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   flex: {
     flex: 1,
   },
