@@ -13,6 +13,7 @@ export async function configurerNotifications() {
       shouldShowAlert: true,
       shouldPlaySound: true,
       shouldSetBadge: true,
+      shouldShowBanner: true,
     }),
   })
 

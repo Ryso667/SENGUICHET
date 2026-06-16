@@ -11,6 +11,7 @@ import {
 } from 'react-native'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import * as Calendar from 'expo-calendar'
+import * as Notifications from 'expo-notifications'
 import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
 import { colors, fonts, spacing, glass, borderRadius } from '../constants/theme'
@@ -207,6 +208,24 @@ export default function EventDetailScreen({ route, navigation }) {
         statut: 'actif',
       }
       await sauvegarderTicketAcheteur(ticketData)
+
+      // Planifie un rappel local J-1 avant l'événement
+      try {
+        const eventDate = new Date(event.date)
+        const rappelDate = new Date(eventDate.getTime() - 24 * 60 * 60 * 1000)
+        if (rappelDate > new Date()) {
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: 'Rappel SENGUICHET',
+              body: `🎫 ${event.title} commence demain !`,
+              data: { eventId: event.id },
+            },
+            trigger: { date: rappelDate },
+          })
+        }
+      } catch {
+        // Silencieux — le rappel n'est pas bloquant
+      }
 
       // Redirection vers WebView de paiement ou succès direct
       if (resultat.paiement?.redirectUrl) {
