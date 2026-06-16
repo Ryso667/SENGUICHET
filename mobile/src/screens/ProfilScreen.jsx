@@ -1,31 +1,29 @@
 // Hub Compte — écran central du profil et des accès utilisateur
 // S'adapte selon le rôle : invité ou acheteur connecté
 // (organisateur/controleur ont leur propre drawer)
-import { useMemo } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import React, { useMemo, useState } from 'react'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Pressable } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { spacing, borderRadius, fonts } from '../constants/theme'
 import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
 
-// Icône et libellé selon le mode actuel
-function renderThemeLabel(mode) {
-  switch (mode) {
-    case 'light': return { icon: 'white-balance-sunny', label: 'Clair' }
-    case 'dark': return { icon: 'weather-night', label: 'Sombre' }
-    default: return { icon: 'theme-light-dark', label: 'Auto' }
-  }
+const THEME_ICONS = {
+  system: <MaterialCommunityIcons name="theme-light-dark" size={20} />,
+  dark: <Feather name="moon" size={20} />,
+  light: <Feather name="sun" size={20} />,
 }
+const LABELS = { system: 'Système', dark: 'Sombre', light: 'Clair' }
 
 export default function ProfilScreen({ navigation }) {
-  const { colors, mode, toggleTheme } = useTheme()
+  const { colors, mode, setTheme } = useTheme()
   const styles = useMemo(() => makeStyles(colors), [colors])
+  const [showThemeModal, setShowThemeModal] = useState(false)
   const insets = useSafeAreaInsets()
   const { role, email, deconnecter } = useAuth()
   const estAcheteur = role === 'acheteur'
   const nomAffiche = email || 'Utilisateur'
-  const themeConfig = renderThemeLabel(mode)
 
   if (!role) {
     // Guest : boutons connexion/inscription (inchangé)
@@ -65,12 +63,14 @@ export default function ProfilScreen({ navigation }) {
             <Feather name="chevron-right" size={18} color={colors.textTertiary} />
           </TouchableOpacity>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.actionBtn} onPress={toggleTheme}>
-            <MaterialCommunityIcons name={themeConfig.icon} size={20} color={colors.accent} />
-            <Text style={styles.actionBtnText}>Thème : {themeConfig.label}</Text>
+          <Text style={styles.sectionLabel}>Thème</Text>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => setShowThemeModal(true)}>
+            {THEME_ICONS[mode] ? React.cloneElement(THEME_ICONS[mode], { color: colors.accent }) : null}
+            <Text style={styles.actionBtnText}>{LABELS[mode]}</Text>
             <Feather name="chevron-right" size={18} color={colors.textTertiary} />
           </TouchableOpacity>
         </ScrollView>
+        <ThemeModal visible={showThemeModal} onClose={() => setShowThemeModal(false)} mode={mode} setTheme={setTheme} colors={colors} />
       </View>
     )
   }
@@ -102,9 +102,10 @@ export default function ProfilScreen({ navigation }) {
             <Feather name="chevron-right" size={18} color={colors.textTertiary} />
           </TouchableOpacity>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.actionBtn} onPress={toggleTheme}>
-            <MaterialCommunityIcons name={themeConfig.icon} size={20} color={colors.accent} />
-            <Text style={styles.actionBtnText}>Thème : {themeConfig.label}</Text>
+          <Text style={styles.sectionLabel}>Thème</Text>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => setShowThemeModal(true)}>
+            {THEME_ICONS[mode] ? React.cloneElement(THEME_ICONS[mode], { color: colors.accent }) : null}
+            <Text style={styles.actionBtnText}>{LABELS[mode]}</Text>
             <Feather name="chevron-right" size={18} color={colors.textTertiary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Support')}>
@@ -117,6 +118,7 @@ export default function ProfilScreen({ navigation }) {
             <Text style={[styles.actionBtnText, { color: colors.danger }]}>Se déconnecter</Text>
           </TouchableOpacity>
         </ScrollView>
+        <ThemeModal visible={showThemeModal} onClose={() => setShowThemeModal(false)} mode={mode} setTheme={setTheme} colors={colors} />
       </View>
     )
   }
@@ -124,6 +126,42 @@ export default function ProfilScreen({ navigation }) {
   // Si role === organisateur ou controleur (ne devrait pas arriver dans cette screen)
   return null
 }
+
+function ThemeModal({ visible, onClose, mode, setTheme, colors }) {
+  const options = [
+    { key: 'system', Icon: MaterialCommunityIcons, icon: 'theme-light-dark', label: 'Système' },
+    { key: 'dark', Icon: Feather, icon: 'moon', label: 'Sombre' },
+    { key: 'light', Icon: Feather, icon: 'sun', label: 'Clair' },
+  ]
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={stylesModal.overlay} onPress={onClose}>
+        <Pressable style={[stylesModal.sheet, { backgroundColor: colors.bg }]}>
+          <Text style={[stylesModal.title, { color: colors.text }]}>Thème</Text>
+          {options.map(({ key, Icon, icon, label }) => (
+            <TouchableOpacity
+              key={key}
+              style={[stylesModal.option, { backgroundColor: colors.bgSecondary }]}
+              onPress={() => { setTheme(key); onClose() }}
+            >
+              <Icon name={icon} size={20} color={mode === key ? colors.accent : colors.textSecondary} />
+              <Text style={[stylesModal.optionText, { color: colors.text }]}>{label}</Text>
+              {mode === key && <Feather name="check" size={18} color={colors.accent} />}
+            </TouchableOpacity>
+          ))}
+        </Pressable>
+      </Pressable>
+    </Modal>
+  )
+}
+
+const stylesModal = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: '#FFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40, gap: 12 },
+  title: { fontSize: 18, fontFamily: fonts.outfit.bold, marginBottom: 8, textAlign: 'center' },
+  option: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 12, gap: 12 },
+  optionText: { flex: 1, fontSize: 16, fontFamily: fonts.jakarta.semiBold },
+})
 
 const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
