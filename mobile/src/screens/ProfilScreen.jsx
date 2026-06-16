@@ -1,9 +1,6 @@
 // Hub Compte — écran central du profil et des accès utilisateur
-// S'adapte selon le rôle connecté (acheteur/organisateur/controleur) ou invité
-// Acheteur non connecté : boutons connexion/inscription
-// Acheteur connecté : infos profil + lien vers espace organisateur
-// Organisateur : raccourci dashboard
-// Contrôleur : stats scan + historique
+// S'adapte selon le rôle : invité ou acheteur connecté
+// (organisateur/controleur ont leur propre drawer)
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather, Ionicons } from '@expo/vector-icons'
@@ -12,19 +9,15 @@ import { useAuth } from '../context/AuthContext'
 
 export default function ProfilScreen({ navigation }) {
   const insets = useSafeAreaInsets()
-  const { role, email, user, profil, deconnecter } = useAuth()
-  const isLoggedIn = !!role
+  const { role, email, deconnecter } = useAuth()
   const estAcheteur = role === 'acheteur'
-  const estOrganisateur = role === 'organisateur'
-  const estControleur = role === 'controleur'
+  const nomAffiche = email || 'Utilisateur'
 
-  const nomAffiche = email || profil?.email || user?.email || 'Utilisateur'
-
-  if (!isLoggedIn) {
+  if (!role) {
+    // Guest : boutons connexion/inscription (inchangé)
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* En-tête */}
           <View style={styles.headerSection}>
             <View style={styles.avatar}>
               <Feather name="user" size={32} color={colors.primary} />
@@ -32,22 +25,17 @@ export default function ProfilScreen({ navigation }) {
             <Text style={styles.titre}>Compte</Text>
             <Text style={styles.sousTitre}>Connecte-toi pour accéder à tes billets</Text>
           </View>
-
-          {/* Actions connexion */}
           <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('SocialAuth')}>
             <Feather name="log-in" size={20} color={colors.primary} />
             <Text style={styles.actionBtnText}>Se connecter</Text>
             <Feather name="chevron-right" size={18} color={colors.textTertiary} />
           </TouchableOpacity>
-
           <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('InscriptionOrganisateur')}>
             <Feather name="user-plus" size={20} color={colors.primary} />
             <Text style={styles.actionBtnText}>Créer un compte organisateur</Text>
             <Feather name="chevron-right" size={18} color={colors.textTertiary} />
           </TouchableOpacity>
-
           <View style={styles.divider} />
-
           <Text style={styles.sectionLabel}>Déjà un code contrôleur ?</Text>
           <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('ConnexionControleur')}>
             <Feather name="shield" size={20} color={colors.accent} />
@@ -59,33 +47,33 @@ export default function ProfilScreen({ navigation }) {
     )
   }
 
-  if (estControleur) {
+  if (estAcheteur) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* En-tête */}
           <View style={styles.headerSection}>
             <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
-              <Feather name="shield" size={28} color={colors.primary} />
+              <Feather name="user" size={28} color={colors.primary} />
             </View>
-            <Text style={styles.titre}>Contrôleur</Text>
-            <Text style={styles.sousTitre}>{email || 'Connecté'}</Text>
+            <Text style={styles.titre}>{nomAffiche}</Text>
+            <Text style={styles.sousTitre}>Acheteur</Text>
           </View>
-
-          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Scanner')}>
-            <Feather name="camera" size={20} color={colors.green} />
-            <Text style={styles.actionBtnText}>Scanner un QR code</Text>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('MesTickets')}>
+            <Ionicons name="ticket-outline" size={20} color={colors.primary} />
+            <Text style={styles.actionBtnText}>Mes billets</Text>
             <Feather name="chevron-right" size={18} color={colors.textTertiary} />
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('ScanHistory')}>
-            <Feather name="clock" size={20} color={colors.primary} />
-            <Text style={styles.actionBtnText}>Historique des scans</Text>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('ConnexionOrganisateur')}>
+            <Feather name="briefcase" size={20} color={colors.accent} />
+            <Text style={styles.actionBtnText}>Espace organisateur</Text>
             <Feather name="chevron-right" size={18} color={colors.textTertiary} />
           </TouchableOpacity>
-
           <View style={styles.divider} />
-
+          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Support')}>
+            <Feather name="headphones" size={20} color={colors.primary} />
+            <Text style={styles.actionBtnText}>Support</Text>
+            <Feather name="chevron-right" size={18} color={colors.textTertiary} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={deconnecter}>
             <Feather name="log-out" size={20} color={colors.danger} />
             <Text style={[styles.actionBtnText, { color: colors.danger }]}>Se déconnecter</Text>
@@ -95,71 +83,8 @@ export default function ProfilScreen({ navigation }) {
     )
   }
 
-  // Acheteur ou organisateur connecté
-  return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* En-tête */}
-        <View style={styles.headerSection}>
-          <View style={styles.avatar}>
-            <Feather name="user" size={32} color={colors.primary} />
-          </View>
-          <Text style={styles.titre}>{nomAffiche}</Text>
-          <Text style={styles.sousTitre}>
-            {estOrganisateur ? 'Organisateur' : 'Acheteur'}
-          </Text>
-        </View>
-
-        {/* Actions acheteur */}
-        {estAcheteur && (
-          <>
-            <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('MesTickets')}>
-              <Ionicons name="ticket-outline" size={20} color={colors.primary} />
-              <Text style={styles.actionBtnText}>Mes billets</Text>
-              <Feather name="chevron-right" size={18} color={colors.textTertiary} />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('ConnexionOrganisateur')}>
-              <Feather name="briefcase" size={20} color={colors.accent} />
-              <Text style={styles.actionBtnText}>Espace organisateur</Text>
-              <Feather name="chevron-right" size={18} color={colors.textTertiary} />
-            </TouchableOpacity>
-          </>
-        )}
-
-        {/* Actions organisateur */}
-        {estOrganisateur && (
-          <>
-            <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('OrganisateurDashboard')}>
-              <Feather name="layout" size={20} color={colors.primary} />
-              <Text style={styles.actionBtnText}>Dashboard organisateur</Text>
-              <Feather name="chevron-right" size={18} color={colors.textTertiary} />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('GestionEvenements')}>
-              <Feather name="calendar" size={20} color={colors.primary} />
-              <Text style={styles.actionBtnText}>Mes événements</Text>
-              <Feather name="chevron-right" size={18} color={colors.textTertiary} />
-            </TouchableOpacity>
-          </>
-        )}
-
-        {/* Commun — support & déconnexion */}
-        <View style={styles.divider} />
-
-        <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Support')}>
-          <Feather name="headphones" size={20} color={colors.primary} />
-          <Text style={styles.actionBtnText}>Support</Text>
-          <Feather name="chevron-right" size={18} color={colors.textTertiary} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionBtn} onPress={deconnecter}>
-          <Feather name="log-out" size={20} color={colors.danger} />
-          <Text style={[styles.actionBtnText, { color: colors.danger }]}>Se déconnecter</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
-  )
+  // Si role === organisateur ou controleur (ne devrait pas arriver dans cette screen)
+  return null
 }
 
 const styles = StyleSheet.create({
