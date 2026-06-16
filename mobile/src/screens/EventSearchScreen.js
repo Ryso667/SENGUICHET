@@ -223,7 +223,7 @@ export default function EventSearchScreen({ navigation }) {
                     ))}
                   </View>
 
-                  <Text style={styles.filterLabel}>Budget</Text>
+                  <Text style={styles.filterLabel}>Prix</Text>
                   <View style={styles.chipsWrap}>
                     {PRESETS_BUDGET.map(p => (
                       <GlassChip key={p.label} label={p.label} active={selectedBudgetPreset === p.label} onPress={() => {
