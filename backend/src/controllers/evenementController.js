@@ -431,5 +431,83 @@ const getEquipe = async (req, res) => {
   }
 };
 
-module.exports = { creer, upload, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic, getEquipe };
+const statsEvenement = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Vérifie que l'événement appartient bien à l'organisateur connecté
+    const [events] = await pool.query(
+      "SELECT id, titre, capacite_totale FROM evenement WHERE id = ? AND organisateur_id = ?",
+      [id, req.user.id]
+    );
+    if (!events.length) return res.status(404).json({ message: "Événement introuvable" });
+
+    // Total des billets ACTIF (payés) et revenu généré
+    const [ventes] = await pool.query(
+      `SELECT COUNT(*) AS total_vendus, COALESCE(SUM(b.prix_paye), 0) AS total_revenu
+       FROM billet b
+       JOIN categorie_ticket ct ON b.categorie_ticket_id = ct.id
+       WHERE ct.evenement_id = ? AND b.statut = 'ACTIF'`,
+      [id]
+    );
+    const billetsVendus = Number(ventes[0].total_vendus);
+    const totalRevenu = Number(ventes[0].total_revenu);
+
+    // Capacité totale de billets pour l'événement
+    const [capaciteRows] = await pool.query(
+      "SELECT COALESCE(SUM(capacite), 0) AS total FROM categorie_ticket WHERE evenement_id = ?",
+      [id]
+    );
+    const totalBillets = Number(capaciteRows[0].total);
+
+    // Taux de remplissage arrondi à 2 décimales
+    const tauxRemplissage = totalBillets > 0
+      ? Math.round((billetsVendus / totalBillets) * 10000) / 100
+      : 0;
+
+    // Ventes agrégées par jour (date de création du billet)
+    const [ventesParJour] = await pool.query(
+      `SELECT DATE(b.date_creation) AS date, COUNT(*) AS total
+       FROM billet b
+       JOIN categorie_ticket ct ON b.categorie_ticket_id = ct.id
+       WHERE ct.evenement_id = ? AND b.statut = 'ACTIF'
+       GROUP BY DATE(b.date_creation)
+       ORDER BY DATE(b.date_creation) ASC`,
+      [id]
+    );
+
+    // Répartition des ventes par catégorie de billet
+    const [repartition] = await pool.query(
+      `SELECT ct.nom AS categorie,
+              COUNT(b.id) AS vendus,
+              ct.capacite AS total,
+              COALESCE(SUM(b.prix_paye), 0) AS revenu
+       FROM categorie_ticket ct
+       LEFT JOIN billet b ON b.categorie_ticket_id = ct.id AND b.statut = 'ACTIF'
+       WHERE ct.evenement_id = ?
+       GROUP BY ct.id, ct.nom, ct.capacite
+       ORDER BY ct.nom ASC`,
+      [id]
+    );
+
+    res.json({
+      totalBillets,
+      billetsVendus,
+      tauxRemplissage,
+      ventesParJour,
+      repartitionParCategorie: repartition.map(r => ({
+        ...r,
+        vendus: Number(r.vendus),
+        total: Number(r.total),
+        revenu: Number(r.revenu),
+      })),
+      totalRevenu,
+    });
+  } catch (err) {
+    console.error("Stats evenement error:", err);
+    res.status(500).json({ message: "Erreur lors du calcul des statistiques" });
+  }
+};
+
+module.exports = { creer, upload, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic, getEquipe, statsEvenement };
 

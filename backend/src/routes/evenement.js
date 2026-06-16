@@ -12,6 +12,7 @@ router.post("/", authMiddleware(["ORGANISATEUR"]), e.upload.single("affiche"), e
 router.get("/", authMiddleware(["ORGANISATEUR"]), e.lister);
 router.get("/:id", authMiddleware(["ORGANISATEUR"]), e.detail);
 router.put("/:id", authMiddleware(["ORGANISATEUR"]), e.upload.single("affiche"), e.modifier);
+router.get("/:id/stats", authMiddleware(["ORGANISATEUR"]), e.statsEvenement);
 router.put("/:id/annuler", authMiddleware(["ORGANISATEUR"]), e.annuler);
 router.get("/:id/equipe", authMiddleware(["ORGANISATEUR"]), e.getEquipe);
 // Admin routes

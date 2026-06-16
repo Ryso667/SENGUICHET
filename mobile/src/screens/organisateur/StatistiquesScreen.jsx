@@ -1,15 +1,14 @@
-// Statistiques Premium pour l'organisateur
-// Design glass (Apple Invites)
+// Statistiques avancées avec graphiques interactifs
+// Affiche les stats globales + stats détaillées par événement (ventes/jour, répartition, taux de remplissage)
 import { useState, useEffect, useMemo } from 'react'
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BarChart, PieChart } from 'react-native-chart-kit'
 import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
-import { fetchEvenementsAPI } from '../../services/eventService'
+import { fetchEvenementsAPI, fetchEvenementStats } from '../../services/eventService'
 import Skeleton from '../../components/Skeleton'
 import GlassContainer from '../../components/GlassContainer'
-import GlassChip from '../../components/GlassChip'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
 
 const screenWidth = Dimensions.get('window').width
@@ -31,7 +30,9 @@ export default function StatistiquesScreen() {
   const { scrollY: tabScrollY } = useTabBarScroll()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
-  const [periode, setPeriode] = useState('30j')
+  const [selectedEventId, setSelectedEventId] = useState(null)
+  const [eventStats, setEventStats] = useState(null)
+  const [statsLoading, setStatsLoading] = useState(false)
 
   useEffect(() => {
     chargerDonnees()
@@ -46,6 +47,27 @@ export default function StatistiquesScreen() {
       console.error('Erreur stats:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Charge les stats détaillées d'un événement spécifique via l'API
+  const chargerStatsEvenement = async (id) => {
+    if (selectedEventId === id) {
+      // Déselectionne si déjà actif
+      setSelectedEventId(null)
+      setEventStats(null)
+      return
+    }
+    setSelectedEventId(id)
+    setStatsLoading(true)
+    setEventStats(null)
+    try {
+      const data = await fetchEvenementStats(id)
+      setEventStats(data)
+    } catch (err) {
+      console.error('Erreur chargement stats événement:', err)
+    } finally {
+      setStatsLoading(false)
     }
   }
 
@@ -65,31 +87,36 @@ export default function StatistiquesScreen() {
     }
   }, [events])
 
-  const barColors = [colors.accent, colors.cyan, colors.violet, colors.orange, colors.green]
-
-  const barData = useMemo(() => {
-    const top5 = [...events].sort((a, b) => (b.remplis || 0) - (a.remplis || 0)).slice(0, 5)
+  // Données pour le BarChart des ventes par jour (événement sélectionné)
+  const ventesParJourData = useMemo(() => {
+    if (!eventStats || !eventStats.ventesParJour || eventStats.ventesParJour.length === 0) return null
+    const jours = eventStats.ventesParJour
+    // Limiter à 7 labels max pour la lisibilité
+    const maxLabels = 7
+    const step = Math.max(1, Math.floor(jours.length / maxLabels))
     return {
-      labels: top5.map(e => e.nom.length > 8 ? e.nom.substring(0, 8) + '…' : e.nom),
+      labels: jours.map((j, i) => {
+        const d = new Date(j.date)
+        return i % step === 0 ? `${d.getDate()}/${d.getMonth() + 1}` : ''
+      }),
       datasets: [{
-        data: top5.map(e => e.remplis || 0),
-        colors: top5.map((_, i) => (opacity = 1) => barColors[i] + Math.round(opacity * 255).toString(16).padStart(2, '0'))
+        data: jours.map(j => j.total)
       }]
     }
-  }, [events])
+  }, [eventStats])
 
-  const pieData = useMemo(() => {
-    const top3 = [...events].sort((a, b) => (b.remplis || 0) - (a.remplis || 0)).slice(0, 3)
-
-    const chartColors = [colors.accent, colors.cyan, colors.violet]
-    return top3.map((e, i) => ({
-      name: e.nom.length > 12 ? e.nom.substring(0, 12) + '…' : e.nom,
-      population: e.remplis || 0,
-      color: chartColors[i],
+  // Données pour le PieChart de répartition par catégorie
+  const repartitionPieData = useMemo(() => {
+    if (!eventStats || !eventStats.repartitionParCategorie || eventStats.repartitionParCategorie.length === 0) return null
+    const pieColors = [colors.accent, colors.cyan, colors.violet, colors.orange, colors.green, colors.red]
+    return eventStats.repartitionParCategorie.map((cat, i) => ({
+      name: cat.categorie.length > 12 ? cat.categorie.substring(0, 12) + '…' : cat.categorie,
+      population: cat.vendus,
+      color: pieColors[i % pieColors.length],
       legendFontColor: colors.text,
-      legendFontSize: 12
+      legendFontSize: 12,
     }))
-  }, [events])
+  }, [eventStats])
 
   if (loading) {
     return (
@@ -110,18 +137,9 @@ export default function StatistiquesScreen() {
       >
         <View style={s.header}>
           <Text style={s.title}>Statistiques</Text>
-          <View style={s.pills}>
-            {['7j', '30j', 'Tout'].map(p => (
-              <GlassChip
-                key={p}
-                label={p}
-                active={periode === p}
-                onPress={() => setPeriode(p)}
-              />
-            ))}
-          </View>
         </View>
 
+        {/* Cartes récapitulatives globales */}
         <View style={s.statsGrid}>
           <StatCard label="Tickets" value={stats.totalVendus} icon="ticket-outline" color={colors.cyan} />
           <StatCard label="Revenus" value={`${Math.round(stats.revenusTotaux/1000)}k`} icon="cash" color={colors.green} />
@@ -129,47 +147,112 @@ export default function StatistiquesScreen() {
           <StatCard label="Événements" value={stats.nbEvents} icon="calendar-star" color={colors.orange} />
         </View>
 
-        <GlassContainer blurType="light" style={s.section} intensity={30}>
-          <Text style={s.sectionTitle}>Top 5 Événements (Ventes)</Text>
-          <View style={s.chartWrapper}>
-            {barData.datasets[0].data.length > 0 ? (
-              <BarChart
-                data={barData}
-                width={screenWidth - spacing.lg * 2 - spacing.md * 2}
-                height={220}
-                chartConfig={chartConfig}
-                verticalLabelRotation={0}
-                fromZero
-                showValuesOnTopOfBars
-                withCustomBarColorFromData
-                flatColor
-                style={s.chart}
-              />
-            ) : (
-              <Text style={s.emptyText}>Aucune donnée de vente</Text>
-            )}
+        {/* Sélecteur d'événement pour les stats détaillées */}
+        {events.length > 0 && (
+          <View style={s.eventPicker}>
+            <Text style={s.sectionTitle}>Détails par événement</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.eventChips}>
+              {events.map(e => (
+                <TouchableOpacity
+                  key={e.id}
+                  style={[s.eventChip, selectedEventId === e.id && s.eventChipActive]}
+                  onPress={() => chargerStatsEvenement(e.id)}
+                >
+                  <Text style={[s.eventChipText, selectedEventId === e.id && s.eventChipTextActive]}>
+                    {e.nom.length > 15 ? e.nom.substring(0, 15) + '…' : e.nom}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
-        </GlassContainer>
+        )}
 
-        <GlassContainer blurType="light" style={s.section} intensity={30}>
-          <Text style={s.sectionTitle}>Répartition des ventes</Text>
-          <View style={s.chartWrapper}>
-            {pieData.length > 0 ? (
-              <PieChart
-                data={pieData}
-                width={screenWidth - spacing.lg * 2 - spacing.md * 2}
-                height={200}
-                chartConfig={chartConfig}
-                accessor="population"
-                backgroundColor="transparent"
-                paddingLeft="15"
-                absolute
-              />
-            ) : (
-              <Text style={s.emptyText}>Aucun événement actif</Text>
-            )}
+        {/* Stats détaillées de l'événement sélectionné */}
+        {statsLoading && (
+          <View style={s.section}>
+            <Skeleton type="card" count={3} />
           </View>
-        </GlassContainer>
+        )}
+
+        {!statsLoading && eventStats && (
+          <>
+            {/* Cartes récapitulatives de l'événement */}
+            <View style={s.statsGrid}>
+              <StatCard label="Capacité" value={eventStats.totalBillets} icon="ticket-outline" color={colors.cyan} />
+              <StatCard label="Vendus" value={eventStats.billetsVendus} icon="check-circle-outline" color={colors.green} />
+              <StatCard label="Revenu" value={`${Math.round(eventStats.totalRevenu/1000)}k`} icon="cash" color={colors.orange} />
+            </View>
+
+            {/* Taux de remplissage — barre de progression */}
+            <GlassContainer blurType="light" style={s.section} intensity={30}>
+              <Text style={s.sectionTitle}>Taux de remplissage</Text>
+              <View style={s.remplissageContainer}>
+                <View style={s.remplissageBarBg}>
+                  <View style={[s.remplissageBarFill, { width: `${Math.min(eventStats.tauxRemplissage, 100)}%` }]} />
+                </View>
+                <Text style={s.remplissageText}>{eventStats.tauxRemplissage}%</Text>
+              </View>
+              <Text style={s.remplissageSub}>
+                {eventStats.billetsVendus} / {eventStats.totalBillets} billets vendus
+              </Text>
+            </GlassContainer>
+
+            {/* Ventes par jour — BarChart */}
+            <GlassContainer blurType="light" style={s.section} intensity={30}>
+              <Text style={s.sectionTitle}>Ventes par jour</Text>
+              <View style={s.chartWrapper}>
+                {ventesParJourData ? (
+                  <BarChart
+                    data={ventesParJourData}
+                    width={screenWidth - spacing.lg * 2 - spacing.md * 2}
+                    height={220}
+                    chartConfig={chartConfig}
+                    verticalLabelRotation={0}
+                    fromZero
+                    showValuesOnTopOfBars
+                    style={s.chart}
+                  />
+                ) : (
+                  <Text style={s.emptyText}>Aucune vente enregistrée</Text>
+                )}
+              </View>
+            </GlassContainer>
+
+            {/* Répartition par catégorie — PieChart */}
+            <GlassContainer blurType="light" style={s.section} intensity={30}>
+              <Text style={s.sectionTitle}>Répartition par catégorie</Text>
+              <View style={s.chartWrapper}>
+                {repartitionPieData ? (
+                  <PieChart
+                    data={repartitionPieData}
+                    width={screenWidth - spacing.lg * 2 - spacing.md * 2}
+                    height={200}
+                    chartConfig={chartConfig}
+                    accessor="population"
+                    backgroundColor="transparent"
+                    paddingLeft="15"
+                    absolute
+                  />
+                ) : (
+                  <Text style={s.emptyText}>Aucune catégorie de billet</Text>
+                )}
+              </View>
+            </GlassContainer>
+          </>
+        )}
+
+        {/* Message si aucun événement sélectionné */}
+        {!statsLoading && !eventStats && events.length > 0 && (
+          <GlassContainer blurType="light" style={s.section} intensity={30}>
+            <Text style={s.emptyText}>Sélectionne un événement pour voir ses statistiques détaillées</Text>
+          </GlassContainer>
+        )}
+
+        {events.length === 0 && (
+          <GlassContainer blurType="light" style={s.section} intensity={30}>
+            <Text style={s.emptyText}>Aucun événement créé pour le moment</Text>
+          </GlassContainer>
+        )}
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -212,9 +295,64 @@ const s = StyleSheet.create({
 
   section: { marginHorizontal: spacing.lg, marginTop: spacing.xl, padding: spacing.md },
   sectionTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.md },
-  chartWrapper: { 
-    alignItems: 'center',
-  },
+  chartWrapper: { alignItems: 'center' },
   chart: { marginVertical: 8, borderRadius: 16 },
   emptyText: { padding: 40, color: colors.textTertiary, fontFamily: fonts.jakarta.regular },
+
+  // Sélecteur d'événement
+  eventPicker: { paddingHorizontal: spacing.lg, marginTop: spacing.xl },
+  eventChips: { flexDirection: 'row', marginTop: spacing.sm },
+  eventChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.bgSecondary,
+    marginRight: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  eventChipActive: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  eventChipText: {
+    fontSize: 13,
+    fontFamily: fonts.jakarta.medium,
+    color: colors.textSecondary,
+  },
+  eventChipTextActive: {
+    color: colors.white,
+  },
+
+  // Barre de progression taux de remplissage
+  remplissageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  remplissageBarBg: {
+    flex: 1,
+    height: 14,
+    backgroundColor: colors.bgSecondary,
+    borderRadius: borderRadius.full,
+    overflow: 'hidden',
+  },
+  remplissageBarFill: {
+    height: '100%',
+    backgroundColor: colors.accent,
+    borderRadius: borderRadius.full,
+  },
+  remplissageText: {
+    fontSize: 18,
+    fontFamily: fonts.outfit.bold,
+    color: colors.accent,
+    minWidth: 50,
+    textAlign: 'right',
+  },
+  remplissageSub: {
+    fontSize: 12,
+    fontFamily: fonts.jakarta.regular,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+  },
 })

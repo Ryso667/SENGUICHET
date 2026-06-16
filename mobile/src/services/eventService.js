@@ -119,6 +119,13 @@ export async function annulerEvenementAPI(id) {
   return await appelAPI(`/evenements/${id}/annuler`, { method: 'PUT' })
 }
 
+// Récupère les statistiques détaillées d'un événement (ventes par jour, répartition par catégorie, taux de remplissage)
+// Appelle GET /evenements/:id/stats
+export async function fetchEvenementStats(id) {
+  const response = await appelAPI(`/evenements/${id}/stats`);
+  return response;
+}
+
 // Récupère la liste des demandes de l'organisateur
 export async function listerMesDemandes() {
   const data = await appelAPI('/demandes/')
