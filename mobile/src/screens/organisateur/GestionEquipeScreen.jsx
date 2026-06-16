@@ -1,15 +1,18 @@
 // Écran de gestion d'équipe (contrôleurs + code d'accès)
 // Design glass (Apple Invites)
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
-import { colors, spacing, borderRadius, fonts, glass } from '../../constants/theme'
+import { spacing, borderRadius, fonts, glass } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import { appelAPI } from '../../services/apiService'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 
 export default function GestionEquipeScreen({ route, navigation }) {
+  const { colors } = useTheme()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { eventId } = route.params || {}
   const [equipe, setEquipe] = useState(null)
@@ -113,7 +116,7 @@ export default function GestionEquipeScreen({ route, navigation }) {
   )
 }
 
-const s = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',

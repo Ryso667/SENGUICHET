@@ -1,13 +1,14 @@
 // Historique des scans effectués par le contrôleur
 // Statistiques par statut, liste chronologique, synchro offline
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl, Alert } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { formaterDateHeure } from '../../utils/dateUtils'
 import { telechargerTickets, getHistorique, synchroniser, getStats, reinitialiser } from '../../services/scanService'
 import { useAuth } from '../../context/AuthContext'
-import { colors, fonts } from '../../constants/theme'
+import { fonts } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import ControleurLayout from '../../components/ControleurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import GlassButton from '../../components/GlassButton'
@@ -25,6 +26,8 @@ const PROFIL = {
 const ORDRE_STATS = ['VALIDE', 'DEJA_UTILISE', 'EXPIRE', 'INCONNU', 'FRAUDE']
 
 export default function ScanHistoryScreen() {
+  const { colors } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
   const { evenementId, evenementTitre } = useAuth()
   const [scans, setScans] = useState([])
   const [stats, setStats] = useState({ ticketsLocaux: 0 })
@@ -199,7 +202,7 @@ export default function ScanHistoryScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   scroll: { paddingBottom: 100 },
   statsBanner: {
     marginHorizontal: 16,

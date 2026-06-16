@@ -2,7 +2,8 @@
 // Remplace l'ancien drawer hamburger par une stack stable sans reanimated
 // Chaque section est une route directe dans la stack (plus de drawer imbriqué)
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { colors, fonts } from '../constants/theme'
+import { fonts } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 
 import OrganisateurDashboardScreen from '../screens/organisateur/OrganisateurDashboardScreen'
 import GestionEvenementsScreen from '../screens/organisateur/GestionEvenementsScreen'
@@ -17,13 +18,13 @@ import ChangerMotDePasseScreen from '../screens/organisateur/ChangerMotDePasseSc
 
 const Stack = createNativeStackNavigator()
 
-const header = {
-  headerStyle: { backgroundColor: colors.surface },
-  headerTintColor: colors.accent,
-  headerTitleStyle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text },
-}
-
 export default function OrganizerNavigator() {
+  const { colors } = useTheme()
+  const header = {
+    headerStyle: { backgroundColor: colors.surface },
+    headerTintColor: colors.accent,
+    headerTitleStyle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text },
+  }
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Dashboard" component={OrganisateurDashboardScreen} />

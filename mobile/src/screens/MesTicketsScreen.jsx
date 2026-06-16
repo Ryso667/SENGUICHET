@@ -1,11 +1,12 @@
 // Liste des tickets de l'acheteur — charge SQLite (hors-ligne) + API (synchro fond)
 // Cartes redesignées : bande latérale colorée, StatusBadge réutilisable, RefreshControl doré
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
 import { Feather, Ionicons } from '@expo/vector-icons'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, fonts, spacing } from '../constants/theme'
+import { fonts, spacing } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 
 import StatusBadge from '../components/StatusBadge'
 import Skeleton from '../components/Skeleton'
@@ -24,15 +25,9 @@ const STATUS_MAP = {
   rembourse: 'ANNULE',
 }
 
-// Couleurs des bandes latérales selon le statut du ticket
-const STRIP_COLORS = {
-  actif: colors.accent,
-  en_attente: colors.orange,
-  utilise: colors.green,
-  rembourse: colors.danger,
-}
-
 export default function MesTicketsScreen() {
+  const { colors } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { scrollY: tabScrollY } = useTabBarScroll()
   const navigation = useNavigation()
@@ -41,6 +36,14 @@ export default function MesTicketsScreen() {
   const [chargement, setChargement] = useState(true)
   const [ongletActif, setOngletActif] = useState('actifs')
   const categoryForBg = tickets[0]?.categorie || null
+
+  // Couleurs des bandes latérales selon le statut du ticket
+  const STRIP_COLORS = {
+    actif: colors.accent,
+    en_attente: colors.orange,
+    utilise: colors.green,
+    rembourse: colors.danger,
+  }
 
   const ticketsActifs = tickets.filter(t => !estDatePassee(t.eventDate))
   const ticketsPasses = tickets.filter(t => estDatePassee(t.eventDate))
@@ -118,7 +121,7 @@ export default function MesTicketsScreen() {
           ) : null}
           {/* Coin inférieur droit : icône QR code */}
           <View style={styles.bottomRow}>
-            <Ionicons name="qr-code-outline" size={22} color="rgba(0,0,0,0.15)" />
+            <Ionicons name="qr-code-outline" size={22} color={colors.textTertiary} />
           </View>
         </View>
       </TouchableOpacity>
@@ -196,7 +199,7 @@ export default function MesTicketsScreen() {
               ListEmptyComponent={
                 !syncing ? (
                   <View style={styles.emptyContainer}>
-                    <Ionicons name="ticket-outline" size={80} color="rgba(0,0,0,0.25)" />
+                    <Ionicons name="ticket-outline" size={80} color={colors.textTertiary} />
                     <Text style={styles.emptyTitle}>
                       {ongletActif === 'actifs' ? 'Aucun billet actif' : 'Aucun billet passé'}
                     </Text>
@@ -227,7 +230,7 @@ export default function MesTicketsScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   content: { flex: 1 },
 
@@ -243,7 +246,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.04)',
+    backgroundColor: colors.bgSecondary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -260,7 +263,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   countBadge: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    backgroundColor: colors.bgSecondary,
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 9999,
@@ -277,7 +280,7 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.lg,
     marginTop: spacing.xs,
     marginBottom: spacing.sm,
-    backgroundColor: 'rgba(0,0,0,0.04)',
+    backgroundColor: colors.bgSecondary,
     borderRadius: 10,
     padding: 3,
   },
@@ -307,7 +310,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   tabCount: {
-    backgroundColor: 'rgba(0,0,0,0.06)',
+    backgroundColor: colors.bgSecondary,
     paddingHorizontal: 7,
     paddingVertical: 1,
     borderRadius: 9999,
@@ -334,7 +337,7 @@ const styles = StyleSheet.create({
   // SÉPARATEUR entre les cartes — ligne subtile
   separator: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(0,0,0,0.03)',
+    backgroundColor: colors.border,
     marginVertical: 8,
   },
 

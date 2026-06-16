@@ -1,17 +1,31 @@
 // Hub Compte — écran central du profil et des accès utilisateur
 // S'adapte selon le rôle : invité ou acheteur connecté
 // (organisateur/controleur ont leur propre drawer)
+import { useMemo } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
-import { colors, spacing, borderRadius, fonts } from '../constants/theme'
+import { spacing, borderRadius, fonts } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
 
+// Icône et libellé selon le mode actuel
+function renderThemeLabel(mode) {
+  switch (mode) {
+    case 'light': return { icon: 'white-balance-sunny', label: 'Clair' }
+    case 'dark': return { icon: 'weather-night', label: 'Sombre' }
+    default: return { icon: 'theme-light-dark', label: 'Auto' }
+  }
+}
+
 export default function ProfilScreen({ navigation }) {
+  const { colors, mode, toggleTheme } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { role, email, deconnecter } = useAuth()
   const estAcheteur = role === 'acheteur'
   const nomAffiche = email || 'Utilisateur'
+  const themeConfig = renderThemeLabel(mode)
 
   if (!role) {
     // Guest : boutons connexion/inscription (inchangé)
@@ -50,6 +64,12 @@ export default function ProfilScreen({ navigation }) {
             <Text style={styles.actionBtnText}>Mode contrôleur</Text>
             <Feather name="chevron-right" size={18} color={colors.textTertiary} />
           </TouchableOpacity>
+          <View style={styles.divider} />
+          <TouchableOpacity style={styles.actionBtn} onPress={toggleTheme}>
+            <MaterialCommunityIcons name={themeConfig.icon} size={20} color={colors.accent} />
+            <Text style={styles.actionBtnText}>Thème : {themeConfig.label}</Text>
+            <Feather name="chevron-right" size={18} color={colors.textTertiary} />
+          </TouchableOpacity>
         </ScrollView>
       </View>
     )
@@ -82,6 +102,11 @@ export default function ProfilScreen({ navigation }) {
             <Feather name="chevron-right" size={18} color={colors.textTertiary} />
           </TouchableOpacity>
           <View style={styles.divider} />
+          <TouchableOpacity style={styles.actionBtn} onPress={toggleTheme}>
+            <MaterialCommunityIcons name={themeConfig.icon} size={20} color={colors.accent} />
+            <Text style={styles.actionBtnText}>Thème : {themeConfig.label}</Text>
+            <Feather name="chevron-right" size={18} color={colors.textTertiary} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Support')}>
             <Feather name="headphones" size={20} color={colors.primary} />
             <Text style={styles.actionBtnText}>Support</Text>
@@ -100,7 +125,7 @@ export default function ProfilScreen({ navigation }) {
   return null
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   scrollContent: { paddingHorizontal: spacing.lg, paddingBottom: 40 },
   headerSection: { alignItems: 'center', paddingVertical: spacing.xl },

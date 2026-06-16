@@ -1,15 +1,18 @@
 // Écran des notifications organisateur
 // Affiche la liste des notifications (nouvelles ventes, etc.)
 // Pull-to-refresh, marquer comme lue, compteur de non-lues
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
-import { colors, spacing, borderRadius, fonts } from '../constants/theme'
+import { spacing, borderRadius, fonts } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import { fetchNotifications, marquerLue, marquerToutLu } from '../services/notificationService'
 import { useFocusEffect } from '@react-navigation/native'
 
 export default function NotificationsScreen({ navigation }) {
+  const { colors } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const [notifications, setNotifications] = useState([])
   const [refreshing, setRefreshing] = useState(false)
@@ -107,7 +110,7 @@ export default function NotificationsScreen({ navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',

@@ -1,10 +1,11 @@
 // Gestion des événements : liste complète calquée sur l'app web
 // Design glass (Apple Invites) — cartes avec hero image, overlay, stats
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, fonts, categoryGradients, gradients, spacing } from '../../constants/theme'
+import { fonts, categoryGradients, gradients, spacing } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
@@ -15,17 +16,20 @@ import Skeleton from '../../components/Skeleton'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { hexToRgba } from '../../utils/colors'
 
-const STATUT_CONFIG = {
+const getStatutConfig = (colors) => ({
   actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
   en_attente: { label: 'En attente', color: '#FFA726', bg: 'rgba(255,167,38,0.2)' },
   refuse: { label: 'Refusé', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
   suspendu: { label: 'Suspendu', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
   annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
-}
+})
 
 const TABS = ['Tous', 'Actifs', 'En attente', 'Terminés', 'Annulés']
 
 export default function GestionEvenementsScreen({ navigation }) {
+  const { colors } = useTheme()
+  const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
+  const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { scrollY: tabScrollY } = useTabBarScroll()
   const [events, setEvents] = useState([])
@@ -203,7 +207,7 @@ export default function GestionEvenementsScreen({ navigation }) {
   )
 }
 
-const s = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },
 

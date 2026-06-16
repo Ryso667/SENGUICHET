@@ -4,7 +4,8 @@ import { useState, useMemo, useEffect } from 'react'
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Image } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
-import { spacing, colors } from '../constants/theme'
+import { spacing } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
 
@@ -35,6 +36,7 @@ function genererJoursMois(annee, mois) {
 }
 
 export default function CalendarScreen({ navigation }) {
+  const { colors } = useTheme()
   const insets = useSafeAreaInsets()
   const maintenant = new Date()
   const [annee, setAnnee] = useState(maintenant.getFullYear())
@@ -42,6 +44,7 @@ export default function CalendarScreen({ navigation }) {
   const [selection, setSelection] = useState(toDateKey(maintenant))
   const [evenements, setEvenements] = useState([])
   const [chargement, setChargement] = useState(true)
+  const styles = useMemo(() => makeStyles(colors), [colors])
 
   useEffect(() => {
     (async () => {
@@ -88,7 +91,7 @@ export default function CalendarScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack}>
-          <Feather name="arrow-left" size={20} color="#111827" />
+          <Feather name="arrow-left" size={20} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Calendrier</Text>
         <View style={{ width: 36 }} />
@@ -163,7 +166,7 @@ export default function CalendarScreen({ navigation }) {
                   </Text>
                 </View>
                 <Text style={styles.eventPrix}>{item.priceLabel || ''}</Text>
-                <Feather name="chevron-right" size={16} color="#9CA3AF" />
+                <Feather name="chevron-right" size={16} color={colors.textTertiary} />
               </TouchableOpacity>
             )}
             contentContainerStyle={{ paddingBottom: 40 }}
@@ -171,7 +174,7 @@ export default function CalendarScreen({ navigation }) {
           />
         ) : (
           <View style={styles.emptyState}>
-            <Feather name="calendar" size={40} color="#9CA3AF" />
+            <Feather name="calendar" size={40} color={colors.textTertiary} />
             <Text style={styles.emptyText}>Aucun événement ce jour</Text>
           </View>
         )}
@@ -180,7 +183,7 @@ export default function CalendarScreen({ navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8 },
   headerBack: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.bgSecondary, alignItems: 'center', justifyContent: 'center' },
@@ -189,7 +192,7 @@ const styles = StyleSheet.create({
   moisArrow: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.bgSecondary, alignItems: 'center', justifyContent: 'center' },
   moisTitre: { fontSize: 16, fontFamily: 'Outfit_600SemiBold', color: colors.text },
   joursHeader: { flexDirection: 'row', paddingHorizontal: 12, marginBottom: 4 },
-  jourNom: { flex: 1, textAlign: 'center', fontSize: 12, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#6B7280' },
+  jourNom: { flex: 1, textAlign: 'center', fontSize: 12, fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.textSecondary },
   grille: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12 },
   cell: { width: `${100 / 7}%`, aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
   cellVide: { width: `${100 / 7}%` },
@@ -199,14 +202,14 @@ const styles = StyleSheet.create({
   dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.accent, marginTop: 2 },
   dotActive: { backgroundColor: '#fff' },
   eventSection: { flex: 1, paddingHorizontal: 16, marginTop: 12 },
-  eventSectionTitre: { fontSize: 14, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#6B7280', marginBottom: 8 },
+  eventSectionTitre: { fontSize: 14, fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.textSecondary, marginBottom: 8 },
   centrer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  eventCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 12, borderRadius: 12, marginBottom: 8, borderWidth: 1, borderColor: colors.border },
+  eventCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, padding: 12, borderRadius: 12, marginBottom: 8, borderWidth: 1, borderColor: colors.border },
   eventEmoji: { fontSize: 24, marginRight: 12 },
   eventInfo: { flex: 1 },
   eventTitre: { fontSize: 14, fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.text },
-  eventMeta: { fontSize: 12, fontFamily: 'PlusJakartaSans_400Regular', color: '#6B7280', marginTop: 2 },
+  eventMeta: { fontSize: 12, fontFamily: 'PlusJakartaSans_400Regular', color: colors.textSecondary, marginTop: 2 },
   eventPrix: { fontSize: 12, fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.accent, marginRight: 8 },
   emptyState: { alignItems: 'center', paddingTop: 40 },
-  emptyText: { fontSize: 14, fontFamily: 'PlusJakartaSans_500Medium', color: '#9CA3AF', marginTop: 8 },
+  emptyText: { fontSize: 14, fontFamily: 'PlusJakartaSans_500Medium', color: colors.textTertiary, marginTop: 8 },
 })

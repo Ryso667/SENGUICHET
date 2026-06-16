@@ -1,20 +1,24 @@
 // Consultation des tickets d'un événement (lecture seule)
 // Design glass (Apple Invites)
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
+import { spacing, borderRadius, fonts } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import { fetchEvenementDetailAPI } from '../../services/eventService'
 import Skeleton from '../../components/Skeleton'
 import GlassContainer from '../../components/GlassContainer'
 
-const STATUS_BADGE = {
+const getStatusBadge = (colors) => ({
   valide: { label: 'Valide', color: colors.green, bg: 'rgba(76,175,80,0.2)' },
   utilise: { label: 'Utilisé', color: '#94a3b8', bg: 'rgba(148,163,184,0.2)' },
   expire: { label: 'Expiré', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
-}
+})
 
 export default function VoirTicketsScreen({ route }) {
+  const { colors } = useTheme()
+  const STATUS_BADGE = useMemo(() => getStatusBadge(colors), [colors])
+  const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { eventId } = route.params || {}
   const [evenement, setEvenement] = useState(null)
@@ -83,7 +87,7 @@ export default function VoirTicketsScreen({ route }) {
   )
 }
 
-const s = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1 },
   content: { paddingHorizontal: spacing.lg },
   eventInfo: { marginBottom: spacing.lg, padding: spacing.md },

@@ -3,14 +3,8 @@
 // Supporte le balayage vers le haut pour fermer
 import { useEffect, useRef } from 'react'
 import { Animated, Text, StyleSheet, PanResponder, View } from 'react-native'
-import { colors, spacing, borderRadius, fonts } from '../constants/theme'
-
-// Couleur de fond selon le type de toast
-const TYPE_COLORS = {
-  success: colors.green,
-  error: colors.red,
-  info: colors.accent,
-}
+import { spacing, borderRadius, fonts } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 
 const AUTODISMISS_MS = 3000
 const HAUTEUR_INITIALE = -150
@@ -18,6 +12,14 @@ const HAUTEUR_INITIALE = -150
 // Toast avec animation de glissement depuis le haut
 // Props : message (string), type ("success"|"error"|"info"), onDismiss (function)
 export default function Toast({ message, type = 'info', onDismiss }) {
+  const { colors } = useTheme()
+
+  // Couleur de fond selon le type de toast
+  const TYPE_COLORS = {
+    success: colors.green,
+    error: colors.red,
+    info: colors.accent,
+  }
   const translateY = useRef(new Animated.Value(HAUTEUR_INITIALE)).current
   const opacity = useRef(new Animated.Value(0)).current
 

@@ -4,11 +4,12 @@
 import { useRef, useState, useEffect } from 'react'
 import { TouchableOpacity, Animated, StyleSheet } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
-import { colors } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import { estFavori, basculerFavori } from '../utils/favorisStorage'
 import { hapticSelection } from '../utils/haptics'
 
 export default function FavoriButton({ eventId, eventData = {}, size = 22, inactiveColor = 'rgba(255,255,255,0.8)', onToggle, style }) {
+  const { colors } = useTheme()
   const [estActif, setEstActif] = useState(false)
   const scaleAnim = useRef(new Animated.Value(1)).current
 

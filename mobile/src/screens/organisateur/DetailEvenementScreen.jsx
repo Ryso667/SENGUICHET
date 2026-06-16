@@ -1,12 +1,13 @@
 // Détail d'un événement (lecture seule)
 // Design glass (Apple Invites)
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert, ActivityIndicator } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import * as FileSystem from 'expo-file-system'
 import * as Sharing from 'expo-sharing'
-import { colors, spacing, fonts, borderRadius } from '../../constants/theme'
+import { spacing, fonts, borderRadius } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import { fetchEvenementDetailAPI } from '../../services/eventService'
 import { fetchBilletsEvenementAPI } from '../../services/billetService'
 import { formaterDateLisible } from '../../utils/dateUtils'
@@ -15,15 +16,18 @@ import GlassContainer from '../../components/GlassContainer'
 import GlassButton from '../../components/GlassButton'
 import { hexToRgba } from '../../utils/colors'
 
-const STATUT_CONFIG = {
+const getStatutConfig = (colors) => ({
   actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
   en_attente: { label: 'En attente', color: '#FFA726', bg: 'rgba(255,167,38,0.2)' },
   refuse: { label: 'Refusé', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
   suspendu: { label: 'Suspendu', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
   annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
-}
+})
 
 export default function DetailEvenementScreen({ route }) {
+  const { colors } = useTheme()
+  const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
+  const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { eventId } = route.params || {}
   const [evenement, setEvenement] = useState(null)
@@ -190,7 +194,7 @@ export default function DetailEvenementScreen({ route }) {
   )
 }
 
-const s = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   errorText: { fontSize: 16, fontFamily: fonts.jakarta.regular, color: colors.textSecondary },

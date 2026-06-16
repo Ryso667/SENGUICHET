@@ -1,5 +1,5 @@
 // Thème clair SENGUICHET
-export const colors = {
+export const lightColors = {
   bg: '#FFFFFF',
   bgSecondary: '#F9FAFB',
   surface: '#FFFFFF',
@@ -35,6 +35,47 @@ export const colors = {
   warning: '#F59E0B',
   success: '#10B981',
 }
+
+// Palette sombre SENGUICHET
+export const darkColors = {
+  bg: '#0F172A',
+  bgSecondary: '#1E293B',
+  surface: '#1E293B',
+  border: '#334155',
+  primary: '#34D399',
+  primaryLight: '#064E3B',
+  white: '#FFFFFF',
+  text: '#F1F5F9',
+  textSecondary: '#94A3B8',
+  textTertiary: '#64748B',
+  accent: '#34D399',
+  accentLight: '#064E3B',
+  green: '#34D399',
+  greenLight: '#064E3B',
+  red: '#F87171',
+  violet: '#A78BFA',
+  orange: '#FB923C',
+  orangeLight: '#431407',
+  cyan: '#22D3EE',
+  glassWhite: 'rgba(30,41,59,0.8)',
+  glassBorder: 'rgba(255,255,255,0.06)',
+  glassDark: 'rgba(255,255,255,0.04)',
+  inputBg: '#1E293B',
+  inputBorder: 'transparent',
+  inputBorderFocus: '#34D399',
+  slate: '#F1F5F9',
+  mid: '#94A3B8',
+  muted: '#64748B',
+  placeholder: '#64748B',
+  navInactive: '#64748B',
+  navActive: '#34D399',
+  danger: '#F87171',
+  warning: '#FBBF24',
+  success: '#34D399',
+}
+
+// Garde un export colors par défaut pour backward compat
+export const colors = lightColors
 
 // === GLASS (verre dépoli) ===
 export const glass = {

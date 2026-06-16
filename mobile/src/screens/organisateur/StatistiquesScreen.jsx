@@ -5,7 +5,8 @@ import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BarChart, PieChart } from 'react-native-chart-kit'
-import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
+import { spacing, borderRadius, fonts } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import { fetchEvenementsAPI, fetchEvenementStats } from '../../services/eventService'
 import Skeleton from '../../components/Skeleton'
 import GlassContainer from '../../components/GlassContainer'
@@ -13,7 +14,7 @@ import { useTabBarScroll } from '../../context/TabBarScrollContext'
 
 const screenWidth = Dimensions.get('window').width
 
-const chartConfig = {
+const getChartConfig = (colors) => ({
   backgroundColor: colors.bg,
   backgroundGradientFrom: colors.bg,
   backgroundGradientTo: colors.bgSecondary,
@@ -23,9 +24,21 @@ const chartConfig = {
   style: { borderRadius: 16 },
   propsForDots: { r: '6', strokeWidth: '2', stroke: colors.accent },
   propsForBackgroundLines: { strokeDasharray: '', stroke: 'rgba(0,0,0,0.06)' },
-}
+})
 
 export default function StatistiquesScreen() {
+  const { colors } = useTheme()
+  const chartConfig = useMemo(() => getChartConfig(colors), [colors])
+  const s = useMemo(() => makeStyles(colors), [colors])
+
+  const StatCard = ({ label, value, icon, color }) => (
+    <GlassContainer blurType="light" style={s.card} borderLeftColor={color} borderLeftWidth={8} intensity={40}>
+      <MaterialCommunityIcons name={icon} size={20} color={color} />
+      <Text style={s.cardValue}>{value}</Text>
+      <Text style={s.cardLabel}>{label}</Text>
+    </GlassContainer>
+  )
+
   const insets = useSafeAreaInsets()
   const { scrollY: tabScrollY } = useTabBarScroll()
   const [events, setEvents] = useState([])
@@ -261,17 +274,7 @@ export default function StatistiquesScreen() {
 }
 
 // Sera remplacé par API — composant de carte statistique
-function StatCard({ label, value, icon, color }) {
-  return (
-    <GlassContainer blurType="light" style={s.card} borderLeftColor={color} borderLeftWidth={8} intensity={40}>
-      <MaterialCommunityIcons name={icon} size={20} color={color} />
-      <Text style={s.cardValue}>{value}</Text>
-      <Text style={s.cardLabel}>{label}</Text>
-    </GlassContainer>
-  )
-}
-
-const s = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1 },
   header: { 
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',

@@ -8,7 +8,8 @@ import { NavigationContainer, createNavigationContainerRef } from '@react-naviga
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { useAuth } from '../context/AuthContext'
-import { colors, fonts } from '../constants/theme'
+import { fonts } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import { TabBarScrollProvider } from '../context/TabBarScrollContext'
 
 import HomeScreen from '../screens/HomeScreen'
@@ -36,6 +37,7 @@ const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
 
 function MainTabs() {
+  const { colors } = useTheme()
   return (
     <TabBarScrollProvider>
     <Tab.Navigator
@@ -102,16 +104,16 @@ function MainTabs() {
 
 const navigationRef = createNavigationContainerRef()
 
-const headerStyle = {
-  headerShown: true,
-  headerStyle: { backgroundColor: colors.surface },
-  headerTitleStyle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text },
-  headerTintColor: colors.accent,
-  headerBackTitle: 'Retour',
-}
-const header = (titre) => ({ ...headerStyle, headerTitle: titre })
-
 function GuestNavigator() {
+  const { colors } = useTheme()
+  const headerStyle = {
+    headerShown: true,
+    headerStyle: { backgroundColor: colors.surface },
+    headerTitleStyle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text },
+    headerTintColor: colors.accent,
+    headerBackTitle: 'Retour',
+  }
+  const header = (titre) => ({ ...headerStyle, headerTitle: titre })
   return (
     <Stack.Navigator screenOptions={{
       headerShown: false,
@@ -138,11 +140,12 @@ function GuestNavigator() {
 
 
 export default function AppNavigator() {
+  const { colors } = useTheme()
   const { role, chargement } = useAuth()
 
   if (chargement) {
     return (
-      <View style={styles.chargement}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg }}>
         <ActivityIndicator size="large" color={colors.accent} />
       </View>
     )
@@ -166,11 +169,4 @@ export default function AppNavigator() {
   )
 }
 
-const styles = StyleSheet.create({
-  chargement: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.bg,
-  },
-})
+

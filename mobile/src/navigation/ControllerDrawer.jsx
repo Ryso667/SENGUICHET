@@ -4,17 +4,18 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import ControleurDashboardScreen from '../screens/controleur/ControleurDashboardScreen'
 import ScannerScreen from '../screens/controleur/ScannerScreen'
 import ScanHistoryScreen from '../screens/controleur/ScanHistoryScreen'
-import { colors, fonts } from '../constants/theme'
+import { fonts } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 
 const Stack = createNativeStackNavigator()
 
-const header = {
-  headerStyle: { backgroundColor: colors.surface },
-  headerTintColor: colors.accent,
-  headerTitleStyle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text },
-}
-
 export default function ControllerNavigator() {
+  const { colors } = useTheme()
+  const header = {
+    headerStyle: { backgroundColor: colors.surface },
+    headerTintColor: colors.accent,
+    headerTitleStyle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text },
+  }
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Accueil" component={ControleurDashboardScreen} />

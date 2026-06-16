@@ -6,7 +6,8 @@ import { useEffect, useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Image, TextInput, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { spacing, colors } from '../constants/theme'
+import { spacing } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import EventCarousel from '../components/EventCarousel'
 import Skeleton from '../components/Skeleton'
 import FavoriButton from '../components/FavoriButton'
@@ -20,6 +21,7 @@ import * as Location from 'expo-location'
 const CATEGORIES = ['Tout', 'Concert', 'Festival', 'Sport', 'Théâtre', 'Conférence', 'Atelier']
 
 export default function HomeScreen({ navigation }) {
+  const { colors } = useTheme()
   const insets = useSafeAreaInsets()
   const { role, email: authEmail, numeroTel, acheteurEmailSuggestion } = useAuth()
   const [evenements, setEvenements] = useState([])

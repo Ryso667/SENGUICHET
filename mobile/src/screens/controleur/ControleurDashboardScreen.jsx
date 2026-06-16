@@ -1,14 +1,18 @@
 ﻿// Dashboard contrôleur : page d'accueil après connexion du contrôleur
 // Affiche les infos de session, navigation vers Scanner/Historique et déconnexion
+import { useMemo } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { useAuth } from '../../context/AuthContext'
 import GlassContainer from '../../components/GlassContainer'
 import GlassButton from '../../components/GlassButton'
-import { colors, spacing, fonts } from '../../constants/theme'
+import { spacing, fonts } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 
 export default function ControleurDashboardScreen({ navigation }) {
+  const { colors } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
   const { deconnecter } = useAuth()
   const insets = useSafeAreaInsets()
 
@@ -35,7 +39,7 @@ export default function ControleurDashboardScreen({ navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   safe: {
     flex: 1,
   },

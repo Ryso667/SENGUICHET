@@ -2,16 +2,19 @@
 // Liste les événements favoris stockés localement dans AsyncStorage
 // Chaque item : titre, date, image, bouton cœur pour retirer
 // Tap sur un item -> navigue vers EventDetail
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useFocusEffect } from '@react-navigation/native'
-import { colors, spacing, borderRadius, fonts } from '../constants/theme'
+import { spacing, borderRadius, fonts } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import { getAllFavoris, basculerFavori } from '../utils/favorisStorage'
 import { formaterDateLisible } from '../utils/dateUtils'
 
 export default function MesFavorisScreen({ navigation }) {
+  const { colors } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const [favoris, setFavoris] = useState([])
 
@@ -96,7 +99,7 @@ export default function MesFavorisScreen({ navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',

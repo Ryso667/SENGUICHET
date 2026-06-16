@@ -10,16 +10,17 @@ import { PlusJakartaSans_400Regular, PlusJakartaSans_500Medium, PlusJakartaSans_
 import * as SplashScreen from 'expo-splash-screen'
 import { AuthProvider } from './src/context/AuthContext'
 import { ToastProvider } from './src/context/ToastContext'
+import { ThemeProvider, useTheme } from './src/context/ThemeContext'
 import AppNavigator from './src/navigation/AppNavigator'
-import { colors } from './src/constants/theme'
 import * as Notifications from 'expo-notifications'
 import * as Device from 'expo-device'
 import { configurerNotifications, obtenirTokenPush, enregistrerToken, fetchCompteurNonLues, ajouterListenerNotification } from './src/services/notificationService'
 
 SplashScreen.preventAutoHideAsync()
 
-// Composant racine : charge les polices Google Fonts puis rend l'arbre ToastProvider → AuthProvider → AppNavigator
-export default function App() {
+// Composant racine : charge les polices Google Fonts puis rend l'arbre ThemeProvider → ToastProvider → AuthProvider → AppNavigator
+function AppContent() {
+  const { colors } = useTheme()
   const [fontsLoaded, fontError] = useFonts({
     Outfit_400Regular,
     Outfit_600SemiBold,
@@ -74,6 +75,8 @@ export default function App() {
     }
   }, [fontsLoaded, fontError])
 
+  const styles = makeStyles(colors)
+
   if (!fontsLoaded && !fontError) {
     return (
       <View style={styles.loading}>
@@ -97,7 +100,7 @@ export default function App() {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   root: {
     flex: 1,
   },
@@ -108,3 +111,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
 })
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  )
+}

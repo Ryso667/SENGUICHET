@@ -1,8 +1,9 @@
 // Sélecteur d'horaire avec créneaux prédéfinis + saisie libre
 // Design premium avec scroll de créneaux fréquents
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native'
-import { colors, fonts, spacing, borderRadius } from '../constants/theme'
+import { fonts, spacing, borderRadius } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 
 const CRENEAUX = [
   '08h00', '09h00', '10h00', '11h00', '12h00', '13h00', '14h00',
@@ -11,7 +12,9 @@ const CRENEAUX = [
 ]
 
 export default function TimePickerModal({ visible, onClose, onSelect }) {
+  const { colors } = useTheme()
   const [custom, setCustom] = useState('')
+  const s = useMemo(() => makeStyles(colors), [colors])
 
   const handleSelect = (time) => {
     onSelect(time)
@@ -58,7 +61,7 @@ export default function TimePickerModal({ visible, onClose, onSelect }) {
   )
 }
 
-const s = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   dismissArea: { flex: 1 },
   modal: {

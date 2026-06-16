@@ -10,7 +10,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect } from '@react-navigation/native'
 import { verifierBillet, telechargerTickets, synchroniser } from '../../services/scanService'
 import { useAuth } from '../../context/AuthContext'
-import { colors, fonts } from '../../constants/theme'
+import { fonts } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import { scale, fontScale } from '../../utils/responsive'
 import ControleurLayout from '../../components/ControleurLayout'
 import GlassButton from '../../components/GlassButton'
@@ -26,6 +27,7 @@ const COULEURS = {
 }
 
 export default function ScannerScreen({ navigation, route }) {
+  const { colors } = useTheme()
   const [permission, requestPermission] = useCameraPermissions()
   const [scanne, setScanne] = useState(null)
   const [pret, setPret] = useState(false)
@@ -171,7 +173,7 @@ export default function ScannerScreen({ navigation, route }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   conteneur: { flex: 1, backgroundColor: colors.bg },
   centre: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: scale(24) },
   textePermission: { fontFamily: fonts.outfit.medium, fontSize: fontScale(16), color: colors.text, textAlign: 'center', marginBottom: scale(16) },

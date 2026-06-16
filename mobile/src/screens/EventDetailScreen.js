@@ -1,7 +1,7 @@
 // Écran détail d'un événement avec sélection de catégorie et paiement
 // Design clair : photo large en haut, cartes blanches avec ombre en dessous
 // Conserve le flux de paiement Wave/Orange Money existant
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import {
   View, Text,
   TouchableOpacity, StyleSheet, Alert, Modal,
@@ -14,7 +14,8 @@ import * as Calendar from 'expo-calendar'
 import * as Notifications from 'expo-notifications'
 import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
-import { colors, fonts, spacing, glass, borderRadius } from '../constants/theme'
+import { fonts, spacing, glass, borderRadius } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import { scale, fontScale, lineHeightScale, isPad } from '../utils/responsive'
 import GlassContainer from '../components/GlassContainer'
 import GlassButton from '../components/GlassButton'
@@ -29,10 +30,12 @@ import { hexToRgba } from '../utils/colors'
 import FavoriButton from '../components/FavoriButton'
 
 export default function EventDetailScreen({ route, navigation }) {
+  const { colors } = useTheme()
   const { eventId } = route.params
   const { definirTelephone, numeroTel, email } = useAuth()
   const insets = useSafeAreaInsets()
   const { height: screenHeight } = useWindowDimensions()
+  const styles = useMemo(() => makeStyles(colors), [colors])
 
   // Éclaircit une couleur hex (#RRGGBB) — factor 0 = original, 1 = blanc
   const lightenColor = (hex, factor) => {
@@ -618,7 +621,7 @@ export default function EventDetailScreen({ route, navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bg,

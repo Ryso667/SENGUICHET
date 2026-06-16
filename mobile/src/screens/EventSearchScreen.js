@@ -6,7 +6,8 @@ import { View, Text, TextInput, FlatList, StyleSheet, useWindowDimensions, Scrol
 import { useFocusEffect } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { fonts, spacing, colors } from '../constants/theme'
+import { fonts, spacing } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
 import EmptyState from '../components/EmptyState'
@@ -18,7 +19,7 @@ import { optimiserUrlCloudinary } from '../components/BlurBackground'
 const CATEGORIES = ['Tout', 'Concert', 'Festival', 'Sport', 'Theatre', 'Conference']
 
 // Composant stable pour le header de la FlatList — évite les remounts sur chaque render
-function SearchHeader({ search, setSearch, activeCat, setActiveCat, filtresActifs, onOpenFilters }) {
+function SearchHeader({ search, setSearch, activeCat, setActiveCat, filtresActifs, onOpenFilters, colors, styles }) {
   return (
     <>
       <GlassContainer style={styles.searchBar} blurType="light" intensity={60}>
@@ -57,6 +58,8 @@ function SearchHeader({ search, setSearch, activeCat, setActiveCat, filtresActif
 }
 
 export default function EventSearchScreen({ navigation }) {
+  const { colors } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const [search, setSearch] = useState('')
   const [activeCat, setActiveCat] = useState('Tout')
@@ -144,7 +147,7 @@ export default function EventSearchScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
-        ListHeaderComponent={<SearchHeader search={search} setSearch={setSearch} activeCat={activeCat} setActiveCat={setActiveCat} filtresActifs={nbFiltresActifs} onOpenFilters={() => setShowFilters(true)} />}
+        ListHeaderComponent={<SearchHeader search={search} setSearch={setSearch} activeCat={activeCat} setActiveCat={setActiveCat} filtresActifs={nbFiltresActifs} onOpenFilters={() => setShowFilters(true)} colors={colors} styles={styles} />}
         ListEmptyComponent={
           <EmptyState
             icon="search"
@@ -167,18 +170,18 @@ export default function EventSearchScreen({ navigation }) {
 
             <Text style={styles.filterLabel}>Période</Text>
             <View style={styles.filterRow}>
-              <TextInput style={[styles.filterInput, { flex: 1 }]} placeholder="Du (JJ/MM/AAAA)" placeholderTextColor="#9CA3AF" value={filtres.dateDebut} onChangeText={v => setFiltres(f => ({ ...f, dateDebut: v }))} />
-              <TextInput style={[styles.filterInput, { flex: 1 }]} placeholder="Au (JJ/MM/AAAA)" placeholderTextColor="#9CA3AF" value={filtres.dateFin} onChangeText={v => setFiltres(f => ({ ...f, dateFin: v }))} />
+              <TextInput style={[styles.filterInput, { flex: 1 }]} placeholder="Du (JJ/MM/AAAA)" placeholderTextColor={colors.textTertiary} value={filtres.dateDebut} onChangeText={v => setFiltres(f => ({ ...f, dateDebut: v }))} />
+              <TextInput style={[styles.filterInput, { flex: 1 }]} placeholder="Au (JJ/MM/AAAA)" placeholderTextColor={colors.textTertiary} value={filtres.dateFin} onChangeText={v => setFiltres(f => ({ ...f, dateFin: v }))} />
             </View>
 
             <Text style={styles.filterLabel}>Budget</Text>
             <View style={styles.filterRow}>
-              <TextInput style={[styles.filterInput, { flex: 1 }]} placeholder="Min (FCFA)" placeholderTextColor="#9CA3AF" keyboardType="numeric" value={filtres.prixMin} onChangeText={v => setFiltres(f => ({ ...f, prixMin: v }))} />
-              <TextInput style={[styles.filterInput, { flex: 1 }]} placeholder="Max (FCFA)" placeholderTextColor="#9CA3AF" keyboardType="numeric" value={filtres.prixMax} onChangeText={v => setFiltres(f => ({ ...f, prixMax: v }))} />
+              <TextInput style={[styles.filterInput, { flex: 1 }]} placeholder="Min (FCFA)" placeholderTextColor={colors.textTertiary} keyboardType="numeric" value={filtres.prixMin} onChangeText={v => setFiltres(f => ({ ...f, prixMin: v }))} />
+              <TextInput style={[styles.filterInput, { flex: 1 }]} placeholder="Max (FCFA)" placeholderTextColor={colors.textTertiary} keyboardType="numeric" value={filtres.prixMax} onChangeText={v => setFiltres(f => ({ ...f, prixMax: v }))} />
             </View>
 
             <Text style={styles.filterLabel}>Lieu</Text>
-            <TextInput style={[styles.filterInput]} placeholder="Ville ou lieu" placeholderTextColor="#9CA3AF" value={filtres.lieu} onChangeText={v => setFiltres(f => ({ ...f, lieu: v }))} />
+            <TextInput style={[styles.filterInput]} placeholder="Ville ou lieu" placeholderTextColor={colors.textTertiary} value={filtres.lieu} onChangeText={v => setFiltres(f => ({ ...f, lieu: v }))} />
 
             <TouchableOpacity style={styles.modalValider} onPress={() => setShowFilters(false)}>
               <Text style={styles.modalValiderText}>Appliquer ({events.filter(e => {
@@ -201,7 +204,7 @@ export default function EventSearchScreen({ navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   searchBar: {
     flexDirection: 'row', alignItems: 'center',
@@ -221,13 +224,13 @@ const styles = StyleSheet.create({
   filterBadge: { position: 'absolute', top: -6, right: -6, width: 14, height: 14, borderRadius: 7, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   filterBadgeText: { fontSize: 9, fontFamily: 'PlusJakartaSans_700Bold', color: '#fff' },
   modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' },
-  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
+  modalContent: { backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   modalTitre: { fontSize: 18, fontFamily: 'Outfit_600SemiBold', color: colors.text },
   modalReset: { fontSize: 13, fontFamily: 'PlusJakartaSans_500Medium', color: colors.accent },
-  filterLabel: { fontSize: 13, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#6B7280', marginBottom: 8, marginTop: 4 },
+  filterLabel: { fontSize: 13, fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.textSecondary, marginBottom: 8, marginTop: 4 },
   filterRow: { flexDirection: 'row', gap: 12 },
-  filterInput: { backgroundColor: '#F3F4F6', borderRadius: 10, padding: 12, fontSize: 14, fontFamily: 'PlusJakartaSans_400Regular', color: colors.text, marginBottom: 12 },
+  filterInput: { backgroundColor: colors.inputBg, borderRadius: 10, padding: 12, fontSize: 14, fontFamily: 'PlusJakartaSans_400Regular', color: colors.text, marginBottom: 12 },
   modalValider: { backgroundColor: colors.accent, borderRadius: 12, padding: 14, alignItems: 'center', marginTop: 8 },
   modalValiderText: { fontSize: 15, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#fff' },
 })

@@ -2,12 +2,13 @@
 // Champ de saisie avec label au-dessus, icône et placeholder toujours visible
 // Le placeholder reste affiché tant qu'aucune valeur n'est saisie
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   View, TextInput, Text, StyleSheet, TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, borderRadius, spacing, colors } from '../constants/theme'
+import { fonts, borderRadius, spacing } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 
 // Composant de champ de saisie avec label fixe au-dessus et icône
 // Props :
@@ -27,6 +28,8 @@ const FormInput = ({
   icon, label, value, onChangeText, secureTextEntry, keyboardType,
   returnKeyType, onSubmitEditing, error, autoFocus, onBlur, placeholder,
 }) => {
+  const { colors } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
   const [focused, setFocused] = useState(false);
   const [secure, setSecure] = useState(secureTextEntry);
 
@@ -83,7 +86,7 @@ const FormInput = ({
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   wrapper: {
     marginBottom: 20,
   },

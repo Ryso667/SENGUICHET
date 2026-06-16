@@ -1,9 +1,10 @@
 // Bouton avec 3 variantes et animation scale au press
 // Props : title, icon, onPress, style, textStyle, variant ("primary"|"secondary"|"ghost")
-import { useRef } from 'react'
+import { useRef, useMemo } from 'react'
 import { TouchableOpacity, Text, Animated, View, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { colors, fonts, borderRadius, spacing } from '../constants/theme'
+import { fonts, borderRadius, spacing } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import { hapticLight } from '../utils/haptics'
 
 // Retourne les styles selon la variante demandée
@@ -11,7 +12,11 @@ import { hapticLight } from '../utils/haptics'
 // secondary : fond bgSecondary, bordure — action secondaire
 // ghost   : transparent, pas de bordure — lien texte
 export default function GlassButton({ title, icon, onPress, style, textStyle, variant = 'secondary' }) {
+  const { colors } = useTheme()
   const scale = useRef(new Animated.Value(1)).current
+
+  // Construit le map des variantes avec les couleurs du thème courant
+  const variantStyles = useMemo(() => makeVariantStyles(colors)[variant] || makeVariantStyles(colors).secondary, [colors, variant])
 
   const handlePressIn = () => {
     Animated.spring(scale, {
@@ -31,8 +36,6 @@ export default function GlassButton({ title, icon, onPress, style, textStyle, va
     }).start()
   }
 
-  const variantStyles = variantStylesMap[variant] || variantStylesMap.secondary
-
   return (
     <Animated.View style={[{ transform: [{ scale }] }, style]}>
       <TouchableOpacity
@@ -50,7 +53,7 @@ export default function GlassButton({ title, icon, onPress, style, textStyle, va
   )
 }
 
-const variantStylesMap = {
+const makeVariantStyles = (colors) => ({
   primary: {
     button: {
       backgroundColor: colors.accent,
@@ -76,7 +79,7 @@ const variantStylesMap = {
     textColor: colors.accent,
     iconColor: colors.accent,
   },
-}
+})
 
 const styles = StyleSheet.create({
   button: {

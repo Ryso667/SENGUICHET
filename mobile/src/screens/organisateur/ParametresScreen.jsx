@@ -1,17 +1,20 @@
 // Paramètres organisateur (lecture seule)
 // Design glass (Apple Invites)
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { colors, spacing, fonts } from '../../constants/theme'
+import { spacing, fonts } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
 import GlassContainer from '../../components/GlassContainer'
 
 const NOTIF_KEY_SMS = '@senguichet_notif_sms_vente'
 
 export default function ParametresScreen({ navigation }) {
+  const { colors } = useTheme()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { user, deconnecter } = useAuth()
   const [smsVente, setSmsVente] = useState(true)
@@ -80,7 +83,7 @@ export default function ParametresScreen({ navigation }) {
   )
 }
 
-const s = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1 },
   section: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
   sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.sm },

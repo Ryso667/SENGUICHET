@@ -1,13 +1,15 @@
 // Champ de saisie à chiffres individuels avec auto-focus
 // Utile pour les codes PIN (contrôleur) et OTP (acheteur)
 // Props : longueur (number, défaut 6), onComplet (callback appelé quand tous les chiffres sont saisis)
-import { useRef, useState } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import { View, TextInput, StyleSheet } from 'react-native'
-import { colors } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 
 export default function InputOTP({ longueur = 6, onComplet }) {
+  const { colors } = useTheme()
   const [codes, setCodes] = useState(Array(longueur).fill(''))
   const refs = useRef([])
+  const styles = useMemo(() => makeStyles(colors), [colors])
 
   // Gère la saisie d'un chiffre et passe automatiquement au champ suivant
   const handleChangement = (texte, index) => {
@@ -55,7 +57,7 @@ export default function InputOTP({ longueur = 6, onComplet }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   conteneur: {
     flexDirection: 'row',
     justifyContent: 'space-between',
