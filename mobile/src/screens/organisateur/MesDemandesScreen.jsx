@@ -9,7 +9,6 @@ import { colors, fonts, gradients, spacing } from '../../constants/theme'
 import { listerMesDemandes, soumettreDemandeEvenement, fetchEvenementsAPI } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
 import * as ImagePicker from 'expo-image-picker'
-import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
@@ -417,7 +416,6 @@ export default function MesDemandesScreen({ navigation }) {
 
   return (
     <View style={s.container}>
-      <OrganisateurLayout />
       <View style={{ paddingTop: insets.top, flex: 1 }}>
         <ScrollView
           contentContainerStyle={s.content}

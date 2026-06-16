@@ -2,7 +2,7 @@
 // Vérification via le backend — partagé avec le frontend-web
 import { useState, useEffect } from 'react'
 import {
-  View, Text, ActivityIndicator,
+  View, Text, TextInput, TouchableOpacity, ActivityIndicator,
   KeyboardAvoidingView, Platform, ScrollView, StyleSheet,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -11,7 +11,6 @@ import { useAuth } from '../../context/AuthContext'
 import { hapticMedium } from '../../utils/haptics'
 import GlassButton from '../../components/GlassButton'
 import { colors, spacing } from '../../constants/theme'
-import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
 
 export default function ConnexionOrganisateurScreen({ navigation }) {
@@ -44,7 +43,6 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <BlurBackground />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -125,19 +123,19 @@ const styles = StyleSheet.create({
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: colors.textWhite,
+    color: colors.text,
     marginBottom: 8,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
     marginBottom: 32,
   },
   label: {
     fontFamily: 'Outfit_500Medium',
     fontSize: 14,
-    color: colors.textWhite,
+    color: colors.text,
     marginBottom: 6,
   },
   inscriptionRow: {
@@ -149,7 +147,7 @@ const styles = StyleSheet.create({
   inscriptionText: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 13,
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
   },
   inscriptionLink: {
     paddingVertical: 0,
@@ -160,7 +158,7 @@ const styles = StyleSheet.create({
   input: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 16,
-    color: colors.textWhite,
+    color: colors.text,
   },
   glassLoadingBtn: {
     borderRadius: 14,

@@ -8,7 +8,6 @@ import { BarChart, PieChart } from 'react-native-chart-kit'
 import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import Skeleton from '../../components/Skeleton'
-import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import GlassChip from '../../components/GlassChip'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
@@ -94,7 +93,6 @@ export default function StatistiquesScreen() {
   if (loading) {
     return (
       <View style={s.container}>
-        <OrganisateurLayout />
         <View style={{ padding: spacing.lg, paddingTop: insets.top }}>
           <Skeleton type="card" count={4} />
         </View>
@@ -104,7 +102,6 @@ export default function StatistiquesScreen() {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <OrganisateurLayout />
       <ScrollView
         showsVerticalScrollIndicator={false}
         onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}

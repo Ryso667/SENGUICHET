@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { colors, spacing, borderRadius, fonts, glass } from '../../constants/theme'
 import { appelAPI } from '../../services/apiService'
-import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 
@@ -36,7 +35,6 @@ export default function GestionEquipeScreen({ route, navigation }) {
   if (loading) {
     return (
       <View style={s.container}>
-        <BlurBackground category="Conference" />
         <View style={{ padding: spacing.lg, paddingTop: insets.top }}>
           <Skeleton type="card" count={4} />
         </View>
@@ -46,7 +44,6 @@ export default function GestionEquipeScreen({ route, navigation }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <BlurBackground category="Conference" />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
           <Feather name="arrow-left" size={22} color={colors.text} />

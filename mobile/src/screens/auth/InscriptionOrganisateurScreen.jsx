@@ -11,13 +11,12 @@ import { inscrireOrganisateur } from '../../services/authService'
 import { hapticMedium } from '../../utils/haptics'
 import GlassButton from '../../components/GlassButton'
 import { colors, spacing } from '../../constants/theme'
-import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
 
 // Calcule le niveau de force du mot de passe (0-4)
 // Retourne { score, label, couleur }
 const evaluerForceMotDePasse = (mdp) => {
-  if (!mdp) return { score: 0, label: '', couleur: colors.textWhiteMuted }
+  if (!mdp) return { score: 0, label: '', couleur: colors.textSecondary }
   const len = mdp.length
   if (len <= 3) return { score: 1, label: 'Faible', couleur: colors.red }
   if (len <= 6) return { score: 2, label: 'Moyen', couleur: colors.orange }
@@ -120,7 +119,6 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <BlurBackground />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -271,26 +269,26 @@ const styles = StyleSheet.create({
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: colors.textWhite,
+    color: colors.text,
     marginBottom: 8,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
     marginBottom: 32,
   },
   label: {
     fontFamily: 'Outfit_500Medium',
     fontSize: 14,
-    color: colors.textWhite,
+    color: colors.text,
     marginBottom: 6,
   },
   inputWrap: { marginBottom: 16, borderRadius: 14, height: 56, justifyContent: 'center', paddingHorizontal: 16 },
   input: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 16,
-    color: colors.textWhite,
+    color: colors.text,
   },
   forceConteneur: {
     flexDirection: 'row',
@@ -331,7 +329,7 @@ const styles = StyleSheet.create({
   lienConnexionText: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 14,
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
   },
   lienConnexionBtn: {
     paddingVertical: 0,

@@ -9,7 +9,6 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { colors, fonts, gradients, glass, spacing, borderRadius as br } from '../../constants/theme'
 import { useAuth } from '../../context/AuthContext'
 import { envoyerCodeOTP } from '../../services/authService'
-import BlurBackground from '../../components/BlurBackground'
 import GlassContainer from '../../components/GlassContainer'
 
 export default function SocialAuthScreen({ navigation }) {
@@ -102,7 +101,6 @@ export default function SocialAuthScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <BlurBackground />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -263,13 +261,13 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: fonts.outfit.bold,
     fontSize: 22,
-    color: colors.textWhite,
+    color: colors.text,
     marginBottom: spacing.sm,
   },
   subtitle: {
     fontFamily: fonts.jakarta.regular,
     fontSize: 14,
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: spacing.lg,
@@ -279,7 +277,7 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: 13,
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
     marginLeft: 4,
   },
   input: {
@@ -291,7 +289,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontFamily: fonts.outfit.regular,
     fontSize: 16,
-    color: colors.textWhite,
+    color: colors.text,
   },
   otpInput: {
     fontSize: 28,
@@ -322,7 +320,7 @@ const styles = StyleSheet.create({
   renvoyerBtnText: {
     fontFamily: fonts.jakarta.regular,
     fontSize: 13,
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
     textDecorationLine: 'underline',
   },
   keyboardToolbar: {

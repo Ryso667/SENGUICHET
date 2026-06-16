@@ -6,8 +6,7 @@ import { Feather, Ionicons } from '@expo/vector-icons'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors, fonts, spacing } from '../constants/theme'
-import OrganisateurLayout from '../components/OrganisateurLayout'
-import BlurBackground from '../components/BlurBackground'
+
 import StatusBadge from '../components/StatusBadge'
 import Skeleton from '../components/Skeleton'
 import { mesTicketsLocaux, sauvegarderTicketAcheteur } from '../database/database'
@@ -123,17 +122,15 @@ export default function MesTicketsScreen() {
 
   return (
     <View style={styles.container}>
-      <OrganisateurLayout />
-      <BlurBackground category={categoryForBg} showImage={false} gradientOverride={['rgba(121,134,203,0.3)', 'rgba(92,107,192,0.15)']} />
       <View style={[styles.content, { paddingTop: insets.top }]}>
         {/* Header natif avec bouton retour et compteur */}
         <View style={styles.headerBar}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.7}>
-            <Feather name="chevron-left" size={24} color={colors.textWhite} />
+            <Feather name="chevron-left" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Mes tickets</Text>
           <View style={styles.headerRight}>
-            {syncing && <ActivityIndicator size="small" color="#FFFFFF" />}
+            {syncing && <ActivityIndicator size="small" color={colors.accent} />}
             {tickets.length > 0 && (
               <View style={styles.countBadge}>
                 <Text style={styles.countText}>{tickets.length}</Text>
@@ -218,7 +215,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 20,
     fontFamily: fonts.outfit.bold,
-    color: colors.textWhite,
+    color: colors.text,
     letterSpacing: -0.3,
   },
   headerRight: {
@@ -235,7 +232,7 @@ const styles = StyleSheet.create({
   countText: {
     fontSize: 12,
     fontFamily: fonts.jakarta.semiBold,
-    color: colors.textWhite,
+    color: colors.text,
   },
 
   // LISTE
@@ -308,14 +305,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontFamily: fonts.outfit.semiBold,
-    color: colors.textWhite,
+    color: colors.text,
     marginTop: 20,
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 14,
     fontFamily: fonts.jakarta.regular,
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
     marginTop: 8,
     textAlign: 'center',
     lineHeight: 20,

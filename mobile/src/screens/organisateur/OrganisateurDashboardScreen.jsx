@@ -11,7 +11,6 @@ import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import { LinearGradient } from 'expo-linear-gradient'
 import { getCategoryImageUrl } from '../../config/images'
-import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 import { hexToRgba } from '../../utils/colors'
@@ -95,7 +94,6 @@ export default function OrganisateurDashboardScreen({ navigation }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <OrganisateurLayout />
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1A56DB" colors={["#1A56DB"]} />}

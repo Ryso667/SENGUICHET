@@ -1,9 +1,8 @@
 // Navigation principale — 4 tabs fixes avec piles contextuelles
 // Tous les rôles (acheteur/organisateur/controleur) partagent les mêmes tabs
 // Les écrans auth/orga/contrôleur sont dans la stack, accessibles depuis Compte
-import { useEffect, useState } from 'react'
 import { View, ActivityIndicator, StyleSheet } from 'react-native'
-import { Feather } from '@expo/vector-icons'
+import { Feather, Ionicons } from '@expo/vector-icons'
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
@@ -91,7 +90,7 @@ function MainTabs() {
         component={MesTicketsScreen}
         options={{
           tabBarLabel: 'Mes billets',
-          tabBarIcon: ({ color }) => <Feather name="ticket" size={20} color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="ticket-outline" size={20} color={color} />,
         }}
       />
       <Tab.Screen

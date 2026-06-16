@@ -8,8 +8,6 @@ import * as Crypto from 'expo-crypto'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { colors, fonts, spacing } from '../constants/theme'
-import OrganisateurLayout from '../components/OrganisateurLayout'
-import BlurBackground from '../components/BlurBackground'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { scale, fontScale, lineHeightScale, isPad } from '../utils/responsive'
 import { genererTicketPDF, genererHtmlWebTicket } from '../services/ticketPdfService'
@@ -143,8 +141,6 @@ export default function TicketScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <OrganisateurLayout />
-      <BlurBackground category={ticket?.categorie} showImage={false} gradientOverride={['rgba(121,134,203,0.15)', 'rgba(30,28,26,0.95)']} />
       <TouchableOpacity style={[styles.backBtn, { top: insets.top + 8 }]} onPress={() => navigation.goBack()} activeOpacity={0.7}>
         <Feather name="arrow-left" size={20} color={C.white} />
       </TouchableOpacity>

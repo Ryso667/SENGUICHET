@@ -12,7 +12,6 @@ import * as ImagePicker from 'expo-image-picker'
 import { colors, fonts, spacing } from '../../constants/theme'
 import { creerEvenementAPI } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
-import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import GlassButton from '../../components/GlassButton'
 
@@ -406,7 +405,7 @@ export default function CreerEvenementScreen({ navigation }) {
         </TouchableOpacity>
         <TouchableOpacity style={[s.submitBtn, submitting && s.submitBtnDisabled]} onPress={handleSubmit} disabled={submitting}>
           {submitting ? (
-            <ActivityIndicator color={colors.textWhite} />
+            <ActivityIndicator color={colors.text} />
           ) : (
             <Text style={s.submitBtnText}>Soumettre l'événement</Text>
           )}
@@ -507,7 +506,6 @@ export default function CreerEvenementScreen({ navigation }) {
 
   return (
     <View style={s.safe}>
-      <OrganisateurLayout />
       <KeyboardAvoidingView
         style={s.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -626,11 +624,11 @@ const s = StyleSheet.create({
   posterPreview: { width: '100%', height: 160, borderRadius: 12, resizeMode: 'cover' },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 },
   picker: { padding: 20, maxHeight: 400 },
-  pickerTitle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.textWhite, marginBottom: 16, textAlign: 'center' },
+  pickerTitle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text, marginBottom: 16, textAlign: 'center' },
   pickerItem: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 12, marginBottom: 4 },
   pickerItemActive: { backgroundColor: 'rgba(0,0,0,0.06)' },
-  pickerItemText: { fontFamily: fonts.outfit.regular, fontSize: 16, color: colors.textWhite },
-  pickerItemTextActive: { fontFamily: fonts.outfit.semiBold, color: colors.textWhite },
+  pickerItemText: { fontFamily: fonts.outfit.regular, fontSize: 16, color: colors.text },
+  pickerItemTextActive: { fontFamily: fonts.outfit.semiBold, color: colors.text },
   stepperRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 24, gap: 0 },
   stepperItem: { flexDirection: 'row', alignItems: 'center' },
   stepperCircle: {
@@ -640,7 +638,7 @@ const s = StyleSheet.create({
   stepperCircleDone: { backgroundColor: 'rgba(34,197,94,0.4)', borderColor: '#22C55E' },
   stepperCircleActive: { backgroundColor: 'rgba(121,134,203,0.4)', borderColor: colors.accent },
   stepperCircleText: { fontFamily: fonts.outfit.bold, fontSize: 13, color: colors.textSecondary },
-  stepperCircleTextActive: { color: colors.textWhite },
+  stepperCircleTextActive: { color: colors.text },
   stepperLabel: { fontFamily: fonts.jakarta.regular, fontSize: 11, color: colors.textSecondary, marginLeft: 4, maxWidth: 70 },
   stepperLabelActive: { fontFamily: fonts.jakarta.semiBold, color: colors.accent },
   stepperLabelDone: { color: '#22C55E' },
@@ -655,7 +653,7 @@ const s = StyleSheet.create({
   calDay: { width: '14.28%', aspectRatio: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 8 },
   calDaySelected: { backgroundColor: 'rgba(121,134,203,0.4)' },
   calDayText: { fontFamily: fonts.outfit.regular, fontSize: 14, color: colors.text },
-  calDayTextSelected: { fontFamily: fonts.outfit.semiBold, color: colors.textWhite },
+  calDayTextSelected: { fontFamily: fonts.outfit.semiBold, color: colors.text },
   timePicker: {
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
     paddingVertical: 16, marginBottom: 16,
@@ -681,7 +679,7 @@ const s = StyleSheet.create({
   },
   promoTypeBtnActive: { backgroundColor: 'rgba(121,134,203,0.4)', borderColor: colors.accent },
   promoTypeText: { fontFamily: fonts.outfit.semiBold, fontSize: 13, color: colors.text },
-  promoTypeTextActive: { color: colors.textWhite },
+  promoTypeTextActive: { color: colors.text },
   navRow: { flexDirection: 'row', gap: 12, marginTop: 28, alignItems: 'center' },
   backBtn: { paddingVertical: 12, paddingHorizontal: 16 },
   backBtnText: { fontFamily: fonts.outfit.semiBold, fontSize: 15, color: colors.text },
@@ -690,7 +688,7 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(121,134,203,0.5)',
   },
   submitBtnDisabled: { opacity: 0.6 },
-  submitBtnText: { fontFamily: fonts.outfit.semiBold, fontSize: 15, color: colors.textWhite },
+  submitBtnText: { fontFamily: fonts.outfit.semiBold, fontSize: 15, color: colors.text },
   recapCard: { padding: 20, marginBottom: 16 },
   recapRow: { marginBottom: 14 },
   recapLabel: { fontFamily: fonts.jakarta.regular, fontSize: 12, color: colors.textSecondary, marginBottom: 2 },
@@ -700,5 +698,5 @@ const s = StyleSheet.create({
     padding: 16, marginBottom: 16,
   },
   warningTitle: { fontFamily: fonts.outfit.semiBold, fontSize: 14, color: '#FFA726', marginBottom: 4 },
-  warningDesc: { fontFamily: fonts.jakarta.regular, fontSize: 12, color: colors.textWhiteMuted, lineHeight: 18 },
+  warningDesc: { fontFamily: fonts.jakarta.regular, fontSize: 12, color: colors.textSecondary, lineHeight: 18 },
 })

@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { colors, spacing, borderRadius, fonts } from '../../constants/theme'
 import { useAuth } from '../../context/AuthContext'
-import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 
 const NOTIF_KEYS = {
@@ -32,7 +31,6 @@ export default function ParametresScreen({ navigation }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <OrganisateurLayout />
       <ScrollView showsVerticalScrollIndicator={false}>
         <GlassContainer blurType="light" style={s.section} intensity={35}>
           <Text style={s.sectionTitle}>Mon profil</Text>

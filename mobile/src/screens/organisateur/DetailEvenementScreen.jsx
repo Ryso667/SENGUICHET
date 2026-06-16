@@ -7,7 +7,6 @@ import { colors, spacing, fonts, borderRadius } from '../../constants/theme'
 import { fetchEvenementDetailAPI } from '../../services/eventService'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import Skeleton from '../../components/Skeleton'
-import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import GlassButton from '../../components/GlassButton'
 import { hexToRgba } from '../../utils/colors'
@@ -55,7 +54,6 @@ export default function DetailEvenementScreen({ route }) {
   if (loading) {
     return (
       <View style={s.container}>
-        <OrganisateurLayout />
         <View style={{ padding: spacing.lg, paddingTop: insets.top }}>
           <Skeleton type="card" count={4} />
         </View>
@@ -66,7 +64,6 @@ export default function DetailEvenementScreen({ route }) {
   if (!evenement) {
     return (
       <View style={s.center}>
-        <OrganisateurLayout />
         <Text style={s.errorText}>Événement introuvable</Text>
       </View>
     )
@@ -77,7 +74,6 @@ export default function DetailEvenementScreen({ route }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <OrganisateurLayout />
       <ScrollView showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1A56DB" colors={["#1A56DB"]} />}>
         <GlassContainer blurType="light" style={s.header} intensity={35}>

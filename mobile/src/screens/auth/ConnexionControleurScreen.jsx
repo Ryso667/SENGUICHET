@@ -12,7 +12,6 @@ import { hapticLight } from '../../utils/haptics'
 import InputOTP from '../../components/InputOTP'
 import GlassButton from '../../components/GlassButton'
 import { useAuth } from '../../context/AuthContext'
-import BlurBackground from '../../components/BlurBackground'
 import { colors, spacing } from '../../constants/theme'
 
 export default function ConnexionControleurScreen({ navigation }) {
@@ -45,7 +44,6 @@ export default function ConnexionControleurScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <BlurBackground />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -92,13 +90,13 @@ const styles = StyleSheet.create({
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: colors.textWhite,
+    color: colors.text,
     marginBottom: 8,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
     marginBottom: 32,
   },
   espace: {

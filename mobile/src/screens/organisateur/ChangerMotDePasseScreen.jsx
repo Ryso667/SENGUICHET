@@ -7,7 +7,6 @@ import { Feather } from '@expo/vector-icons'
 import { colors, fonts, spacing, borderRadius } from '../../constants/theme'
 import { useAuth } from '../../context/AuthContext'
 import { appelAPI } from '../../services/apiService'
-import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 
 export default function ChangerMotDePasseScreen({ navigation }) {
@@ -65,7 +64,6 @@ export default function ChangerMotDePasseScreen({ navigation }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <OrganisateurLayout />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
           <Feather name="arrow-left" size={22} color={colors.text} />

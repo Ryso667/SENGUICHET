@@ -1,5 +1,5 @@
 // Écran détail d'un événement avec sélection de catégorie et paiement
-// Design immersif : BlurBackground + GlassContainer pour tous les éléments
+// Design immersif : image événement en fond, GlassContainer pour les cartes
 // Conserve le flux de paiement Wave/Orange Money existant
 import { useState, useEffect, useRef } from 'react'
 import {
@@ -15,7 +15,6 @@ import { BlurView } from 'expo-blur'
 import MaskedView from '@react-native-masked-view/masked-view'
 import { colors, fonts, spacing, glass, borderRadius } from '../constants/theme'
 import { scale, fontScale, lineHeightScale, isPad } from '../utils/responsive'
-import OrganisateurLayout from '../components/OrganisateurLayout'
 import BlurBackground from '../components/BlurBackground'
 import GlassContainer from '../components/GlassContainer'
 import GlassButton from '../components/GlassButton'
@@ -192,9 +191,8 @@ export default function EventDetailScreen({ route, navigation }) {
   if (error) {
     return (
       <View style={styles.container}>
-        <BlurBackground category={event?.category} afficheUrl={event?.affiche_url} />
         <View style={styles.loadingContainer}>
-          <Feather name="alert-circle" size={32} color={colors.textWhiteMuted} />
+          <Feather name="alert-circle" size={32} color={colors.textSecondary} />
           <Text style={styles.loadingText}>{error}</Text>
           <GlassButton title="Réessayer" icon="refresh-cw" onPress={() => setRetryCount(c => c + 1)} />
         </View>
@@ -206,9 +204,8 @@ export default function EventDetailScreen({ route, navigation }) {
   if (!event) {
     return (
       <View style={styles.container}>
-        <BlurBackground />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#fff" />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </View>
@@ -220,14 +217,7 @@ export default function EventDetailScreen({ route, navigation }) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Fond immersif plein écran avec parallax */}
-      <OrganisateurLayout />
-      <BlurBackground category={event?.category} afficheUrl={event?.affiche_url} parallaxOffset={scrollY.interpolate({
-        inputRange: [-100, 0, 200],
-        outputRange: [-30, 0, 60],
-        extrapolate: 'clamp',
-      })} />
-
+      <BlurBackground category={event?.category} afficheUrl={event?.affiche_url} />
       {/* Bouton retour flottant avec cercle glass */}
       <TouchableOpacity style={[styles.floatingBack, { top: insets.top + 8 }]} onPress={() => navigation.goBack()}>
         <Feather name="arrow-left" size={20} color="#fff" />
@@ -272,7 +262,7 @@ export default function EventDetailScreen({ route, navigation }) {
                 </View>
                 {!!event.time && (
                   <View style={styles.heroTimeRow}>
-                    <Feather name="clock" size={11} color="rgba(255,255,255,0.5)" />
+                    <Feather name="clock" size={11} color={colors.textSecondary} />
                     <Text style={styles.heroTimeText}>{event.time}</Text>
                   </View>
                 )}
@@ -322,7 +312,7 @@ export default function EventDetailScreen({ route, navigation }) {
                   <Text style={styles.priceChipText}>{selectedTicket.placesDisponibles}/{selectedTicket.capacite} places</Text>
                 </View>
               )}
-              <Feather name="chevron-down" size={16} color={colors.textWhiteMuted} />
+              <Feather name="chevron-down" size={16} color={colors.textSecondary} />
             </View>
           </GlassContainer>
         </TouchableOpacity>
@@ -432,7 +422,7 @@ export default function EventDetailScreen({ route, navigation }) {
             {/* Bouton de fermeture */}
             {paymentEtape === 'confirm' && (
               <TouchableOpacity style={styles.payCloseBtn} onPress={() => setShowPaymentSheet(false)}>
-                <Feather name="x" size={20} color="#fff" />
+                <Feather name="x" size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             )}
 
@@ -442,7 +432,7 @@ export default function EventDetailScreen({ route, navigation }) {
                 {/* Montant uniquement */}
                 <Text style={styles.payAmountLabel}>{selectedTicket.name}</Text>
                 <GlassContainer intensity={30} style={[styles.payAmountCard, { borderColor: hexToRgba(colors.accent, 0.27) }]}>
-                  <Text style={[styles.payAmountValue, { color: colors.textWhite }]}>
+                  <Text style={styles.payAmountValue}>
                     {selectedTicket.price.toLocaleString()} FCFA
                   </Text>
                 </GlassContainer>
@@ -450,7 +440,7 @@ export default function EventDetailScreen({ route, navigation }) {
                 {/* Champ téléphone dans le modal */}
                 <Text style={styles.modalPhoneLabel}>Ton téléphone</Text>
                 <GlassContainer intensity={30} style={styles.modalPhoneRow}>
-                  <Feather name="smartphone" size={16} color={colors.textWhiteMuted} />
+                  <Feather name="smartphone" size={16} color={colors.textTertiary} />
                   <Text style={styles.modalPhoneCode}>+221</Text>
                   <TextInput
                     style={styles.modalPhoneInput}
@@ -458,7 +448,7 @@ export default function EventDetailScreen({ route, navigation }) {
                     onChangeText={(t) => setTelephone(formaterTel(t))}
                     keyboardType="phone-pad"
                     placeholder="77 XXX XX XX"
-                    placeholderTextColor={colors.textWhiteMuted}
+                    placeholderTextColor={colors.textSecondary}
                   />
                 </GlassContainer>
 
@@ -553,7 +543,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: fontScale(13),
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
     fontFamily: fonts.jakarta.regular,
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
@@ -627,18 +617,16 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   heroDateDayNum: {
     fontSize: fontScale(42),
     fontFamily: fonts.outfit.extraBold,
-    color: '#fff',
+    color: colors.text,
     letterSpacing: scale(-2),
     lineHeight: lineHeightScale(46),
-textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
   heroDateMonth: {
     fontSize: fontScale(14),
     fontFamily: fonts.outfit.semiBold,
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
     letterSpacing: scale(2),
+    textTransform: 'uppercase',
   },
   heroTimeRow: {
     flexDirection: 'row',
@@ -649,7 +637,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   heroTimeText: {
     fontSize: fontScale(12),
     fontFamily: fonts.jakarta.regular,
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.textTertiary,
   },
   // Carte localisation — mise en avant
   heroLocationCard: {
@@ -663,13 +651,13 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   heroLocationMain: {
     fontSize: fontScale(16),
     fontFamily: fonts.outfit.bold,
-    color: '#fff',
+    color: colors.text,
     letterSpacing: fontScale(0.5),
   },
   heroLocationSub: {
     fontSize: fontScale(11),
     fontFamily: fonts.jakarta.regular,
-    color: 'rgba(255,255,255,0.4)',
+    color: colors.textSecondary,
     marginTop: scale(2),
   },
   // Carte description — épurée, généreuse
@@ -679,7 +667,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   },
   descText: {
     fontSize: fontScale(15),
-    color: colors.textWhite,
+    color: colors.text,
     fontFamily: fonts.jakarta.regular,
     lineHeight: lineHeightScale(26),
   },
@@ -690,14 +678,14 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   sectionTitle: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(14),
-    color: colors.textWhite,
+    color: colors.text,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   sectionSub: {
     fontSize: fontScale(11),
     fontFamily: fonts.jakarta.regular,
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
     marginTop: scale(3),
   },
   categorySelector: {
@@ -713,12 +701,12 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   categorySelectorLabel: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: fontScale(16),
-    color: colors.textWhite,
+    color: colors.text,
   },
   categorySelectorPrice: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(22),
-    color: colors.textWhite,
+    color: colors.text,
     letterSpacing: scale(-0.5),
   },
   categorySelectorRight: {
@@ -727,7 +715,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
     gap: scale(10),
   },
   priceChip: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: hexToRgba(colors.accent, 0.12),
     borderRadius: scale(20),
     paddingHorizontal: scale(12),
     paddingVertical: scale(5),
@@ -735,7 +723,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   priceChipText: {
     fontSize: fontScale(10),
     fontFamily: fonts.jakarta.semiBold,
-    color: colors.textWhiteMuted,
+    color: colors.textSecondary,
   },
   // Overlay et conteneur sheet
   sheetOverlay: {
@@ -756,14 +744,14 @@ textShadowColor: 'rgba(0,0,0,0.4)',
     width: scale(36),
     height: scale(4),
     borderRadius: scale(2),
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.1)',
     alignSelf: 'center',
     marginBottom: spacing.md,
   },
   sheetTitle: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(16),
-    color: '#fff',
+    color: colors.text,
     marginBottom: spacing.md,
   },
   sheetItem: {
@@ -778,19 +766,13 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   sheetItemName: {
     fontFamily: fonts.jakarta.semiBold,
     fontSize: fontScale(13),
-    color: '#fff',
-    textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    color: colors.text,
   },
   sheetItemDesc: {
     fontSize: fontScale(10),
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
     fontFamily: fonts.jakarta.regular,
     marginTop: scale(2),
-textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
   sheetItemRight: {
     alignItems: 'flex-end',
@@ -799,18 +781,12 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   sheetItemPrice: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(14),
-    color: '#fff',
-    textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    color: colors.text,
   },
   sheetItemPlaces: {
     fontSize: fontScale(9),
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.textTertiary,
     fontFamily: fonts.jakarta.regular,
-    textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
   sheetCheck: {
     width: scale(20),
@@ -825,7 +801,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   modalPhoneLabel: {
     fontFamily: fonts.jakarta.semiBold,
     fontSize: fontScale(12),
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: scale(1.5),
     marginBottom: spacing.sm,
@@ -845,20 +821,20 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   modalPhoneCode: {
     fontFamily: fonts.jakarta.semiBold,
     fontSize: fontScale(15),
-    color: colors.textWhiteMuted,
+    color: colors.textTertiary,
   },
   modalPhoneInput: {
     flex: 1,
     fontSize: fontScale(15),
     fontFamily: fonts.jakarta.semiBold,
-    color: colors.textWhite,
+    color: colors.text,
     paddingVertical: scale(10),
   },
   // Montant dans le modal de paiement
   payAmountLabel: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: fontScale(14),
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: scale(2),
     marginBottom: spacing.xs,
@@ -866,10 +842,8 @@ textShadowColor: 'rgba(0,0,0,0.4)',
   payAmountValue: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(40),
+    color: colors.text,
     letterSpacing: scale(-1.5),
-textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
   // Carte prix dans le modal paiement avec bordure teintée
   payAmountCard: {
@@ -953,7 +927,7 @@ textShadowColor: 'rgba(0,0,0,0.4)',
     width: scale(32),
     height: scale(32),
     borderRadius: scale(16),
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,

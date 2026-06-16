@@ -10,7 +10,6 @@ import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import { getCategoryImageUrl } from '../../config/images'
 import { formaterDateLisible } from '../../utils/dateUtils'
-import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
@@ -67,7 +66,6 @@ export default function GestionEvenementsScreen({ navigation }) {
 
   return (
     <View style={s.container}>
-      <OrganisateurLayout />
       <View style={{ paddingTop: insets.top, flex: 1 }}>
           <ScrollView
           contentContainerStyle={s.content}
