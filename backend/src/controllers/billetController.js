@@ -165,28 +165,7 @@ const acheter = async (req, res) => {
         transaction_ref: numero,
       });
 
-      // Envoyer les notifications (email + SMS) avant de répondre
-      // Requis pour Vercel serverless — le processus est coupé après la réponse
-      if (ticketEmail) {
-        try {
-          const { envoyerEmailBillet } = require("../services/emailService");
-          await envoyerEmailBillet(ticketEmail, {
-            uuid,
-            numero,
-            evenement: events[0].titre,
-            categorie: cat.nom,
-            prix: montantTotal,
-            dateAchat: timestamp,
-            lieu: events[0].lieu,
-            dateDebut: events[0].date_debut,
-            couleurHex: cat.couleur_hex,
-            qrPayload,
-          });
-        } catch (e) {
-          console.error("Email error:", e.message);
-        }
-      }
-
+      // Envoyer un SMS de confirmation à l'acheteur à chaque vente
       try {
         const { envoyerSMSBillet } = require("../services/smsService");
         await envoyerSMSBillet(telephone, {
@@ -198,17 +177,6 @@ const acheter = async (req, res) => {
         });
       } catch (e) {
         console.error("SMS error:", e.message);
-      }
-
-      // Envoyer une notification push à l'organisateur
-      try {
-        await envoyerNotification(events[0].organisateur_id, {
-          type: 'vente',
-          message: `Nouvelle vente : ${cat.nom} pour ${events[0].titre}`,
-          evenementId: evenementId,
-        });
-      } catch (e) {
-        console.error("Push notif error:", e.message);
       }
 
       // Lier l'acheteur au téléphone pour que la recherche par email fonctionne
@@ -419,4 +387,26 @@ body{background:#0F1A0F;min-height:100vh;display:flex;align-items:center;justify
   }
 };
 
-module.exports = { acheter, mesBillets, afficherBillet };
+// Liste tous les billets vendus pour un événement (organisateur)
+// GET /api/billets/evenement/:id
+const evenementBillets = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [rows] = await pool.query(
+      `SELECT b.id, b.uuid, b.numero, b.nom_acheteur, b.email_acheteur, b.telephone_acheteur,
+        b.prix_paye, b.statut, b.date_creation,
+        ct.nom AS categorie_nom
+      FROM billet b
+      JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+      WHERE b.evenement_id = ?
+      ORDER BY b.date_creation DESC`,
+      [id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("Evenement billets error:", err);
+    res.status(500).json({ message: "Erreur" });
+  }
+};
+
+module.exports = { acheter, mesBillets, afficherBillet, evenementBillets };

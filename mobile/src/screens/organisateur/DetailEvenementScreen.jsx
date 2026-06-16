@@ -1,10 +1,14 @@
 // Détail d'un événement (lecture seule)
 // Design glass (Apple Invites)
 import { useState, useEffect, useCallback } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert, ActivityIndicator } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Feather } from '@expo/vector-icons'
+import * as FileSystem from 'expo-file-system'
+import * as Sharing from 'expo-sharing'
 import { colors, spacing, fonts, borderRadius } from '../../constants/theme'
 import { fetchEvenementDetailAPI } from '../../services/eventService'
+import { fetchBilletsEvenementAPI } from '../../services/billetService'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import Skeleton from '../../components/Skeleton'
 import GlassContainer from '../../components/GlassContainer'
@@ -26,6 +30,7 @@ export default function DetailEvenementScreen({ route }) {
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     if (eventId) charger()
@@ -51,6 +56,34 @@ export default function DetailEvenementScreen({ route }) {
     setRefreshing(false)
   }, [eventId])
 
+  const exporterCSV = async () => {
+    setExporting(true)
+    try {
+      const billets = await fetchBilletsEvenementAPI(eventId)
+      if (billets.length === 0) {
+        Alert.alert('Aucun billet', 'Aucun billet à exporter pour cet événement')
+        return
+      }
+      const echapper = v => `"${(v || '').toString().replace(/"/g, '""')}"`
+      const lignes = [
+        ['Nom', 'Email', 'Téléphone', 'Catégorie', 'Prix (FCFA)', "Date d'achat", 'Statut'].join(','),
+        ...billets.map(b => [
+          echapper(b.nom), echapper(b.email), echapper(b.telephone),
+          echapper(b.categorie), b.prix,
+          echapper(formaterDateLisible(b.dateAchat)),
+          echapper(b.statut === 'actif' ? 'Payé' : b.statut === 'utilise' ? 'Utilisé' : b.statut),
+        ].join(',')),
+      ].join('\n')
+      const uri = FileSystem.cacheDirectory + `billets-${eventId}.csv`
+      await FileSystem.writeAsStringAsync(uri, lignes, { encoding: FileSystem.EncodingType.UTF8 })
+      await Sharing.shareAsync(uri, { mimeType: 'text/csv', dialogTitle: 'Exporter les billets' })
+    } catch (e) {
+      Alert.alert('Erreur', "Impossible d'exporter les billets")
+    } finally {
+      setExporting(false)
+    }
+  }
+
   if (loading) {
     return (
       <View style={s.container}>
@@ -75,7 +108,7 @@ export default function DetailEvenementScreen({ route }) {
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <ScrollView showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1A56DB" colors={["#1A56DB"]} />}>
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" colors={["#10B981"]} />}>
         <GlassContainer blurType="light" style={s.header} intensity={35}>
           <Text style={s.title}>{evenement.nom}</Text>
           <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
@@ -122,7 +155,22 @@ export default function DetailEvenementScreen({ route }) {
 
 
         <GlassContainer blurType="light" style={s.section} intensity={30}>
-          <Text style={s.sectionTitle}>Billets ({tickets.length})</Text>
+          <View style={s.sectionHeader}>
+            <Text style={s.sectionTitle}>Billets ({tickets.length})</Text>
+            <TouchableOpacity
+              style={s.exportBtn}
+              onPress={exporterCSV}
+              disabled={exporting}
+              activeOpacity={0.7}
+            >
+              {exporting ? (
+                <ActivityIndicator size="small" color={colors.accent} />
+              ) : (
+                <Feather name="download" size={16} color={colors.accent} />
+              )}
+              <Text style={s.exportText}>{exporting ? 'Export...' : 'CSV'}</Text>
+            </TouchableOpacity>
+          </View>
           {tickets.length === 0 ? (
             <Text style={s.empty}>Aucun billet vendu</Text>
           ) : (
@@ -167,7 +215,17 @@ const s = StyleSheet.create({
   barCount: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary },
   fillPct: { fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.text, marginTop: spacing.sm },
   section: { marginHorizontal: spacing.lg, marginBottom: spacing.lg, padding: spacing.md },
-  sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.sm },
+  sectionHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: colors.text },
+  exportBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 8, backgroundColor: 'rgba(16,185,129,0.1)',
+  },
+  exportText: { fontSize: 12, fontFamily: fonts.jakarta.semiBold, color: colors.accent },
   description: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, lineHeight: 22 },
   empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.lg },
   ticketRow: {

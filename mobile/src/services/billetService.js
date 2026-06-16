@@ -1,4 +1,24 @@
-// Service d'achat et consultation de billets côté acheteur
+// Récupère tous les billets vendus pour un événement (organisateur)
+// Appelle GET /api/billets/evenement/:id
+// Retourne un tableau de billets avec nom, email, téléphone, catégorie, prix, statut, date
+export async function fetchBilletsEvenementAPI(eventId) {
+  const data = await appelAPI(`/billets/evenement/${eventId}`)
+  if (!Array.isArray(data)) return []
+  return data.map(b => ({
+    id: String(b.id),
+    uuid: b.uuid || '',
+    numero: b.numero || '',
+    nom: b.nom_acheteur || '',
+    email: b.email_acheteur || '',
+    telephone: b.telephone_acheteur || '',
+    categorie: b.categorie_nom || '',
+    prix: b.prix_paye || 0,
+    statut: (b.statut || '').toLowerCase(),
+    dateAchat: b.date_creation || '',
+  }))
+}
+
+// Service d'achat et consultation de billets côté acheteur + organisateur
 // Communique avec le backend pour les achats et la liste des billets
 import { appelAPI } from './apiService'
 
