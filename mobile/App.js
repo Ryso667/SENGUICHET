@@ -2,7 +2,7 @@
 // Charge les polices, initialise SplashScreen, configure les notifications push
 // et rend le AuthProvider + AppNavigator
 import { useCallback, useEffect } from 'react'
-import { View, ActivityIndicator, StyleSheet } from 'react-native'
+import { View, ActivityIndicator, StyleSheet, StatusBar } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useFonts, Outfit_400Regular, Outfit_600SemiBold, Outfit_700Bold, Outfit_800ExtraBold, Outfit_900Black } from '@expo-google-fonts/outfit'
@@ -20,7 +20,7 @@ SplashScreen.preventAutoHideAsync()
 
 // Composant racine : charge les polices Google Fonts puis rend l'arbre ThemeProvider → ToastProvider → AuthProvider → AppNavigator
 function AppContent() {
-  const { colors } = useTheme()
+  const { colors, isDark } = useTheme()
   const [fontsLoaded, fontError] = useFonts({
     Outfit_400Regular,
     Outfit_600SemiBold,
@@ -87,6 +87,7 @@ function AppContent() {
 
   return (
     <GestureHandlerRootView style={styles.root}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.bg} />
       <View style={styles.root} onLayout={onLayoutRootView}>
         <SafeAreaProvider>
           <ToastProvider>
