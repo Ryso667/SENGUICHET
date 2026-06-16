@@ -323,7 +323,7 @@ export default function EventDetailScreen({ route, navigation }) {
         scrollEventThrottle={16}
       >
         {/* Hero banner — photo pleine largeur */}
-        <View style={styles.heroBanner}>
+        <View style={[styles.heroBanner, { marginTop: insets.top + 20 }]}>
           <ImageBackground
             source={event?.affiche_url ? { uri: event.affiche_url } : getDefaultImage(event?.category)}
             style={styles.heroBg}
@@ -670,7 +670,7 @@ const makeStyles = (colors) => StyleSheet.create({
   },
   floatingShare: {
     position: 'absolute',
-    right: 52,
+    right: 82,
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -681,7 +681,7 @@ const makeStyles = (colors) => StyleSheet.create({
   },
   floatingCalendar: {
     position: 'absolute',
-    right: 88,
+    right: 130,
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -697,7 +697,6 @@ const makeStyles = (colors) => StyleSheet.create({
     overflow: 'hidden',
     borderRadius: borderRadius.xl,
     marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
   },
   heroBg: {
     flex: 1,
