@@ -58,6 +58,37 @@ export function formatDateTicket(dateStr) {
   return dateStr
 }
 
+// Calcule le compte à rebours pour un événement à venir dans les 7 jours
+// Retourne "Aujourd'hui", "Demain", "Dans Xj Yh", ou null si >7j ou passé
+export function formaterCompteRebours(dateStr) {
+  if (!dateStr) return null
+  let d
+  if (dateStr.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+    d = new Date(dateStr)
+  } else if (dateStr.includes('/')) {
+    const [j, m, a] = dateStr.split('/')
+    d = new Date(parseInt(a), parseInt(m) - 1, parseInt(j))
+  } else {
+    const parts = dateStr.split(' ')
+    if (parts.length >= 3) {
+      const idx = MOIS.findIndex(m => m.toLowerCase().startsWith(parts[1].toLowerCase().substring(0, 3)))
+      d = new Date(parseInt(parts[2]), idx, parseInt(parts[0]))
+    } else {
+      return null
+    }
+  }
+  if (isNaN(d.getTime())) return null
+  const maintenant = new Date()
+  const diffMs = d.getTime() - maintenant.getTime()
+  if (diffMs < 0) return null
+  const diffJours = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  if (diffJours === 0) return "Aujourd'hui"
+  if (diffJours === 1) return "Demain"
+  if (diffJours > 7) return null
+  const diffHeures = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  return `Dans ${diffJours}j ${diffHeures}h`
+}
+
 // Formate une date ISO avec heure : jj-mm-aaaa hh:mm:ss (billet scanné)
 export function formatDatetimeLong(dateStr) {
   if (!dateStr) return ''

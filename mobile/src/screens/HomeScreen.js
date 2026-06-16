@@ -10,7 +10,7 @@ import { spacing, colors } from '../constants/theme'
 import EventCarousel from '../components/EventCarousel'
 import Skeleton from '../components/Skeleton'
 import FavoriButton from '../components/FavoriButton'
-import { formaterDateLisible } from '../utils/dateUtils'
+import { formaterDateLisible, formaterCompteRebours } from '../utils/dateUtils'
 import { formaterPourEventCard } from '../utils/eventUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
 
@@ -48,7 +48,9 @@ export default function HomeScreen({ navigation }) {
   const une = evenementsFiltres.slice(0, 5)
   const tous = evenementsFiltres.slice(5)
 
-  const renderEventCard = (item) => (
+  const renderEventCard = (item) => {
+    const compteRebours = formaterCompteRebours(item.date)
+    return (
     <TouchableOpacity
       key={item.id}
       style={styles.eventCard}
@@ -59,6 +61,12 @@ export default function HomeScreen({ navigation }) {
         <View style={[styles.eventCardImgBg, { backgroundColor: item.categoryColor || '#D1FAE5' }]}>
           <Text style={styles.eventCardEmoji}>{item.emoji || '\uD83C\uDFAB'}</Text>
         </View>
+        {compteRebours && (
+          <View style={styles.eventCardCountdown}>
+            <Feather name="clock" size={10} color="#92400E" />
+            <Text style={styles.eventCardCountdownText}>{compteRebours}</Text>
+          </View>
+        )}
         <View style={[styles.eventCardBadge, { backgroundColor: item.isPaid ? '#FFF7ED' : '#D1FAE5' }]}>
           <Text style={[styles.eventCardBadgeText, { color: item.isPaid ? '#F97316' : '#10B981' }]}>
             {item.isPaid ? item.prix + ' FCFA' : 'Gratuit'}
@@ -90,6 +98,7 @@ export default function HomeScreen({ navigation }) {
       </View>
     </TouchableOpacity>
   )
+  }
 
   return (
     <View style={styles.container}>
@@ -255,6 +264,24 @@ const styles = StyleSheet.create({
     top: 8,
     left: 10,
     zIndex: 10,
+  },
+  eventCardCountdown: {
+    position: 'absolute',
+    top: 42,
+    left: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    gap: 4,
+    zIndex: 10,
+  },
+  eventCardCountdownText: {
+    fontSize: 10,
+    fontFamily: 'PlusJakartaSans_700Bold',
+    color: '#92400E',
   },
   eventCardBody: { padding: 14 },
   eventCardTitle: { fontSize: 16, fontFamily: 'Outfit_700Bold', color: '#111827', marginBottom: 4 },

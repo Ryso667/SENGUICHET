@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from 'react'
 import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native'
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { fonts, borderRadius, animations } from '../constants/theme'
+import { fonts, borderRadius, animations, colors } from '../constants/theme'
+import { formaterCompteRebours } from '../utils/dateUtils'
 import { getDefaultImage, getCategoryImageUrl } from '../config/images'
 import useSpringAnimation from '../hooks/useSpringAnimation'
 import FavoriButton from './FavoriButton'
@@ -22,6 +23,7 @@ export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle
   const def = event.category ? getDefaultImage(event.category) : null
   const iconName = def?.icon || null
   const [imageError, setImageError] = useState(false)
+  const compteRebours = event.date ? formaterCompteRebours(event.date) : null
   // Priorité : affiche_url de l'événement → image par catégorie (Unsplash)
   const imageUrl = event.affiche_url || (event.category ? getCategoryImageUrl(event.category) : null)
 
@@ -82,6 +84,13 @@ export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle
           {event.estPasse && (
             <View style={styles.passeBadge}>
               <Text style={styles.passeText}>Passé</Text>
+            </View>
+          )}
+
+          {compteRebours && !event.estPasse && (
+            <View style={styles.countdownBadge}>
+              <Feather name="clock" size={10} color="#FCD34D" />
+              <Text style={styles.countdownText}>{compteRebours}</Text>
             </View>
           )}
 
@@ -237,6 +246,25 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  countdownBadge: {
+    position: 'absolute',
+    top: 50,
+    left: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    borderRadius: borderRadius.sm,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    gap: 4,
+    zIndex: 2,
+  },
+  countdownText: {
+    fontSize: 9,
+    fontFamily: fonts.jakarta.semiBold,
+    color: '#FCD34D',
+    letterSpacing: 0.3,
   },
   favoriBtn: {
     position: 'absolute',
