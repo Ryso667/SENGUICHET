@@ -1,11 +1,12 @@
 // Liste des tickets de l'acheteur — charge SQLite (hors-ligne) + API (synchro fond)
 // Cartes redesignées : bande latérale colorée, StatusBadge réutilisable, RefreshControl doré
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
 import { Feather, Ionicons } from '@expo/vector-icons'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, fonts, spacing } from '../constants/theme'
+import { fonts, spacing } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 
 import StatusBadge from '../components/StatusBadge'
 import Skeleton from '../components/Skeleton'
@@ -13,7 +14,7 @@ import { mesTicketsLocaux, sauvegarderTicketAcheteur } from '../database/databas
 import { useTabBarScroll } from '../context/TabBarScrollContext'
 import { mesBillets } from '../services/billetService'
 import { GET } from '../utils/secureStorage'
-import { formaterDateLisible } from '../utils/dateUtils'
+import { formaterDateLisible, estDatePassee } from '../utils/dateUtils'
 import { hapticLight } from '../utils/haptics'
 
 // Mapping des statuts tickets vers le composant StatusBadge réutilisable
@@ -24,22 +25,29 @@ const STATUS_MAP = {
   rembourse: 'ANNULE',
 }
 
-// Couleurs des bandes latérales selon le statut du ticket
-const STRIP_COLORS = {
-  actif: colors.accent,
-  en_attente: colors.orange,
-  utilise: colors.green,
-  rembourse: colors.danger,
-}
-
 export default function MesTicketsScreen() {
+  const { colors } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { scrollY: tabScrollY } = useTabBarScroll()
   const navigation = useNavigation()
   const [tickets, setTickets] = useState([])
   const [syncing, setSyncing] = useState(false)
   const [chargement, setChargement] = useState(true)
+  const [ongletActif, setOngletActif] = useState('actifs')
   const categoryForBg = tickets[0]?.categorie || null
+
+  // Couleurs des bandes latérales selon le statut du ticket
+  const STRIP_COLORS = {
+    actif: colors.accent,
+    en_attente: colors.orange,
+    utilise: colors.green,
+    rembourse: colors.danger,
+  }
+
+  const ticketsActifs = tickets.filter(t => !estDatePassee(t.eventDate))
+  const ticketsPasses = tickets.filter(t => estDatePassee(t.eventDate))
+  const ticketsAffiches = ongletActif === 'actifs' ? ticketsActifs : ticketsPasses
 
   // Charge les tickets depuis SQLite, puis synchronise avec l'API
   const loadTickets = useCallback(async () => {
@@ -113,7 +121,7 @@ export default function MesTicketsScreen() {
           ) : null}
           {/* Coin inférieur droit : icône QR code */}
           <View style={styles.bottomRow}>
-            <Ionicons name="qr-code-outline" size={22} color="rgba(0,0,0,0.15)" />
+            <Ionicons name="qr-code-outline" size={22} color={colors.textTertiary} />
           </View>
         </View>
       </TouchableOpacity>
@@ -122,7 +130,7 @@ export default function MesTicketsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.content, { paddingTop: insets.top }]}>
+          <View style={[styles.content, { paddingTop: insets.top }]}>
         {/* Header natif avec bouton retour et compteur */}
         <View style={styles.headerBar}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.7}>
@@ -131,12 +139,37 @@ export default function MesTicketsScreen() {
           <Text style={styles.headerTitle}>Mes tickets</Text>
           <View style={styles.headerRight}>
             {syncing && <ActivityIndicator size="small" color={colors.accent} />}
-            {tickets.length > 0 && (
+            {ticketsAffiches.length > 0 && (
               <View style={styles.countBadge}>
-                <Text style={styles.countText}>{tickets.length}</Text>
+                <Text style={styles.countText}>{ticketsAffiches.length}</Text>
               </View>
             )}
           </View>
+        </View>
+
+        {/* Onglets Actifs / Passés */}
+        <View style={styles.tabBar}>
+          {['actifs', 'passés'].map(tab => {
+            const isActif = ongletActif === tab
+            const count = tab === 'actifs' ? ticketsActifs.length : ticketsPasses.length
+            return (
+              <TouchableOpacity
+                key={tab}
+                style={[styles.tabBtn, isActif && styles.tabBtnActif]}
+                onPress={() => setOngletActif(tab)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.tabText, isActif && styles.tabTextActif]}>
+                  {tab === 'actifs' ? 'Actifs' : 'Passés'}
+                </Text>
+                {count > 0 && (
+                  <View style={[styles.tabCount, isActif && styles.tabCountActif]}>
+                    <Text style={[styles.tabCountText, isActif && styles.tabCountTextActif]}>{count}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )
+          })}
         </View>
 
         {chargement && tickets.length === 0 ? (
@@ -145,7 +178,7 @@ export default function MesTicketsScreen() {
           </View>
         ) : (
           <FlatList
-            data={tickets}
+            data={ticketsAffiches}
             renderItem={renderItem}
             keyExtractor={(item) => item.numero || item.uuid}
             contentContainerStyle={styles.list}
@@ -156,34 +189,40 @@ export default function MesTicketsScreen() {
               <RefreshControl
                 refreshing={syncing}
                 onRefresh={loadTickets}
-                tintColor="#1A56DB"
-                colors={["#1A56DB"]}
+                tintColor="#10B981"
+                colors={["#10B981"]}
                 progressBackgroundColor={colors.surface}
               />
             }
             onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
             scrollEventThrottle={16}
-            ListEmptyComponent={
-              !syncing ? (
-                <View style={styles.emptyContainer}>
-                  <Ionicons name="ticket-outline" size={80} color="rgba(0,0,0,0.25)" />
-                  <Text style={styles.emptyTitle}>Aucun billet pour le moment</Text>
-                  <Text style={styles.emptySubtitle}>
-                    Explore les événements et achète ton premier billet
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.emptyCta}
-                    onPress={() => {
-                      hapticLight()
-                      navigation.navigate('Home')
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.emptyCtaText}>Explorer</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : null
-            }
+              ListEmptyComponent={
+                !syncing ? (
+                  <View style={styles.emptyContainer}>
+                    <Ionicons name="ticket-outline" size={80} color={colors.textTertiary} />
+                    <Text style={styles.emptyTitle}>
+                      {ongletActif === 'actifs' ? 'Aucun billet actif' : 'Aucun billet passé'}
+                    </Text>
+                    <Text style={styles.emptySubtitle}>
+                      {ongletActif === 'actifs'
+                        ? 'Explore les événements et achète ton premier billet'
+                        : 'Tes billets utilisés ou expirés apparaîtront ici'}
+                    </Text>
+                    {ongletActif === 'actifs' && (
+                      <TouchableOpacity
+                        style={styles.emptyCta}
+                        onPress={() => {
+                          hapticLight()
+                          navigation.navigate('Home')
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.emptyCtaText}>Explorer</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                ) : null
+              }
           />
         )}
       </View>
@@ -191,7 +230,7 @@ export default function MesTicketsScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   content: { flex: 1 },
 
@@ -207,7 +246,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.04)',
+    backgroundColor: colors.bgSecondary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -224,7 +263,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   countBadge: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    backgroundColor: colors.bgSecondary,
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 9999,
@@ -233,6 +272,59 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fonts.jakarta.semiBold,
     color: colors.text,
+  },
+
+  // ONGLETS Actifs / Passés
+  tabBar: {
+    flexDirection: 'row',
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
+    backgroundColor: colors.bgSecondary,
+    borderRadius: 10,
+    padding: 3,
+  },
+  tabBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  tabBtnActif: {
+    backgroundColor: colors.surface,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  tabText: {
+    fontSize: 13,
+    fontFamily: fonts.jakarta.semiBold,
+    color: colors.textSecondary,
+  },
+  tabTextActif: {
+    color: colors.text,
+  },
+  tabCount: {
+    backgroundColor: colors.bgSecondary,
+    paddingHorizontal: 7,
+    paddingVertical: 1,
+    borderRadius: 9999,
+  },
+  tabCountActif: {
+    backgroundColor: colors.accent,
+  },
+  tabCountText: {
+    fontSize: 11,
+    fontFamily: fonts.jakarta.semiBold,
+    color: colors.textSecondary,
+  },
+  tabCountTextActif: {
+    color: colors.white,
   },
 
   // LISTE
@@ -245,7 +337,7 @@ const styles = StyleSheet.create({
   // SÉPARATEUR entre les cartes — ligne subtile
   separator: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(0,0,0,0.03)',
+    backgroundColor: colors.border,
     marginVertical: 8,
   },
 

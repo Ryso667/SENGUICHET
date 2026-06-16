@@ -1,15 +1,17 @@
 // Champ de saisie de numéro de téléphone avec formatage automatique
 // Format : +221 XX XXX XX XX (9 chiffres après l'indicatif)
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { View, TextInput, Text, StyleSheet } from 'react-native'
-import { colors } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 
 // Indicateur du Sénégal
 const INDICATIF = '+221'
 // Champ de téléphone sénégalais (+221) avec masque XX XXX XX XX et validation
 // Props : onValide (callback appelé avec le numéro à 9 chiffres, ou null si incomplet)
 export default function InputTel({ onValide }) {
+  const { colors } = useTheme()
   const [chiffres, setChiffres] = useState('')
+  const styles = useMemo(() => makeStyles(colors), [colors])
 
   // Formate les 9 chiffres en groupes : XX XXX XX XX
   // Les espaces sont insérés après les positions 2, 5 et 7
@@ -53,7 +55,7 @@ export default function InputTel({ onValide }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   conteneur: {
     flexDirection: 'row',
     alignItems: 'center',

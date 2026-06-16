@@ -1,6 +1,6 @@
 // Écran de création d'événement (organisateur) — assistant 3 étapes
 // Design glass (Apple Invites)
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import {
   View, Text, TextInput, Image, Alert, FlatList, Modal,
@@ -9,7 +9,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
-import { colors, fonts, spacing } from '../../constants/theme'
+import { fonts, spacing } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import { creerEvenementAPI } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
 import GlassContainer from '../../components/GlassContainer'
@@ -34,47 +35,49 @@ const STEPS = [
   { num: 3, label: 'Récapitulatif' },
 ]
 
-const ChampInput = ({ label, value, onChange, placeholder, multiline, keyboardType, errorKey, errors }) => (
-  <>
-    <Text style={s.label}>{label}</Text>
-    <TextInput
-      style={[s.input, multiline && s.textarea, errorKey && errors?.[errorKey] && s.inputError]}
-      value={value} onChangeText={onChange}
-      placeholder={placeholder} placeholderTextColor={colors.textTertiary}
-      multiline={multiline} numberOfLines={multiline ? 3 : 1}
-      textAlignVertical={multiline ? 'top' : undefined}
-      keyboardType={keyboardType}
-    />
-    {errorKey && errors?.[errorKey] && <Text style={s.errorText}>{errors[errorKey]}</Text>}
-  </>
-)
-
-const Stepper = ({ current }) => (
-  <View style={s.stepperRow}>
-    {STEPS.map((step, i) => {
-      const done = current > step.num
-      const active = current === step.num
-      return (
-        <View key={step.num} style={s.stepperItem}>
-          <View style={[s.stepperCircle, done && s.stepperCircleDone, active && s.stepperCircleActive]}>
-            <Text style={[s.stepperCircleText, (done || active) && s.stepperCircleTextActive]}>
-              {done ? '✓' : step.num}
-            </Text>
-          </View>
-          <Text style={[s.stepperLabel, active && s.stepperLabelActive, done && s.stepperLabelDone]} numberOfLines={1}>
-            {step.label}
-          </Text>
-          {i < STEPS.length - 1 && <View style={[s.stepperLine, done && s.stepperLineDone]} />}
-        </View>
-      )
-    })}
-  </View>
-)
-
 export default function CreerEvenementScreen({ navigation }) {
+  const { colors } = useTheme()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { user } = useAuth()
   const scrollRef = useRef(null)
+
+  const ChampInput = ({ label, value, onChange, placeholder, multiline, keyboardType, errorKey, errors: errs }) => (
+    <>
+      <Text style={s.label}>{label}</Text>
+      <TextInput
+        style={[s.input, multiline && s.textarea, errorKey && errs?.[errorKey] && s.inputError]}
+        value={value} onChangeText={onChange}
+        placeholder={placeholder} placeholderTextColor={colors.textTertiary}
+        multiline={multiline} numberOfLines={multiline ? 3 : 1}
+        textAlignVertical={multiline ? 'top' : undefined}
+        keyboardType={keyboardType}
+      />
+      {errorKey && errs?.[errorKey] && <Text style={s.errorText}>{errs[errorKey]}</Text>}
+    </>
+  )
+
+  const Stepper = ({ current }) => (
+    <View style={s.stepperRow}>
+      {STEPS.map((step, i) => {
+        const done = current > step.num
+        const active = current === step.num
+        return (
+          <View key={step.num} style={s.stepperItem}>
+            <View style={[s.stepperCircle, done && s.stepperCircleDone, active && s.stepperCircleActive]}>
+              <Text style={[s.stepperCircleText, (done || active) && s.stepperCircleTextActive]}>
+                {done ? '\u2713' : step.num}
+              </Text>
+            </View>
+            <Text style={[s.stepperLabel, active && s.stepperLabelActive, done && s.stepperLabelDone]} numberOfLines={1}>
+              {step.label}
+            </Text>
+            {i < STEPS.length - 1 && <View style={[s.stepperLine, done && s.stepperLineDone]} />}
+          </View>
+        )
+      })}
+    </View>
+  )
 
   const [step, setStep] = useState(1)
 
@@ -597,7 +600,7 @@ export default function CreerEvenementScreen({ navigation }) {
   )
 }
 
-const s = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   safe: { flex: 1 },
   flex: { flex: 1 },
   conteneur: { flexGrow: 1, paddingHorizontal: 24 },

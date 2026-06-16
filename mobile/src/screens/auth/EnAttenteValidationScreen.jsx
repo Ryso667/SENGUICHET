@@ -1,29 +1,31 @@
 // Écran de confirmation après inscription organisateur
 // Informe l'utilisateur que son compte est en cours de validation
-import { View, Text, ScrollView, StyleSheet } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, useMemo } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import GlassButton from '../../components/GlassButton'
 import GlassContainer from '../../components/GlassContainer'
-import { colors, spacing, fonts } from '../../constants/theme'
+import { spacing, fonts } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 
 
 // Composant de la barre de progression à 3 étapes
-const Stepper = ({ etapeCourante }) => {
+const Stepper = ({ etapeCourante, colors }) => {
+  const stepperS = useMemo(() => makeStepperStyles(colors), [colors])
   // Sera remplacé par API (données mockées)
   const etapes = ['Inscription', 'Validation', 'Activation']
   return (
-    <View style={stepperStyles.conteneur}>
+    <View style={stepperS.conteneur}>
       {etapes.map((label, i) => {
         const estComplete = i < etapeCourante
         const estActive = i === etapeCourante
         return (
-          <View key={label} style={stepperStyles.bloc}>
+          <View key={label} style={stepperS.bloc}>
             {/* Ligne de connexion entre les cercles */}
             {i > 0 && (
               <View
                 style={[
-                  stepperStyles.ligne,
+                  stepperS.ligne,
                   { backgroundColor: estComplete ? colors.green : 'rgba(0,0,0,0.1)' },
                 ]}
               />
@@ -31,15 +33,15 @@ const Stepper = ({ etapeCourante }) => {
             {/* Cercle de l'étape */}
             <View
               style={[
-                stepperStyles.cercle,
-                estComplete && stepperStyles.cercleComplete,
-                estActive && stepperStyles.cercleActive,
+                stepperS.cercle,
+                estComplete && stepperS.cercleComplete,
+                estActive && stepperS.cercleActive,
               ]}
             >
               <Text
                 style={[
-                  stepperStyles.cercleTexte,
-                  (estComplete || estActive) && stepperStyles.cercleTexteClair,
+                  stepperS.cercleTexte,
+                  (estComplete || estActive) && stepperS.cercleTexteClair,
                 ]}
               >
                 {estComplete ? '✓' : i + 1}
@@ -48,8 +50,8 @@ const Stepper = ({ etapeCourante }) => {
             {/* Label sous le cercle */}
             <Text
               style={[
-                stepperStyles.label,
-                (estComplete || estActive) && stepperStyles.labelForte,
+                stepperS.label,
+                (estComplete || estActive) && stepperS.labelForte,
               ]}
             >
               {label}
@@ -62,7 +64,7 @@ const Stepper = ({ etapeCourante }) => {
 }
 
 // Styles du stepper
-const stepperStyles = StyleSheet.create({
+const makeStepperStyles = (colors) => StyleSheet.create({
   conteneur: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -118,35 +120,37 @@ const stepperStyles = StyleSheet.create({
 })
 
 export default function EnAttenteValidationScreen({ navigation }) {
+  const { colors } = useTheme()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScrollView
-        contentContainerStyle={[styles.conteneur, { paddingTop: insets.top }]}
+        contentContainerStyle={[s.conteneur, { paddingTop: insets.top }]}
         keyboardShouldPersistTaps="handled"
       >
         {/* Icône de confirmation */}
         <MaterialCommunityIcons name="check-circle" size={64} color={colors.green} />
 
         {/* Titre et sous-titre */}
-        <Text style={styles.titre}>Inscription envoyée !</Text>
-        <Text style={styles.sousTitre}>
+        <Text style={s.titre}>Inscription envoyée !</Text>
+        <Text style={s.sousTitre}>
           Ton compte est en cours de vérification
         </Text>
 
         {/* Barre de progression des étapes */}
-        <Stepper etapeCourante={1} />
+        <Stepper etapeCourante={1} colors={colors} />
 
         {/* Carte d'information verre dépoli */}
-        <GlassContainer style={styles.carte}>
-          <Text style={styles.carteTexte}>
+        <GlassContainer style={s.carte}>
+          <Text style={s.carteTexte}>
             Un administrateur va valider ton compte sous 24 à 48 heures.
           </Text>
-          <Text style={styles.carteTexte}>
+          <Text style={s.carteTexte}>
             Tu recevras un email de confirmation dès que ton compte sera activé.
           </Text>
-          <Text style={styles.carteTexte}>
+          <Text style={s.carteTexte}>
             Tu pourras ensuite te connecter avec ton email et mot de passe.
           </Text>
         </GlassContainer>
@@ -161,7 +165,7 @@ export default function EnAttenteValidationScreen({ navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   conteneur: {
     flexGrow: 1,
     paddingHorizontal: 24,

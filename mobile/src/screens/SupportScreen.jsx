@@ -1,13 +1,17 @@
 // Écran Support
 // Contacts pour contacter l'assistance
+import { useMemo } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Linking, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { fonts, spacing, glass, colors } from '../constants/theme'
+import { fonts, spacing, glass } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
 
 export default function SupportScreen() {
+  const { colors } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
 
   const handleWhatsApp = () => { Linking.openURL('https://wa.me/xxx') }
@@ -45,7 +49,7 @@ export default function SupportScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   scroll: { flex: 1 },
   scrollContent: { padding: spacing.lg, paddingBottom: spacing.xl, gap: spacing.md },

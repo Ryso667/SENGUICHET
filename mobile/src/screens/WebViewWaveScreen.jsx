@@ -2,12 +2,13 @@
 // Ouvre wave_launch_url dans une WebView intégrée
 // Périodiquement vérifie le statut du paiement via l'API
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native'
 import { WebView } from 'react-native-webview'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { fonts, colors, gradients, spacing, borderRadius } from '../constants/theme'
+import { fonts, gradients, spacing, borderRadius } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import { statutPaiement } from '../services/paiementService'
 import { sauvegarderTicketAcheteur } from '../database/database'
 
@@ -15,6 +16,8 @@ const POLL_INTERVAL = 3000 // 3 secondes entre chaque vérification
 const MAX_POLLS = 60 // 3 minutes maximum
 
 export default function WebViewWaveScreen({ route, navigation }) {
+  const { colors } = useTheme()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const { redirectUrl, transactionReference, eventId, ticket } = route.params
   const [statut, setStatut] = useState('PENDING') // PENDING | SUCCESS | FAILED
   const [erreur, setErreur] = useState('')
@@ -134,7 +137,7 @@ export default function WebViewWaveScreen({ route, navigation }) {
   )
 }
 
-const s = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: {
     flexDirection: 'row',
@@ -142,7 +145,7 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
@@ -152,7 +155,7 @@ const s = StyleSheet.create({
     borderRadius: borderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.bg,
+    backgroundColor: colors.bgSecondary,
   },
   headerTitle: {
     fontFamily: fonts.outfit.semiBold,

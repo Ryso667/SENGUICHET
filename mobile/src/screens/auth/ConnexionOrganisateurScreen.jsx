@@ -1,6 +1,6 @@
 // Écran de connexion organisateur (email + mot de passe)
 // Vérification via le backend — partagé avec le frontend-web
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, ActivityIndicator,
   KeyboardAvoidingView, Platform, ScrollView, Animated, StyleSheet,
@@ -11,10 +11,13 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { hapticMedium, hapticError } from '../../utils/haptics'
 import GlassButton from '../../components/GlassButton'
-import { colors, spacing } from '../../constants/theme'
+import { spacing } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import GlassContainer from '../../components/GlassContainer'
 
 export default function ConnexionOrganisateurScreen({ navigation }) {
+  const { colors } = useTheme()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const [email, setEmail] = useState('')
   const [mdp, setMdp] = useState('')
   const [chargement, setChargement] = useState(false)
@@ -68,23 +71,23 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <KeyboardAvoidingView
-        style={styles.flex}
+        style={s.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={[styles.conteneur, { paddingTop: insets.top + spacing.lg }]}
+          contentContainerStyle={[s.conteneur, { paddingTop: insets.top + spacing.lg }]}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.titre}>Espace organisateur</Text>
-          <Text style={styles.sousTitre}>
+          <Text style={s.titre}>Espace organisateur</Text>
+          <Text style={s.sousTitre}>
             Connectez-vous pour gérer vos événements
           </Text>
 
           {/* Champ email */}
-          <Text style={styles.label}>Email</Text>
-          <GlassContainer style={styles.inputWrap}>
+          <Text style={s.label}>Email</Text>
+          <GlassContainer style={s.inputWrap}>
             <TextInput
-              style={styles.input}
+              style={s.input}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -95,10 +98,10 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
           </GlassContainer>
 
           {/* Champ mot de passe */}
-          <Text style={styles.label}>Mot de passe</Text>
-          <GlassContainer style={styles.inputWrap}>
+          <Text style={s.label}>Mot de passe</Text>
+          <GlassContainer style={s.inputWrap}>
             <TextInput
-              style={styles.input}
+              style={s.input}
               value={mdp}
               onChangeText={setMdp}
               secureTextEntry
@@ -109,11 +112,11 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
 
           <View style={{ height: 24 }} />
           {erreurValidation ? (
-            <Text style={styles.erreurText}>{erreurValidation}</Text>
+            <Text style={s.erreurText}>{erreurValidation}</Text>
           ) : null}
           <Animated.View style={{ transform: [{ translateX: shakeAnim }] }}>
             {chargement ? (
-              <View style={styles.glassLoadingBtn}>
+              <View style={s.glassLoadingBtn}>
                 <ActivityIndicator size="small" color="#fff" />
               </View>
             ) : (
@@ -126,8 +129,8 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
           </Animated.View>
 
           {/* Lien vers l'inscription organisateur */}
-          <View style={styles.inscriptionRow}>
-            <Text style={styles.inscriptionText}>Pas encore de compte ?{' '}</Text>
+          <View style={s.inscriptionRow}>
+            <Text style={s.inscriptionText}>Pas encore de compte ?{' '}</Text>
             <GlassButton
               title="S'inscrire"
               variant="ghost"
@@ -140,7 +143,7 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   flex: {
     flex: 1,
   },

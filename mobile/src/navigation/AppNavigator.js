@@ -3,12 +3,13 @@
 // Organisateur   : Drawer hamburger (Dashboard, Événements, ...)
 // Contrôleur     : Drawer hamburger (Scanner, Historique, ...)
 import { View, ActivityIndicator, StyleSheet } from 'react-native'
-import { Feather } from '@expo/vector-icons'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { useAuth } from '../context/AuthContext'
-import { colors, fonts } from '../constants/theme'
+import { fonts } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import { TabBarScrollProvider } from '../context/TabBarScrollContext'
 
 import HomeScreen from '../screens/HomeScreen'
@@ -26,6 +27,8 @@ import TicketScreen from '../screens/TicketScreen'
 import SupportScreen from '../screens/SupportScreen'
 import WebViewWaveScreen from '../screens/WebViewWaveScreen'
 import NotificationsScreen from '../screens/NotificationsScreen'
+import MesFavorisScreen from '../screens/MesFavorisScreen'
+import CalendarScreen from '../screens/CalendarScreen'
 
 import OrganizerDrawer from './OrganizerDrawer'
 import ControllerDrawer from './ControllerDrawer'
@@ -34,6 +37,7 @@ const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
 
 function MainTabs() {
+  const { colors } = useTheme()
   return (
     <TabBarScrollProvider>
     <Tab.Navigator
@@ -82,7 +86,7 @@ function MainTabs() {
         component={MesTicketsScreen}
         options={{
           tabBarLabel: 'Mes billets',
-          tabBarIcon: ({ color }) => <Feather name="ticket" size={20} color={color} />,
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="ticket-outline" size={21} color={color} />,
         }}
       />
       <Tab.Screen
@@ -100,16 +104,16 @@ function MainTabs() {
 
 const navigationRef = createNavigationContainerRef()
 
-const headerStyle = {
-  headerShown: true,
-  headerStyle: { backgroundColor: colors.surface },
-  headerTitleStyle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text },
-  headerTintColor: colors.accent,
-  headerBackTitle: 'Retour',
-}
-const header = (titre) => ({ ...headerStyle, headerTitle: titre })
-
 function GuestNavigator() {
+  const { colors } = useTheme()
+  const headerStyle = {
+    headerShown: true,
+    headerStyle: { backgroundColor: colors.surface },
+    headerTitleStyle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text },
+    headerTintColor: colors.accent,
+    headerBackTitle: 'Retour',
+  }
+  const header = (titre) => ({ ...headerStyle, headerTitle: titre })
   return (
     <Stack.Navigator screenOptions={{
       headerShown: false,
@@ -128,17 +132,20 @@ function GuestNavigator() {
       <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Support" component={SupportScreen} options={header('Support')} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={header('Notifications')} />
+      <Stack.Screen name="MesFavoris" component={MesFavorisScreen} options={header('Mes favoris')} />
+      <Stack.Screen name="Calendar" component={CalendarScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   )
 }
 
 
 export default function AppNavigator() {
+  const { colors } = useTheme()
   const { role, chargement } = useAuth()
 
   if (chargement) {
     return (
-      <View style={styles.chargement}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg }}>
         <ActivityIndicator size="large" color={colors.accent} />
       </View>
     )
@@ -155,18 +162,11 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer ref={navigationRef}>
-      {!role && <GuestNavigator />}
+      {(!role || role === 'acheteur') && <GuestNavigator />}
       {role === 'organisateur' && <OrganizerDrawer />}
       {role === 'controleur' && <ControllerDrawer />}
     </NavigationContainer>
   )
 }
 
-const styles = StyleSheet.create({
-  chargement: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.bg,
-  },
-})
+

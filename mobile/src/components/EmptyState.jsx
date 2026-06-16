@@ -1,13 +1,16 @@
 // Écran vide lorsque aucune donnée n'est disponible
 // Affiche une icône, un titre, un sous-titre optionnel et un bouton d'action
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import { Animated, Text, TouchableOpacity, View, StyleSheet } from 'react-native'
-import { colors, fonts, spacing } from '../constants/theme'
+import { fonts, spacing } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 
 // État vide avec animation de fondu au montage
 // Props : icon (string emoji ou élément React), title (string), subtitle (string, optionnel),
 //         actionLabel (string, optionnel), onAction (function, optionnel)
 export default function EmptyState({ icon, title, subtitle, actionLabel, onAction }) {
+  const { colors } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
   const opacity = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
@@ -36,7 +39,7 @@ export default function EmptyState({ icon, title, subtitle, actionLabel, onActio
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',

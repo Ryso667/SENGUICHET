@@ -3,10 +3,11 @@
 // Le dégradé s'affiche immédiatement, l'image se superpose en fondu dès qu'elle est chargée
 // Les URLs Cloudinary sont optimisées (w_1080,q_auto,f_webp) pour un chargement rapide
 // Props : category, intensityOverlay, showImage, afficheUrl
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import { View, Animated, Image, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { categoryGradients, colors } from '../constants/theme'
+import { categoryGradients } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import { getCategoryImageUrl } from '../config/images'
 
 // Optimise les URLs Cloudinary pour un chargement plus rapide
@@ -16,6 +17,8 @@ export function optimiserUrlCloudinary(url) {
 }
 
 export default function BlurBackground({ category, intensityOverlay = true, showImage = true, afficheUrl, parallaxOffset, gradientOverride }) {
+  const { colors } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
   const gradient = gradientOverride || categoryGradients[category] || categoryGradients.default
   // Priorité : afficheUrl de l'événement → image par catégorie (Unsplash)
   const imageUrl = showImage ? (afficheUrl || (category ? getCategoryImageUrl(category) : null)) : null
@@ -72,7 +75,7 @@ export default function BlurBackground({ category, intensityOverlay = true, show
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   baseBg: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.bg,

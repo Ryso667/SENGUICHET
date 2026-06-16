@@ -1,18 +1,18 @@
 // Thème clair SENGUICHET
-export const colors = {
+export const lightColors = {
   bg: '#FFFFFF',
   bgSecondary: '#F9FAFB',
   surface: '#FFFFFF',
   border: '#E5E7EB',
-  primary: '#1A56DB',
-  primaryLight: '#EFF6FF',
+  primary: '#10B981',
+  primaryLight: '#D1FAE5',
   white: '#FFFFFF',
   text: '#111827',
   textSecondary: '#6B7280',
   textTertiary: '#9CA3AF',
-  accent: '#1A56DB',
-  accentLight: '#EFF6FF',
-  green: '#10B981',
+  accent: '#10B981',
+  accentLight: '#D1FAE5',
+  green: '#047857',
   greenLight: '#D1FAE5',
   red: '#EF4444',
   violet: '#7C3AED',
@@ -24,17 +24,58 @@ export const colors = {
   glassDark: 'rgba(0,0,0,0.04)',
   inputBg: '#F3F4F6',
   inputBorder: 'transparent',
-  inputBorderFocus: '#1A56DB',
+  inputBorderFocus: '#10B981',
   slate: '#1E293B',
   mid: '#6B7280',
   muted: '#9CA3AF',
   placeholder: '#9CA3AF',
   navInactive: '#9CA3AF',
-  navActive: '#1A56DB',
+  navActive: '#10B981',
   danger: '#EF4444',
   warning: '#F59E0B',
   success: '#10B981',
 }
+
+// Palette sombre SENGUICHET
+export const darkColors = {
+  bg: '#0F172A',
+  bgSecondary: '#1E293B',
+  surface: '#1E293B',
+  border: '#334155',
+  primary: '#34D399',
+  primaryLight: '#064E3B',
+  white: '#FFFFFF',
+  text: '#F1F5F9',
+  textSecondary: '#94A3B8',
+  textTertiary: '#64748B',
+  accent: '#34D399',
+  accentLight: '#064E3B',
+  green: '#34D399',
+  greenLight: '#064E3B',
+  red: '#F87171',
+  violet: '#A78BFA',
+  orange: '#FB923C',
+  orangeLight: '#431407',
+  cyan: '#22D3EE',
+  glassWhite: 'rgba(30,41,59,0.8)',
+  glassBorder: 'rgba(255,255,255,0.06)',
+  glassDark: 'rgba(255,255,255,0.04)',
+  inputBg: '#1E293B',
+  inputBorder: 'transparent',
+  inputBorderFocus: '#34D399',
+  slate: '#F1F5F9',
+  mid: '#94A3B8',
+  muted: '#64748B',
+  placeholder: '#64748B',
+  navInactive: '#64748B',
+  navActive: '#34D399',
+  danger: '#F87171',
+  warning: '#FBBF24',
+  success: '#34D399',
+}
+
+// Garde un export colors par défaut pour backward compat
+export const colors = lightColors
 
 // === GLASS (verre dépoli) ===
 export const glass = {
@@ -50,8 +91,8 @@ export const glass = {
 }
 
 export const gradients = {
-  primary: ['#1A56DB', '#2563EB'],
-  organisateur: ['#1A56DB', '#2563EB'],
+  primary: ['#10B981', '#059669'],
+  organisateur: ['#10B981', '#059669'],
   success: ['#10B981', '#059669'],
   error: ['#EF4444', '#DC2626'],
 }

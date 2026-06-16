@@ -1,18 +1,21 @@
 // Écran détail d'un événement avec sélection de catégorie et paiement
 // Design clair : photo large en haut, cartes blanches avec ombre en dessous
 // Conserve le flux de paiement Wave/Orange Money existant
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import {
   View, Text,
   TouchableOpacity, StyleSheet, Alert, Modal,
   Platform, Image, ImageBackground, KeyboardAvoidingView,
-  Animated, ActivityIndicator, Easing, TextInput,
+  Animated, ActivityIndicator, Easing, TextInput, Share,
   useWindowDimensions,
 } from 'react-native'
-import { Feather } from '@expo/vector-icons'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
+import * as Calendar from 'expo-calendar'
+import * as Notifications from 'expo-notifications'
 import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
-import { colors, fonts, spacing, glass, borderRadius } from '../constants/theme'
+import { fonts, spacing, glass, borderRadius } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import { scale, fontScale, lineHeightScale, isPad } from '../utils/responsive'
 import GlassContainer from '../components/GlassContainer'
 import GlassButton from '../components/GlassButton'
@@ -24,12 +27,15 @@ import { formaterDateLisible } from '../utils/dateUtils'
 import { useAuth } from '../context/AuthContext'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { hexToRgba } from '../utils/colors'
+import FavoriButton from '../components/FavoriButton'
 
 export default function EventDetailScreen({ route, navigation }) {
+  const { colors } = useTheme()
   const { eventId } = route.params
   const { definirTelephone, numeroTel, email } = useAuth()
   const insets = useSafeAreaInsets()
   const { height: screenHeight } = useWindowDimensions()
+  const styles = useMemo(() => makeStyles(colors), [colors])
 
   // Éclaircit une couleur hex (#RRGGBB) — factor 0 = original, 1 = blanc
   const lightenColor = (hex, factor) => {
@@ -49,6 +55,55 @@ export default function EventDetailScreen({ route, navigation }) {
   const [retryCount, setRetryCount] = useState(0)
   const [telephone, setTelephone] = useState(numeroTel || '')
 
+  // Partage de l'événement via l'API Share native
+  const partagerEvenement = () => {
+    const message = `🎫 ${event?.title || 'Événement'}${event?.date ? ` — ${formaterDateLisible(event.date)}` : ''}${event?.lieu ? ` à ${event.lieu}` : ''}\n\nDécouvre-le sur SENGUICHET !`
+    Share.share({ message, title: event?.title || 'Événement SENGUICHET' })
+  }
+
+  // Ajoute l'événement au calendrier natif iOS/Android via expo-calendar
+  const ajouterAuCalendrier = async () => {
+    const { status } = await Calendar.requestCalendarPermissionsAsync()
+    if (status !== 'granted') {
+      Alert.alert('Permission refusée', 'Autorise l\'accès au calendrier dans les réglages')
+      return
+    }
+
+    const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT)
+    let calendarId = calendars.length > 0 ? calendars[0].id : null
+
+    if (!calendarId) {
+      const defaultCalendarSource =
+        Platform.OS === 'ios'
+          ? { type: 'default', isLocal: true }
+          : { isLocalAccount: true, name: 'SENGUICHET' }
+      calendarId = await Calendar.createCalendarAsync({
+        title: 'SENGUICHET',
+        color: '#5C6BC0',
+        entityType: Calendar.EntityTypes.EVENT,
+        source: defaultCalendarSource,
+        name: 'senguichet',
+        ownerAccount: 'senguichet',
+        accessLevel: Calendar.CalendarAccessLevel.OWNER,
+      }).catch(() => null)
+    }
+
+    if (!calendarId) return
+
+    const debut = new Date(event.date)
+    const fin = new Date(debut.getTime() + 2 * 60 * 60 * 1000)
+
+    await Calendar.createEventAsync(calendarId, {
+      title: event.title || 'Événement SENGUICHET',
+      startDate: debut,
+      endDate: fin,
+      location: event.lieu || '',
+      notes: event.desc || '',
+    })
+
+    Alert.alert('Succès', 'Événement ajouté à votre calendrier')
+  }
+
   // Formate le numéro en groupes XX XXX XX XX, limité à 9 chiffres
   const formaterTel = (texte) => {
     const chiffres = texte.replace(/\D/g, '').slice(0, 9)
@@ -66,7 +121,6 @@ export default function EventDetailScreen({ route, navigation }) {
   const [selectedProvider, setSelectedProvider] = useState('WAVE')
   const spinAnim = useRef(new Animated.Value(0)).current
   const scaleAnim = useRef(new Animated.Value(0)).current
-  const scrollY = useRef(new Animated.Value(0)).current
   const heroFade = useRef(new Animated.Value(0)).current
   const dateParts = event?.date ? formaterDateLisible(event.date).split(' ') : null
   const dayNumber = dateParts?.[0]
@@ -157,6 +211,24 @@ export default function EventDetailScreen({ route, navigation }) {
       }
       await sauvegarderTicketAcheteur(ticketData)
 
+      // Planifie un rappel local J-1 avant l'événement
+      try {
+        const eventDate = new Date(event.date)
+        const rappelDate = new Date(eventDate.getTime() - 24 * 60 * 60 * 1000)
+        if (rappelDate > new Date()) {
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: 'Rappel SENGUICHET',
+              body: `🎫 ${event.title} commence demain !`,
+              data: { eventId: event.id },
+            },
+            trigger: { date: rappelDate },
+          })
+        }
+      } catch {
+        // Silencieux — le rappel n'est pas bloquant
+      }
+
       // Redirection vers WebView de paiement ou succès direct
       if (resultat.paiement?.redirectUrl) {
         setShowPaymentSheet(false)
@@ -215,44 +287,65 @@ export default function EventDetailScreen({ route, navigation }) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Bouton retour flottant — visible sur l'image */}
+      {/* Bouton retour flottant — gauche */}
       <TouchableOpacity style={[styles.floatingBack, { top: insets.top + 8 }]} onPress={() => navigation.goBack()}>
         <Feather name="arrow-left" size={20} color={colors.text} />
       </TouchableOpacity>
+
+      {/* Groupe d'actions flottant — cœur, partage, calendrier */}
+      <View style={[styles.actionPill, { top: insets.top + 8 }]}>
+        <FavoriButton
+          eventId={event?.id}
+          eventData={{
+            title: event?.title,
+            date: event?.date,
+            location: event?.lieu,
+            category: event?.category,
+            affiche_url: event?.affiche_url,
+          }}
+          size={20}
+          inactiveColor={colors.textSecondary}
+          style={styles.pillButton}
+        />
+        <View style={[styles.pillDivider, { backgroundColor: colors.border }]} />
+        <TouchableOpacity style={styles.pillButton} onPress={partagerEvenement}>
+          <Feather name="share-2" size={18} color={colors.text} />
+        </TouchableOpacity>
+        <View style={[styles.pillDivider, { backgroundColor: colors.border }]} />
+        <TouchableOpacity style={styles.pillButton} onPress={ajouterAuCalendrier}>
+          <MaterialCommunityIcons name="calendar-plus" size={18} color={colors.text} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Hero banner — fixe en haut (ne défile pas) */}
+      <View style={[styles.heroBanner, { marginTop: insets.top + 12 }]}>
+        <ImageBackground
+          source={event?.affiche_url ? { uri: event.affiche_url } : getDefaultImage(event?.category)}
+          style={styles.heroBg}
+          resizeMode="cover"
+        >
+          <LinearGradient
+            colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.65)']}
+            style={styles.heroGradient}
+          />
+          <Animated.View style={[styles.heroContent, {
+            paddingTop: insets.top + 60,
+            opacity: heroFade,
+            transform: [{ translateY: heroFade.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
+          }]}>
+            <Text style={styles.heroCategory}>{event.category || 'ÉVÉNEMENT'}</Text>
+            <Text style={styles.heroTitle}>{event.title}</Text>
+            <View style={[styles.heroDivider, { backgroundColor: colors.accent }]} />
+          </Animated.View>
+        </ImageBackground>
+      </View>
 
       <Animated.ScrollView
         style={styles.flex}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
-        )}
-        scrollEventThrottle={16}
       >
-        {/* Hero banner — photo pleine largeur */}
-        <View style={styles.heroBanner}>
-          <ImageBackground
-            source={event?.affiche_url ? { uri: event.affiche_url } : getDefaultImage(event?.category)}
-            style={styles.heroBg}
-            resizeMode="cover"
-          >
-            <LinearGradient
-              colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.65)']}
-              style={styles.heroGradient}
-            />
-            <Animated.View style={[styles.heroContent, {
-              paddingTop: insets.top + 60,
-              opacity: heroFade,
-              transform: [{ translateY: heroFade.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
-            }]}>
-              <Text style={styles.heroCategory}>{event.category || 'ÉVÉNEMENT'}</Text>
-              <Text style={styles.heroTitle}>{event.title}</Text>
-              <View style={[styles.heroDivider, { backgroundColor: colors.accent }]} />
-            </Animated.View>
-          </ImageBackground>
-        </View>
 
         {/* Cartes info — fond blanc avec ombre portée */}
         <View style={styles.infoCards}>
@@ -530,13 +623,14 @@ export default function EventDetailScreen({ route, navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bg,
   },
   flex: { flex: 1 },
   scrollContent: {
+    paddingTop: spacing.sm,
     paddingHorizontal: spacing.lg,
     paddingBottom: scale(120),
   },
@@ -570,7 +664,34 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+  },
+  actionPill: {
+    position: 'absolute',
+    right: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+    paddingHorizontal: 4,
+    zIndex: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  pillButton: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pillDivider: {
+    width: 1,
+    height: 22,
   },
   // Hero banner — photo pleine largeur
   heroBanner: {
@@ -579,7 +700,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: borderRadius.xl,
     marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
   },
   heroBg: {
     flex: 1,
@@ -884,39 +1004,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
   },
-  // Barre d'achat en bas — effet glass premium
+  // Barre d'achat en bas — compacte avec CTA fort
   bottomBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: spacing.lg,
-    paddingBottom: Platform.OS === 'ios' ? 34 : spacing.lg,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: Platform.OS === 'ios' ? 34 : spacing.md,
     backgroundColor: glass.darkBgHeavy,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: glass.border,
-    gap: scale(16),
+    gap: scale(12),
   },
   bottomBarTotal: {
-    gap: 4,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
+    gap: 2,
   },
   bottomBarTotalLabel: {
-    fontSize: fontScale(10),
+    fontSize: fontScale(9),
     fontFamily: fonts.jakarta.regular,
-    color: 'rgba(255,255,255,0.4)',
+    color: 'rgba(255,255,255,0.35)',
     textTransform: 'uppercase',
-    letterSpacing: scale(1.5),
+    letterSpacing: scale(1.2),
   },
   bottomBarTotalPrice: {
-    fontSize: fontScale(28),
+    fontSize: fontScale(22),
     fontFamily: fonts.outfit.extraBold,
     color: '#fff',
-    letterSpacing: scale(-0.5),
+    letterSpacing: scale(-0.3),
   },
   buyBtnWrap: {
     flex: 1,
-    borderRadius: scale(16),
+    borderRadius: scale(14),
     overflow: 'hidden',
   },
   buyBtnDisabled: {
@@ -926,14 +1045,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: scale(10),
-    paddingVertical: scale(20),
+    gap: scale(8),
+    paddingVertical: scale(14),
   },
   buyBtnText: {
-    fontSize: fontScale(18),
+    fontSize: fontScale(16),
     fontFamily: fonts.outfit.bold,
     color: '#fff',
-    letterSpacing: scale(-0.2),
+    letterSpacing: scale(-0.1),
   },
   // Modal paiement
   paySheetOverlay: {

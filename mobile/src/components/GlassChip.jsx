@@ -1,8 +1,10 @@
 // Petit badge/filtre glass pressable pour les catégories et les tags
 // Props : label, icon, active, onPress, style
+import { useMemo } from 'react'
 import { TouchableOpacity, Text, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { colors, fonts, borderRadius, spacing } from '../constants/theme'
+import { fonts, borderRadius, spacing } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 
 // Chips indigo avec icône et texte
 // active : booléen, surbrillance quand actif
@@ -10,6 +12,9 @@ import { colors, fonts, borderRadius, spacing } from '../constants/theme'
 // icon : nom d'icône Feather (optionnel)
 // onPress : fonction callback
 export default function GlassChip({ label, icon, active, onPress, style }) {
+  const { colors } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
+
   return (
     <TouchableOpacity
       style={[styles.chip, active && styles.active, style]}
@@ -22,7 +27,7 @@ export default function GlassChip({ label, icon, active, onPress, style }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',

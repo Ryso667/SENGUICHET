@@ -1,7 +1,7 @@
 // Écran de connexion contrôleur
 // Saisie d'un code d'accès à 4 chiffres (généré par l'organisateur)
 // Déverrouille le mode scan une fois le code validé
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   View, Text, ScrollView, ActivityIndicator,
   KeyboardAvoidingView, Platform, StyleSheet,
@@ -13,9 +13,12 @@ import { hapticLight } from '../../utils/haptics'
 import InputOTP from '../../components/InputOTP'
 import GlassButton from '../../components/GlassButton'
 import { useAuth } from '../../context/AuthContext'
-import { colors, spacing } from '../../constants/theme'
+import { spacing } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 
 export default function ConnexionControleurScreen({ navigation }) {
+  const { colors } = useTheme()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const { connecterControleur } = useAuth()
   const toast = useToast()
   const [codeAcces, setCodeAcces] = useState('')
@@ -49,25 +52,25 @@ export default function ConnexionControleurScreen({ navigation }) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <KeyboardAvoidingView
-        style={styles.flex}
+        style={s.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={[styles.conteneur, { paddingTop: insets.top + spacing.lg }]}
+          contentContainerStyle={[s.conteneur, { paddingTop: insets.top + spacing.lg }]}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.titre}>Accès Contrôleur</Text>
-          <Text style={styles.sousTitre}>
+          <Text style={s.titre}>Accès Contrôleur</Text>
+          <Text style={s.sousTitre}>
             Saisissez votre code d'accès à 4 chiffres
           </Text>
 
           {/* Champ 4 chiffres (réutilise InputOTP avec longueur réduite) */}
           <InputOTP longueur={4} onComplet={handleCodeComplet} />
 
-          <View style={styles.espace} />
+          <View style={s.espace} />
 
           {chargement ? (
-            <View style={styles.glassLoadingBtn}>
+            <View style={s.glassLoadingBtn}>
               <ActivityIndicator size="small" color="#fff" />
             </View>
           ) : (
@@ -83,7 +86,7 @@ export default function ConnexionControleurScreen({ navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   flex: {
     flex: 1,
   },

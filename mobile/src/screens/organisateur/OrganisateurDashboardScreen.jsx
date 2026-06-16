@@ -1,10 +1,11 @@
 // Tableau de bord organisateur (calqué sur l'app web)
 // Design glass (Apple Invites) — fond dégradé, conteneurs verre dépoli
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native'
-import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, fonts, categoryGradients, spacing } from '../../constants/theme'
+import { fonts, categoryGradients, spacing } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
@@ -15,15 +16,18 @@ import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 import { hexToRgba } from '../../utils/colors'
 
-const STATUT_CONFIG = {
+const getStatutConfig = (colors) => ({
   actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
   en_attente: { label: 'En attente', color: '#FFA726', bg: 'rgba(255,167,38,0.2)' },
   refuse: { label: 'Refusé', color: '#FF4D6D', bg: 'rgba(255,77,109,0.2)' },
   termine: { label: 'Terminé',     color: '#B0B0B8', bg: 'rgba(176,176,184,0.2)' },
   annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
-}
+})
 
 export default function OrganisateurDashboardScreen({ navigation }) {
+  const { colors } = useTheme()
+  const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
+  const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { scrollY: tabScrollY } = useTabBarScroll()
   const { user } = useAuth()
@@ -96,7 +100,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
     <View style={[s.container, { paddingTop: insets.top }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1A56DB" colors={["#1A56DB"]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" colors={["#10B981"]} />}
         onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
         scrollEventThrottle={16}
       >
@@ -134,13 +138,40 @@ export default function OrganisateurDashboardScreen({ navigation }) {
               ))}
             </View>
 
+            {/* Navigation rapide — remplace l'ancien drawer */}
+            <GlassContainer style={s.navSection}>
+              <Text style={s.navTitle}>Navigation rapide</Text>
+              <View style={s.navGrid}>
+                {[
+                  { icon: 'calendar-month', label: 'Événements', route: 'Evenements', color: colors.primary },
+                  { icon: 'chart-bar', label: 'Statistiques', route: 'Statistiques', color: colors.cyan },
+                  { icon: 'file-document-outline', label: 'Demandes', route: 'Demandes', color: colors.orange },
+                  { icon: 'bell-outline', label: 'Notifications', route: 'Notifications', color: colors.red },
+                  { icon: 'headphones', label: 'Support', route: 'Support', color: colors.green },
+                  { icon: 'cog-outline', label: 'Paramètres', route: 'Parametres', color: colors.violet },
+                ].map((item) => (
+                  <TouchableOpacity
+                    key={item.route}
+                    style={s.navItem}
+                    onPress={() => navigation.navigate(item.route)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[s.navIcon, { backgroundColor: hexToRgba(item.color, 0.15) }]}>
+                      <MaterialCommunityIcons name={item.icon} size={22} color={item.color} />
+                    </View>
+                    <Text style={s.navLabel}>{item.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </GlassContainer>
+
             {/* Section événements récents — calquée sur le web */}
             <Animated.View style={{ opacity: fadeAnims[4], transform: [{ translateY: slideAnims[4] }] }}>
             <GlassContainer style={s.recentSection}>
               <View style={s.recentHeader}>
                 <Text style={s.recentTitle}>Mes événements récents</Text>
                 {events.length > 3 && (
-                  <TouchableOpacity onPress={() => navigation.navigate('MesEvenementsTab')}>
+                  <TouchableOpacity onPress={() => navigation.navigate('Evenements')}>
                     <Text style={s.voirTout}>Voir tout</Text>
                   </TouchableOpacity>
                 )}
@@ -203,6 +234,8 @@ export default function OrganisateurDashboardScreen({ navigation }) {
               )}
             </GlassContainer>
             </Animated.View>
+
+
           </>
         )}
 
@@ -214,8 +247,8 @@ export default function OrganisateurDashboardScreen({ navigation }) {
 
 const absoluteFill = StyleSheet.absoluteFill
 
-const s = StyleSheet.create({
-  container: { flex: 1 },
+const makeStyles = (colors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
   // Greeting
   greeting: { marginHorizontal: spacing.lg, marginTop: spacing.sm, padding: spacing.lg },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
@@ -270,5 +303,13 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(121,134,203,0.15)', borderRadius: 8,
     paddingHorizontal: 14, paddingVertical: 6,
   },
-  detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.green },
+  // Navigation rapide
+  navSection: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
+  navTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.md },
+  navGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  navItem: { width: '30%', alignItems: 'center', gap: 6, paddingVertical: spacing.sm },
+  navIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  navLabel: { fontSize: 11, fontFamily: fonts.jakarta.semiBold, color: colors.text, textAlign: 'center' },
+
 })

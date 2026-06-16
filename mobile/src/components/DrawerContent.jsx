@@ -1,14 +1,18 @@
 // Composant DrawerContent — affiché dans le drawer hamburger
 // Affiche l'avatar, nom, email de l'utilisateur + la liste des sections
 // Supporte les badges de notifications (compteur non-lues)
+import { useMemo } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
-import { colors, spacing, borderRadius, fonts } from '../constants/theme'
+import { spacing, borderRadius, fonts } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
 
 // items = [{ label, icon, route, badge? }]
 export default function DrawerContent({ items, navigation }) {
+  const { colors } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { email, deconnecter } = useAuth()
 
@@ -56,7 +60,7 @@ export default function DrawerContent({ items, navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   header: { paddingHorizontal: spacing.lg, paddingVertical: spacing.xl, alignItems: 'center' },
   avatar: {

@@ -1,11 +1,12 @@
 // Mes demandes — liste + création + détail (calqué sur l'app web)
 // Design glass (Apple Invites) — modale création avec upload Cloudinary
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput, Alert, Animated, ActivityIndicator, Keyboard, Modal, FlatList } from 'react-native'
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, fonts, gradients, spacing } from '../../constants/theme'
+import { fonts, gradients, spacing } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import { listerMesDemandes, soumettreDemandeEvenement, fetchEvenementsAPI } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
 import * as ImagePicker from 'expo-image-picker'
@@ -14,12 +15,12 @@ import Skeleton from '../../components/Skeleton'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { hexToRgba } from '../../utils/colors'
 
-const STATUT_CONFIG = {
+const getStatutConfig = (colors) => ({
   soumis: { label: 'Soumis', color: '#FFA726', bg: 'rgba(255,167,38,0.2)' },
   en_analyse: { label: 'En analyse', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
   approuve: { label: 'Approuvé', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
   refuse: { label: 'Refusé', color: '#FF4D6D', bg: 'rgba(255,77,109,0.2)' },
-}
+})
 
 const TYPE_LABELS = {
   CREATION: 'Création',
@@ -45,6 +46,10 @@ const VILLES = [
 ]
 
 export default function MesDemandesScreen({ navigation }) {
+  const { colors } = useTheme()
+  const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
+  const s = useMemo(() => makeStyles(colors), [colors])
+  const f = useMemo(() => makeFormStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { scrollY: tabScrollY } = useTabBarScroll()
   const [demandes, setDemandes] = useState([])
@@ -421,7 +426,7 @@ export default function MesDemandesScreen({ navigation }) {
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1A56DB" colors={["#1A56DB"]} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" colors={["#10B981"]} />}
           onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
           scrollEventThrottle={16}
         >
@@ -805,8 +810,8 @@ const DetailField = ({ label, value }) => (
   </View>
 )
 
-const s = StyleSheet.create({
-  container: { flex: 1 },
+const makeStyles = (colors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },
 
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
@@ -820,7 +825,7 @@ const s = StyleSheet.create({
   emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
   emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center' },
   emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, backgroundColor: 'rgba(121,134,203,0.15)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
-  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.green },
 
   list: { gap: spacing.sm },
   card: { padding: spacing.md },
@@ -836,7 +841,7 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(121,134,203,0.3)', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 6, marginLeft: spacing.sm,
   },
-  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.green },
 
   /* Modal */
   modalOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'flex-end' },
@@ -852,7 +857,7 @@ const s = StyleSheet.create({
   /* Détail */
   detailBadgeRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
   detailTypeBadge: { backgroundColor: 'rgba(121,134,203,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.green },
   detailSub: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, marginBottom: spacing.md },
   detailImageWrap: { height: 160, borderRadius: 12, overflow: 'hidden', marginBottom: spacing.md },
   detailImage: { width: '100%', height: '100%' },
@@ -867,7 +872,7 @@ const s = StyleSheet.create({
   successTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text },
   successSub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
   successBtn: { marginTop: spacing.md, backgroundColor: 'rgba(121,134,203,0.15)', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
-  successBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
+  successBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.green },
 
   /* Erreur */
   errorBox: { padding: spacing.sm, marginBottom: spacing.md },
@@ -883,7 +888,7 @@ const s = StyleSheet.create({
   pickerItemTextActive: { fontFamily: fonts.outfit.semiBold, color: '#fff' },
 })
 
-const f = StyleSheet.create({
+const makeFormStyles = (colors) => StyleSheet.create({
   label: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: 6, marginTop: 4 },
   input: {
     backgroundColor: colors.inputBg, borderRadius: 10,

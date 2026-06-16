@@ -2,8 +2,6 @@
 // Envoie une notification push à tous les tokens d'un organisateur
 // et persiste la notification dans la table notifications
 const db = require('../config/db')
-const { Expo } = require('expo-server-sdk')
-const expo = new Expo()
 
 // Envoie une notification push Expo et l'enregistre en base
 // @param {number} organisateurId - ID de l'organisateur destinataire
@@ -17,6 +15,10 @@ exports.envoyerNotification = async (organisateurId, data) => {
       [organisateurId, data.evenementId || null, data.type, data.message]
     )
     const notificationId = result.insertId
+
+    // Import dynamique car expo-server-sdk est un module ESM
+    const { Expo } = await import('expo-server-sdk')
+    const expo = new Expo()
 
     // Récupérer les tokens push de l'organisateur
     const [tokens] = await db.query(

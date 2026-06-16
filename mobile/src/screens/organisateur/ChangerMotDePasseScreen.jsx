@@ -1,15 +1,18 @@
 // Écran de changement de mot de passe de l'organisateur
 // Design glass (Apple Invites) avec animation d'entrée
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Animated, Alert } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
-import { colors, fonts, spacing, borderRadius } from '../../constants/theme'
+import { fonts, spacing, borderRadius } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
 import { appelAPI } from '../../services/apiService'
 import GlassContainer from '../../components/GlassContainer'
 
 export default function ChangerMotDePasseScreen({ navigation }) {
+  const { colors } = useTheme()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const [ancienMotDePasse, setAncienMotDePasse] = useState('')
   const [nouveauMotDePasse, setNouveauMotDePasse] = useState('')
@@ -146,8 +149,8 @@ export default function ChangerMotDePasseScreen({ navigation }) {
   )
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1 },
+const makeStyles = (colors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: spacing.md, paddingVertical: spacing.sm,

@@ -1,13 +1,13 @@
 // Écran ticket — style billet physique vert émeraude allongé
 // Fond sombre #0F1A0F, ticket structuré : header vert → perforation → corps crème → perforation → souche beige
 import { useRef, useEffect, useState } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform, Image, Dimensions } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform, Image, Dimensions, Modal } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import QRCode from 'react-native-qrcode-svg'
 import * as Crypto from 'expo-crypto'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { colors, fonts, spacing } from '../constants/theme'
+import { fonts, spacing } from '../constants/theme'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { scale, fontScale, lineHeightScale, isPad } from '../utils/responsive'
 import { genererTicketPDF, genererHtmlWebTicket } from '../services/ticketPdfService'
@@ -69,6 +69,7 @@ export default function TicketScreen({ route, navigation }) {
   const [qrValue, setQrValue] = useState(null)
   const [qrReady, setQrReady] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [modalVisible, setModalVisible] = useState(false)
   const qrRef = useRef(null)
 
   // Génération initiale + rafraîchissement toutes les 30s
@@ -210,26 +211,28 @@ export default function TicketScreen({ route, navigation }) {
               <Text style={styles.refText}>REF · {refStr}</Text>
 
               {/* QR code central */}
-              <View style={styles.qrWrapper}>
-                {qrReady ? (
-                  <QRCode
-                    value={qrValue}
-                    size={scale(200)}
-                    color={C.dark}
-                    backgroundColor={C.white}
-                    ecl="H"
-                    quietZone={scale(16)}
-                    getRef={(c) => { qrRef.current = c }}
-                  />
-                ) : (
-                  <ActivityIndicator size="small" color={C.headerBg} />
-                )}
-                {showWatermark && (
-                  <View style={styles.qrOverlay}>
-                    <Text style={styles.qrCross}>✕</Text>
-                  </View>
-                )}
-              </View>
+              <TouchableOpacity onPress={() => setModalVisible(true)} activeOpacity={0.8}>
+                <View style={styles.qrWrapper}>
+                  {qrReady ? (
+                    <QRCode
+                      value={qrValue}
+                      size={scale(200)}
+                      color={C.dark}
+                      backgroundColor={C.white}
+                      ecl="H"
+                      quietZone={scale(16)}
+                      getRef={(c) => { qrRef.current = c }}
+                    />
+                  ) : (
+                    <ActivityIndicator size="small" color={C.headerBg} />
+                  )}
+                  {showWatermark && (
+                    <View style={styles.qrOverlay}>
+                      <Text style={styles.qrCross}>✕</Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
             </View>
 
             {/* ===== 4. PERFORATION BASSE — #F9F6EE → #F0EAD6 ===== */}
@@ -273,6 +276,30 @@ export default function TicketScreen({ route, navigation }) {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Modal QR plein écran */}
+      <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setModalVisible(false)}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setModalVisible(false)}>
+              <Text style={styles.modalCloseText}>✕</Text>
+            </TouchableOpacity>
+            {qrReady && (
+              <>
+                <QRCode
+                  value={qrValue}
+                  size={SCREEN_WIDTH * 0.75}
+                  color={C.dark}
+                  backgroundColor={C.white}
+                  ecl="H"
+                  quietZone={scale(16)}
+                />
+                <Text style={styles.modalRef}>REF · {refStr}</Text>
+              </>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   )
 }
@@ -571,6 +598,42 @@ const styles = StyleSheet.create({
     letterSpacing: scale(8),
     opacity: 0.12,
     transform: [{ rotate: '-30deg' }],
+  },
+
+  // Modal QR plein écran
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCloseBtn: {
+    position: 'absolute',
+    top: scale(-60),
+    right: 0,
+    width: scale(40),
+    height: scale(40),
+    borderRadius: scale(20),
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  modalCloseText: {
+    fontSize: fontScale(20),
+    color: C.white,
+    fontWeight: '700',
+  },
+  modalRef: {
+    fontSize: fontScale(14),
+    fontFamily: fonts.outfit.semiBold,
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: scale(20),
+    letterSpacing: scale(2),
   },
 
   // Bouton export PDF
