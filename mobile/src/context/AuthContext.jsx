@@ -182,9 +182,13 @@ export function AuthProvider({ children }) {
     setSessionEmail(userData.email)
     setOrgaEmailSuggestion(userData.email)
     // Enregistrer le token push pour les notifications
-    configurerNotifications()
-    const pushToken = await obtenirTokenPush()
-    if (pushToken) await enregistrerToken(pushToken)
+    try {
+      configurerNotifications()
+      const pushToken = await obtenirTokenPush()
+      if (pushToken) await enregistrerToken(pushToken)
+    } catch (err) {
+      console.error('Erreur push token:', err.message)
+    }
   }
 
   // Connexion acheteur par OTP email

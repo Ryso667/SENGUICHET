@@ -36,6 +36,7 @@ export default function ControllerDrawer() {
         headerShown: false,
         drawerType: 'front',
         drawerStyle: { width: 280 },
+        swipeEnabled: false,
       }}
     >
       <Drawer.Screen name="Accueil" component={SimpleStack(ControleurDashboardScreen)} />

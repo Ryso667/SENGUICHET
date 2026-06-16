@@ -6,6 +6,7 @@ const pool = require("../config/db");
 const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
 const PaymentService = require("../services/PaymentService");
+const { envoyerNotification } = require("../services/NotificationService");
 
 const HMAC_SECRET = process.env.HMAC_SECRET;
 if (!HMAC_SECRET) console.warn('⚠️  HMAC_SECRET non défini — les signatures QR échoueront');
@@ -201,7 +202,6 @@ const acheter = async (req, res) => {
 
       // Envoyer une notification push à l'organisateur
       try {
-        const { envoyerNotification } = require("../services/NotificationService");
         await envoyerNotification(events[0].organisateur_id, {
           type: 'vente',
           message: `Nouvelle vente : ${cat.nom} pour ${events[0].titre}`,
