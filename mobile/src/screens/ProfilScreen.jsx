@@ -96,11 +96,6 @@ export default function ProfilScreen({ navigation }) {
             <Text style={styles.actionBtnText}>Mes favoris</Text>
             <Feather name="chevron-right" size={18} color={colors.textTertiary} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('ConnexionOrganisateur')}>
-            <Feather name="briefcase" size={20} color={colors.accent} />
-            <Text style={styles.actionBtnText}>Espace organisateur</Text>
-            <Feather name="chevron-right" size={18} color={colors.textTertiary} />
-          </TouchableOpacity>
           <View style={styles.divider} />
           <Text style={styles.sectionLabel}>Thème</Text>
           <TouchableOpacity style={styles.actionBtn} onPress={() => setShowThemeModal(true)}>
