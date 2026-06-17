@@ -165,18 +165,28 @@ const acheter = async (req, res) => {
         transaction_ref: numero,
       });
 
-      // Envoyer un SMS de confirmation à l'acheteur à chaque vente
-      try {
-        const { envoyerSMSBillet } = require("../services/smsService");
-        await envoyerSMSBillet(telephone, {
+      // Envoyer un SMS de confirmation à l'acheteur (fire-and-forget pour éviter le timeout)
+      const { envoyerSMSBillet } = require("../services/smsService");
+      envoyerSMSBillet(telephone, {
+        uuid,
+        numero,
+        evenement: events[0].titre,
+        categorie: cat.nom,
+        prix: montantTotal,
+      }, pool);
+
+      // Envoyer un email de confirmation si l'email est renseigné
+      if (ticketEmail) {
+        const { envoyerEmailBillet } = require("../services/emailService");
+        envoyerEmailBillet(ticketEmail, {
           uuid,
           numero,
           evenement: events[0].titre,
+          dateDebut: events[0].date_debut,
+          lieu: events[0].lieu,
           categorie: cat.nom,
           prix: montantTotal,
-        });
-      } catch (e) {
-        console.error("SMS error:", e.message);
+        }).catch(e => console.error("Email error:", e.message));
       }
 
       // Envoyer une notification push à l'organisateur
@@ -287,7 +297,7 @@ const afficherBillet = async (req, res) => {
     );
 
     if (!rows.length) {
-      return res.status(404).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Billet introuvable — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#1B4332;">SENGUICHET</h1><p style="color:#40916C;">Billet introuvable</p></body></html>`);
+      return res.status(404).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Billet introuvable — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#10B981;">SENGUICHET</h1><p style="color:#6EE7B7;">Billet introuvable</p></body></html>`);
     }
 
     const b = rows[0];
@@ -320,42 +330,42 @@ const afficherBillet = async (req, res) => {
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0F1A0F;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
-.t{width:340px;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(92,107,192,.2);position:relative}
-/* HEADER indigo */
-.hd{background:#5C6BC0;padding:24px;position:relative;overflow:hidden}
-.o1{position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:60px;background:rgba(121,134,203,.25)}
-.o2{position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:40px;background:rgba(212,175,55,.12)}
+.t{width:340px;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(16,185,129,.2);position:relative}
+/* HEADER vert */
+.hd{background:#10B981;padding:24px;position:relative;overflow:hidden}
+.o1{position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:60px;background:rgba(110,231,183,.25)}
+.o2{position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:40px;background:rgba(245,158,11,.12)}
 .hr{display:flex;align-items:center;gap:10px}
 .lb{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center}
 .lb img{width:28px;height:28px;border-radius:6px}
 .ht{font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.7)}
-.gl{height:1px;background:#D4AF37;opacity:.6;margin:16px 0}
+.gl{height:1px;background:#F59E0B;opacity:.6;margin:16px 0}
 .en{font-size:22px;font-weight:700;color:#fff;text-align:center;letter-spacing:.5px;line-height:28px}
 .ec{font-size:10px;color:rgba(255,255,255,.6);text-align:center;letter-spacing:2px;margin-top:6px}
 /* PERFORATION */
-.pf{height:22px;position:relative;background:linear-gradient(to bottom,#5C6BC0,#F9F6EE);display:flex;align-items:center;justify-content:center}
-.pl{position:absolute;left:22px;right:22px;border-top:2px dashed rgba(92,107,192,.2)}
+.pf{height:22px;position:relative;background:linear-gradient(to bottom,#10B981,#F9F6EE);display:flex;align-items:center;justify-content:center}
+.pl{position:absolute;left:22px;right:22px;border-top:2px dashed rgba(16,185,129,.2)}
 .pc{position:absolute;width:22px;height:22px;border-radius:11px;background:#0F1A0F;z-index:2}
 .pc.l{left:-11px}
 .pc.r{right:-11px}
 /* BODY creme */
 .bd{background:#F9F6EE;padding:20px 24px 8px}
 .br{display:flex;justify-content:space-between}
-.bl{font-size:8px;font-weight:700;letter-spacing:2px;color:#7986CB;margin-bottom:2px}
-.bv{font-size:12px;font-weight:600;color:#1E2250}
-.ll{font-size:12px;font-weight:600;color:#5C6BC0;letter-spacing:.5px;margin-top:2px}
-.bs{height:1px;background:rgba(92,107,192,.12);margin:14px 0}
-.rf{font-size:9px;color:#7986CB;letter-spacing:2px;text-align:center;margin-bottom:4px}
-.qz{background:#fff;border-radius:12px;padding:12px;margin:14px 0;border:1px solid rgba(92,107,192,.08);display:flex;justify-content:center}
+.bl{font-size:8px;font-weight:700;letter-spacing:2px;color:#6EE7B7;margin-bottom:2px}
+.bv{font-size:12px;font-weight:600;color:#111827}
+.ll{font-size:12px;font-weight:600;color:#10B981;letter-spacing:.5px;margin-top:2px}
+.bs{height:1px;background:rgba(16,185,129,.12);margin:14px 0}
+.rf{font-size:9px;color:#6EE7B7;letter-spacing:2px;text-align:center;margin-bottom:4px}
+.qz{background:#fff;border-radius:12px;padding:12px;margin:14px 0;border:1px solid rgba(16,185,129,.08);display:flex;justify-content:center}
 /* PERFO BASSE */
 .pb{height:22px;position:relative;background:linear-gradient(to bottom,#F9F6EE,#F0EAD6);display:flex;align-items:center;justify-content:center}
 /* FOOTER beige */
 .ft{background:#F0EAD6;border-radius:0 0 20px 20px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
-.cp{background:#5C6BC0;border-radius:999px;padding:5px 20px}
-.ct{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#D4AF37}
-.pr{font-size:28px;font-weight:700;color:#1E2250;letter-spacing:-.5px;text-align:center}
-.ll2{font-size:9px;color:#7986CB;font-style:italic;text-align:center}
-.wm{font-size:8px;color:rgba(92,107,192,.3);letter-spacing:2px;align-self:flex-end;margin-right:4px}
+.cp{background:#10B981;border-radius:999px;padding:5px 20px}
+.ct{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#F59E0B}
+.pr{font-size:28px;font-weight:700;color:#111827;letter-spacing:-.5px;text-align:center}
+.ll2{font-size:9px;color:#6EE7B7;font-style:italic;text-align:center}
+.wm{font-size:8px;color:rgba(16,185,129,.3);letter-spacing:2px;align-self:flex-end;margin-right:4px}
 @media print{body{background:#fff;padding:0}.t{box-shadow:none}}
 </style>
 </head>
@@ -394,7 +404,7 @@ body{background:#0F1A0F;min-height:100vh;display:flex;align-items:center;justify
 </html>`);
   } catch (err) {
     console.error("Afficher billet error:", err);
-    res.status(500).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Erreur — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#1B4332;">SENGUICHET</h1><p style="color:#40916C;">Erreur serveur</p></body></html>`);
+    res.status(500).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Erreur — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#10B981;">SENGUICHET</h1><p style="color:#6EE7B7;">Erreur serveur</p></body></html>`);
   }
 };
 

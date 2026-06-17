@@ -345,6 +345,23 @@ CREATE TABLE notification (
   INDEX idx_notification_date (date_creation)
 ) ENGINE=InnoDB;
 
+-- 6.3 Journal des envois SMS (pour suivi et réessai)
+CREATE TABLE IF NOT EXISTS sms_log (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  telephone VARCHAR(20) NOT NULL,
+  message TEXT NOT NULL,
+  uuid_billet VARCHAR(36) DEFAULT NULL,
+  statut ENUM('ENVOI_EN_COURS', 'ENVOYE', 'ECHEC') NOT NULL DEFAULT 'ENVOI_EN_COURS',
+  tentative INT NOT NULL DEFAULT 1,
+  reponse_api TEXT DEFAULT NULL,
+  date_envoi DATETIME DEFAULT NULL,
+  date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_sms_telephone (telephone),
+  INDEX idx_sms_billet (uuid_billet),
+  INDEX idx_sms_statut (statut),
+  INDEX idx_sms_date (date_creation)
+) ENGINE=InnoDB;
+
 -- ============================================================
 -- 7. TABLE DEMANDES DE PARTENARIAT
 -- ============================================================

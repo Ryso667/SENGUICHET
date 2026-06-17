@@ -214,6 +214,30 @@ async function migrate() {
     console.log("ℹ️  notifications peut-être déjà créée:", e.message)
   }
 
+  // Table de journalisation des envois SMS
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS sms_log (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        telephone VARCHAR(20) NOT NULL,
+        message TEXT NOT NULL,
+        uuid_billet VARCHAR(36) DEFAULT NULL,
+        statut ENUM('ENVOI_EN_COURS', 'ENVOYE', 'ECHEC') NOT NULL DEFAULT 'ENVOI_EN_COURS',
+        tentative INT NOT NULL DEFAULT 1,
+        reponse_api TEXT DEFAULT NULL,
+        date_envoi DATETIME DEFAULT NULL,
+        date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_sms_telephone (telephone),
+        INDEX idx_sms_billet (uuid_billet),
+        INDEX idx_sms_statut (statut),
+        INDEX idx_sms_date (date_creation)
+      ) ENGINE=InnoDB
+    `);
+    console.log("✅ Table sms_log créée");
+  } catch (e) {
+    console.log("ℹ️ sms_log peut-être déjà créée:", e.message);
+  }
+
   console.log("✅ Migration terminée");
   await connection.end();
 }

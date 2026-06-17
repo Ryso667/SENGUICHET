@@ -143,9 +143,9 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
           <table cellpadding="0" cellspacing="0" border="0" width="100%">
             <tr>
               <td align="center" style="padding-bottom:16px;">
-                <table cellpadding="0" cellspacing="0" border="0" style="width:56px;height:56px;border-radius:14px;background:#5C6BC0;">
+                <table cellpadding="0" cellspacing="0" border="0" style="width:56px;height:56px;border-radius:14px;background:#10B981;">
                   <tr>
-                    <td align="center" valign="middle" style="font-size:24px;font-weight:700;color:#D4AF37;font-family:Arial,sans-serif;">
+                    <td align="center" valign="middle" style="font-size:24px;font-weight:700;color:#F59E0B;font-family:Arial,sans-serif;">
                       <img src="cid:${LOGO_CID}" alt="S" width="36" height="36" style="display:block;border:0;width:36px;height:36px;border-radius:6px;" />
                     </td>
                   </tr>
@@ -183,7 +183,7 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
                   </tr>
                   <tr>
                     <td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Référence</span></td>
-                    <td style="padding:4px 0;text-align:right;"><span style="color:#D4AF37;font-size:12px;font-family:monospace;font-weight:600;">${ticket.numero}</span></td>
+                    <td style="padding:4px 0;text-align:right;"><span style="color:#F59E0B;font-size:12px;font-family:monospace;font-weight:600;">${ticket.numero}</span></td>
                   </tr>
                 </table>
               </td>
@@ -193,7 +193,7 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
           <table cellpadding="0" cellspacing="0" border="0" width="100%">
             <tr>
               <td align="center" style="padding:24px 0 0;">
-                <a href="${lienBillet}" style="background:linear-gradient(135deg,#5C6BC0,#3F51B5);border-radius:8px;color:#ffffff;font-family:Arial;font-size:14px;font-weight:700;line-height:44px;text-align:center;text-decoration:none;display:inline-block;padding:0 28px;">Voir mon billet →</a>
+                <a href="${lienBillet}" style="background:linear-gradient(135deg,#10B981,#059669);border-radius:8px;color:#ffffff;font-family:Arial;font-size:14px;font-weight:700;line-height:44px;text-align:center;text-decoration:none;display:inline-block;padding:0 28px;">Voir mon billet →</a>
               </td>
             </tr>
           </table>

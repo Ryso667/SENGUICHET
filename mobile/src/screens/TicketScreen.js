@@ -33,17 +33,17 @@ async function genererQRPayload(ticket) {
   })
 }
 
-// Palette indigo (harmonisée avec le thème de l'app)
+// Palette vert émeraude (harmonisée avec le thème de l'app)
 const C = {
-  headerBg: '#5C6BC0',
-  surface: '#6C7BD0',
-  accent: '#D4AF37',
-  label: '#B8944A',
+  headerBg: '#10B981',
+  surface: '#34D399',
+  accent: '#F59E0B',
+  label: '#6EE7B7',
   cream: '#F9F6EE',
   beige: '#F0EAD6',
   pageBg: '#0F1A0F',
   white: '#FFFFFF',
-  dark: '#1E2250',
+  dark: '#111827',
   watermarkRed: '#FF4D6D',
   watermarkGreen: '#66BB6A',
   perfDot: '#3D4356',
@@ -349,12 +349,12 @@ const styles = StyleSheet.create({
   orbe1: {
     position: 'absolute', top: scale(-40), right: scale(-40),
     width: scale(140), height: scale(140), borderRadius: scale(70),
-    backgroundColor: 'rgba(92,107,192,0.3)',
+    backgroundColor: 'rgba(16,185,129,0.3)',
   },
   orbe2: {
     position: 'absolute', bottom: scale(-30), left: scale(-30),
     width: scale(100), height: scale(100), borderRadius: scale(50),
-    backgroundColor: 'rgba(212,175,55,0.12)',
+    backgroundColor: 'rgba(245,158,11,0.12)',
   },
   orbe3: {
     position: 'absolute', top: scale(60), left: scale(-20),
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
   },
   catPill: {
     alignSelf: 'center',
-    backgroundColor: 'rgba(212,175,55,0.15)',
+    backgroundColor: 'rgba(245,158,11,0.15)',
     borderRadius: 999,
     paddingVertical: scale(4),
     paddingHorizontal: scale(14),
@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: scale(1),
-    backgroundColor: 'rgba(37,43,122,0.08)',
+    backgroundColor: 'rgba(17,24,39,0.08)',
     marginVertical: scale(18),
   },
   refText: {
@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
     marginTop: scale(10),
     marginBottom: scale(6),
     borderWidth: scale(1),
-    borderColor: 'rgba(37,43,122,0.06)',
+    borderColor: 'rgba(17,24,39,0.06)',
     alignItems: 'center',
     position: 'relative',
     shadowColor: '#000',
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
   },
   wmText: {
     fontSize: fontScale(8),
-    color: 'rgba(37,43,122,0.25)',
+    color: 'rgba(17,24,39,0.25)',
     fontFamily: fonts.outfit.bold,
     letterSpacing: scale(3),
     alignSelf: 'flex-end',

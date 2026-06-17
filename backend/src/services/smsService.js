@@ -80,7 +80,7 @@ const envoyerSMSOrange = async (numero, message) => {
     const req = https.request(
       {
         hostname: "api.orange.com",
-        path: `${apiPrefix}/smsmessaging/v1/outbound/${encodedAddress}/requests?resource_type_parameter_management=SMS_OCB2`,
+        path: `${apiPrefix}/smsmessaging/v1/outbound/${encodedAddress}/requests`,
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -113,27 +113,72 @@ const envoyerSMSOrange = async (numero, message) => {
 };
 
 // Envoie un SMS de confirmation de billet à l'acheteur via l'API Orange
-// Lance une erreur si l'API Orange échoue — pas de fallback mock
+// Log l'envoi en base pour suivi et réessai
 // numero : numéro de téléphone au format sénégalais (77XXXXXX, 76XXXXXX, etc.)
-const envoyerSMSBillet = async (numero, ticket) => {
+const envoyerSMSBillet = async (numero, ticket, pool) => {
   const numeroFull = numero.startsWith("+") ? numero : `+221${numero}`;
   const ticketBase = (process.env.TICKET_URL || "https://senguichet.com/billet").replace(/\/+$/, "");
-  const message = `SENGUICHET: Achat confirmé ! "${ticket.evenement}" (${ticket.categorie}). Montant : ${ticket.prix.toLocaleString()} FCFA. Voir billet : ${ticketBase}/${ticket.uuid}`;
+  const message = [
+    `SENGUICHET`,
+    `Achat confirmé`,
+    ``,
+    `Événement: ${ticket.evenement}`,
+    `Catégorie: ${ticket.categorie}`,
+    `Montant: ${ticket.prix.toLocaleString()} FCFA`,
+    ``,
+    `Voir billet: ${ticketBase}/${ticket.uuid}`,
+  ].join('\n');
+
+  // Journaliser la tentative en base
+  let logId = null;
+  if (pool) {
+    try {
+      const [log] = await pool.query(
+        `INSERT INTO sms_log (telephone, message, uuid_billet, statut, date_creation)
+         VALUES (?, ?, ?, 'ENVOI_EN_COURS', NOW())`,
+        [numeroFull, message.substring(0, 500), ticket.uuid]
+      );
+      logId = log.insertId;
+    } catch (dbErr) {
+      console.error("SMS_LOG insertion error:", dbErr.message);
+    }
+  }
 
   console.log(`SMSDEBUG: envoi vers=${numeroFull}, sender=${process.env.ORANGE_SENDER_ADDRESS}, sandbox=${process.env.ORANGE_SANDBOX}, message=${message.substring(0,60)}...`);
 
-  const result = await envoyerSMSOrange(numeroFull, message);
-  console.log(`SMSDEBUG: response=${JSON.stringify(result)}`);
+  try {
+    const result = await envoyerSMSOrange(numeroFull, message);
 
-  if (result && result.outboundSMSMessageRequest) {
-    const status = result.outboundSMSMessageRequest.deliveryInfoList?.deliveryInfo?.[0]?.deliveryStatus;
-    console.log(`SMSDEBUG: resourceURL=${result.outboundSMSMessageRequest.resourceURL}, status=${status}`);
-    if (status === "Impossible") {
-      console.error(`SMSDEBUG: DELIVERY IMPOSSIBLE — sender address probablement invalide`);
+    if (result && result.outboundSMSMessageRequest) {
+      const deliveryStatus = result.outboundSMSMessageRequest.deliveryInfoList?.deliveryInfo?.[0]?.deliveryStatus;
+      console.log(`SMSDEBUG: resourceURL=${result.outboundSMSMessageRequest.resourceURL}, status=${deliveryStatus}`);
+
+      // Mettre à jour le log en succès
+      if (pool && logId) {
+        await pool.query(
+          `UPDATE sms_log SET statut = 'ENVOYE', date_envoi = NOW(), reponse_api = ? WHERE id = ?`,
+          [JSON.stringify(result), logId]
+        ).catch(() => {});
+      }
+
+      if (deliveryStatus === "Impossible") {
+        console.error(`SMSDEBUG: DELIVERY IMPOSSIBLE — sender address probablement invalide`);
+      }
+      return { success: true, result };
     }
-    return { success: true, result };
+
+    throw new Error(JSON.stringify(result));
+  } catch (err) {
+    // Marquer l'échec en base
+    if (pool && logId) {
+      await pool.query(
+        `UPDATE sms_log SET statut = 'ECHEC', date_envoi = NOW(), reponse_api = ? WHERE id = ?`,
+        [err.message, logId]
+      ).catch(() => {});
+    }
+    console.error("SMS error:", err.message);
+    return { success: false, error: err.message };
   }
-  throw new Error(`Orange API a retourné : ${JSON.stringify(result)}`);
 };
 
 // Récupère les contrats SMS Orange (infos sur senderAddress, solde, etc.)
