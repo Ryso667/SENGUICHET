@@ -538,7 +538,7 @@ export default function EventDetailScreen({ route, navigation }) {
 
                 {/* Champ téléphone dans le modal */}
                 <Text style={styles.modalPhoneLabel}>Ton téléphone</Text>
-                <GlassContainer intensity={30} style={styles.modalPhoneRow}>
+                <View style={styles.modalPhoneRow}>
                   <Feather name="smartphone" size={16} color={colors.textTertiary} />
                   <Text style={styles.modalPhoneCode}>+221</Text>
                   <TextInput
@@ -548,8 +548,10 @@ export default function EventDetailScreen({ route, navigation }) {
                     keyboardType="phone-pad"
                     placeholder="77 XXX XX XX"
                     placeholderTextColor={colors.textSecondary}
+                    selectionColor={colors.accent}
+                    cursorColor={colors.accent}
                   />
-                </GlassContainer>
+                </View>
 
                 {/* Bouton de paiement Wave — mobile money */}
                 <TouchableOpacity
@@ -966,9 +968,13 @@ const makeStyles = (colors) => StyleSheet.create({
     alignItems: 'center',
     gap: scale(8),
     paddingHorizontal: scale(14),
-    paddingVertical: scale(4),
+    paddingVertical: scale(6),
     width: '100%',
     marginBottom: spacing.md,
+    backgroundColor: colors.card,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   modalPhoneCode: {
     fontFamily: fonts.jakarta.semiBold,
