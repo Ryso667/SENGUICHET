@@ -189,8 +189,8 @@ export default function MesTicketsScreen() {
               <RefreshControl
                 refreshing={syncing}
                 onRefresh={loadTickets}
-                tintColor="#10B981"
-                colors={["#10B981"]}
+                tintColor={colors.accent}
+                colors={[colors.accent]}
                 progressBackgroundColor={colors.surface}
               />
             }
@@ -341,12 +341,19 @@ const makeStyles = (colors) => StyleSheet.create({
     marginVertical: 8,
   },
 
-  // CARTE TICKET — fond blanc avec bande latérale colorée
+  // CARTE TICKET — fond clair avec ombre légère et bordure
   card: {
     backgroundColor: colors.surface,
     borderRadius: 16,
     flexDirection: 'row',
     overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   strip: {
     width: 4,

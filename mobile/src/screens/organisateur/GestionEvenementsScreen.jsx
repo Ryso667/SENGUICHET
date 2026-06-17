@@ -18,10 +18,10 @@ import { hexToRgba } from '../../utils/colors'
 
 const getStatutConfig = (colors) => ({
   actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
-  en_attente: { label: 'En attente', color: '#FFA726', bg: 'rgba(255,167,38,0.2)' },
-  refuse: { label: 'Refusé', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
-  suspendu: { label: 'Suspendu', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
-  annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
+  en_attente: { label: 'En attente', color: colors.orange, bg: hexToRgba(colors.orange, 0.15) },
+  refuse: { label: 'Refusé', color: colors.danger, bg: hexToRgba(colors.danger, 0.15) },
+  suspendu: { label: 'Suspendu', color: colors.warning, bg: hexToRgba(colors.warning, 0.15) },
+  annule: { label: 'Annulé', color: colors.textSecondary, bg: hexToRgba(colors.textSecondary, 0.15) },
 })
 
 const TABS = ['Tous', 'Actifs', 'En attente', 'Terminés', 'Annulés']
@@ -75,7 +75,7 @@ export default function GestionEvenementsScreen({ navigation }) {
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" colors={["#10B981"]} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
           onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
           scrollEventThrottle={16}
         >
@@ -220,7 +220,7 @@ const makeStyles = (colors) => StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 8,
   },
-  demanderBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff' },
+  demanderBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.white },
 
   /* Tabs */
   tabsBar: {
@@ -232,14 +232,14 @@ const makeStyles = (colors) => StyleSheet.create({
   tabActive: {},
   tabGradient: { paddingVertical: 8, alignItems: 'center', borderRadius: 14 },
   tabText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.textTertiary, textAlign: 'center', paddingVertical: 8 },
-  tabTextActive: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: '#fff', textAlign: 'center' },
+  tabTextActive: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.white, textAlign: 'center' },
 
   /* Search */
   searchContainer: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: colors.inputBg, borderRadius: 14,
     paddingHorizontal: 14, height: 44, marginBottom: spacing.md,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.inputBorder,
+    borderWidth: 1, borderColor: colors.border,
   },
   searchInput: { flex: 1, fontFamily: fonts.outfit.regular, fontSize: 14, color: colors.text },
 
@@ -252,7 +252,7 @@ const makeStyles = (colors) => StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 20, paddingVertical: 10,
   },
-  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#FFFFFF' },
+  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.white },
 
   /* Liste */
   eventsList: { gap: spacing.md },
@@ -281,7 +281,7 @@ const makeStyles = (colors) => StyleSheet.create({
   cardBarPct: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary, width: 36, textAlign: 'right' },
 
   cardBtn: {
-    backgroundColor: 'rgba(121,134,203,0.12)', borderRadius: 10,
+    backgroundColor: colors.accent + '1F', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
   cardBtnText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.green },

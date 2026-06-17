@@ -61,6 +61,9 @@ async function initTables() {
   if (!colonnesScans.find(c => c.name === 'numero')) {
     await db.runAsync("ALTER TABLE scans ADD COLUMN numero TEXT")
   }
+  if (!colonnesScans.find(c => c.name === 'event_id')) {
+    await db.runAsync("ALTER TABLE scans ADD COLUMN event_id INTEGER")
+  }
   try {
     await db.runAsync(
       "UPDATE scans SET numero = (SELECT numero FROM tickets WHERE tickets.uuid = scans.uuid_billet) WHERE numero IS NULL"
@@ -108,16 +111,17 @@ export async function marquerUtilise(uuid) {
 }
 
 // Enregistre un scan dans l'historique local (synced = 0 = en attente de synchro)
-export async function enregistrerScan(uuid, hmac, resultat, numero) {
+export async function enregistrerScan(uuid, hmac, resultat, numero, eventId) {
   const bd = await getDb()
   await bd.runAsync(
-    'INSERT INTO scans (uuid_billet, hmac, timestamp_scan, resultat, synced, numero) VALUES ($uuid, $hmac, $ts, $res, 0, $numero)',
+    'INSERT INTO scans (uuid_billet, hmac, timestamp_scan, resultat, synced, numero, event_id) VALUES ($uuid, $hmac, $ts, $res, 0, $numero, $event_id)',
     {
       $uuid: uuid,
       $hmac: hmac,
       $ts: new Date().toISOString(),
       $res: resultat,
       $numero: numero || null,
+      $event_id: eventId || null,
     }
   )
 }
@@ -140,9 +144,18 @@ export async function historiqueScans() {
   return await bd.getAllAsync('SELECT * FROM scans ORDER BY timestamp_scan DESC')
 }
 
-// Récupère l'historique des scans enrichi avec les infos de l'événement
-export async function historiqueScansAvecDetails() {
+// Récupère l'historique des scans enrichi, filtré par événement si eventId fourni
+export async function historiqueScansAvecDetails(eventId) {
   const bd = await getDb()
+  if (eventId) {
+    return await bd.getAllAsync(`
+      SELECT s.*, t.event_id, t.category
+      FROM scans s
+      LEFT JOIN tickets t ON s.uuid_billet = t.uuid
+      WHERE s.event_id = $event_id
+      ORDER BY s.timestamp_scan DESC
+    `, { $event_id: eventId })
+  }
   return await bd.getAllAsync(`
     SELECT s.*, t.event_id, t.category
     FROM scans s
@@ -223,6 +236,28 @@ export async function viderTickets() {
     await bd.runAsync('BEGIN TRANSACTION')
     await bd.runAsync("UPDATE tickets SET statut = 'DISPONIBLE' WHERE statut = 'UTILISE_LOCAL'")
     await bd.runAsync('DELETE FROM scans')
+    await bd.runAsync('COMMIT')
+  } catch (err) {
+    await bd.runAsync('ROLLBACK')
+    throw err
+  }
+}
+
+// Réinitialise les données de scan pour un événement spécifique
+// Supprime les scans de cet événement et remet ses tickets à DISPONIBLE
+// Utile pour nettoyer les données de test/développement
+export async function viderScansEvenement(eventId) {
+  const bd = await getDb()
+  try {
+    await bd.runAsync('BEGIN TRANSACTION')
+    await bd.runAsync(
+      "UPDATE tickets SET statut = 'DISPONIBLE' WHERE statut = 'UTILISE_LOCAL' AND event_id = $event_id",
+      { $event_id: eventId }
+    )
+    await bd.runAsync(
+      'DELETE FROM scans WHERE event_id = $event_id',
+      { $event_id: eventId }
+    )
     await bd.runAsync('COMMIT')
   } catch (err) {
     await bd.runAsync('ROLLBACK')

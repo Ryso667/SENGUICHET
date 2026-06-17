@@ -18,7 +18,7 @@ export default function StatusBadge({ status }) {
     REJETEE: { label: 'REJETÉE', color: colors.danger, bg: hexToRgba(colors.danger, 0.15) },
   }
 
-  const cfg = CONFIG[status] || { label: status || 'INCONNU', color: '#B0B0B8', bg: 'rgba(176,176,184,0.15)' }
+  const cfg = CONFIG[status] || { label: status || 'INCONNU', color: colors.textTertiary, bg: hexToRgba(colors.textTertiary, 0.15) }
   return (
     <View style={[styles.badge, { backgroundColor: cfg.bg }]}>
       <Text style={[styles.text, { color: cfg.color }]}>{cfg.label}</Text>

@@ -62,7 +62,7 @@ const makeStyles = (colors) => StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: colors.inputBorder,
+    borderColor: colors.border,
     paddingHorizontal: 16,
     height: 56,
   },

@@ -128,6 +128,7 @@ export default function ProfilScreen({ navigation }) {
 }
 
 function ThemeModal({ visible, onClose, mode, setTheme, colors }) {
+  const sModal = useMemo(() => makeModalStyles(colors), [colors])
   const options = [
     { key: 'system', Icon: MaterialCommunityIcons, icon: 'theme-light-dark', label: 'Système' },
     { key: 'dark', Icon: Feather, icon: 'moon', label: 'Sombre' },
@@ -135,17 +136,17 @@ function ThemeModal({ visible, onClose, mode, setTheme, colors }) {
   ]
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={stylesModal.overlay} onPress={onClose}>
-        <Pressable style={[stylesModal.sheet, { backgroundColor: colors.bg }]}>
-          <Text style={[stylesModal.title, { color: colors.text }]}>Thème</Text>
+      <Pressable style={sModal.overlay} onPress={onClose}>
+        <Pressable style={[sModal.sheet, { backgroundColor: colors.bg }]}>
+          <Text style={[sModal.title, { color: colors.text }]}>Thème</Text>
           {options.map(({ key, Icon, icon, label }) => (
             <TouchableOpacity
               key={key}
-              style={[stylesModal.option, { backgroundColor: colors.bgSecondary }]}
+              style={[sModal.option, { backgroundColor: colors.bgSecondary }]}
               onPress={() => { setTheme(key); onClose() }}
             >
               <Icon name={icon} size={20} color={mode === key ? colors.accent : colors.textSecondary} />
-              <Text style={[stylesModal.optionText, { color: colors.text }]}>{label}</Text>
+              <Text style={[sModal.optionText, { color: colors.text }]}>{label}</Text>
               {mode === key && <Feather name="check" size={18} color={colors.accent} />}
             </TouchableOpacity>
           ))}
@@ -155,9 +156,9 @@ function ThemeModal({ visible, onClose, mode, setTheme, colors }) {
   )
 }
 
-const stylesModal = StyleSheet.create({
+const makeModalStyles = (colors) => StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: '#FFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40, gap: 12 },
+  sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40, gap: 12 },
   title: { fontSize: 18, fontFamily: fonts.outfit.bold, marginBottom: 8, textAlign: 'center' },
   option: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 12, gap: 12 },
   optionText: { flex: 1, fontSize: 16, fontFamily: fonts.jakarta.semiBold },

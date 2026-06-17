@@ -88,5 +88,5 @@ const makeStyles = (colors) => StyleSheet.create({
     minWidth: 22, height: 22, alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: 6,
   },
-  badgeText: { color: '#fff', fontSize: 11, fontFamily: fonts.jakarta.bold },
+  badgeText: { color: colors.white, fontSize: 11, fontFamily: fonts.jakarta.bold },
 })

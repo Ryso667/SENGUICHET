@@ -88,5 +88,5 @@ const makeStyles = (colors) => StyleSheet.create({
     backgroundColor: colors.accent, borderRadius: borderRadius.lg, paddingHorizontal: 24,
     height: 48, alignItems: 'center', justifyContent: 'center',
   },
-  customBtnText: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#fff' },
+  customBtnText: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.white },
 })

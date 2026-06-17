@@ -16,10 +16,10 @@ import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { hexToRgba } from '../../utils/colors'
 
 const getStatutConfig = (colors) => ({
-  soumis: { label: 'Soumis', color: '#FFA726', bg: 'rgba(255,167,38,0.2)' },
-  en_analyse: { label: 'En analyse', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
+  soumis: { label: 'Soumis', color: colors.orange, bg: hexToRgba(colors.orange, 0.15) },
+  en_analyse: { label: 'En analyse', color: colors.warning, bg: hexToRgba(colors.warning, 0.15) },
   approuve: { label: 'Approuvé', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
-  refuse: { label: 'Refusé', color: '#FF4D6D', bg: 'rgba(255,77,109,0.2)' },
+  refuse: { label: 'Refusé', color: colors.danger, bg: hexToRgba(colors.danger, 0.15) },
 })
 
 const TYPE_LABELS = {
@@ -321,14 +321,14 @@ export default function MesDemandesScreen({ navigation }) {
             if (month === 0) { setBrowseMonthFn(11); setBrowseYearFn(year - 1) }
             else setBrowseMonthFn(month - 1)
           }}>
-            <Feather name="chevron-left" size={22} color="#fff" />
+            <Feather name="chevron-left" size={22} color={colors.text} />
           </TouchableOpacity>
           <Text style={f.calHeaderText}>{MONTHS[month]} {year}</Text>
           <TouchableOpacity onPress={() => {
             if (month === 11) { setBrowseMonthFn(0); setBrowseYearFn(year + 1) }
             else setBrowseMonthFn(month + 1)
           }}>
-            <Feather name="chevron-right" size={22} color="#fff" />
+            <Feather name="chevron-right" size={22} color={colors.text} />
           </TouchableOpacity>
         </View>
         <View style={f.calWeek}>
@@ -409,7 +409,7 @@ export default function MesDemandesScreen({ navigation }) {
   )
 
   const renderLabel = (text, required) => (
-    <Text style={f.label}>{text}{required ? <Text style={{ color: '#FF4D6D' }}> *</Text> : null}</Text>
+    <Text style={f.label}>{text}{required ? <Text style={{ color: colors.danger }}> *</Text> : null}</Text>
   )
 
   const renderInput = (placeholder, value, onChange, extra) => {
@@ -418,6 +418,13 @@ export default function MesDemandesScreen({ navigation }) {
       <TextInput style={[f.input, extraStyle]} placeholder={placeholder} placeholderTextColor={colors.textTertiary} value={value} onChangeText={onChange} selectionColor="rgba(0,0,0,0.25)" {...rest} />
     )
   }
+
+  const DetailField = ({ label, value }) => (
+    <View style={f.detailField}>
+      <Text style={f.detailLabel}>{label}</Text>
+      <Text style={f.detailValue}>{value}</Text>
+    </View>
+  )
 
   return (
     <View style={s.container}>
@@ -667,9 +674,10 @@ export default function MesDemandesScreen({ navigation }) {
 
                       {/* Catégories tickets */}
                       <View style={f.catHeader}>
-                        <Text style={f.label}>Catégories de tickets <Text style={{ color: '#FF4D6D' }}>*</Text></Text>
+                        <Text style={f.label}>Catégories de tickets <Text style={{ color: colors.danger }}>*</Text></Text>
                         <TouchableOpacity style={f.addCatBtn} onPress={addCategory}>
                           <MaterialCommunityIcons name="plus" size={14} color="#fff" />
+                          <Text style={f.addCatText}>Ajouter</Text>
                         </TouchableOpacity>
                       </View>
                       {categories.map((cat, i) => (
@@ -803,12 +811,6 @@ export default function MesDemandesScreen({ navigation }) {
   )
 }
 
-const DetailField = ({ label, value }) => (
-  <View style={f.detailField}>
-    <Text style={f.detailLabel}>{label}</Text>
-    <Text style={f.detailValue}>{value}</Text>
-  </View>
-)
 
 const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
@@ -824,7 +826,7 @@ const makeStyles = (colors) => StyleSheet.create({
   emptyState: { padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
   emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
   emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center' },
-  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, backgroundColor: 'rgba(121,134,203,0.15)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
+  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, backgroundColor: colors.accent + '26', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
   emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.green },
 
   list: { gap: spacing.sm },
@@ -838,7 +840,7 @@ const makeStyles = (colors) => StyleSheet.create({
   cardDate: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 2 },
   cardComment: { fontSize: 11, fontFamily: fonts.jakarta.regular, marginTop: 2, fontStyle: 'italic' },
   detailBtn: {
-    borderWidth: 1, borderColor: 'rgba(121,134,203,0.3)', borderRadius: 10,
+    borderWidth: 1, borderColor: colors.accent + '4D', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 6, marginLeft: spacing.sm,
   },
   detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.green },
@@ -856,7 +858,7 @@ const makeStyles = (colors) => StyleSheet.create({
 
   /* Détail */
   detailBadgeRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
-  detailTypeBadge: { backgroundColor: 'rgba(121,134,203,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  detailTypeBadge: { backgroundColor: colors.accent + '1A', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.green },
   detailSub: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, marginBottom: spacing.md },
   detailImageWrap: { height: 160, borderRadius: 12, overflow: 'hidden', marginBottom: spacing.md },
@@ -871,12 +873,12 @@ const makeStyles = (colors) => StyleSheet.create({
   successWrap: { alignItems: 'center', paddingVertical: 30, gap: spacing.sm },
   successTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text },
   successSub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
-  successBtn: { marginTop: spacing.md, backgroundColor: 'rgba(121,134,203,0.15)', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
+  successBtn: { marginTop: spacing.md, backgroundColor: colors.accent + '26', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
   successBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.green },
 
   /* Erreur */
   errorBox: { padding: spacing.sm, marginBottom: spacing.md },
-  errorText: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: '#FF4D6D' },
+  errorText: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.danger },
 
   /* Picker modals */
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 },
@@ -893,24 +895,25 @@ const makeFormStyles = (colors) => StyleSheet.create({
   input: {
     backgroundColor: colors.inputBg, borderRadius: 10,
     paddingHorizontal: 14, height: 44, fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.text,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.inputBorder, marginBottom: spacing.sm,
+    borderWidth: 1, borderColor: colors.border, marginBottom: spacing.sm,
   },
   selectRow: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.sm, flexWrap: 'wrap' },
   selectOpt: {
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    borderWidth: 1, borderColor: 'rgba(121,134,203,0.3)',
+    borderWidth: 1, borderColor: colors.accent + '4D',
   },
   selectOptActive: { backgroundColor: colors.accent, borderColor: colors.accent },
   selectOptText: { fontSize: 12, fontFamily: fonts.outfit.regular, color: colors.text },
   selectOptTextActive: { color: '#fff' },
   twoCol: { flexDirection: 'row', gap: spacing.sm },
   uploadZone: {
-    borderWidth: 2, borderStyle: 'dashed', borderColor: 'rgba(0,0,0,0.06)',
+    borderWidth: 2, borderStyle: 'dashed', borderColor: colors.border,
     borderRadius: 12, paddingVertical: 30, alignItems: 'center', justifyContent: 'center',
     marginBottom: spacing.sm,
   },
   catHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
-  addCatBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(121,134,203,0.15)', alignItems: 'center', justifyContent: 'center' },
+  addCatBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: colors.accent },
+  addCatText: { fontSize: 13, fontWeight: '600', color: '#fff' },
   catRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   submitBtn: { borderRadius: 12, overflow: 'hidden', marginTop: spacing.md },
   submitGrad: { paddingVertical: 14, alignItems: 'center' },
@@ -924,7 +927,7 @@ const makeFormStyles = (colors) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: colors.inputBg, borderRadius: 10,
     paddingHorizontal: 14, height: 44,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.inputBorder,
+    borderWidth: 1, borderColor: colors.border,
     marginBottom: spacing.sm,
   },
   pickerBtnText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.text, flex: 1 },
@@ -934,7 +937,7 @@ const makeFormStyles = (colors) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: colors.inputBg, borderRadius: 10,
     paddingHorizontal: 10, height: 40,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.inputBorder,
+    borderWidth: 1, borderColor: colors.border,
   },
   catPickerText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.text, flex: 1 },
 
@@ -960,7 +963,7 @@ const makeFormStyles = (colors) => StyleSheet.create({
   timeCol: { alignItems: 'center', gap: 4 },
   timeValue: { fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.text, paddingVertical: 4 },
   timeConfirmBtn: {
-    backgroundColor: 'rgba(121,134,203,0.15)', borderRadius: 10,
+    backgroundColor: colors.accent + '26', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
   timeConfirmText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text },

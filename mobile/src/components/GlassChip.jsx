@@ -49,6 +49,6 @@ const makeStyles = (colors) => StyleSheet.create({
     color: colors.textSecondary,
   },
   activeLabel: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
 })

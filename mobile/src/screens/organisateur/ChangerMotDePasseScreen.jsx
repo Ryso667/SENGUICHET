@@ -164,7 +164,7 @@ const makeStyles = (colors) => StyleSheet.create({
   inputRow: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: colors.inputBg, borderRadius: borderRadius.md,
-    borderWidth: 1, borderColor: colors.inputBorder,
+    borderWidth: 1, borderColor: colors.border,
   },
   input: {
     flex: 1, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md,
@@ -178,5 +178,5 @@ const makeStyles = (colors) => StyleSheet.create({
     backgroundColor: colors.accent, borderRadius: borderRadius.lg,
     alignItems: 'center', justifyContent: 'center',
   },
-  submitText: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff' },
+  submitText: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: colors.white },
 })

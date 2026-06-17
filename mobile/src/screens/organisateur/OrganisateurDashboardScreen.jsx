@@ -18,10 +18,10 @@ import { hexToRgba } from '../../utils/colors'
 
 const getStatutConfig = (colors) => ({
   actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
-  en_attente: { label: 'En attente', color: '#FFA726', bg: 'rgba(255,167,38,0.2)' },
-  refuse: { label: 'Refusé', color: '#FF4D6D', bg: 'rgba(255,77,109,0.2)' },
-  termine: { label: 'Terminé',     color: '#B0B0B8', bg: 'rgba(176,176,184,0.2)' },
-  annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
+  en_attente: { label: 'En attente', color: colors.orange, bg: hexToRgba(colors.orange, 0.15) },
+  refuse: { label: 'Refusé', color: colors.danger, bg: hexToRgba(colors.danger, 0.15) },
+  termine: { label: 'Terminé', color: colors.textTertiary, bg: hexToRgba(colors.textTertiary, 0.15) },
+  annule: { label: 'Annulé', color: colors.textSecondary, bg: hexToRgba(colors.textSecondary, 0.15) },
 })
 
 export default function OrganisateurDashboardScreen({ navigation }) {
@@ -100,7 +100,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
     <View style={[s.container, { paddingTop: insets.top }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" colors={["#10B981"]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
         onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
         scrollEventThrottle={16}
       >
@@ -300,7 +300,7 @@ const makeStyles = (colors) => StyleSheet.create({
   },
   revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.green },
   detailsBtn: {
-    backgroundColor: 'rgba(121,134,203,0.15)', borderRadius: 8,
+    backgroundColor: colors.accent + '26', borderRadius: 8,
     paddingHorizontal: 14, paddingVertical: 6,
   },
   detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.green },

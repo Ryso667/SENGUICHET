@@ -236,6 +236,13 @@ export default function HomeScreen({ navigation }) {
           ))}
         </ScrollView>
 
+        {/* Lien rapide vers les favoris */}
+        <TouchableOpacity style={styles.favorisLink} onPress={() => navigation.navigate('MesFavoris')}>
+          <Feather name="heart" size={16} color={colors.red} />
+          <Text style={styles.favorisLinkText}>Mes favoris</Text>
+          <Feather name="chevron-right" size={14} color={colors.textTertiary} />
+        </TouchableOpacity>
+
         {/* Section À la une — EventCarousel conservé */}
         {chargement ? (
           <>
@@ -385,6 +392,13 @@ const makeStyles = (colors) => StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8,
   },
   eventCardBadgeText: { fontSize: 11, fontFamily: 'Outfit_700Bold' },
+  favorisLink: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 20, paddingVertical: 12, marginTop: 4,
+  },
+  favorisLinkText: {
+    fontFamily: 'Outfit_600SemiBold', fontSize: 14, color: colors.text, flex: 1,
+  },
   favoriBtn: {
     position: 'absolute',
     top: 8,

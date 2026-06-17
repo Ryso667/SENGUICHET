@@ -6,6 +6,7 @@ const e = require("../controllers/evenementController");
 // Routes publiques (sans authentification)
 router.get('/public', e.listerPublic);
 router.get('/public/:id', e.detailPublic);
+router.get('/public/:id/page', e.pageEvenement);
 
 // Organisateur routes
 router.post("/", authMiddleware(["ORGANISATEUR"]), e.upload.single("affiche"), e.creer);
