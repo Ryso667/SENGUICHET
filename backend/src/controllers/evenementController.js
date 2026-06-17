@@ -550,7 +550,6 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#0F1A0
     res.status(500).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Erreur — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#1B4332;">SENGUICHET</h1><p style="color:#40916C;">Erreur serveur</p></body></html>`);
   }
 };
-
 const statsEvenement = async (req, res) => {
   try {
     const { id } = req.params;

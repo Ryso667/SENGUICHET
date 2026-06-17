@@ -391,7 +391,7 @@ const makeStyles = (colors) => StyleSheet.create({
     position: 'absolute', top: 10, right: 10,
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8,
   },
-     eventCardBadgeText: { fontSize: 11, fontFamily: 'Outfit_700Bold' },
+  eventCardBadgeText: { fontSize: 11, fontFamily: 'Outfit_700Bold' },
   favorisLink: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 20, paddingVertical: 12, marginTop: 4,

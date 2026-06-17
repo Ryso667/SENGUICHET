@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useAuth } from '../../context/AuthContext'
 import GlassContainer from '../../components/GlassContainer'
+
 import { spacing, fonts } from '../../constants/theme'
 import { useTheme } from '../../context/ThemeContext'
 
@@ -31,19 +32,15 @@ export default function ControleurDashboardScreen({ navigation }) {
           <Text style={styles.sousTitre}>Connecté avec succès</Text>
         </GlassContainer>
 
-        <TouchableOpacity
-          style={styles.scanBtn}
-          onPress={() => navigation.navigate('Scanner')}
-          activeOpacity={0.8}
-        >
-                    <Feather name="camera" size={28} color="#FFFFFF" />
+        <TouchableOpacity style={styles.scanBtn} onPress={() => navigation.navigate('Scanner')} activeOpacity={0.8}>
+          <Feather name="camera" size={24} color="#fff" />
           <Text style={styles.scanBtnTexte}>Scanner un billet</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.histLien} onPress={() => navigation.navigate('Historique')}>
-          <Feather name="clock" size={16} color={colors.accent} />
+          <Feather name="clock" size={16} color={colors.textSecondary} />
           <Text style={styles.histLienTexte}>Historique des scans</Text>
-          <Feather name="chevron-right" size={14} color={colors.accent} />
+          <Feather name="chevron-right" size={16} color={colors.textTertiary} />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.themeBtn} onPress={() => setShowTheme(true)}>
@@ -93,6 +90,21 @@ const makeStyles = (colors) => StyleSheet.create({
     paddingHorizontal: 24,
     gap: spacing.lg,
   },
+  scanBtn: {
+    width: '100%', paddingVertical: 18, borderRadius: 16,
+    backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center',
+    flexDirection: 'row', gap: 10,
+  },
+  scanBtnTexte: {
+    fontFamily: 'Outfit_700Bold', fontSize: 17, color: '#fff',
+  },
+  histLien: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    paddingVertical: 10,
+  },
+  histLienTexte: {
+    fontFamily: fonts.outfit.medium, fontSize: 14, color: colors.textSecondary,
+  },
   card: { padding: spacing.xl, alignItems: 'center', gap: 12, width: '100%' },
   titre: {
     fontFamily: 'Outfit_700Bold',
@@ -104,26 +116,6 @@ const makeStyles = (colors) => StyleSheet.create({
     fontSize: 15,
     color: colors.textSecondary,
     marginBottom: 24,
-  },
-  scanBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12,
-    width: '100%', paddingVertical: 20,
-    backgroundColor: colors.accent,
-    borderRadius: 16,
-  },
-  scanBtnTexte: {
-    fontFamily: fonts.outfit.bold,
-    fontSize: 18,
-    color: '#FFFFFF',
-  },
-  histLien: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    paddingVertical: 12,
-  },
-  histLienTexte: {
-    fontFamily: fonts.outfit.semiBold,
-    fontSize: 14,
-    color: colors.accent,
   },
   themeBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 8,

@@ -80,10 +80,7 @@ export default function ScanHistoryScreen() {
           <Text style={styles.eventName}>{evenementTitre}</Text>
         )}
 
-        <Text style={styles.infoAuto}>
-          Les tickets sont automatiquement téléchargés et synchronisés.{'\n'}
-          Les scans apparaissent ci-dessous.
-        </Text>
+        <Text style={styles.infoAuto}>Scans triés du plus récent au plus ancien</Text>
 
         {scans.length === 0 ? (
           <EmptyState

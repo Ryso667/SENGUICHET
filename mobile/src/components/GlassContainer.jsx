@@ -1,7 +1,10 @@
 // Carte fond solide avec bordure subtile — thème clair/sombre selon blurType
+// Remplace l'effet glass pour meilleur contraste
 // Props : children, style, borderLeftColor, borderLeftWidth, blurType ('light'|'dark')
 // blurType='dark'  → fond sombre fixe #1E293B (pour pickers/modales sur overlay sombre)
 // blurType='light' (défaut) → colors.card (s'adapte au thème)
+// borderLeftColor : couleur hex pour la bordure gauche
+// borderLeftWidth : largeur de la bordure gauche (défaut 6)
 import { useMemo } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { borderRadius } from '../constants/theme'

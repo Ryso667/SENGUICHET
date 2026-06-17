@@ -58,7 +58,7 @@ export default function EventDetailScreen({ route, navigation }) {
   // Partage de l'événement via l'API Share native avec lien web
   const partagerEvenement = () => {
     const url = `https://backend-beta-six-39.vercel.app/api/evenements/public/${eventId}/page`
-    const message = `🎫 ${event?.title || 'Événement'}${event?.date ? ` — ${formaterDateLisible(event.date)}` : ''}${event?.location ? ` à ${event.location}` : ''}\n\n${url}`
+    const message = `🎫 ${event?.title || 'Événement'}${event?.date ? ` — ${formaterDateLisible(event.date)}` : ''}${event?.lieu ? ` à ${event.lieu}` : ''}\n\n${url}`
     Share.share({ message, url, title: event?.title || 'Événement SENGUICHET' })
   }
 
@@ -300,7 +300,7 @@ export default function EventDetailScreen({ route, navigation }) {
           eventData={{
             title: event?.title,
             date: event?.date,
-            location: event?.location,
+            location: event?.lieu,
             category: event?.category,
             affiche_url: event?.affiche_url,
           }}
