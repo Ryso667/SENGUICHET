@@ -132,7 +132,7 @@ function GuestNavigator() {
       <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Support" component={SupportScreen} options={header('Support')} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={header('Notifications')} />
-      <Stack.Screen name="MesFavoris" component={MesFavorisScreen} options={header('Mes favoris')} />
+      <Stack.Screen name="MesFavoris" component={MesFavorisScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Calendar" component={CalendarScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   )

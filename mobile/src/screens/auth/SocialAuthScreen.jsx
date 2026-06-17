@@ -67,9 +67,11 @@ export default function SocialAuthScreen({ navigation }) {
     setLoading(true)
     try {
       await connecterAcheteurOTP(email, code)
+      navigation.replace('MainTabs')
     } catch (err) {
-      setLoading(false)
       Alert.alert('Erreur', err.message)
+    } finally {
+      setLoading(false)
     }
   }
 
