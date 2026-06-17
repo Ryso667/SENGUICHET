@@ -45,7 +45,7 @@ app.get("/api/test-sms/:numero", async (req, res) => {
       categorie: "TEST",
       prix: 1500,
     };
-    const result = await envoyerSMSBillet(numero, ticket);
+    const result = await envoyerSMSBillet(numero, ticket, pool);
     res.json(result);
   } catch (e) {
     res.status(500).json({ error: e.message });
