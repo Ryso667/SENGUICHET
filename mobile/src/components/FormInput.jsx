@@ -106,7 +106,7 @@ const makeStyles = (colors) => StyleSheet.create({
     backgroundColor: colors.inputBg,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.inputBorder,
+    borderColor: colors.border,
     height: 56,
   },
   containerFocused: {

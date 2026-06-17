@@ -272,7 +272,7 @@ const makeStyles = (colors) => StyleSheet.create({
   },
   filterBtn: { marginLeft: 8, position: 'relative' },
   filterBadge: { position: 'absolute', top: -6, right: -6, width: 14, height: 14, borderRadius: 7, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
-  filterBadgeText: { fontSize: 9, fontFamily: 'PlusJakartaSans_700Bold', color: '#fff' },
+  filterBadgeText: { fontSize: 9, fontFamily: 'PlusJakartaSans_700Bold', color: colors.white },
   modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' },
   modalContent: { backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
@@ -286,5 +286,5 @@ const makeStyles = (colors) => StyleSheet.create({
     marginBottom: 16,
   },
   modalValider: { backgroundColor: colors.accent, borderRadius: 12, padding: 14, alignItems: 'center', marginTop: 8 },
-  modalValiderText: { fontSize: 15, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#fff' },
+  modalValiderText: { fontSize: 15, fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.white },
 })

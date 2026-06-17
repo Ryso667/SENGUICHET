@@ -1,16 +1,15 @@
-// Carte fond indigo solide avec bordure subtile — remplace l'effet glass pour meilleur contraste
-// Props : style, children, borderLeftColor (couleur de la bordure gauche), borderLeftWidth (largeur, défaut 6)
+// Carte fond solide avec bordure subtile — thème clair/sombre selon blurType
+// Props : children, style, borderLeftColor, borderLeftWidth, blurType ('light'|'dark')
+// blurType='dark'  → fond sombre fixe #1E293B (pour pickers/modales sur overlay sombre)
+// blurType='light' (défaut) → colors.card (s'adapte au thème)
 import { useMemo } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { borderRadius } from '../constants/theme'
 import { useTheme } from '../context/ThemeContext'
 
-// Carte avec fond indigo solide et bordure gauche colorée optionnelle
-// borderLeftColor : couleur hex pour la bordure gauche
-// borderLeftWidth : largeur de la bordure gauche (défaut 6)
-export default function GlassContainer({ children, style, borderLeftColor, borderLeftWidth }) {
+export default function GlassContainer({ children, style, borderLeftColor, borderLeftWidth, blurType }) {
   const { colors } = useTheme()
-  const styles = useMemo(() => makeStyles(colors), [colors])
+  const styles = useMemo(() => makeStyles(colors, blurType), [colors, blurType])
 
   return (
     <View style={[
@@ -23,12 +22,12 @@ export default function GlassContainer({ children, style, borderLeftColor, borde
   )
 }
 
-const makeStyles = (colors) => StyleSheet.create({
+const makeStyles = (colors, blurType) => StyleSheet.create({
   container: {
-    backgroundColor: colors.surface,
+    backgroundColor: blurType === 'dark' ? '#1E293B' : colors.card,
     borderRadius: borderRadius.xl,
     borderWidth: 1,
-    borderColor: 'rgba(121, 134, 203, 0.2)',
+    borderColor: blurType === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(121, 134, 203, 0.2)',
     overflow: 'hidden',
   },
 })

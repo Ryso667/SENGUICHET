@@ -28,7 +28,7 @@ const creer = async (req, res) => {
 
     const dateDebutFull = `${dateDebut} ${heureDebut}:00`;
     const dateFinFull = dateFin ? `${dateFin} 23:59:00` : null;
-    const afficheUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    const afficheUrl = req.body.affiche_url || (req.file ? `/uploads/${req.file.filename}` : null);
 
     const conn = await pool.getConnection();
     try {
@@ -434,6 +434,123 @@ const getEquipe = async (req, res) => {
   }
 };
 
+// Page HTML publique d'un événement (pour partage par lien)
+// GET /api/evenements/public/:id/page
+const pageEvenement = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [rows] = await pool.query(
+      `SELECT id, titre, description, lieu, ville, categorie, date_debut, date_fin,
+        capacite_totale, affiche_url, statut, heure_debut
+      FROM evenement WHERE id = ? AND statut = 'actif'`,
+      [id]
+    );
+    if (!rows.length) {
+      return res.status(404).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Événement introuvable — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#1B4332;">SENGUICHET</h1><p style="color:#40916C;">Événement introuvable</p></body></html>`);
+    }
+
+    const e = rows[0];
+    const [categories] = await pool.query(
+      "SELECT nom, prix, capacite, places_disponibles FROM categorie_ticket WHERE evenement_id = ?",
+      [id]
+    );
+
+    const dateDebut = new Date(e.date_debut).toLocaleDateString("fr-FR", {
+      day: "numeric", month: "long", year: "numeric"
+    });
+    const heureDebut = e.heure_debut || new Date(e.date_debut).toLocaleTimeString("fr-FR", {
+      hour: "2-digit", minute: "2-digit"
+    });
+    const dateFin = e.date_fin ? new Date(e.date_fin).toLocaleDateString("fr-FR", {
+      day: "numeric", month: "long", year: "numeric"
+    }) : null;
+
+    const categoriesHtml = categories.map(c => `
+      <div class="cat">
+        <div class="cat-n">${c.nom}</div>
+        <div class="cat-p">${Number(c.prix).toLocaleString()} FCFA</div>
+        <div class="cat-d">${c.places_disponibles}/${c.capacite} places</div>
+      </div>
+    `).join('');
+
+    const afficheStyle = e.affiche_url
+      ? `<div class="af" style="background-image:url(${e.affiche_url})"></div>`
+      : '<div class="af" style="background:linear-gradient(135deg,#5C6BC0,#7986CB);display:flex;align-items:center;justify-content:center"><span style="font-size:60px;opacity:.3">🎭</span></div>';
+
+    res.send(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${e.titre} — SENGUICHET</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px}
+.c{max-width:420px;width:100%;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(92,107,192,.15);margin-top:20px}
+.af{height:200px;background-size:cover;background-position:center;position:relative}
+.af::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(15,26,15,.8),transparent)}
+.bd{background:#F9F6EE;padding:24px}
+.ct{font-size:10px;font-weight:700;letter-spacing:3px;color:#7986CB;margin-bottom:8px}
+.tt{font-size:24px;font-weight:700;color:#1E2250;line-height:30px;margin-bottom:16px}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.fd{background:rgba(92,107,192,.06);border-radius:12px;padding:10px 14px}
+.fd-l{font-size:9px;font-weight:700;letter-spacing:2px;color:#7986CB;margin-bottom:2px}
+.fd-v{font-size:13px;font-weight:600;color:#1E2250}
+.ds{font-size:13px;line-height:20px;color:#374151;margin-bottom:16px;padding:0 2px}
+.st{font-size:11px;font-weight:700;letter-spacing:2px;color:#7986CB;margin-bottom:10px}
+.cat{border:1px solid rgba(92,107,192,.1);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.cat-n{font-size:13px;font-weight:600;color:#1E2250;flex:1}
+.cat-p{font-size:14px;font-weight:700;color:#10B981}
+.cat-d{font-size:10px;color:#7986CB;text-align:right;min-width:60px}
+.ft{background:#F0EAD6;padding:16px;text-align:center}
+.ft-l{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#5C6BC0}
+.ft-p{font-size:8px;color:rgba(92,107,192,.3);margin-top:8px}
+@media(max-width:480px){.c{margin-top:10px;border-radius:16px}.tt{font-size:20px}.af{height:160px}}
+@media print{body{background:#fff;padding:0}.c{box-shadow:none;margin-top:0}}
+</style>
+</head>
+<body>
+<div class="c">
+  ${afficheStyle}
+  <div class="bd">
+    <div class="ct">${e.categorie ? e.categorie.toUpperCase() : 'ÉVÉNEMENT'}</div>
+    <div class="tt">${e.titre}</div>
+    <div class="gr">
+      <div class="fd">
+        <div class="fd-l">DATE</div>
+        <div class="fd-v">${dateDebut}</div>
+      </div>
+      <div class="fd">
+        <div class="fd-l">HEURE</div>
+        <div class="fd-v">${heureDebut}</div>
+      </div>
+      <div class="fd">
+        <div class="fd-l">LIEU</div>
+        <div class="fd-v">${e.lieu}</div>
+      </div>
+      <div class="fd">
+        <div class="fd-l">VILLE</div>
+        <div class="fd-v">${e.ville}</div>
+      </div>
+    </div>
+    ${e.description ? `<div class="ds">${e.description}</div>` : ''}
+    ${dateFin ? `<div class="fd" style="margin-bottom:16px"><div class="fd-l">DATE DE FIN</div><div class="fd-v">${dateFin}</div></div>` : ''}
+    <div class="st">TARIFS</div>
+    ${categoriesHtml || '<p style="color:#7986CB;font-size:13px">Aucun billet disponible</p>'}
+  </div>
+  <div class="ft">
+    <div class="ft-l">SENGUICHET</div>
+    <div class="ft-p">Billetterie en ligne</div>
+  </div>
+</div>
+</body>
+</html>`);
+  } catch (err) {
+    console.error("Page evenement error:", err);
+    res.status(500).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Erreur — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#1B4332;">SENGUICHET</h1><p style="color:#40916C;">Erreur serveur</p></body></html>`);
+  }
+};
+
 const statsEvenement = async (req, res) => {
   try {
     const { id } = req.params;
@@ -512,5 +629,5 @@ const statsEvenement = async (req, res) => {
   }
 };
 
-module.exports = { creer, upload, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic, getEquipe, statsEvenement };
+module.exports = { creer, upload, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic, pageEvenement, getEquipe, statsEvenement };
 

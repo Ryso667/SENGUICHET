@@ -5,14 +5,16 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { spacing, borderRadius, fonts } from '../../constants/theme'
 import { useTheme } from '../../context/ThemeContext'
-import { fetchEvenementDetailAPI } from '../../services/eventService'
+import { fetchEvenementDetailAPI, fetchEvenementBilletsAPI } from '../../services/eventService'
 import Skeleton from '../../components/Skeleton'
 import GlassContainer from '../../components/GlassContainer'
 
+import { hexToRgba } from '../../utils/colors'
+
 const getStatusBadge = (colors) => ({
-  valide: { label: 'Valide', color: colors.green, bg: 'rgba(76,175,80,0.2)' },
-  utilise: { label: 'Utilisé', color: '#94a3b8', bg: 'rgba(148,163,184,0.2)' },
-  expire: { label: 'Expiré', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
+  valide: { label: 'Valide', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
+  utilise: { label: 'Utilisé', color: colors.textTertiary, bg: hexToRgba(colors.textTertiary, 0.15) },
+  expire: { label: 'Expiré', color: colors.danger, bg: hexToRgba(colors.danger, 0.15) },
 })
 
 export default function VoirTicketsScreen({ route }) {
@@ -32,9 +34,12 @@ export default function VoirTicketsScreen({ route }) {
   async function charger() {
     setLoading(true)
     try {
-      const data = await fetchEvenementDetailAPI(eventId)
-      setEvenement(data.evenement || data)
-      setTickets(data.tickets || [])
+      const [eventData, ticketsData] = await Promise.all([
+        fetchEvenementDetailAPI(eventId),
+        fetchEvenementBilletsAPI(eventId),
+      ])
+      setEvenement(eventData.evenement || eventData)
+      setTickets(ticketsData)
     } catch {}
     setLoading(false)
   }
@@ -69,8 +74,8 @@ export default function VoirTicketsScreen({ route }) {
                 <GlassContainer blurType="light" key={t.id} style={s.ticketRow} intensity={40}>
                   <View style={{ flex: 1 }}>
                     <Text style={s.ticketNumero}>{t.numero || t.id?.toString()?.slice(0, 8) || '-'}</Text>
-                    <Text style={s.ticketCategorie}>{t.categorie || 'Standard'}</Text>
-                    <Text style={s.ticketTel}>{t.telephone || t.telephoneAcheteur || '-'}</Text>
+                    <Text style={s.ticketCategorie}>{t.categorie}</Text>
+                    <Text style={s.ticketTel}>{t.telephone || '-'}</Text>
                   </View>
                   <Text style={s.ticketPrix}>{t.prix || 0} FCFA</Text>
                   <View style={[s.badge, { backgroundColor: badge.bg }]}>

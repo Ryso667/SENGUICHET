@@ -137,7 +137,7 @@ const makeStyles = (colors) => StyleSheet.create({
   },
   securityIcon: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: 'rgba(121,134,203,0.12)',
+    backgroundColor: colors.accent + '1F',
     alignItems: 'center', justifyContent: 'center',
   },
   securityLabel: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, flex: 1 },
@@ -151,7 +151,7 @@ const makeStyles = (colors) => StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(255,77,109,0.2)',
   },
   logoutText: {
-    fontSize: 17, fontFamily: fonts.outfit.semiBold, color: '#FF4D6D',
+    fontSize: 17, fontFamily: fonts.outfit.semiBold, color: colors.danger,
   },
 })
 

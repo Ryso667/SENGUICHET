@@ -75,6 +75,6 @@ const makeStyles = (colors) => StyleSheet.create({
   buttonLabel: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: 15,
-    color: '#FFFFFF',
+    color: colors.white,
   },
 })

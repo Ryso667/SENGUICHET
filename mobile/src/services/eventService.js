@@ -52,6 +52,7 @@ export async function creerEvenementAPI(data) {
       quantite: Number(c.capacite),
     })),
   }
+  if (data.poster) body.affiche_url = data.poster
   return await appelAPI('/evenements/', { method: 'POST', body })
 }
 
@@ -189,9 +190,30 @@ export async function fetchEvenementDetailPublic(eventId) {
       name: c.nom,
       price: c.prix,
       desc: c.description || '',
+      placesDisponibles: c.places_disponibles ?? null,
+      capacite: c.capacite ?? null,
     })),
     time: e.date_debut ? e.date_debut.slice(11, 16) : '',
     priceMin: e.prix_min || 0,
     priceMax: e.prix_max || 0,
   }
+}
+
+// Récupère les billets vendus (individuels) pour un événement
+// GET /api/billets/evenement/:id
+export async function fetchEvenementBilletsAPI(eventId) {
+  const data = await appelAPI(`/billets/evenement/${eventId}`)
+  if (!Array.isArray(data)) return []
+  return data.map(b => ({
+    id: b.id,
+    uuid: b.uuid,
+    numero: b.numero,
+    telephone: b.telephone_acheteur || '',
+    email: b.email_acheteur || '',
+    nom: b.nom_acheteur || '',
+    prix: Number(b.prix_paye || 0),
+    statut: (b.statut || '').toLowerCase(),
+    categorie: b.categorie_nom || 'Standard',
+    dateCreation: b.date_creation || '',
+  }))
 }

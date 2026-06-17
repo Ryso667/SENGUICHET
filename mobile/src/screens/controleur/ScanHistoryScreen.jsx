@@ -1,17 +1,15 @@
 // Historique des scans effectués par le contrôleur
 // Statistiques par statut, liste chronologique, synchro offline
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl, Alert } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { formaterDateHeure } from '../../utils/dateUtils'
-import { telechargerTickets, getHistorique, synchroniser, getStats, reinitialiser } from '../../services/scanService'
+import { getHistorique, getStats } from '../../services/scanService'
 import { useAuth } from '../../context/AuthContext'
 import { fonts } from '../../constants/theme'
 import { useTheme } from '../../context/ThemeContext'
-import ControleurLayout from '../../components/ControleurLayout'
 import GlassContainer from '../../components/GlassContainer'
-import GlassButton from '../../components/GlassButton'
 import EmptyState from '../../components/EmptyState'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
 
@@ -31,9 +29,6 @@ export default function ScanHistoryScreen() {
   const { evenementId, evenementTitre } = useAuth()
   const [scans, setScans] = useState([])
   const [stats, setStats] = useState({ ticketsLocaux: 0 })
-  const [sync, setSync] = useState(false)
-  const [download, setDownload] = useState(false)
-  const [downloadMsg, setDownloadMsg] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
   const insets = useSafeAreaInsets()
 
@@ -46,50 +41,11 @@ export default function ScanHistoryScreen() {
   }, [])
 
   const charger = async () => {
-    const [data, statuts] = await Promise.all([getHistorique(), getStats()])
+    const [data, statuts] = await Promise.all([getHistorique(evenementId), getStats()])
     setScans(data)
     setStats(statuts)
   }
 
-  const handleSync = async () => {
-    setSync(true)
-    try {
-      await synchroniser()
-      await charger()
-    } catch {
-    } finally {
-      setSync(false)
-    }
-  }
-
-  const handleDownload = async () => {
-    setDownload(true)
-    setDownloadMsg(null)
-    try {
-      const zone = 'STANDARD'
-      const nb = await telechargerTickets(evenementId, zone)
-      setDownloadMsg({ type: 'success', text: `${nb} ticket${nb > 1 ? 's' : ''} téléchargé${nb > 1 ? 's' : ''}` })
-      await charger()
-    } catch (err) {
-      setDownloadMsg({ type: 'error', text: err.message || 'Échec du téléchargement' })
-    } finally {
-      setDownload(false)
-    }
-  }
-
-  const handleVider = () => {
-    Alert.alert(
-      'Vider l\'historique',
-      'Cette action remet tous les tickets à DISPONIBLE et efface l\'historique des scans. Les scans non synchronisés seront perdus.',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Vider', style: 'destructive',
-          onPress: async () => { await reinitialiser(); charger() },
-        },
-      ],
-    )
-  }
   const { scrollY: tabScrollY } = useTabBarScroll()
 
   return (
@@ -124,43 +80,10 @@ export default function ScanHistoryScreen() {
           <Text style={styles.eventName}>{evenementTitre}</Text>
         )}
 
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={[styles.actionBtn, sync && { opacity: 0.6 }]}
-            onPress={handleSync}
-            disabled={sync}
-          >
-            {sync ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
-            ) : (
-              <>
-                <Feather name="upload-cloud" size={16} color={colors.accent} />
-                <Text style={styles.actionTexte}>Synchroniser</Text>
-              </>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionBtn, download && { opacity: 0.6 }]}
-            onPress={handleDownload}
-            disabled={download}
-          >
-            {download ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
-            ) : (
-              <>
-                <Feather name="download-cloud" size={16} color={colors.accent} />
-                <Text style={styles.actionTexte}>Télécharger</Text>
-              </>
-            )}
-          </TouchableOpacity>
-          <GlassButton title="Vider" icon="trash-2" onPress={handleVider} style={{flex: 1}} />
-        </View>
-
-        {downloadMsg && (
-          <Text style={[styles.downloadMsg, downloadMsg.type === 'error' && styles.downloadMsgError]}>
-            {downloadMsg.text}
-          </Text>
-        )}
+        <Text style={styles.infoAuto}>
+          Les tickets sont automatiquement téléchargés et synchronisés.{'\n'}
+          Les scans apparaissent ci-dessous.
+        </Text>
 
         {scans.length === 0 ? (
           <EmptyState
@@ -181,13 +104,6 @@ export default function ScanHistoryScreen() {
                   <Text style={styles.carteDate}>{formaterDateHeure(item.timestamp_scan)}</Text>
                 </View>
                 <View style={styles.carteDroite}>
-                  {item.synced === 0 ? (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeTexte}>NON SYNCHRONISÉ</Text>
-                    </View>
-                  ) : (
-                    <Feather name="check-circle" size={12} color={colors.green} />
-                  )}
                   <View style={[styles.carteStatutBadge, { backgroundColor: p.dot + '18' }]}>
                     <Text style={[styles.carteStatut, { color: p.dot }]}>{p.label}</Text>
                   </View>
@@ -222,21 +138,9 @@ const makeStyles = (colors) => StyleSheet.create({
     fontFamily: fonts.outfit.medium, fontSize: 13, color: colors.textSecondary,
     paddingHorizontal: 16, paddingTop: 12, textAlign: 'center',
   },
-  actions: { flexDirection: 'row', paddingHorizontal: 16, paddingTop: 12, gap: 8 },
-  actionBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    paddingVertical: 12, borderRadius: 12,
-    backgroundColor: colors.glassWhite, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.glassBorder,
-  },
-  actionTexte: { fontFamily: fonts.outfit.semiBold, fontSize: 13, color: colors.text },
-  downloadMsg: {
-    fontFamily: fonts.outfit.medium, fontSize: 12, color: colors.green,
-    paddingHorizontal: 16, paddingTop: 8, textAlign: 'center',
-  },
-  downloadMsgError: { color: colors.orange },
-  sectionTitre: {
-    fontFamily: fonts.outfit.semiBold, fontSize: 13, color: colors.text,
-    paddingHorizontal: 16, paddingTop: 20, paddingBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5,
+  infoAuto: {
+    fontFamily: fonts.outfit.regular, fontSize: 12, color: colors.textSecondary,
+    textAlign: 'center', paddingHorizontal: 24, paddingTop: 8, paddingBottom: 4,
   },
   carte: {
     flexDirection: 'row', alignItems: 'center',
@@ -256,10 +160,4 @@ const makeStyles = (colors) => StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6,
   },
   carteStatut: { fontFamily: fonts.outfit.bold, fontSize: 11 },
-  badge: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#FEF3C7', paddingHorizontal: 8, paddingVertical: 3,
-    borderRadius: 6,
-  },
-  badgeTexte: { fontFamily: fonts.outfit.bold, fontSize: 9, color: '#D97706' },
 })

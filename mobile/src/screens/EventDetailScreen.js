@@ -55,10 +55,11 @@ export default function EventDetailScreen({ route, navigation }) {
   const [retryCount, setRetryCount] = useState(0)
   const [telephone, setTelephone] = useState(numeroTel || '')
 
-  // Partage de l'événement via l'API Share native
+  // Partage de l'événement via l'API Share native avec lien web
   const partagerEvenement = () => {
-    const message = `🎫 ${event?.title || 'Événement'}${event?.date ? ` — ${formaterDateLisible(event.date)}` : ''}${event?.lieu ? ` à ${event.lieu}` : ''}\n\nDécouvre-le sur SENGUICHET !`
-    Share.share({ message, title: event?.title || 'Événement SENGUICHET' })
+    const url = `https://backend-beta-six-39.vercel.app/api/evenements/public/${eventId}/page`
+    const message = `🎫 ${event?.title || 'Événement'}${event?.date ? ` — ${formaterDateLisible(event.date)}` : ''}${event?.location ? ` à ${event.location}` : ''}\n\n${url}`
+    Share.share({ message, url, title: event?.title || 'Événement SENGUICHET' })
   }
 
   // Ajoute l'événement au calendrier natif iOS/Android via expo-calendar
@@ -299,7 +300,7 @@ export default function EventDetailScreen({ route, navigation }) {
           eventData={{
             title: event?.title,
             date: event?.date,
-            location: event?.lieu,
+            location: event?.location,
             category: event?.category,
             affiche_url: event?.affiche_url,
           }}

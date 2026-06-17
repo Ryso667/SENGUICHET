@@ -18,10 +18,10 @@ import { hexToRgba } from '../../utils/colors'
 
 const getStatutConfig = (colors) => ({
   actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
-  en_attente: { label: 'En attente', color: '#FFA726', bg: 'rgba(255,167,38,0.2)' },
-  refuse: { label: 'Refusé', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
-  suspendu: { label: 'Suspendu', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
-  annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
+  en_attente: { label: 'En attente', color: colors.orange, bg: hexToRgba(colors.orange, 0.15) },
+  refuse: { label: 'Refusé', color: colors.danger, bg: hexToRgba(colors.danger, 0.15) },
+  suspendu: { label: 'Suspendu', color: colors.warning, bg: hexToRgba(colors.warning, 0.15) },
+  annule: { label: 'Annulé', color: colors.textSecondary, bg: hexToRgba(colors.textSecondary, 0.15) },
 })
 
 export default function DetailEvenementScreen({ route }) {
@@ -112,7 +112,7 @@ export default function DetailEvenementScreen({ route }) {
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <ScrollView showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" colors={["#10B981"]} />}>
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         <GlassContainer blurType="light" style={s.header} intensity={35}>
           <Text style={s.title}>{evenement.nom}</Text>
           <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
@@ -180,7 +180,7 @@ export default function DetailEvenementScreen({ route }) {
           ) : (
             tickets.map(t => (
               <View key={t.id} style={s.ticketRow}>
-                <Text style={s.ticketCategorie}>{t.categorie || t.nom}</Text>
+                <Text style={s.ticketCategorie}>{t.nom}</Text>
                 <Text style={s.ticketPrix}>{t.prix || 0} FCFA</Text>
                 <Text style={s.ticketStatut}>{t.statut || 'valide'}</Text>
               </View>
@@ -234,7 +234,7 @@ const makeStyles = (colors) => StyleSheet.create({
   empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.lg },
   ticketRow: {
     flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(0,0,0,0.06)',
+    borderBottomWidth: StyleSheet.hairlineWidth,     borderBottomColor: colors.border,
   },
   ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, flex: 1 },
   ticketPrix: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.green },

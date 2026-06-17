@@ -1,3 +1,4 @@
+// Utilitaires de mise à l'échelle responsive (taille écran, police, padding)
 import { Dimensions, Platform, PixelRatio } from 'react-native'
 
 const BASE_WIDTH = 375 // iPhone 14 base

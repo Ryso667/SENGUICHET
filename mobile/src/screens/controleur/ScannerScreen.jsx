@@ -19,11 +19,11 @@ import GlassButton from '../../components/GlassButton'
 const INTERVAL_REFRESH = 30000
 
 const COULEURS = {
-  VALIDE: { fond: '#66BB6A', icone: 'check-circle', label: 'Entrée autorisée' },
-  DEJA_UTILISE: { fond: '#FFA726', icone: 'alert-circle', label: 'Déjà utilisé' },
-  EXPIRE: { fond: '#FF4D6D', icone: 'clock-outline', label: 'Billet expiré' },
-  INCONNU: { fond: '#FF4D6D', icone: 'help-circle', label: 'Billet inconnu' },
-  FRAUDE: { fond: '#FF4D6D', icone: 'alert-octagon', label: 'FRAUDE suspectée' },
+  VALIDE: { fond: '#66BB6A', icone: 'check-circle', label: 'Entrée autorisée ✅' },
+  DEJA_UTILISE: { fond: '#FFA726', icone: 'alert-circle', label: 'Déjà scanné ⚠️' },
+  EXPIRE: { fond: '#FF4D6D', icone: 'clock-outline', label: 'QR code expiré ⏳' },
+  INCONNU: { fond: '#FF4D6D', icone: 'help-circle', label: 'Billet non trouvé ❓' },
+  FRAUDE: { fond: '#FF4D6D', icone: 'alert-octagon', label: 'QR code falsifié 🚫' },
 }
 
 export default function ScannerScreen({ navigation, route }) {
@@ -166,7 +166,6 @@ export default function ScannerScreen({ navigation, route }) {
         <View style={[styles.resultat, { backgroundColor: (COULEURS[scanne.resultat] || COULEURS.INCONNU).fond }]}>
           <MaterialCommunityIcons name={(COULEURS[scanne.resultat] || COULEURS.INCONNU).icone} size={scale(64)} color="#fff" />
           <Text style={styles.resultatMessage}>{(COULEURS[scanne.resultat] || COULEURS.INCONNU).label}</Text>
-          {scanne.message && <Text style={styles.resultatDetail}>{scanne.message}</Text>}
         </View>
       )}
     </View>
@@ -189,5 +188,4 @@ const makeStyles = (colors) => StyleSheet.create({
   cadre: { width: scale(250), height: scale(250), borderWidth: scale(2), borderColor: colors.accent, borderRadius: scale(16), opacity: 0.8 },
   resultat: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   resultatMessage: { fontFamily: fonts.outfit.bold, fontSize: fontScale(24), color: '#FFFFFF', marginBottom: scale(8) },
-  resultatDetail: { fontFamily: fonts.outfit.regular, fontSize: fontScale(14), color: 'rgba(255,255,255,0.8)', marginBottom: scale(32) },
 })

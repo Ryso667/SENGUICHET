@@ -5,7 +5,7 @@ import {
   chercherTicket, marquerUtilise, enregistrerScan,
   insererTickets, scansEnAttente, marquerScansSync,
   historiqueScans, historiqueScansAvecDetails,
-  compterTickets, compterScansParResultat, viderTickets,
+  compterTickets, compterScansParResultat, viderTickets, viderScansEvenement,
 } from '../database/database'
 import { HMAC_SECRET } from '../config'
 
@@ -64,38 +64,39 @@ export async function verifierBillet(donneesQR) {
   // Étape 2 : vérification HMAC (signature cryptographique)
   const hmacOk = await verifierHMAC(qr)
   const num = qr.transaction_ref || null
+  const eventId = qr.event_id || null
 
   if (!hmacOk) {
-    await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.FRAUDE, num)
-    return { resultat: RESULTATS.FRAUDE, message: 'Signature cryptographique invalide — alerte fraude' }
+    await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.FRAUDE, num, eventId)
+    return { resultat: RESULTATS.FRAUDE, message: 'QR code falsifié 🚫' }
   }
 
   // Étape 3 : vérification expiration (anti-replay, tolérance 60s comme le serveur)
   if (qr.timestamp) {
     const age = Date.now() - new Date(qr.timestamp).getTime()
     if (age > 60000) {
-      await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.EXPIRE, num)
-      return { resultat: RESULTATS.EXPIRE, message: 'QR code expiré — veuillez rafraîchir le billet' }
+      await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.EXPIRE, num, eventId)
+      return { resultat: RESULTATS.EXPIRE, message: 'QR code expiré ⏳' }
     }
   }
 
   // Étape 4 : recherche du billet dans la base SQLite locale
   let ticket = await chercherTicket(qr.uuid)
   if (!ticket) {
-    await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.INCONNU, num)
-    return { resultat: RESULTATS.INCONNU, message: 'Billet introuvable dans la base locale' }
+    await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.INCONNU, num, eventId)
+    return { resultat: RESULTATS.INCONNU, message: 'Billet non trouvé ❓' }
   }
 
   // Étape 5 : vérification anti re-scan (déjà utilisé ?)
   if (ticket.statut === 'UTILISE_LOCAL') {
-    await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.DEJA_UTILISE, num)
-    return { resultat: RESULTATS.DEJA_UTILISE, message: 'Billet déjà scanné sur cet appareil' }
+    await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.DEJA_UTILISE, num, eventId)
+    return { resultat: RESULTATS.DEJA_UTILISE, message: 'Déjà scanné ⚠️' }
   }
 
   // Billet valide : marquer comme utilisé et enregistrer le scan
   await marquerUtilise(qr.uuid)
-  await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.VALIDE, num)
-  return { resultat: RESULTATS.VALIDE, message: 'Entrée autorisée' }
+  await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.VALIDE, num, eventId)
+  return { resultat: RESULTATS.VALIDE, message: 'Entrée autorisée ✅' }
 }
 
 // Synchronisation batch des scans offline vers le serveur (quand connexion rétablie)
@@ -112,9 +113,9 @@ export async function synchroniser() {
   }
 }
 
-// Récupère l'historique des scans enrichi (event_id, category via JOIN)
-export async function getHistorique() {
-  return await historiqueScansAvecDetails()
+// Récupère l'historique des scans enrichi, filtré par événement si eventId fourni
+export async function getHistorique(eventId) {
+  return await historiqueScansAvecDetails(eventId)
 }
 
 // Statistiques détaillées : tickets locaux + répartition des résultats de scan
@@ -131,4 +132,10 @@ export async function getStats() {
 // Réinitialisation complète de la base SQLite
 export async function reinitialiser() {
   await viderTickets()
+}
+
+// Réinitialisation des scans d'un événement spécifique
+// Efface les scans et remet les tickets à DISPONIBLE pour l'eventId donné
+export async function reinitialiserEvenement(eventId) {
+  await viderScansEvenement(eventId)
 }

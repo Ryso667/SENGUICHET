@@ -4,7 +4,6 @@
 // Tap sur un item -> navigue vers EventDetail
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useFocusEffect } from '@react-navigation/native'
 import { spacing, borderRadius, fonts } from '../constants/theme'
@@ -15,7 +14,6 @@ import { formaterDateLisible } from '../utils/dateUtils'
 export default function MesFavorisScreen({ navigation }) {
   const { colors } = useTheme()
   const styles = useMemo(() => makeStyles(colors), [colors])
-  const insets = useSafeAreaInsets()
   const [favoris, setFavoris] = useState([])
 
   useFocusEffect(
@@ -72,14 +70,7 @@ export default function MesFavorisScreen({ navigation }) {
   )
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Feather name="arrow-left" size={20} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mes favoris</Text>
-        <View style={{ width: 36 }} />
-      </View>
+    <View style={styles.container}>
       {favoris.length === 0 ? (
         <View style={styles.emptyState}>
           <MaterialCommunityIcons name="heart-outline" size={56} color={colors.textTertiary} />
@@ -101,14 +92,6 @@ export default function MesFavorisScreen({ navigation }) {
 
 const makeStyles = (colors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.bgSecondary, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text },
   list: { padding: spacing.lg, gap: spacing.md },
   card: {
     flexDirection: 'row', alignItems: 'center',
