@@ -1,115 +1,145 @@
-import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import logo from "../assets/logo.jpg";
-import { Menu, X } from "../components/Icons";
+// Fichier : Navbar.jsx
+// Rôle : Barre de navigation principale — logo à gauche, nom centré, liens + CTA à droite
 
-const navLinks = [
-  { label: "Accueil", to: "/" },
-  { label: "Comment ça marche", to: "#how" },
-  { label: "Nos avantages", to: "#avantages" },
-];
+import React, { useState } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { IconSearch, IconTicket, IconMenu, IconX } from "@tabler/icons-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleNavClick = (to) => {
-    setMobileOpen(false);
-    if (to.startsWith("#")) {
-      if (location.pathname !== "/") {
-        navigate("/");
-        setTimeout(() => {
-          const el = document.querySelector(to);
-          if (el) el.scrollIntoView({ behavior: "smooth" });
-        }, 300);
-      } else {
-        const el = document.querySelector(to);
-        if (el) el.scrollIntoView({ behavior: "smooth" });
-      }
-    } else {
-      navigate(to);
-    }
-  };
+  const isActive = (to) => location.pathname === to;
 
-  const isActive = (to) => {
-    if (to === "/") return location.pathname === "/" && !location.hash;
-    if (to.startsWith("#")) return location.hash === to;
-    return location.pathname === to;
-  };
-
-  const activeUnderline = (
-    <span className="absolute bottom-[-2px] left-0 w-full h-[2px] rounded-sm" style={{ background: "linear-gradient(90deg, #00C8FF 0%, #0077FF 100%)" }} />
-  );
+  const navLinks = [
+    { label: "Accueil", to: "/" },
+    { label: "Explorer", to: "/evenements" },
+    { label: "Contact", to: "/contact" },
+    { label: "À propos", to: "/a-propos" },
+  ];
 
   return (
-    <nav className="sticky top-0 z-50 px-4 py-3" style={{ background: "#0D1B2A", boxShadow: "0 2px 20px rgba(0,0,0,0.4)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-      <div className="max-w-[1200px] mx-auto flex items-center justify-between">
-        <button onClick={() => navigate("/")} className="flex items-center gap-3 bg-transparent border-none cursor-pointer">
-          <img src={logo} alt="SENGUICHET" className="h-[52px] w-auto" style={{ filter: "drop-shadow(0 0 8px rgba(0, 200, 255, 0.4))" }} />
-          <span className="text-lg font-bold" style={{ fontFamily: "Outfit, sans-serif" }}>
-            <span className="text-white">SEN</span>
-            <span className="text-[#00C8FF] italic font-extrabold">GUICHET</span>
-          </span>
-        </button>
-
-        <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((l) => (
-            <button
-              key={l.label}
-              onClick={() => handleNavClick(l.to)}
-              className={`nav-link ${isActive(l.to) ? "nav-link-active" : ""}`}
-            >
-              {l.label}
-              {isActive(l.to) && activeUnderline}
-            </button>
-          ))}
+    <nav className="h-20 md:h-24 bg-[#FAFAFA] border-b border-black/5 sticky top-0 z-50">
+      <div className="h-full flex items-center justify-between">
+        <div className="flex items-center gap-1 md:gap-3">
+          <button
+            onClick={() => navigate("/")}
+            className="flex-shrink-0"
+            aria-label="Accueil SENGUICHET"
+          >
+            <img
+              src="/images/logo.png"
+              alt="SENGUICHET"
+              className="h-14 md:h-[170px] w-auto animate-logo drop-shadow-xl transition-all duration-300"
+            />
+          </button>
+          <Link to="/" className="flex items-baseline gap-0 ml-8 md:ml-36">
+            <span className="text-3xl md:text-5xl font-extrabold tracking-tight" style={{ color: "#15803D" }}>
+              SEN
+            </span>
+            <span className="text-3xl md:text-5xl font-extrabold tracking-tight" style={{ color: "#111827" }}>
+              GUICHET
+            </span>
+          </Link>
         </div>
 
-        <div className="hidden md:flex items-center gap-3">
-          <button onClick={() => handleNavClick("#devenir-partenaire")} className="nav-cta">
-            Devenir partenaire
+        <div className="flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-6 mr-4">
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`text-sm font-medium transition-colors ${
+                  isActive(link.to) ? "text-[#15803D]" : "text-[#6B7280] hover:text-[#111827]"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          <button
+            onClick={() => navigate("/evenements")}
+            className="md:hidden p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#6B7280] hover:text-[#111827] transition-colors"
+            aria-label="Rechercher"
+          >
+            <IconSearch size={20} />
           </button>
-          <button onClick={() => navigate("/connexion")} className="nav-ghost">
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#6B7280] hover:text-[#111827] transition-colors"
+            aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          >
+            {menuOpen ? <IconX size={22} /> : <IconMenu size={22} />}
+          </button>
+          <button
+            onClick={() => navigate("/connexion")}
+            className="hidden md:inline-flex text-sm font-semibold px-5 py-2.5 rounded-full border border-black/10 text-[#111827] hover:border-[#15803D] hover:text-[#15803D] transition-all"
+          >
             Se connecter
           </button>
+          <button
+            onClick={() => navigate("/partenariat")}
+            className="hidden md:inline-flex text-sm font-semibold px-5 py-2.5 rounded-full bg-[#15803D] text-white hover:bg-[#166534] transition-all shadow-md shadow-[#15803D]/20"
+          >
+            Créer un événement
+          </button>
+          <button
+            onClick={() => navigate("/partenariat")}
+            className="md:hidden p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#15803D]"
+            aria-label="Créer un événement"
+          >
+            <IconTicket size={20} />
+          </button>
         </div>
-
-        <button
-          className="md:hidden bg-transparent border-none text-[#00C8FF] text-2xl cursor-pointer"
-          onClick={() => setMobileOpen(!mobileOpen)}
-        >
-          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
       </div>
 
-      {mobileOpen && (
-        <div className="md:hidden mt-3 rounded-xl" style={{ background: "#0D1B2A", border: "1px solid rgba(0, 200, 255, 0.15)" }}>
-          <div className="flex flex-col">
-            {[...navLinks, { label: "Devenir partenaire", to: "#devenir-partenaire" }].map((l) => {
-              const active = isActive(l.to);
-              return (
-                <button
-                  key={l.label}
-                  onClick={() => handleNavClick(l.to)}
-                  className="nav-mobile-item"
-                  style={{ fontWeight: active ? 600 : 400, color: active ? "#00C8FF" : "#A0B4C8" }}
+      {/* Drawer mobile */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="absolute top-full left-0 right-0 bg-white border-b border-black/5 shadow-lg md:hidden"
+          >
+            <div className="px-4 py-4 space-y-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setMenuOpen(false)}
+                  className={`block px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                    isActive(link.to)
+                      ? "bg-[#15803D]/10 text-[#15803D]"
+                      : "text-[#6B7280] hover:bg-gray-50 hover:text-[#111827]"
+                  }`}
                 >
-                  {l.label}
-                </button>
-              );
-            })}
-          </div>
-          <div className="flex flex-col gap-2 p-4">
-            <button onClick={() => handleNavClick("#devenir-partenaire")} className="w-full py-3 rounded-[9999px] text-sm font-semibold cursor-pointer border-none text-white" style={{ background: "linear-gradient(135deg, #00C8FF, #0077FF)" }}>
-              Devenir partenaire
-            </button>
-            <button onClick={() => { navigate("/connexion"); setMobileOpen(false); }} className="w-full py-3 rounded-[9999px] text-sm font-semibold cursor-pointer bg-transparent text-[#A0B4C8]" style={{ border: "1px solid rgba(255,255,255,0.1)" }}>
-              Se connecter
-            </button>
-          </div>
-        </div>
-      )}
+                  {link.label}
+                </Link>
+              ))}
+              <hr className="my-2 border-black/5" />
+              <Link
+                to="/connexion"
+                onClick={() => setMenuOpen(false)}
+                className="block px-4 py-3 rounded-xl text-sm font-semibold text-[#15803D] hover:bg-[#15803D]/5 transition-colors"
+              >
+                Se connecter
+              </Link>
+              <Link
+                to="/partenariat"
+                onClick={() => setMenuOpen(false)}
+                className="block px-4 py-3 rounded-xl text-sm font-semibold bg-[#15803D] text-white text-center hover:bg-[#166534] transition-colors"
+              >
+                Créer un événement
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 };

@@ -131,7 +131,7 @@ const DashboardHome = () => {
                       <span className="text-xs" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{ev.remplis} / {ev.capacite}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="gradient-text font-semibold" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 600 }}>{ev.revenus}</span>
+                      <span className="text-accent font-semibold" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 600 }}>{ev.revenus}</span>
                       <div className="flex gap-2">
                         <button onClick={() => navigate(`/dashboard/evenements/${ev.id}`)} className="btn-primary btn-sm" style={{ padding: "6px 14px", fontSize: "11px" }}>Détails</button>
                       </div>

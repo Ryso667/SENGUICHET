@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, Circle } from "../components/Icons";
+import { motion } from "framer-motion";
 
 const ClockSvg = () => (
   <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style={{ animation: "spin 4s linear infinite" }}>
@@ -22,9 +23,8 @@ const EnAttenteValidation = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#0D1B2A] flex items-center justify-center px-4 py-8 relative">
-      <div className="orb-indigo" />
-      <div className="orb-accent" />
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}><div className="min-h-screen bg-[#0D1B2A] flex items-center justify-center px-4 py-8 relative">
+
 
       <div className="w-full max-w-lg" style={{ animation: "fadeInUp 0.4s ease-out" }}>
         <div className="glass-card p-10 sm:p-12 text-center">
@@ -32,7 +32,7 @@ const EnAttenteValidation = () => {
             <ClockSvg />
           </div>
 
-          <h1 className="text-2xl font-bold gradient-text mb-2" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>
+          <h1 className="text-2xl font-bold text-accent mb-2" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>
             Demande soumise avec succès !
           </h1>
           <p className="text-sm mb-8" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -74,7 +74,7 @@ const EnAttenteValidation = () => {
           </button>
         </div>
       </div>
-    </div>
+    </div></motion.div>
   );
 };
 

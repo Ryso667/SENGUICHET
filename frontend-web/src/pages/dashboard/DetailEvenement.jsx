@@ -152,11 +152,11 @@ const DetailEvenement = () => {
           <div className="flex items-center gap-4 p-4 rounded-xl mb-6" style={{ background: "rgba(0,200,255,0.08)", border: "1px solid rgba(0,200,255,0.2)" }}>
             <div className="flex-1">
               <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>Places vendues</p>
-              <p className="text-lg font-bold gradient-text" style={{ fontFamily: "Outfit, sans-serif" }}>{placesVendues}/{totalPlaces}</p>
+              <p className="text-lg font-bold text-accent" style={{ fontFamily: "Outfit, sans-serif" }}>{placesVendues}/{totalPlaces}</p>
             </div>
             <div className="flex-1">
               <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>Taux</p>
-              <p className="text-lg font-bold gradient-text" style={{ fontFamily: "Outfit, sans-serif" }}>
+              <p className="text-lg font-bold text-accent" style={{ fontFamily: "Outfit, sans-serif" }}>
                 {totalPlaces > 0 ? Math.round((placesVendues / totalPlaces) * 100) : 0}%
               </p>
             </div>
@@ -185,7 +185,7 @@ const DetailEvenement = () => {
                     {t.description && <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>{t.description}</p>}
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold gradient-text" style={{ fontFamily: "Outfit, sans-serif" }}>
+                    <p className="text-sm font-semibold text-accent" style={{ fontFamily: "Outfit, sans-serif" }}>
                       {parseInt(t.prix).toLocaleString()} FCFA
                     </p>
                     <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
