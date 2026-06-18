@@ -347,6 +347,25 @@ const adminDetail = async (req, res) => {
   }
 };
 
+// Retourne les catégories distinctes avec leur nombre d'événements actifs
+// Accessible sans authentification
+const listerCategories = async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT categorie, COUNT(*) AS count
+      FROM evenement
+      WHERE statut = 'actif' AND (date_fin IS NULL OR date_fin >= NOW())
+        AND categorie IS NOT NULL AND categorie != ''
+      GROUP BY categorie
+      ORDER BY count DESC`
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("Lister categories error:", err);
+    res.status(500).json({ message: "Erreur" });
+  }
+};
+
 // Liste les événements publics avec statut='actif' et date_fin >= NOW
 // Accessible sans authentification — uniquement les événements validés par l'admin
 const listerPublic = async (req, res) => {
@@ -447,5 +466,5 @@ const regenererScanCode = async (req, res) => {
   }
 };
 
-module.exports = { creer, upload, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic, getEquipe, regenererScanCode };
+module.exports = { creer, upload, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic, listerCategories, getEquipe, regenererScanCode };
 

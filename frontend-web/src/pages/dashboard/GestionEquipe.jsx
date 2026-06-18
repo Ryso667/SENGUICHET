@@ -67,7 +67,7 @@ const GestionEquipe = () => {
         <p className="text-xs font-medium mb-3" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif", textTransform: "uppercase", letterSpacing: "0.05em" }}>
           {/* */}Code d'accès contrôleurs
         </p>
-        <p className="text-2xl sm:text-3xl font-bold gradient-text text-center mb-4" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700, letterSpacing: "0.05em" }}>
+        <p className="text-2xl sm:text-3xl font-bold text-accent text-center mb-4" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700, letterSpacing: "0.05em" }}>
           {code}
         </p>
         <div className="flex justify-center gap-3">

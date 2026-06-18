@@ -201,7 +201,7 @@ const MesEvenements = () => {
                   <div className="p-4">
                     <div className="flex items-center justify-between text-sm mb-3">
                       <span style={{ color: "var(--text-secondary)" }}>{e.remplis}/{e.capacite} places</span>
-                      <span className="gradient-text font-semibold" style={{ fontFamily: "Outfit, sans-serif" }}>{e.revenus}</span>
+                      <span className="text-accent font-semibold" style={{ fontFamily: "Outfit, sans-serif" }}>{e.revenus}</span>
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => navigate(`/dashboard/evenements/${e.id}`)} className="btn-primary btn-sm flex-1">Voir les détails</button>

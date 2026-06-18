@@ -2,7 +2,8 @@
    Conforme RGPD, Loi sénégalaise n°2008-12, Apple App Store & Google Play Store */
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
+
+import { motion } from "framer-motion";
 
 const sections = [
   { id: "introduction", title: "Introduction" },
@@ -319,9 +320,8 @@ const Confidentialite = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0D1B2A]">
-      <Navbar />
-
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}><div className="min-h-screen bg-[#0D1B2A]">
+      
       <main className="max-w-[800px] mx-auto px-4 pt-32 pb-20">
         <div
           className="rounded-2xl p-8 md:p-10 mb-8"
@@ -455,7 +455,7 @@ const Confidentialite = () => {
           </svg>
         </button>
       )}
-    </div>
+    </div></motion.div>
   );
 };
 

@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
-import {
-  adminListerCodeControleur,
-  adminRegenererCode,
-  adminDesactiverCode,
-} from "../../services/controleurService";
-import { ArrowLeft, Clipboard, Check, Loader } from "../../components/Icons";
+import { adminListerCodeControleur, adminRegenererCode, adminDesactiverCode } from "../../services/controleurService";
+import { ArrowLeft, Clipboard, Check, Loader2, Shield } from "lucide-react";
 
 const AdminCodesControleurs = () => {
   const { evenementId } = useParams();
@@ -38,18 +35,14 @@ const AdminCodesControleurs = () => {
     }
   }, [evenementId]);
 
-  useEffect(() => {
-    fetchCode();
-  }, [fetchCode]);
+  useEffect(() => { fetchCode(); }, [fetchCode]);
 
   const copyCode = async (code) => {
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      showToast("Erreur de copie", "error");
-    }
+    } catch { showToast("Erreur de copie", "error"); }
   };
 
   const handleRegenerer = async () => {
@@ -59,11 +52,8 @@ const AdminCodesControleurs = () => {
       setCodeData(data.code);
       setShowRegenModal(false);
       showToast("Nouveau code généré avec succès");
-    } catch (err) {
-      showToast(err.message || "Erreur", "error");
-    } finally {
-      setActionLoading(false);
-    }
+    } catch (err) { showToast(err.message || "Erreur", "error"); }
+    finally { setActionLoading(false); }
   };
 
   const handleDesactiver = async () => {
@@ -73,211 +63,167 @@ const AdminCodesControleurs = () => {
       setCodeData((prev) => prev ? { ...prev, statut: "INACTIF" } : prev);
       setShowDesactModal(false);
       showToast("Code désactivé avec succès");
-    } catch (err) {
-      showToast(err.message || "Erreur", "error");
-    } finally {
-      setActionLoading(false);
-    }
+    } catch (err) { showToast(err.message || "Erreur", "error"); }
+    finally { setActionLoading(false); }
   };
 
-  const Modal = ({ show, onClose, onConfirm, title, message, confirmLabel }) => {
-    if (!show) return null;
-    return (
-      <div style={{
-        position: "fixed", inset: 0, zIndex: 1000,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)", padding: "1rem",
-      }}>
-        <div style={{
-          maxWidth: 440, width: "100%",
-          padding: "2rem", borderRadius: "16px",
-          background: "#152232", border: "1px solid rgba(0,200,255,0.15)",
-        }}>
-          <h3 className="text-lg font-bold mb-2" style={{ color: "#F1F5F9", fontFamily: "Outfit, sans-serif" }}>
-            {title}
-          </h3>
-          <p className="text-sm mb-6" style={{ color: "#A0B4C8", lineHeight: 1.5 }}>
-            {message}
-          </p>
-          <div className="flex gap-3 justify-end">
-            <button
-              onClick={onClose}
-              disabled={actionLoading}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
-              style={{
-                background: "transparent",
-                border: "1px solid #00C8FF",
-                color: "#00C8FF",
-              }}
-            >
-              Annuler
-            </button>
-            <button
-              onClick={onConfirm}
-              disabled={actionLoading}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-all"
-              style={{
-                background: actionLoading ? "rgba(0,200,255,0.3)" : "linear-gradient(135deg, #00C8FF, #0077FF)",
-              }}
-            >
-              {actionLoading ? "..." : confirmLabel}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  const today = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   return (
-    <div className="min-h-screen bg-[#0D1B2A] flex">
+    <div className="min-h-screen flex admin-bg">
       <AdminSidebar />
-      <div className="flex-1 lg:ml-[260px] p-6 sm:p-8">
-        <button
+      <div className="admin-page-enter flex-1 lg:ml-[260px] flex flex-col" style={{ position: "relative", zIndex: 1 }}>
+        <header className="sticky top-0 z-10 px-4 sm:px-8 py-4"
+          style={{ background: "rgba(240,244,248,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: "1px solid #E8EEF4" }}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium" style={{ color: "#94a3b8" }}>Pages / Contrôleurs / Code</p>
+              <h1 className="text-xl font-bold" style={{ color: "#1a1a1a" }}>Code contrôleur</h1>
+            </div>
+            <p className="text-xs capitalize" style={{ color: "#94a3b8" }}>{today}</p>
+          </div>
+        </header>
+        <main className="flex-1 p-6 sm:p-8">
+        <motion.button initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+          whileHover={{ x: -3 }}
           onClick={() => navigate("/admin/controleurs")}
-          className="flex items-center gap-2 text-sm mb-4 transition-all"
-          style={{ color: "#A0B4C8" }}
-        >
+          className="flex items-center gap-2 text-sm mb-4 transition-all" style={{ color: "#64748B" }}>
           <ArrowLeft size={16} /> Retour
-        </button>
+        </motion.button>
 
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold" style={{ fontFamily: "Outfit, sans-serif", color: "#F1F5F9" }}>
-            Code contrôleur
-          </h1>
-          {evenement && (
-            <p className="text-sm mt-1" style={{ color: "#00C8FF" }}>
-              {evenement.titre}
+        {evenement && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+            <p className="text-sm flex items-center gap-1" style={{ color: "#15803D" }}>
+              <Shield size={14} /> {evenement.titre}
             </p>
-          )}
-        </div>
+          </motion.div>
+        )}
 
-        <div className="mb-6 p-4 rounded-xl" style={{ background: "rgba(0,200,255,0.08)", borderLeft: "4px solid #00C8FF" }}>
-          <p className="text-sm" style={{ color: "#A0B4C8" }}>
-            Ce code permet aux contrôleurs d'accéder au scanner de cet événement. Chaque code est unique et personnel à un événement.
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="mb-6 p-4 rounded-xl border-l-4"
+          style={{ background: "rgba(21,128,61,0.06)", borderLeftColor: "#15803D" }}>
+          <p className="text-sm" style={{ color: "#64748B" }}>
+            Ce code permet aux contrôleurs d'accéder au scanner de cet événement.
           </p>
-        </div>
+        </motion.div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader size={24} style={{ color: "#00C8FF" }} />
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="admin-skeleton" style={{ height: 16, width: 200, marginBottom: 16 }} />
+            <div className="admin-skeleton" style={{ height: 48, width: 240, marginBottom: 16 }} />
+            <div className="admin-skeleton" style={{ height: 12, width: 80 }} />
           </div>
         ) : codeData ? (
           <div className="max-w-md mx-auto">
-            <div
-              className="rounded-xl p-8 relative transition-all"
-              style={{
-                background: "#152232",
-                border: "1px solid rgba(0,200,255,0.15)",
-                animation: "fadeIn 0.3s ease",
-              }}
-            >
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+              className="rounded-2xl p-8 relative border" style={{ background: "#FFFFFF", borderColor: "#E8EEF4" }}>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "#A0B4C8" }}>
+                <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "#64748B" }}>
                   Code d'accès
                 </span>
-                <span
-                  className="text-xs font-medium px-3 py-1 rounded-full"
-                  style={{
-                    background: codeData.statut === "ACTIF" ? "rgba(0,229,160,0.15)" : "rgba(107,114,128,0.15)",
-                    color: codeData.statut === "ACTIF" ? "#00E5A0" : "#6B7280",
-                  }}
-                >
+                <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full"
+                  style={{ background: codeData.statut === "ACTIF" ? "rgba(21,128,61,0.1)" : "rgba(107,114,128,0.1)", color: codeData.statut === "ACTIF" ? "#15803D" : "#64748B" }}>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: codeData.statut === "ACTIF" ? "#15803D" : "#64748B" }} />
                   {codeData.statut}
                 </span>
               </div>
-
               <p className="text-center" style={{
-                fontSize: "48px",
-                fontWeight: 800,
-                color: "#00C8FF",
-                letterSpacing: "12px",
-                fontFamily: "monospace",
-                margin: "20px 0",
+                fontSize: "48px", fontWeight: 800, color: "#15803D",
+                letterSpacing: "12px", fontFamily: "monospace", margin: "20px 0",
               }}>
                 {codeData.code}
               </p>
-
               <div className="flex justify-center">
-                <button
+                <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                   onClick={() => copyCode(codeData.code)}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all"
-                  style={{
-                    background: "rgba(0,200,255,0.1)",
-                    border: "1px solid rgba(0,200,255,0.2)",
-                    color: copied ? "#00E5A0" : "#A0B4C8",
-                  }}
-                >
+                  style={{ background: "rgba(21,128,61,0.08)", border: "1px solid rgba(21,128,61,0.2)", color: copied ? "#15803D" : "#64748B" }}>
                   {copied ? <Check size={16} /> : <Clipboard size={16} />}
                   {copied ? "Copié !" : "Copier le code"}
-                </button>
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
 
-            <button
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
               onClick={() => setShowRegenModal(true)}
               className="w-full py-3.5 rounded-lg text-sm font-bold text-white transition-all mt-6 mb-3"
-              style={{
-                background: "linear-gradient(135deg, #00C8FF, #0077FF)",
-              }}
-            >
-              🔄 Régénérer le code
-            </button>
+              style={{ background: "#15803D" }}>
+              Régénérer le code
+            </motion.button>
 
             <div className="text-center">
-              <button
+              <motion.button whileHover={{ scale: 1.03 }}
                 onClick={() => setShowDesactModal(true)}
-                className="text-sm transition-all"
-                style={{ color: "#FF4D6D" }}
-              >
+                className="text-sm transition-all font-medium" style={{ color: "#15803D" }}>
                 Désactiver le code
-              </button>
+              </motion.button>
             </div>
           </div>
         ) : (
-          <div className="max-w-md mx-auto rounded-xl p-12 text-center" style={{ background: "#152232", border: "1px solid rgba(0,200,255,0.15)" }}>
-            <p style={{ color: "#A0B4C8" }}>Aucun code trouvé.</p>
+          <div className="admin-empty-state mx-auto" style={{ maxWidth: 400, borderRadius: "16px", background: "#FFFFFF", border: "1px solid #E8EEF4" }}>
+            <Shield size={48} />
+            <h3>Aucun code trouvé</h3>
+            <p>Ce contrôleur n'a pas encore de code. Générez-en un depuis la page des événements.</p>
           </div>
         )}
-
-        <Modal
-          show={showRegenModal}
-          onClose={() => setShowRegenModal(false)}
-          onConfirm={handleRegenerer}
-          title="Régénérer le code ?"
-          message="Le code actuel sera immédiatement désactivé. Les contrôleurs qui utilisent ce code perdront leur accès."
-          confirmLabel="Confirmer"
-        />
-
-        <Modal
-          show={showDesactModal}
-          onClose={() => setShowDesactModal(false)}
-          onConfirm={handleDesactiver}
-          title="Désactiver le code ?"
-          message="Le code sera désactivé. Les contrôleurs ne pourront plus accéder au scanner de cet événement."
-          confirmLabel="Confirmer"
-        />
-
-        {toast && (
-          <div style={{
-            position: "fixed", bottom: "2rem", left: "50%", transform: "translateX(-50%)", zIndex: 2000,
-            padding: "0.75rem 1.5rem", borderRadius: "8px", fontSize: "0.875rem", fontWeight: 600,
-            background: toast.type === "error" ? "#FF4D6D" : "#00E5A0",
-            color: "#0D1B2A",
-            animation: "fadeIn 0.3s ease",
-          }}>
-            {toast.message}
-          </div>
-        )}
-
-        <style>{`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}</style>
+        </main>
       </div>
+
+      <AnimatePresence>
+        {showRegenModal && (
+          <ConfirmModal title="Régénérer le code ?"
+            message="Le code actuel sera immédiatement désactivé. Les contrôleurs qui utilisent ce code perdront leur accès."
+            onConfirm={handleRegenerer} onClose={() => setShowRegenModal(false)} loading={actionLoading} />
+        )}
+        {showDesactModal && (
+          <ConfirmModal title="Désactiver le code ?"
+            message="Le code sera désactivé. Les contrôleurs ne pourront plus accéder au scanner de cet événement."
+            onConfirm={handleDesactiver} onClose={() => setShowDesactModal(false)} loading={actionLoading} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            style={{
+              position: "fixed", bottom: "2rem", left: "50%", transform: "translateX(-50%)", zIndex: 2000,
+              padding: "0.75rem 1.5rem", borderRadius: "12px", fontSize: "0.875rem", fontWeight: 600,
+              background: "#15803D", color: "#fff",
+            }}>
+            {toast.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
+
+const ConfirmModal = ({ title, message, onConfirm, onClose, loading }) => (
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}
+    onClick={() => { if (!loading) onClose(); }}>
+    <motion.div initial={{ opacity: 0, scale: 0.92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.92, y: 20 }} transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      className="w-full max-w-md rounded-2xl p-6 border shadow-xl" style={{ background: "#FFFFFF", borderColor: "#E8EEF4" }}
+      onClick={(e) => e.stopPropagation()}>
+      <h3 className="text-lg font-bold mb-2" style={{ color: "#1a1a1a" }}>{title}</h3>
+      <p className="text-sm mb-6" style={{ color: "#64748B", lineHeight: 1.5 }}>{message}</p>
+      <div className="flex gap-3 justify-end">
+        <button onClick={onClose} disabled={loading}
+          className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+          style={{ border: "1px solid #E8EEF4", color: "#64748B" }}>
+          Annuler
+        </button>
+        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+          onClick={onConfirm} disabled={loading}
+          className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-all"
+          style={{ background: loading ? "#94a3b8" : "#15803D" }}>
+          {loading ? "..." : "Confirmer"}
+        </motion.button>
+      </div>
+    </motion.div>
+  </motion.div>
+);
 
 export default AdminCodesControleurs;

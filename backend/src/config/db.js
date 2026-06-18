@@ -16,11 +16,15 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+  connectTimeout: 5000,
   ssl: sslConfig,
 });
 
-pool.getConnection()
-  .then((conn) => { console.log("✅ MySQL connecté"); conn.release(); })
-  .catch((err) => console.error("❌ MySQL erreur:", err.message));
+// Test de connexion différé : n'empêche pas le serveur de démarrer
+setTimeout(() => {
+  pool.getConnection()
+    .then((conn) => { console.log("✅ MySQL connecté"); conn.release(); })
+    .catch((err) => console.error("❌ MySQL erreur:", err.message));
+}, 1000);
 
 module.exports = pool;
