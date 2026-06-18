@@ -41,8 +41,6 @@ async function migrate() {
 
     let created = 0;
     for (const demande of demandes) {
-      const scanCode = Math.random().toString(36).substring(2, 6).toUpperCase();
-
       const payload = typeof demande.payload === "string"
         ? JSON.parse(demande.payload) : (demande.payload || {});
       const ville = payload?.ville || null;
@@ -56,7 +54,7 @@ async function migrate() {
         [demande.organisateur_id, demande.titre, demande.description, demande.lieu,
          ville, categorie,
          demande.date_debut, demande.date_fin, demande.capacite,
-         demande.affiche_url || null, scanCode]
+         demande.affiche_url || null, null]
       );
 
       const evenementId = result.insertId;

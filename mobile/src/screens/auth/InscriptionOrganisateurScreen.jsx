@@ -2,21 +2,22 @@
 // Envoie les données au backend — mêmes données partagées avec le frontend-web
 import { useState, useMemo } from 'react'
 import {
-  View, Text, TextInput, ActivityIndicator,
-  KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Alert,
+  View, Text, TextInput, ActivityIndicator, ScrollView,
+  KeyboardAvoidingView, Platform, StyleSheet, Alert,
 } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { inscrireOrganisateur } from '../../services/authService'
+import { hapticMedium } from '../../utils/haptics'
 import GlassButton from '../../components/GlassButton'
-import { colors, spacing, textShadow } from '../../constants/theme'
-import BlurBackground from '../../components/BlurBackground'
+import { spacing } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import GlassContainer from '../../components/GlassContainer'
 
 // Calcule le niveau de force du mot de passe (0-4)
 // Retourne { score, label, couleur }
-const evaluerForceMotDePasse = (mdp) => {
-  if (!mdp) return { score: 0, label: '', couleur: colors.muted }
+const evaluerForceMotDePasse = (colors) => (mdp) => {
+  if (!mdp) return { score: 0, label: '', couleur: colors.textSecondary }
   const len = mdp.length
   if (len <= 3) return { score: 1, label: 'Faible', couleur: colors.red }
   if (len <= 6) return { score: 2, label: 'Moyen', couleur: colors.orange }
@@ -52,7 +53,8 @@ const formatterTelephone = (texte) => {
 }
 
 export default function InscriptionOrganisateurScreen({ navigation }) {
-  const [nom, setNom] = useState('')
+  const { colors } = useTheme()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const [telephone, setTelephone] = useState('+221 ')
   const [email, setEmail] = useState('')
   const [mdp, setMdp] = useState('')
@@ -60,7 +62,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
   const [chargement, setChargement] = useState(false)
   const insets = useSafeAreaInsets()
 
-  const forceMdp = useMemo(() => evaluerForceMotDePasse(mdp), [mdp])
+  const forceMdp = useMemo(() => evaluerForceMotDePasse(colors)(mdp), [mdp, colors])
   const mdpNeCorrespondPas = confirmMdp.length > 0 && mdp !== confirmMdp
 
   // Calcule si le formulaire est valide pour activer/désactiver le bouton
@@ -99,6 +101,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
       return
     }
 
+    hapticMedium()
     setChargement(true)
     try {
       await inscrireOrganisateur({
@@ -117,140 +120,137 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <BlurBackground />
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <KeyboardAvoidingView
-        style={styles.flex}
+        style={s.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <ScrollView
-          contentContainerStyle={[styles.conteneur, { paddingTop: insets.top + spacing.lg }]}
+          contentContainerStyle={[s.conteneur, { paddingTop: insets.top + spacing.lg, paddingBottom: 120 }]}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          {/* Bouton retour verre dépoli */}
-          <GlassButton
-            title="Retour"
-            icon="arrow-left"
-            onPress={() => navigation.goBack()}
-            style={styles.retour}
-          />
-
-          <Text style={styles.titre}>Créer un compte organisateur</Text>
-          <Text style={styles.sousTitre}>
+          <Text style={s.titre}>Créer un compte organisateur</Text>
+          <Text style={s.sousTitre}>
             Inscris-toi pour gérer tes événements
           </Text>
 
           {/* Champ Nom */}
-          <Text style={styles.label}>Nom</Text>
-          <GlassContainer style={styles.inputWrap}>
+          <Text style={s.label}>Nom</Text>
+          <GlassContainer style={s.inputWrap}>
             <TextInput
-              style={styles.input}
+              style={s.input}
               value={nom}
               onChangeText={setNom}
               placeholder="Ton nom"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor={colors.textTertiary}
               autoCapitalize="words"
             />
           </GlassContainer>
 
           {/* Champ Téléphone */}
-          <Text style={styles.label}>Téléphone</Text>
-          <GlassContainer style={styles.inputWrap}>
+          <Text style={s.label}>Téléphone</Text>
+          <GlassContainer style={s.inputWrap}>
             <TextInput
-              style={styles.input}
+              style={s.input}
               value={telephone}
               onChangeText={(t) => setTelephone(formatterTelephone(t))}
               keyboardType="phone-pad"
               placeholder="+221 XX XXX XX XX"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor={colors.textTertiary}
             />
           </GlassContainer>
 
           {/* Champ Email */}
-          <Text style={styles.label}>Email</Text>
-          <GlassContainer style={styles.inputWrap}>
+          <Text style={s.label}>Email</Text>
+          <GlassContainer style={s.inputWrap}>
             <TextInput
-              style={styles.input}
+              style={s.input}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
               placeholder="exemple@email.com"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor={colors.textTertiary}
             />
           </GlassContainer>
 
           {/* Champ Mot de passe */}
-          <Text style={styles.label}>Mot de passe</Text>
-          <GlassContainer style={styles.inputWrap}>
+          <Text style={s.label}>Mot de passe</Text>
+          <GlassContainer style={s.inputWrap}>
             <TextInput
-              style={styles.input}
+              style={s.input}
               value={mdp}
               onChangeText={setMdp}
               secureTextEntry
               placeholder="Minimum 8 caractères"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor={colors.textTertiary}
             />
           </GlassContainer>
 
           {/* Indicateur de force du mot de passe */}
           {mdp.length > 0 && (
-            <View style={styles.forceConteneur}>
-              <View style={styles.barreGroupe}>
+            <View style={s.forceConteneur}>
+              <View style={s.barreGroupe}>
                 {[1, 2, 3, 4].map((n) => (
                   <View
                     key={n}
                     style={[
-                      styles.barreForce,
-                      { backgroundColor: n <= forceMdp.score ? forceMdp.couleur : 'rgba(255,255,255,0.2)' },
+                      s.barreForce,
+                      { backgroundColor: n <= forceMdp.score ? forceMdp.couleur : 'rgba(0,0,0,0.08)' },
                     ]}
                   />
                 ))}
               </View>
-              <Text style={[styles.forceLabel, { color: forceMdp.couleur }]}>
+              <Text style={[s.forceLabel, { color: forceMdp.couleur }]}>
                 {forceMdp.label}
               </Text>
             </View>
           )}
 
           {/* Champ Confirmer le mot de passe */}
-          <Text style={styles.label}>Confirmer le mot de passe</Text>
-          <TextInput
-            style={styles.input}
-            value={confirmMdp}
-            onChangeText={setConfirmMdp}
-            secureTextEntry
-            placeholder="Retaper le mot de passe"
-            placeholderTextColor="rgba(255,255,255,0.5)"
-          />
+          <Text style={s.label}>Confirmer le mot de passe</Text>
+          <GlassContainer style={s.inputWrap}>
+            <TextInput
+              style={s.input}
+              value={confirmMdp}
+              onChangeText={setConfirmMdp}
+              secureTextEntry
+              placeholder="Retaper le mot de passe"
+              placeholderTextColor={colors.textTertiary}
+            />
+          </GlassContainer>
 
           {/* Message d'erreur si les mots de passe ne correspondent pas */}
           {mdpNeCorrespondPas && (
-            <Text style={styles.erreurText}>Les mots de passe ne correspondent pas</Text>
+            <Text style={s.erreurText}>Les mots de passe ne correspondent pas</Text>
           )}
 
           <View style={{ height: 24 }} />
           {chargement ? (
-            <View style={styles.glassLoadingBtn}>
-              <ActivityIndicator size="small" color="#fff" />
+            <View style={s.glassLoadingBtn}>
+              <ActivityIndicator size="small" color={colors.accent} />
+              <Text style={s.glassLoadingText}>Inscription en cours...</Text>
             </View>
           ) : (
             <GlassButton
               title="S'inscrire"
+              variant="primary"
               onPress={!formulaireValide ? undefined : handleInscription}
               style={!formulaireValide ? { opacity: 0.5 } : undefined}
             />
           )}
 
           {/* Lien vers la connexion */}
-          <View style={styles.lienConnexion}>
-            <Text style={styles.lienConnexionText}>
+          <View style={s.lienConnexion}>
+            <Text style={s.lienConnexionText}>
               Déjà un compte ?{' '}
             </Text>
             <GlassButton
               title="Se connecter"
+              variant="ghost"
               onPress={() => navigation.navigate('ConnexionOrganisateur')}
-              style={styles.lienConnexionBtn}
             />
           </View>
         </ScrollView>
@@ -259,14 +259,13 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   flex: {
     flex: 1,
   },
   conteneur: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    justifyContent: 'center',
     paddingBottom: 40,
   },
   retour: {
@@ -276,27 +275,26 @@ const styles = StyleSheet.create({
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: '#fff',
+    color: colors.text,
     marginBottom: 8,
-    ...textShadow,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
     marginBottom: 32,
   },
   label: {
     fontFamily: 'Outfit_500Medium',
     fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
+    color: colors.text,
     marginBottom: 6,
   },
   inputWrap: { marginBottom: 16, borderRadius: 14, height: 56, justifyContent: 'center', paddingHorizontal: 16 },
   input: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 16,
-    color: '#fff',
+    color: colors.text,
   },
   forceConteneur: {
     flexDirection: 'row',
@@ -337,20 +335,21 @@ const styles = StyleSheet.create({
   lienConnexionText: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
-  },
-  lienConnexionBtn: {
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    minWidth: undefined,
+    color: colors.textSecondary,
   },
   glassLoadingBtn: {
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    gap: 8,
+    backgroundColor: 'rgba(0,0,0,0.04)',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: colors.border,
+  },
+  glassLoadingText: {
+    fontFamily: 'Outfit_400Regular',
+    fontSize: 13,
+    color: colors.textSecondary,
   },
 })

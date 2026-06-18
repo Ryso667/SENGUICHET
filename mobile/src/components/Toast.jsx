@@ -1,23 +1,61 @@
 // Composant de notification temporaire (toast)
 // Apparaît en haut de l'écran, disparaît automatiquement après 3 secondes
 // Supporte le balayage vers le haut pour fermer
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import { Animated, Text, StyleSheet, PanResponder, View } from 'react-native'
-import { colors, spacing, borderRadius, fonts } from '../constants/theme'
-
-// Couleur de fond selon le type de toast
-const TYPE_COLORS = {
-  success: colors.green,
-  error: colors.red,
-  info: colors.accent,
-}
+import { spacing, borderRadius, fonts } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 
 const AUTODISMISS_MS = 3000
 const HAUTEUR_INITIALE = -150
 
+// Styles statiques (indépendants du thème)
+const makeWrapperStyles = () => StyleSheet.create({
+  wrapper: {
+    position: 'absolute',
+    top: 60,
+    left: spacing.md,
+    right: spacing.md,
+    zIndex: 9999,
+    elevation: 10,
+  },
+  container: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+})
+
+// Styles dynamiques (dépendent du thème via colors)
+const makeStyles = (colors) => StyleSheet.create({
+  message: {
+    color: colors.white,
+    fontSize: 15,
+    fontFamily: fonts.jakarta.medium,
+    textAlign: 'center',
+  },
+})
+
+const wrapperStyles = makeWrapperStyles()
+
 // Toast avec animation de glissement depuis le haut
 // Props : message (string), type ("success"|"error"|"info"), onDismiss (function)
+
 export default function Toast({ message, type = 'info', onDismiss }) {
+  const { colors } = useTheme()
+  const s = useMemo(() => makeStyles(colors), [colors])
+
+  // Couleur de fond selon le type de toast
+  const TYPE_COLORS = {
+    success: colors.green,
+    error: colors.red,
+    info: colors.accent,
+  }
   const translateY = useRef(new Animated.Value(HAUTEUR_INITIALE)).current
   const opacity = useRef(new Animated.Value(0)).current
 
@@ -89,43 +127,16 @@ export default function Toast({ message, type = 'info', onDismiss }) {
   const bgColor = TYPE_COLORS[type] || colors.accent
 
   return (
-    <View style={styles.wrapper} pointerEvents="box-none">
+    <View style={wrapperStyles.wrapper} pointerEvents="box-none">
       <Animated.View
         style={[
-          styles.container,
+          wrapperStyles.container,
           { backgroundColor: bgColor, transform: [{ translateY }], opacity },
         ]}
         {...panResponder.panHandlers}
       >
-        <Text style={styles.message}>{message}</Text>
+        <Text style={s.message}>{message}</Text>
       </Animated.View>
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    position: 'absolute',
-    top: 60,
-    left: spacing.md,
-    right: spacing.md,
-    zIndex: 9999,
-    elevation: 10,
-  },
-  container: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  message: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontFamily: fonts.jakarta.medium,
-    textAlign: 'center',
-  },
-})

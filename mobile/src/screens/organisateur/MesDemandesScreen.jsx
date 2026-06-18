@@ -1,24 +1,26 @@
 // Mes demandes — liste + création + détail (calqué sur l'app web)
 // Design glass (Apple Invites) — modale création avec upload Cloudinary
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput, Alert, Animated, ActivityIndicator, Keyboard, Modal, FlatList } from 'react-native'
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
-import { listerMesDemandes, soumettreDemandeEvenement } from '../../services/eventService'
+import { fonts, gradients, spacing } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
+import { listerMesDemandes, soumettreDemandeEvenement, fetchEvenementsAPI } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
 import * as ImagePicker from 'expo-image-picker'
-import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
+import { useTabBarScroll } from '../../context/TabBarScrollContext'
+import { hexToRgba } from '../../utils/colors'
 
-const STATUT_CONFIG = {
-  soumis: { label: 'Soumis', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
-  en_analyse: { label: 'En analyse', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
-  approuve: { label: 'Approuvé', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
-  refuse: { label: 'Refusé', color: '#FF4D6D', bg: 'rgba(255,77,109,0.2)' },
-}
+const getStatutConfig = (colors) => ({
+  soumis: { label: 'Soumis', color: colors.orange, bg: hexToRgba(colors.orange, 0.15) },
+  en_analyse: { label: 'En analyse', color: colors.warning, bg: hexToRgba(colors.warning, 0.15) },
+  approuve: { label: 'Approuvé', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
+  refuse: { label: 'Refusé', color: colors.danger, bg: hexToRgba(colors.danger, 0.15) },
+})
 
 const TYPE_LABELS = {
   CREATION: 'Création',
@@ -37,12 +39,19 @@ const CATEGORIES = [
   'Atelier', 'Exposition', 'Club / Soirée', 'Gala', 'Autres / Divers',
 ]
 
+const BILLET_CATEGORIES = ['Standard', 'VIP', 'Premium', 'Carré Or', 'Fosse', 'Autres / Divers']
+
 const VILLES = [
   'Dakar', 'Thiès', 'Saint-Louis', 'Ziguinchor', 'Touba', 'Kaolack', 'Autre',
 ]
 
 export default function MesDemandesScreen({ navigation }) {
+  const { colors } = useTheme()
+  const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
+  const s = useMemo(() => makeStyles(colors), [colors])
+  const f = useMemo(() => makeFormStyles(colors), [colors])
   const insets = useSafeAreaInsets()
+  const { scrollY: tabScrollY } = useTabBarScroll()
   const [demandes, setDemandes] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -60,6 +69,10 @@ export default function MesDemandesScreen({ navigation }) {
   const [lieu, setLieu] = useState('')
   const [dateDebut, setDateDebut] = useState('')
   const [dateFin, setDateFin] = useState('')
+  const [heure, setHeure] = useState('')
+  const [heureExpanded, setHeureExpanded] = useState(false)
+  const [editHour, setEditHour] = useState(12)
+  const [editMinute, setEditMinute] = useState(0)
   const [capacite, setCapacite] = useState('')
   const [message, setMessage] = useState('')
   const [categories, setCategories] = useState([{ nom: '', places: '', prix: '' }])
@@ -68,6 +81,7 @@ export default function MesDemandesScreen({ navigation }) {
   const [affichePreview, setAffichePreview] = useState(null)
   const [categorie, setCategorie] = useState('')
   const [ville, setVille] = useState('')
+  const [billetCatIndex, setBilletCatIndex] = useState(null)
   const [catVisible, setCatVisible] = useState(false)
   const [villeVisible, setVilleVisible] = useState(false)
   const [dateExpanded, setDateExpanded] = useState(false)
@@ -77,6 +91,10 @@ export default function MesDemandesScreen({ navigation }) {
   const [browseYearFin, setBrowseYearFin] = useState(new Date().getFullYear())
   const [browseMonthFin, setBrowseMonthFin] = useState(new Date().getMonth())
   const [kbPadding, setKbPadding] = useState(0)
+  const [evenementId, setEvenementId] = useState(null)
+  const [organisateurEvents, setOrganisateurEvents] = useState([])
+  const [eventsLoading, setEventsLoading] = useState(false)
+  const [eventsVisible, setEventsVisible] = useState(false)
 
   useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', (e) => setKbPadding(e.endCoordinates.height))
@@ -109,24 +127,43 @@ export default function MesDemandesScreen({ navigation }) {
   const openNewDemande = () => {
     setModalMode('create')
     setViewingDemande(null)
-    setTypeAction('CREATION')
-    setTitre('')
-    setDescription('')
-    setLieu('')
-    setDateDebut('')
-    setDateFin('')
-    setCapacite('')
-    setMessage('')
-    setCategories([{ nom: '', places: '', prix: '' }])
-    setUploading(false)
-    setAfficheUrl(null)
-    setAffichePreview(null)
-    setCategorie('')
-    setVille('')
-    setDateExpanded(false)
-    setDateFinExpanded(false)
-    setDemandeSent(false)
+    // Si la dernière demande a été envoyée avec succès, réinitialiser le formulaire
+    // Sinon, conserver les champs saisis (reprise après erreur ou fermeture accidentelle)
+    if (demandeSent) {
+      setTypeAction('CREATION')
+      setTitre('')
+      setDescription('')
+      setLieu('')
+      setDateDebut('')
+      setDateFin('')
+      setHeure('')
+      setHeureExpanded(false)
+      setEditHour(12)
+      setEditMinute(0)
+      setCapacite('')
+      setMessage('')
+      setCategories([{ nom: '', places: '', prix: '' }])
+      setUploading(false)
+      setAfficheUrl(null)
+      setAffichePreview(null)
+      setCategorie('')
+      setVille('')
+      setEvenementId(null)
+      setDateExpanded(false)
+      setDateFinExpanded(false)
+      setDemandeSent(false)
+    }
     setError('')
+    setEvenementId(null)
+    // Charger les événements de l'organisateur pour la liste déroulante
+    setEventsLoading(true)
+    fetchEvenementsAPI().then((events) => {
+      setOrganisateurEvents(events || [])
+    }).catch(() => {
+      setOrganisateurEvents([])
+    }).finally(() => {
+      setEventsLoading(false)
+    })
     setModalVisible(true)
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start()
   }
@@ -190,6 +227,7 @@ export default function MesDemandesScreen({ navigation }) {
         payload.categorie = categorie
         payload.lieu = ville ? `${lieu}, ${ville}` : lieu
         payload.ville = ville || ''
+        payload.heure = heure || null
         payload.date_debut = dateDebut
         payload.date_fin = dateFin || null
         payload.capacite = parseInt(capacite) || 0
@@ -198,6 +236,12 @@ export default function MesDemandesScreen({ navigation }) {
           .filter(c => c.nom.trim() && c.places && c.prix)
           .map(c => ({ nom: c.nom.trim(), places: parseInt(c.places) || 0, prix: parseInt(c.prix) || 0 }))
       } else {
+        if (!evenementId) {
+          Alert.alert('Champs requis', 'Veuillez sélectionner un événement.')
+          setSending(false)
+          return
+        }
+        payload.evenement_id = evenementId
         payload.titre = titre
       }
       await soumettreDemandeEvenement(payload)
@@ -216,6 +260,46 @@ export default function MesDemandesScreen({ navigation }) {
   const getDaysInMonth = (y, m) => new Date(y, m + 1, 0).getDate()
   const getFirstDay = (y, m) => new Date(y, m, 1).getDay()
   const pad = (n) => n.toString().padStart(2, '0')
+
+  // Liste déroulante des événements de l'organisateur pour MODIFICATION/SUPPRESSION
+  const renderEventPicker = () => (
+    <Modal visible={eventsVisible} transparent animationType="fade">
+      <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setEventsVisible(false)}>
+        <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+          <Text style={s.pickerTitle}>Sélectionner un événement</Text>
+          {eventsLoading ? (
+            <ActivityIndicator color="#fff" style={{ marginVertical: 20 }} />
+          ) : organisateurEvents.length === 0 ? (
+            <Text style={{ fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginVertical: 20 }}>
+              Aucun événement trouvé
+            </Text>
+          ) : (
+            <FlatList
+              data={organisateurEvents}
+              keyExtractor={(item) => String(item.id)}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[s.pickerItem, evenementId === item.id && s.pickerItemActive]}
+                  onPress={() => {
+                    setEvenementId(item.id)
+                    setTitre(item.nom || item.titre)
+                    setEventsVisible(false)
+                  }}
+                >
+                  <Text style={[s.pickerItemText, evenementId === item.id && s.pickerItemTextActive]}>
+                    {item.nom || item.titre}
+                  </Text>
+                  <Text style={{ fontSize: 10, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>
+                    {item.categorie || ''}{item.date_debut ? ` · ${new Date(item.date_debut).toLocaleDateString('fr-FR')}` : ''}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          )}
+        </GlassContainer>
+      </TouchableOpacity>
+    </Modal>
+  )
 
   // Calendrier interactif pour le choix des dates
   const renderCalendar = (target) => {
@@ -237,14 +321,14 @@ export default function MesDemandesScreen({ navigation }) {
             if (month === 0) { setBrowseMonthFn(11); setBrowseYearFn(year - 1) }
             else setBrowseMonthFn(month - 1)
           }}>
-            <Feather name="chevron-left" size={22} color="#fff" />
+            <Feather name="chevron-left" size={22} color={colors.text} />
           </TouchableOpacity>
           <Text style={f.calHeaderText}>{MONTHS[month]} {year}</Text>
           <TouchableOpacity onPress={() => {
             if (month === 11) { setBrowseMonthFn(0); setBrowseYearFn(year + 1) }
             else setBrowseMonthFn(month + 1)
           }}>
-            <Feather name="chevron-right" size={22} color="#fff" />
+            <Feather name="chevron-right" size={22} color={colors.text} />
           </TouchableOpacity>
         </View>
         <View style={f.calWeek}>
@@ -272,6 +356,48 @@ export default function MesDemandesScreen({ navigation }) {
     )
   }
 
+  // Sélecteur d'heure inline (calqué sur CreerEvenementScreen)
+  const renderTimePicker = () => {
+    const hours = Array.from({ length: 24 }, (_, i) => i)
+    return (
+      <GlassContainer blurType="light" style={f.timePicker} intensity={30}>
+        <View style={f.timeRow}>
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={f.timeLabel}>Heure</Text>
+            <View style={f.timeCol}>
+              <TouchableOpacity onPress={() => setEditHour(editHour === 23 ? 0 : editHour + 1)}>
+                <Feather name="chevron-up" size={20} color={colors.textTertiary} />
+              </TouchableOpacity>
+              <Text style={f.timeValue}>{editHour.toString().padStart(2, '0')}</Text>
+              <TouchableOpacity onPress={() => setEditHour(editHour === 0 ? 23 : editHour - 1)}>
+                <Feather name="chevron-down" size={20} color={colors.textTertiary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+          <Text style={{ fontSize: 24, color: colors.text, fontFamily: fonts.outfit.bold, alignSelf: 'center', paddingBottom: 8 }}>:</Text>
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={f.timeLabel}>Minutes</Text>
+            <View style={f.timeCol}>
+              <TouchableOpacity onPress={() => setEditMinute(editMinute === 55 ? 0 : editMinute + 5)}>
+                <Feather name="chevron-up" size={20} color={colors.textTertiary} />
+              </TouchableOpacity>
+              <Text style={f.timeValue}>{editMinute.toString().padStart(2, '0')}</Text>
+              <TouchableOpacity onPress={() => setEditMinute(editMinute === 0 ? 55 : editMinute - 5)}>
+                <Feather name="chevron-down" size={20} color={colors.textTertiary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        <TouchableOpacity style={f.timeConfirmBtn} onPress={() => {
+          setHeure(`${editHour.toString().padStart(2, '0')}:${editMinute.toString().padStart(2, '0')}`)
+          setHeureExpanded(false)
+        }}>
+          <Text style={f.timeConfirmText}>Confirmer l'heure</Text>
+        </TouchableOpacity>
+      </GlassContainer>
+    )
+  }
+
   const renderTypeSelect = () => (
     <View style={f.selectRow}>
       {DEMANDE_TYPES.map(t => (
@@ -283,31 +409,39 @@ export default function MesDemandesScreen({ navigation }) {
   )
 
   const renderLabel = (text, required) => (
-    <Text style={f.label}>{text}{required ? <Text style={{ color: '#FF4D6D' }}> *</Text> : null}</Text>
+    <Text style={f.label}>{text}{required ? <Text style={{ color: colors.danger }}> *</Text> : null}</Text>
   )
 
   const renderInput = (placeholder, value, onChange, extra) => {
     const { style: extraStyle, ...rest } = extra || {}
     return (
-      <TextInput style={[f.input, extraStyle]} placeholder={placeholder} placeholderTextColor="rgba(255,255,255,0.3)" value={value} onChangeText={onChange} selectionColor="rgba(255,255,255,0.5)" {...rest} />
+      <TextInput style={[f.input, extraStyle]} placeholder={placeholder} placeholderTextColor={colors.textTertiary} value={value} onChangeText={onChange} selectionColor="rgba(0,0,0,0.25)" {...rest} />
     )
   }
 
+  const DetailField = ({ label, value }) => (
+    <View style={f.detailField}>
+      <Text style={f.detailLabel}>{label}</Text>
+      <Text style={f.detailValue}>{value}</Text>
+    </View>
+  )
+
   return (
     <View style={s.container}>
-      <OrganisateurLayout />
       <View style={{ paddingTop: insets.top, flex: 1 }}>
         <ScrollView
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00C8FF', '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" colors={["#10B981"]} />}
+          onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
+          scrollEventThrottle={16}
         >
           {/* Header */}
           <View style={s.header}>
             <Text style={s.headerTitle}>Mes demandes</Text>
             <TouchableOpacity style={s.newBtn} onPress={openNewDemande}>
-              <LinearGradient colors={['#00C8FF', '#0077FF']} style={s.newBtnGrad}>
+              <LinearGradient colors={gradients.primary} style={s.newBtnGrad}>
                 <MaterialCommunityIcons name="calendar-plus" size={16} color="#fff" />
                 <Text style={s.newBtnText}>Nouvelle demande</Text>
               </LinearGradient>
@@ -322,7 +456,7 @@ export default function MesDemandesScreen({ navigation }) {
             <Skeleton type="card" count={3} />
           ) : demandes.length === 0 ? (
             <GlassContainer blurType="light" style={s.emptyState}>
-              <MaterialCommunityIcons name="inbox-outline" size={56} color="rgba(255,255,255,0.2)" />
+              <MaterialCommunityIcons name="inbox-outline" size={56} color={colors.textTertiary} />
               <Text style={s.emptyTitle}>Aucune demande</Text>
               <Text style={s.emptySub}>Vous n'avez encore fait aucune demande.</Text>
               <TouchableOpacity style={s.emptyBtn} onPress={openNewDemande}>
@@ -349,7 +483,7 @@ export default function MesDemandesScreen({ navigation }) {
                           {d.titre ? ` · ${d.titre}` : ''}
                         </Text>
                         {d.commentaire_admin && d.statut !== 'soumis' && d.statut !== 'en_analyse' && (
-                          <Text style={[s.cardComment, { color: d.statut === 'approuve' ? '#00E5A0' : '#FF4D6D' }]}>
+                          <Text style={[s.cardComment, { color: d.statut === 'approuve' ? colors.green : colors.danger }]}>
                             {d.commentaire_admin}
                           </Text>
                         )}
@@ -364,7 +498,7 @@ export default function MesDemandesScreen({ navigation }) {
             </View>
           )}
 
-          <View style={{ height: 40 }} />
+          <View style={{ height: 100 }} />
         </ScrollView>
       </View>
 
@@ -379,7 +513,7 @@ export default function MesDemandesScreen({ navigation }) {
                 <>
                   <View style={s.modalHeader}>
                     <Text style={s.modalTitle}>Détail de la demande</Text>
-                    <TouchableOpacity onPress={closeModal}><MaterialCommunityIcons name="close" size={20} color="rgba(255,255,255,0.5)" /></TouchableOpacity>
+                    <TouchableOpacity onPress={closeModal}><MaterialCommunityIcons name="close" size={20} color={colors.textTertiary} /></TouchableOpacity>
                   </View>
 
                   <View style={s.detailBadgeRow}>
@@ -419,8 +553,8 @@ export default function MesDemandesScreen({ navigation }) {
                   {viewingDemande.capacite > 0 ? <DetailField label="Capacité" value={`${viewingDemande.capacite} places`} /> : null}
 
                   {viewingDemande.commentaire_admin && viewingDemande.statut !== 'soumis' && viewingDemande.statut !== 'en_analyse' && (
-                    <View style={[s.commentBox, { backgroundColor: viewingDemande.statut === 'approuve' ? 'rgba(0,229,160,0.08)' : 'rgba(255,77,109,0.08)', borderColor: viewingDemande.statut === 'approuve' ? 'rgba(0,229,160,0.2)' : 'rgba(255,77,109,0.2)' }]}>
-                      <Text style={[s.commentLabel, { color: viewingDemande.statut === 'approuve' ? '#00E5A0' : '#FF4D6D' }]}>
+                    <View style={[s.commentBox, { backgroundColor: viewingDemande.statut === 'approuve' ? hexToRgba(colors.green, 0.08) : 'rgba(255,77,109,0.08)', borderColor: viewingDemande.statut === 'approuve' ? hexToRgba(colors.green, 0.2) : 'rgba(255,77,109,0.2)' }]}>
+                      <Text style={[s.commentLabel, { color: viewingDemande.statut === 'approuve' ? colors.green : '#FF4D6D' }]}>
                         {viewingDemande.statut === 'approuve' ? 'Commentaire' : 'Motif du refus'}
                       </Text>
                       <Text style={s.commentValue}>{viewingDemande.commentaire_admin}</Text>
@@ -430,7 +564,7 @@ export default function MesDemandesScreen({ navigation }) {
               ) : demandeSent ? (
                 /* === ÉTAT SUCCÈS === */
                 <View style={s.successWrap}>
-                  <MaterialCommunityIcons name="check-circle-outline" size={48} color="#00E5A0" />
+                  <MaterialCommunityIcons name="check-circle-outline" size={48} color={colors.green} />
                   <Text style={s.successTitle}>Demande soumise</Text>
                   <Text style={s.successSub}>Votre demande a été transmise à l'équipe SenGuichet. Vous recevrez une réponse par email.</Text>
                   <TouchableOpacity style={s.successBtn} onPress={closeModal}>
@@ -444,7 +578,7 @@ export default function MesDemandesScreen({ navigation }) {
                     <Text style={s.modalTitle}>
                       {typeAction === 'CREATION' ? 'Nouvel événement' : typeAction === 'MODIFICATION' ? 'Modifier' : 'Supprimer'}
                     </Text>
-                    <TouchableOpacity onPress={closeModal}><MaterialCommunityIcons name="close" size={20} color="rgba(255,255,255,0.5)" /></TouchableOpacity>
+                    <TouchableOpacity onPress={closeModal}><MaterialCommunityIcons name="close" size={20} color={colors.textTertiary} /></TouchableOpacity>
                   </View>
 
                   {error ? (
@@ -465,10 +599,10 @@ export default function MesDemandesScreen({ navigation }) {
                       {/* Catégorie */}
                       {renderLabel('Catégorie', true)}
                       <TouchableOpacity style={f.pickerBtn} onPress={() => setCatVisible(true)}>
-                        <Text style={[f.pickerBtnText, !categorie && { color: 'rgba(255,255,255,0.3)' }]}>
+                        <Text style={[f.pickerBtnText, !categorie && { color: colors.textTertiary }]}>
                           {categorie || 'Sélectionner une catégorie'}
                         </Text>
-                        <Feather name="chevron-down" size={16} color="rgba(255,255,255,0.4)" />
+                        <Feather name="chevron-down" size={16} color={colors.textTertiary} />
                       </TouchableOpacity>
 
                       {renderLabel('Description', true)}
@@ -482,10 +616,10 @@ export default function MesDemandesScreen({ navigation }) {
                         <View style={{ flex: 1 }}>
                           {renderLabel('Ville', true)}
                           <TouchableOpacity style={f.pickerBtn} onPress={() => setVilleVisible(true)}>
-                            <Text style={[f.pickerBtnText, !ville && { color: 'rgba(255,255,255,0.3)' }]}>
+                            <Text style={[f.pickerBtnText, !ville && { color: colors.textTertiary }]}>
                               {ville || 'Ville'}
                             </Text>
-                            <Feather name="chevron-down" size={16} color="rgba(255,255,255,0.4)" />
+                            <Feather name="chevron-down" size={16} color={colors.textTertiary} />
                           </TouchableOpacity>
                         </View>
                       </View>
@@ -493,22 +627,32 @@ export default function MesDemandesScreen({ navigation }) {
                       {/* Date début */}
                       {renderLabel('Date début', true)}
                       <TouchableOpacity style={f.pickerBtn} onPress={() => setDateExpanded(!dateExpanded)}>
-                        <Text style={[f.pickerBtnText, !dateDebut && { color: 'rgba(255,255,255,0.3)' }]}>
+                        <Text style={[f.pickerBtnText, !dateDebut && { color: colors.textTertiary }]}>
                           {dateDebut || 'Sélectionner une date'}
                         </Text>
-                        <Feather name={dateExpanded ? 'chevron-up' : 'chevron-down'} size={16} color="rgba(255,255,255,0.4)" />
+                        <Feather name={dateExpanded ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textTertiary} />
                       </TouchableOpacity>
                       {renderCalendar('date')}
 
                       {/* Date fin */}
                       {renderLabel('Date fin')}
                       <TouchableOpacity style={f.pickerBtn} onPress={() => setDateFinExpanded(!dateFinExpanded)}>
-                        <Text style={[f.pickerBtnText, !dateFin && { color: 'rgba(255,255,255,0.3)' }]}>
+                        <Text style={[f.pickerBtnText, !dateFin && { color: colors.textTertiary }]}>
                           {dateFin || 'Même jour (par défaut)'}
                         </Text>
-                        <Feather name={dateFinExpanded ? 'chevron-up' : 'chevron-down'} size={16} color="rgba(255,255,255,0.4)" />
+                        <Feather name={dateFinExpanded ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textTertiary} />
                       </TouchableOpacity>
                       {renderCalendar('dateFin')}
+
+                      {/* Horaire */}
+                      {renderLabel('Horaire')}
+                      <TouchableOpacity style={f.pickerBtn} onPress={() => setHeureExpanded(!heureExpanded)}>
+                        <Text style={[f.pickerBtnText, !heure && { color: colors.textTertiary }]}>
+                          {heure || 'Sélectionner l\'heure (optionnel)'}
+                        </Text>
+                        <Feather name={heureExpanded ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textTertiary} />
+                      </TouchableOpacity>
+                      {heureExpanded && renderTimePicker()}
 
                       {renderLabel('Capacité', true)}
                       {renderInput('Ex: 1000', capacite, setCapacite, { keyboardType: 'numeric' })}
@@ -522,22 +666,30 @@ export default function MesDemandesScreen({ navigation }) {
                           <Image source={{ uri: affichePreview }} style={f.affichePreview} />
                         ) : (
                           <>
-                            <MaterialCommunityIcons name="image-plus-outline" size={28} color="rgba(255,255,255,0.3)" />
-                            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>Ajouter une affiche</Text>
+                            <MaterialCommunityIcons name="image-plus-outline" size={28} color={colors.textTertiary} />
+                            <Text style={{ fontSize: 11, color: 'rgba(0,0,0,0.35)', marginTop: 4 }}>Ajouter une affiche</Text>
                           </>
                         )}
                       </TouchableOpacity>
 
                       {/* Catégories tickets */}
                       <View style={f.catHeader}>
-                        <Text style={f.label}>Catégories de tickets <Text style={{ color: '#FF4D6D' }}>*</Text></Text>
+                        <Text style={f.label}>Catégories de tickets <Text style={{ color: colors.danger }}>*</Text></Text>
                         <TouchableOpacity style={f.addCatBtn} onPress={addCategory}>
-                          <MaterialCommunityIcons name="plus" size={14} color="#00C8FF" />
+                          <MaterialCommunityIcons name="plus" size={14} color="#fff" />
+                          <Text style={f.addCatText}>Ajouter</Text>
                         </TouchableOpacity>
                       </View>
                       {categories.map((cat, i) => (
                         <View key={i} style={f.catRow}>
-                          {renderInput('Nom', cat.nom, (v) => updateCategory(i, 'nom', v), { style: { flex: 1, marginRight: 4 } })}
+                          <View style={{ flex: 1, marginRight: 4 }}>
+                            <TouchableOpacity style={f.catPickerBtn} onPress={() => setBilletCatIndex(i)}>
+                              <Text style={[f.catPickerText, !cat.nom && { color: colors.textTertiary }]} numberOfLines={1}>
+                                {cat.nom || 'Catégorie'}
+                              </Text>
+                              <Feather name="chevron-down" size={14} color={colors.textTertiary} />
+                            </TouchableOpacity>
+                          </View>
                           {renderInput('Places', cat.places, (v) => updateCategory(i, 'places', v), { style: { flex: 1, marginHorizontal: 4 }, keyboardType: 'numeric' })}
                           {renderInput('Prix', cat.prix, (v) => updateCategory(i, 'prix', v), { style: { flex: 1, marginLeft: 4 }, keyboardType: 'numeric' })}
                           {categories.length > 1 && (
@@ -552,8 +704,13 @@ export default function MesDemandesScreen({ navigation }) {
 
                   {typeAction !== 'CREATION' && (
                     <>
-                      {renderLabel('Titre / Événement concerné')}
-                      {renderInput('Nom de l\'événement concerné', titre, setTitre)}
+                      {renderLabel('Événement concerné', true)}
+                      <TouchableOpacity style={f.pickerBtn} onPress={() => setEventsVisible(true)}>
+                        <Text style={[f.pickerBtnText, !titre && { color: colors.textTertiary }]} numberOfLines={1}>
+                          {titre || 'Sélectionner un événement'}
+                        </Text>
+                        <Feather name="chevron-down" size={16} color={colors.textTertiary} />
+                      </TouchableOpacity>
                     </>
                   )}
 
@@ -564,7 +721,7 @@ export default function MesDemandesScreen({ navigation }) {
                   )}
 
                   <TouchableOpacity style={f.submitBtn} onPress={handleSubmit} disabled={sending}>
-                    <LinearGradient colors={['#00C8FF', '#0077FF']} style={f.submitGrad}>
+                    <LinearGradient colors={gradients.primary} style={f.submitGrad}>
                       {sending ? (
                         <ActivityIndicator color="#fff" />
                       ) : (
@@ -576,7 +733,7 @@ export default function MesDemandesScreen({ navigation }) {
                   </TouchableOpacity>
                 </>
               )}
-              <View style={{ height: 20 }} />
+              <View style={{ height: 100 }} />
               {kbPadding > 0 && <View style={{ height: kbPadding }} />}
             </ScrollView>
           </Animated.View>
@@ -604,6 +761,30 @@ export default function MesDemandesScreen({ navigation }) {
         </TouchableOpacity>
       </Modal>
 
+      {/* Modale catégorie billet */}
+      <Modal visible={billetCatIndex !== null} transparent animationType="fade">
+        <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setBilletCatIndex(null)}>
+          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+            <Text style={s.pickerTitle}>Type de billet</Text>
+            <FlatList
+              data={BILLET_CATEGORIES}
+              keyExtractor={i => i}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[s.pickerItem, billetCatIndex !== null && categories[billetCatIndex]?.nom === item && s.pickerItemActive]}
+                  onPress={() => {
+                    if (billetCatIndex !== null) updateCategory(billetCatIndex, 'nom', item)
+                    setBilletCatIndex(null)
+                  }}
+                >
+                  <Text style={[s.pickerItemText, billetCatIndex !== null && categories[billetCatIndex]?.nom === item && s.pickerItemTextActive]}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </GlassContainer>
+        </TouchableOpacity>
+      </Modal>
+
       {/* Modale ville */}
       <Modal visible={villeVisible} transparent animationType="fade">
         <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setVilleVisible(false)}>
@@ -624,135 +805,141 @@ export default function MesDemandesScreen({ navigation }) {
           </GlassContainer>
         </TouchableOpacity>
       </Modal>
+
+      {renderEventPicker()}
     </View>
   )
 }
 
-const DetailField = ({ label, value }) => (
-  <View style={f.detailField}>
-    <Text style={f.detailLabel}>{label}</Text>
-    <Text style={f.detailValue}>{value}</Text>
-  </View>
-)
 
-const s = StyleSheet.create({
-  container: { flex: 1 },
-  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 40 },
+const makeStyles = (colors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
+  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },
 
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
-  refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginBottom: spacing.sm },
+  headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text },
+  refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginBottom: spacing.sm },
   newBtn: { borderRadius: 12, overflow: 'hidden' },
   newBtnGrad: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 9 },
   newBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff' },
 
   emptyState: { padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
-  emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
-  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', textAlign: 'center' },
-  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
-  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
+  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center' },
+  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.sm, backgroundColor: colors.accent + '26', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
+  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.green },
 
   list: { gap: spacing.sm },
   card: { padding: spacing.md },
   cardTop: { flexDirection: 'row', alignItems: 'center' },
   cardInfo: { flex: 1 },
   cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  cardType: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#fff' },
+  cardType: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text },
   cardBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   cardBadgeText: { fontSize: 10, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.3 },
-  cardDate: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', marginTop: 2 },
+  cardDate: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 2 },
   cardComment: { fontSize: 11, fontFamily: fonts.jakarta.regular, marginTop: 2, fontStyle: 'italic' },
   detailBtn: {
-    borderWidth: 1, borderColor: 'rgba(0,200,255,0.3)', borderRadius: 10,
+    borderWidth: 1, borderColor: colors.accent + '4D', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 6, marginLeft: spacing.sm,
   },
-  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  detailBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.green },
 
   /* Modal */
   modalOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'flex-end' },
   modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
   modalContent: {
-    backgroundColor: '#152232', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24,
     padding: spacing.lg, maxHeight: '85%',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.08)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
   },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg },
-  modalTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: '#fff' },
+  modalTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text },
 
   /* Détail */
   detailBadgeRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
-  detailTypeBadge: { backgroundColor: 'rgba(0,200,255,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
-  detailSub: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', marginBottom: spacing.md },
+  detailTypeBadge: { backgroundColor: colors.accent + '1A', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  detailTypeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.green },
+  detailSub: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, marginBottom: spacing.md },
   detailImageWrap: { height: 160, borderRadius: 12, overflow: 'hidden', marginBottom: spacing.md },
   detailImage: { width: '100%', height: '100%' },
   detailImageOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.15)' },
   detailTwoCol: { flexDirection: 'row', gap: spacing.md },
   commentBox: { padding: spacing.md, borderRadius: 12, borderWidth: 1, marginTop: spacing.sm },
   commentLabel: { fontSize: 10, fontFamily: fonts.outfit.semiBold, marginBottom: 4 },
-  commentValue: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
+  commentValue: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary },
 
   /* Succès */
   successWrap: { alignItems: 'center', paddingVertical: 30, gap: spacing.sm },
-  successTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: '#fff' },
-  successSub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textAlign: 'center', lineHeight: 20 },
-  successBtn: { marginTop: spacing.md, backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
-  successBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  successTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text },
+  successSub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
+  successBtn: { marginTop: spacing.md, backgroundColor: colors.accent + '26', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10 },
+  successBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.green },
 
   /* Erreur */
   errorBox: { padding: spacing.sm, marginBottom: spacing.md },
-  errorText: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: '#FF4D6D' },
+  errorText: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.danger },
 
   /* Picker modals */
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 },
   picker: { padding: 20, maxHeight: 400 },
   pickerTitle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: '#fff', marginBottom: 16, textAlign: 'center' },
   pickerItem: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 12, marginBottom: 4 },
-  pickerItemActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
+  pickerItemActive: { backgroundColor: 'rgba(0,0,0,0.06)' },
   pickerItemText: { fontFamily: fonts.outfit.regular, fontSize: 16, color: '#fff' },
   pickerItemTextActive: { fontFamily: fonts.outfit.semiBold, color: '#fff' },
 })
 
-const f = StyleSheet.create({
-  label: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.6)', marginBottom: 6, marginTop: 4 },
+const makeFormStyles = (colors) => StyleSheet.create({
+  label: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: 6, marginTop: 4 },
   input: {
-    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10,
-    paddingHorizontal: 14, height: 44, fontSize: 14, fontFamily: fonts.jakarta.regular, color: '#fff',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)', marginBottom: spacing.sm,
+    backgroundColor: colors.inputBg, borderRadius: 10,
+    paddingHorizontal: 14, height: 44, fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.text,
+    borderWidth: 1, borderColor: colors.border, marginBottom: spacing.sm,
   },
   selectRow: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.sm, flexWrap: 'wrap' },
   selectOpt: {
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    borderWidth: 1, borderColor: 'rgba(0,200,255,0.3)',
+    borderWidth: 1, borderColor: colors.accent + '4D',
   },
-  selectOptActive: { backgroundColor: '#00C8FF', borderColor: '#00C8FF' },
-  selectOptText: { fontSize: 12, fontFamily: fonts.outfit.regular, color: 'rgba(255,255,255,0.6)' },
+  selectOptActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+  selectOptText: { fontSize: 12, fontFamily: fonts.outfit.regular, color: colors.text },
   selectOptTextActive: { color: '#fff' },
   twoCol: { flexDirection: 'row', gap: spacing.sm },
   uploadZone: {
-    borderWidth: 2, borderStyle: 'dashed', borderColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 2, borderStyle: 'dashed', borderColor: colors.border,
     borderRadius: 12, paddingVertical: 30, alignItems: 'center', justifyContent: 'center',
     marginBottom: spacing.sm,
   },
   catHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
-  addCatBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(0,200,255,0.15)', alignItems: 'center', justifyContent: 'center' },
+  addCatBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: colors.accent },
+  addCatText: { fontSize: 13, fontWeight: '600', color: '#fff' },
   catRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   submitBtn: { borderRadius: 12, overflow: 'hidden', marginTop: spacing.md },
   submitGrad: { paddingVertical: 14, alignItems: 'center' },
   submitText: { fontSize: 14, fontFamily: fonts.outfit.bold, color: '#fff' },
   detailField: { marginBottom: spacing.sm },
-  detailLabel: { fontSize: 10, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.4)', marginBottom: 2 },
-  detailValue: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: '#fff' },
+  detailLabel: { fontSize: 10, fontFamily: fonts.outfit.semiBold, color: colors.textTertiary, marginBottom: 2 },
+  detailValue: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.text },
 
   /* Picker bouton */
   pickerBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10,
+    backgroundColor: colors.inputBg, borderRadius: 10,
     paddingHorizontal: 14, height: 44,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1, borderColor: colors.border,
     marginBottom: spacing.sm,
   },
-  pickerBtnText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: '#fff', flex: 1 },
+  pickerBtnText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.text, flex: 1 },
+
+  /* Catégorie billet picker dans la row */
+  catPickerBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: colors.inputBg, borderRadius: 10,
+    paddingHorizontal: 10, height: 40,
+    borderWidth: 1, borderColor: colors.border,
+  },
+  catPickerText: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.text, flex: 1 },
 
   /* Affiche preview */
   affichePreview: { width: '100%', height: 140, borderRadius: 10, resizeMode: 'cover' },
@@ -760,12 +947,24 @@ const f = StyleSheet.create({
   /* Calendrier */
   calendar: { padding: 12, marginBottom: spacing.sm },
   calHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  calHeaderText: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#fff' },
+  calHeaderText: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.text },
   calWeek: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 8 },
-  calWeekDay: { width: 32, textAlign: 'center', fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' },
+  calWeekDay: { width: 32, textAlign: 'center', fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textTertiary, textTransform: 'uppercase' },
   calGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   calDay: { width: '14.28%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center' },
-  calDaySelected: { backgroundColor: '#00C8FF', borderRadius: 20 },
-  calDayText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
+  calDaySelected: { backgroundColor: colors.accent, borderRadius: 20 },
+  calDayText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textSecondary },
   calDayTextSelected: { color: '#fff', fontFamily: fonts.outfit.semiBold },
+
+  /* Time picker */
+  timePicker: { padding: 12, marginBottom: spacing.sm },
+  timeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  timeLabel: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textTertiary, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 },
+  timeCol: { alignItems: 'center', gap: 4 },
+  timeValue: { fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.text, paddingVertical: 4 },
+  timeConfirmBtn: {
+    backgroundColor: colors.accent + '26', borderRadius: 10,
+    paddingVertical: 10, alignItems: 'center',
+  },
+  timeConfirmText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text },
 })

@@ -9,7 +9,7 @@ const { envoyerNotificationDemandeEvenement } = require("../services/emailServic
 const soumettreDemande = async (req, res) => {
   try {
     const { type_action, evenement_id, titre, description, lieu, ville,
-      date_debut, date_fin, capacite, categorie, affiche_url, payload, categories_tickets } = req.body;
+      date_debut, date_fin, capacite, categorie, affiche_url, payload, categories_tickets, heure } = req.body;
 
     if (!type_action || !["CREATION", "MODIFICATION", "SUPPRESSION"].includes(type_action)) {
       return res.status(400).json({ message: "Type d'action invalide" });
@@ -25,8 +25,11 @@ const soumettreDemande = async (req, res) => {
       return res.status(400).json({ message: "ID événement requis" });
     }
 
-    const dateDebut = new Date(date_debut);
-    const dateFin = date_fin ? new Date(date_fin) : null;
+    // Passer les dates en chaîne YYYY-MM-DD avec l'heure fournie (ou 00:00 par défaut)
+    // Les objets Date JS sont rejetés par TiDB Serverless pour les colonnes DATETIME
+    const timePart = heure || '00:00';
+    const dateDebut = date_debut ? date_debut + ' ' + timePart + ':00' : null;
+    const dateFin = date_fin ? date_fin + ' ' + timePart + ':00' : null;
 
     const [result] = await pool.query(
       `INSERT INTO demande_evenement
@@ -151,8 +154,6 @@ const adminDetailDemande = async (req, res) => {
 };
 
 const creerEvenementDepuisDemande = async (conn, demande) => {
-  const scanCode = Math.random().toString(36).substring(2, 6).toUpperCase();
-
   // Extraire ville et categorie (colonne directe ou payload JSON pour rétrocompatibilité)
   const payload = typeof demande.payload === "string"
     ? JSON.parse(demande.payload) : demande.payload;
@@ -164,7 +165,7 @@ const creerEvenementDepuisDemande = async (conn, demande) => {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'actif')`,
     [demande.organisateur_id, demande.titre, demande.description, demande.lieu,
      ville, categorie,
-     demande.date_debut, demande.date_fin, demande.capacite, demande.affiche_url || null, scanCode]
+     demande.date_debut, demande.date_fin, demande.capacite, demande.affiche_url || null, null]
   );
   const evenementId = evResult.insertId;
 
@@ -232,8 +233,8 @@ const adminTraiterDemande = async (req, res) => {
           if (payload.titre) { updates.push("titre = ?"); params.push(payload.titre); }
           if (payload.description) { updates.push("description = ?"); params.push(payload.description); }
           if (payload.lieu) { updates.push("lieu = ?"); params.push(payload.lieu); }
-          if (payload.date_debut) { updates.push("date_debut = ?"); params.push(new Date(payload.date_debut)); }
-          if (payload.date_fin) { updates.push("date_fin = ?"); params.push(new Date(payload.date_fin)); }
+          if (payload.date_debut) { updates.push("date_debut = ?"); params.push(payload.date_debut + ' 00:00:00'); }
+          if (payload.date_fin) { updates.push("date_fin = ?"); params.push(payload.date_fin + ' 00:00:00'); }
           if (payload.capacite) { updates.push("capacite_totale = ?"); params.push(payload.capacite); }
 
           if (updates.length) {

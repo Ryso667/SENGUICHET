@@ -31,6 +31,49 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
+// Route temporaire pour tester l'envoi SMS
+app.get("/api/test-sms/:numero", async (req, res) => {
+  try {
+    const { envoyerSMSBillet } = require("./services/smsService");
+    const { numero } = req.params;
+    if (req.query.senderName) {
+      process.env.ORANGE_SENDER_NAME = req.query.senderName;
+    }
+    const ticket = {
+      uuid: `test-${Date.now()}`,
+      evenement: "Test SMS SENGUICHET",
+      categorie: "TEST",
+      prix: 1500,
+    };
+    const result = await envoyerSMSBillet(numero, ticket, pool);
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Vérifie les contrats Orange disponibles (senderAddress, solde, etc.)
+app.get("/api/contrats-orange", async (req, res) => {
+  try {
+    const { consulterContrats } = require("./services/smsService");
+    const contrats = await consulterContrats();
+    res.json({ senderAddress: process.env.ORANGE_SENDER_ADDRESS || "(default 2210000)", senderName: process.env.ORANGE_SENDER_NAME, sandbox: process.env.ORANGE_SANDBOX, contrats });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Statistiques Orange SMS (consommation)
+app.get("/api/stats-orange", async (req, res) => {
+  try {
+    const { consulterStats } = require("./services/smsService");
+    const stats = await consulterStats();
+    res.json(stats);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.use("/api", routes);
 
 app.use((err, req, res, next) => {

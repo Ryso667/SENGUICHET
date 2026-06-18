@@ -134,9 +134,11 @@ const DetailEvenement = () => {
               <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>Capacité</p>
               <p className="text-sm font-medium" style={{ color: "#F1F5F9" }}>{ev.capacite_totale} personnes</p>
             </div>
-            <div className="p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.03)" }}>
-              <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>Code</p>
-              <p className="text-sm font-medium" style={{ color: "#818CF8", fontFamily: "monospace", letterSpacing: "2px" }}>{ev.scan_code}</p>
+            <div className="p-4 rounded-xl" style={{ background: "rgba(0,200,255,0.06)" }}>
+              <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>Code contrôleur</p>
+              <p className="text-sm font-mono font-bold tracking-widest" style={{ color: "#00C8FF" }}>
+                {ev.code_controleur || '-'}
+              </p>
             </div>
           </div>
 

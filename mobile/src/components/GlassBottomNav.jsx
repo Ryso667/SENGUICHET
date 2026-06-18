@@ -2,13 +2,17 @@
 // Remplace BottomNav.js — design Apple Invites
 // 3 tabs : Accueil, Mes Tickets, Support
 // Animation slide au changement, icône active surélevée
-import { useRef, useEffect } from 'react'
+//
+// Couleurs : fond translucide blanc style iOS 18, icône active cyan
+import { useRef, useEffect, useMemo } from 'react'
 import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
-import { fonts, glass } from '../constants/theme'
+import { fonts } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
+import { scale, fontScale } from '../utils/responsive'
 
 const TABS = [
   { key: 'Home', icon: 'home', label: 'Accueil' },
@@ -17,11 +21,13 @@ const TABS = [
 ]
 
 export default function GlassBottomNav() {
+  const { colors } = useTheme()
   const navigation = useNavigation()
   const route = useRoute()
   const insets = useSafeAreaInsets()
   const slideAnim = useRef(new Animated.Value(0)).current
   const prevIndex = useRef(0)
+  const sty = useMemo(() => makeStyles(colors), [colors])
 
   const currentIndex = TABS.findIndex(t => t.key === route.name)
   useEffect(() => {
@@ -38,20 +44,20 @@ export default function GlassBottomNav() {
   }, [currentIndex, slideAnim])
 
   return (
-    <BlurView tint="light" intensity={80} style={[styles.container, { paddingBottom: 8 + insets.bottom }]}>
+    <BlurView tint="light" intensity={60} style={[sty.container, { paddingBottom: 8 + insets.bottom }]}>
       {TABS.map((tab) => {
         const active = route.name === tab.key
         return (
           <TouchableOpacity
             key={tab.key}
-            style={styles.item}
+            style={sty.item}
             onPress={() => navigation.navigate(tab.key)}
             activeOpacity={0.7}
           >
-            <View style={[styles.iconWrap, active && styles.activeIcon]}>
-              <Feather name={tab.icon} size={20} color={active ? '#fff' : 'rgba(255,255,255,0.5)'} />
+            <View style={[sty.iconWrap, active && sty.activeIcon]}>
+              <Feather name={tab.icon} size={scale(20)} color={active ? colors.accent : colors.textSecondary} />
             </View>
-            <Text style={[styles.label, active && styles.activeLabel]}>
+            <Text style={[sty.label, active && sty.activeLabel]}>
               {tab.label}
             </Text>
           </TouchableOpacity>
@@ -61,13 +67,12 @@ export default function GlassBottomNav() {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: {
     flexDirection: 'row',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: glass.borderLight,
-    paddingTop: 8,
-    backgroundColor: glass.bg,
+    borderTopWidth: 0, // Pas de bordure sur le nav style Apple
+    paddingTop: scale(8),
+backgroundColor: 'rgba(0,0,0,0.04)', // Verre translucide très subtil
   },
   item: {
     flex: 1,
@@ -75,23 +80,23 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   iconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: scale(40),
+    height: scale(40),
+    borderRadius: scale(20),
     alignItems: 'center',
     justifyContent: 'center',
   },
   activeIcon: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(26,86,219,0.08)', // Fond bleu semi-transparent pour l'icône active
   },
   label: {
-    fontSize: 10,
+    fontSize: fontScale(10),
     fontFamily: fonts.jakarta.medium,
-    color: 'rgba(255,255,255,0.5)',
-    letterSpacing: 0.2,
+    color: colors.textSecondary,
+    letterSpacing: scale(0.2),
   },
   activeLabel: {
-    color: '#fff',
+    color: colors.accent,
     fontFamily: fonts.jakarta.semiBold,
   },
 })

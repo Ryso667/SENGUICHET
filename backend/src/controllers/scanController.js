@@ -14,14 +14,24 @@ if (!HMAC_SECRET) console.warn("⚠️  HMAC_SECRET non défini — validation Q
 const telechargerTickets = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const [rows] = await pool.query(
-      `SELECT b.uuid, b.payload_signature AS hmac, b.evenement_id AS event_id,
-              ct.nom AS category, b.date_creation AS timestamp_gen
-       FROM billet b
-       JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
-       WHERE b.evenement_id = ? AND b.statut = 'ACTIF'`,
-      [eventId]
-    );
+    // Vérifie que le contrôleur a le droit de télécharger les tickets de cet événement
+    if (parseInt(eventId) !== req.user.evenementId) {
+      return res.status(403).json({ message: "Accès non autorisé à cet événement" });
+    }
+    let sql = `SELECT b.uuid, b.payload_signature AS hmac, b.evenement_id AS event_id,
+                      ct.nom AS category, b.date_creation AS timestamp_gen, b.numero
+               FROM billet b
+               JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+               WHERE b.evenement_id = ? AND b.statut = 'ACTIF'`
+    const params = [eventId]
+
+    // Filtre par zone si le contrôleur a une catégorie assignée
+    if (req.user.categorieTicketId) {
+      sql += ' AND b.categorie_ticket_id = ?'
+      params.push(req.user.categorieTicketId)
+    }
+
+    const [rows] = await pool.query(sql, params)
     res.json(rows);
   } catch (err) {
     console.error("telechargerTickets error:", err);
@@ -78,7 +88,7 @@ const validerBillet = async (req, res) => {
 
 /** Synchronise les scans offline vers le serveur
  *  Reçoit un tableau de scans [{ uuid_billet, hmac, timestamp_scan, resultat }]
- *  Insère dans scan_billet avec résolution billet_id et evenement_id */
+ *  Insère dans scan_billet via le billet_id et l'evenementId extrait du JWT */
 const synchroniserScans = async (req, res) => {
   try {
     const scans = req.body;
@@ -86,7 +96,8 @@ const synchroniserScans = async (req, res) => {
       return res.status(400).json({ sync: false, message: "Données de scan invalides" });
     }
 
-    const controleurId = req.user.id;
+    const evenementId = req.user.evenementId;
+    const controleurId = req.user.controleurId || null;
     const statutMap = { VALIDE: "VALIDE", DEJA_UTILISE: "DEJA_UTILISE", FRAUDE: "INVALIDE", INCONNU: "INVALIDE", EXPIRE: "INVALIDE" };
 
     let compteur = 0;
@@ -97,7 +108,7 @@ const synchroniserScans = async (req, res) => {
          SELECT b.id, ?, b.evenement_id, ?, ?, ?, 1, NOW()
          FROM billet b
          WHERE b.uuid = ?`,
-        [controleurId, statutDB, s.timestamp_scan, s.timestamp_scan, s.uuid_billet]
+        [controleurId, evenementId, statutDB, s.timestamp_scan, s.timestamp_scan, s.uuid_billet]
       );
       compteur++;
     }

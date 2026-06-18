@@ -1,14 +1,17 @@
 // Champ de saisie de numéro de téléphone avec formatage automatique
 // Format : +221 XX XXX XX XX (9 chiffres après l'indicatif)
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { View, TextInput, Text, StyleSheet } from 'react-native'
+import { useTheme } from '../context/ThemeContext'
 
 // Indicateur du Sénégal
 const INDICATIF = '+221'
 // Champ de téléphone sénégalais (+221) avec masque XX XXX XX XX et validation
 // Props : onValide (callback appelé avec le numéro à 9 chiffres, ou null si incomplet)
 export default function InputTel({ onValide }) {
+  const { colors } = useTheme()
   const [chiffres, setChiffres] = useState('')
+  const styles = useMemo(() => makeStyles(colors), [colors])
 
   // Formate les 9 chiffres en groupes : XX XXX XX XX
   // Les espaces sont insérés après les positions 2, 5 et 7
@@ -45,35 +48,35 @@ export default function InputTel({ onValide }) {
         onChangeText={handleChangement}
         keyboardType="phone-pad"
         placeholder="XX XXX XX XX"
-        placeholderTextColor="#94a3b8"
+        placeholderTextColor={colors.textTertiary}
         maxLength={12}
       />
     </View>
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   conteneur: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#edf0f5',
+    borderColor: colors.border,
     paddingHorizontal: 16,
     height: 56,
   },
   indicatif: {
     fontFamily: 'Outfit_600SemiBold',
     fontSize: 18,
-    color: '#0f172a',
+    color: colors.text,
     marginRight: 8,
   },
   input: {
     flex: 1,
     fontFamily: 'Outfit_400Regular',
     fontSize: 18,
-    color: '#0f172a',
+    color: colors.text,
     height: '100%',
   },
 })

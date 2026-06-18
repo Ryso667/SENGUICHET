@@ -4,9 +4,9 @@
     "slug": "senguichet",
     "version": "1.0.0",
     "scheme": "senguichet",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.senguichet.app",
@@ -54,15 +54,5 @@
       "expo-asset",
       "expo-secure-store"
     ],
-    "extra": {
-      "eas": {
-        "projectId": "2727117e-fc16-41c0-8d38-013602ca2c8b"
-      }
-    },
-    "owner": "ecole-superieure-polytechnique",
-    "runtimeVersion": "1.0.0",
-    "updates": {
-      "url": "https://u.expo.dev/2727117e-fc16-41c0-8d38-013602ca2c8b"
-    }
   }
 }

@@ -6,8 +6,10 @@ import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fonts, borderRadius, animations } from '../constants/theme'
+import { formaterCompteRebours } from '../utils/dateUtils'
 import { getDefaultImage, getCategoryImageUrl } from '../config/images'
 import useSpringAnimation from '../hooks/useSpringAnimation'
+import FavoriButton from './FavoriButton'
 
 // Carte événement animée avec apparition spring, feedback press, image de fond
 // event : objet { title, month, day, bg, emoji, category, location, time, priceLabel }
@@ -21,6 +23,7 @@ export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle
   const def = event.category ? getDefaultImage(event.category) : null
   const iconName = def?.icon || null
   const [imageError, setImageError] = useState(false)
+  const compteRebours = event.date ? formaterCompteRebours(event.date) : null
   // Priorité : affiche_url de l'événement → image par catégorie (Unsplash)
   const imageUrl = event.affiche_url || (event.category ? getCategoryImageUrl(event.category) : null)
 
@@ -60,7 +63,7 @@ export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle
         activeOpacity={event.estPasse ? 1 : 0.9}
         style={styles.touch}
       >
-        <View style={[styles.card, { backgroundColor: event.bg || '#6366F1' }, event.estPasse && styles.cardPasse]}>
+        <View style={[styles.card, { backgroundColor: event.bg || '#9575CD' }, event.estPasse && styles.cardPasse]}>
           {imageUrl && !imageError && (
             <Animated.Image
               source={{ uri: imageUrl }}
@@ -68,8 +71,9 @@ export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle
               onError={() => setImageError(true)}
             />
           )}
+          {/* Overlay gradient renforcé — fond légèrement plus opaque en bas pour garantir la lisibilité du texte blanc sur toutes les images */}
           <LinearGradient
-            colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)']}
+            colors={['rgba(0,0,0,0.05)', 'rgba(0,0,0,0.65)']}
             style={styles.overlay}
           />
           <View style={styles.badge}>
@@ -82,6 +86,30 @@ export default function AnimatedEventCard({ event, onPress, index = 0, cardStyle
               <Text style={styles.passeText}>Passé</Text>
             </View>
           )}
+
+          {compteRebours && !event.estPasse && (
+            <View style={styles.countdownBadge}>
+              <Feather name="clock" size={10} color="#FCD34D" />
+              <Text style={styles.countdownText}>{compteRebours}</Text>
+            </View>
+          )}
+
+          <FavoriButton
+            eventId={event.id}
+            eventData={{
+              title: event.title,
+              date: event.date,
+              location: event.location,
+              category: event.category,
+              affiche_url: event.affiche_url,
+              month: event.month,
+              day: event.day,
+              emoji: event.emoji,
+              priceLabel: event.priceLabel,
+            }}
+            size={20}
+            style={styles.favoriBtn}
+          />
 
           {iconName ? (
             <MaterialCommunityIcons name={iconName} size={28} color="rgba(255,255,255,0.6)" style={styles.icon} />
@@ -132,24 +160,24 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    top: 10,
+    left: 10,
+    backgroundColor: 'rgba(0,0,0,0.6)',
     borderRadius: borderRadius.sm,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
     alignItems: 'center',
     zIndex: 1,
   },
   badgeMonth: {
-    fontSize: 7,
+    fontSize: 9,
     fontFamily: fonts.jakarta.semiBold,
     textTransform: 'uppercase',
     color: '#fff',
     letterSpacing: 0.8,
   },
   badgeDay: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: fonts.outfit.bold,
     color: '#fff',
   },
@@ -164,36 +192,35 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 12,
-    gap: 3,
+    padding: 16,
+    gap: 5,
   },
   title: {
     fontFamily: fonts.outfit.bold,
-    fontSize: 13,
+    fontSize: 16,
     color: '#fff',
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   metaText: {
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.7)',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.75)',
     fontFamily: fonts.jakarta.regular,
     flex: 1,
   },
   priceBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
     borderRadius: 6,
-    marginTop: 3,
   },
   priceText: {
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: fonts.jakarta.semiBold,
     color: '#fff',
   },
@@ -219,5 +246,29 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  countdownBadge: {
+    position: 'absolute',
+    top: 50,
+    left: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    borderRadius: borderRadius.sm,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    gap: 4,
+    zIndex: 2,
+  },
+  countdownText: {
+    fontSize: 9,
+    fontFamily: fonts.jakarta.semiBold,
+    color: '#FCD34D',
+    letterSpacing: 0.3,
+  },
+  favoriBtn: {
+    position: 'absolute',
+    right: 10,
+    top: 38,
   },
 })

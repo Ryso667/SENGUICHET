@@ -1,23 +1,41 @@
 // Écran de connexion organisateur (email + mot de passe)
 // Vérification via le backend — partagé avec le frontend-web
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import {
-  View, Text, TextInput, ActivityIndicator,
-  KeyboardAvoidingView, Platform, ScrollView, StyleSheet,
+  View, Text, TextInput, TouchableOpacity, ActivityIndicator,
+  KeyboardAvoidingView, Platform, ScrollView, Animated, StyleSheet,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { connecterOrganisateur } from '../../services/authService'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
+import { hapticMedium, hapticError } from '../../utils/haptics'
 import GlassButton from '../../components/GlassButton'
-import { colors, spacing, textShadow } from '../../constants/theme'
-import BlurBackground from '../../components/BlurBackground'
+import { spacing } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import GlassContainer from '../../components/GlassContainer'
 
 export default function ConnexionOrganisateurScreen({ navigation }) {
+  const { colors } = useTheme()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const [email, setEmail] = useState('')
   const [mdp, setMdp] = useState('')
   const [chargement, setChargement] = useState(false)
+  const [erreurValidation, setErreurValidation] = useState('')
+  const shakeAnim = useRef(new Animated.Value(0)).current
   const { connecterOrganisateur: connecter, orgaEmailSuggestion } = useAuth()
+  const toast = useToast()
+
+  // Animation de secousse pour indiquer un champ vide
+  const secouer = () => {
+    Animated.sequence([
+      Animated.timing(shakeAnim, { toValue: 10, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -10, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 6, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -6, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0, duration: 60, useNativeDriver: true }),
+    ]).start()
+  }
 
   // Pré-remplit l'email organisateur suggéré depuis la dernière connexion
   useEffect(() => {
@@ -26,12 +44,23 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
   const insets = useSafeAreaInsets()
 
   // Authentifie l'organisateur via le backend et stocke la session
+  // Si email ou mdp vide → feedback visuel immédiat
+  // Sinon → spinner + appel API
   const handleConnexion = async () => {
-    if (!email || !mdp) return
+    if (!email || !mdp) {
+      hapticError()
+      setErreurValidation('Veuillez remplir tous les champs')
+      secouer()
+      return
+    }
+    setErreurValidation('')
+    hapticMedium()
     setChargement(true)
     try {
       const reponse = await connecterOrganisateur(email, mdp)
       await connecter(reponse.token, reponse.user)
+      toast.success('Connexion réussie !')
+      navigation.goBack()
     } catch (err) {
       alert(err.message)
     } finally {
@@ -40,76 +69,72 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <BlurBackground />
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <KeyboardAvoidingView
-        style={styles.flex}
+        style={s.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={[styles.conteneur, { paddingTop: insets.top + spacing.lg }]}
+          contentContainerStyle={[s.conteneur, { paddingTop: insets.top + spacing.lg }]}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Bouton retour verre dépoli */}
-          <GlassButton
-            title="Retour"
-            icon="arrow-left"
-            onPress={() => navigation.goBack()}
-            style={styles.retour}
-          />
-
-          <Text style={styles.titre}>Espace organisateur</Text>
-          <Text style={styles.sousTitre}>
+          <Text style={s.titre}>Espace organisateur</Text>
+          <Text style={s.sousTitre}>
             Connectez-vous pour gérer vos événements
           </Text>
 
           {/* Champ email */}
-          <Text style={styles.label}>Email</Text>
-          <GlassContainer style={styles.inputWrap}>
+          <Text style={s.label}>Email</Text>
+          <GlassContainer style={s.inputWrap}>
             <TextInput
-              style={styles.input}
+              style={s.input}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
               placeholder="exemple@email.com"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor={colors.textTertiary}
             />
           </GlassContainer>
 
           {/* Champ mot de passe */}
-          <Text style={styles.label}>Mot de passe</Text>
-          <GlassContainer style={styles.inputWrap}>
+          <Text style={s.label}>Mot de passe</Text>
+          <GlassContainer style={s.inputWrap}>
             <TextInput
-              style={styles.input}
+              style={s.input}
               value={mdp}
               onChangeText={setMdp}
               secureTextEntry
               placeholder="••••••••"
-              placeholderTextColor="rgba(255,255,255,0.5)"
+              placeholderTextColor={colors.textTertiary}
             />
           </GlassContainer>
 
           <View style={{ height: 24 }} />
-          {chargement ? (
-            <View style={styles.glassLoadingBtn}>
-              <ActivityIndicator size="small" color="#fff" />
-            </View>
-          ) : (
-            <GlassButton
-              title="Se connecter"
-              onPress={!email || !mdp ? undefined : handleConnexion}
-              style={!email || !mdp ? { opacity: 0.5 } : undefined}
-            />
-          )}
+          {erreurValidation ? (
+            <Text style={s.erreurText}>{erreurValidation}</Text>
+          ) : null}
+          <Animated.View style={{ transform: [{ translateX: shakeAnim }] }}>
+            {chargement ? (
+              <View style={s.glassLoadingBtn}>
+                <ActivityIndicator size="small" color="#fff" />
+              </View>
+            ) : (
+              <GlassButton
+                title="Se connecter"
+                variant="primary"
+                onPress={handleConnexion}
+              />
+            )}
+          </Animated.View>
 
           {/* Lien vers l'inscription organisateur */}
-          <View style={styles.inscriptionRow}>
-            <Text style={styles.inscriptionText}>Pas encore de compte ?{' '}</Text>
+          <View style={s.inscriptionRow}>
+            <Text style={s.inscriptionText}>Pas encore de compte ?{' '}</Text>
             <GlassButton
               title="S'inscrire"
+              variant="ghost"
               onPress={() => navigation.navigate('InscriptionOrganisateur')}
-              style={styles.inscriptionLink}
             />
           </View>
         </ScrollView>
@@ -118,37 +143,39 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   flex: {
     flex: 1,
   },
   conteneur: {
-    flexGrow: 1,
+    flexGrow: 0,
     paddingHorizontal: 24,
-    justifyContent: 'center',
-  },
-  retour: {
-    marginBottom: 24,
-    alignSelf: 'flex-start',
+    paddingBottom: 40,
   },
   titre: {
     fontFamily: 'Outfit_700Bold',
     fontSize: 22,
-    color: '#fff',
+    color: colors.text,
     marginBottom: 8,
-    ...textShadow,
   },
   sousTitre: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 15,
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
     marginBottom: 32,
   },
   label: {
     fontFamily: 'Outfit_500Medium',
     fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
+    color: colors.text,
     marginBottom: 6,
+  },
+  erreurText: {
+    fontFamily: 'Outfit_400Regular',
+    fontSize: 13,
+    color: colors.red,
+    marginBottom: 8,
+    textAlign: 'center',
   },
   inscriptionRow: {
     flexDirection: 'row',
@@ -159,26 +186,22 @@ const styles = StyleSheet.create({
   inscriptionText: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 13,
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
   },
-  inscriptionLink: {
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    minWidth: undefined,
-  },
+
   inputWrap: { marginBottom: 16, borderRadius: 14, height: 56, justifyContent: 'center', paddingHorizontal: 16 },
   input: {
     fontFamily: 'Outfit_400Regular',
     fontSize: 16,
-    color: '#fff',
+    color: colors.text,
   },
   glassLoadingBtn: {
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(0,0,0,0.04)',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: colors.border,
   },
 })

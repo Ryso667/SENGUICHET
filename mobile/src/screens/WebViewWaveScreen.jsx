@@ -2,18 +2,22 @@
 // Ouvre wave_launch_url dans une WebView intégrée
 // Périodiquement vérifie le statut du paiement via l'API
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native'
 import { WebView } from 'react-native-webview'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { fonts, colors, spacing, borderRadius, shadows } from '../constants/theme'
+import { fonts, gradients, spacing, borderRadius } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 import { statutPaiement } from '../services/paiementService'
+import { sauvegarderTicketAcheteur } from '../database/database'
 
 const POLL_INTERVAL = 3000 // 3 secondes entre chaque vérification
 const MAX_POLLS = 60 // 3 minutes maximum
 
 export default function WebViewWaveScreen({ route, navigation }) {
+  const { colors } = useTheme()
+  const s = useMemo(() => makeStyles(colors), [colors])
   const { redirectUrl, transactionReference, eventId, ticket } = route.params
   const [statut, setStatut] = useState('PENDING') // PENDING | SUCCESS | FAILED
   const [erreur, setErreur] = useState('')
@@ -52,9 +56,10 @@ export default function WebViewWaveScreen({ route, navigation }) {
     }
   }, [transactionReference])
 
-  // Rediriger vers le ticket quand le paiement est confirmé
+  // Sauvegarde locale + redirection vers le ticket quand le paiement est confirmé
   useEffect(() => {
     if (statut === 'SUCCESS') {
+      sauvegarderTicketAcheteur(ticket)
       const timer = setTimeout(() => {
         navigation.replace('Ticket', { ticket })
       }, 1000)
@@ -66,7 +71,7 @@ export default function WebViewWaveScreen({ route, navigation }) {
     return (
       <SafeAreaView style={s.safe}>
         <View style={s.centerBox}>
-          <LinearGradient colors={['#00E5A0', '#00C8FF']} style={s.checkCircle}>
+          <LinearGradient colors={[colors.success, colors.accent]} style={s.checkCircle}>
             <Feather name="check" size={36} color="#fff" />
           </LinearGradient>
           <Text style={s.successText}>Paiement réussi !</Text>
@@ -90,7 +95,7 @@ export default function WebViewWaveScreen({ route, navigation }) {
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
-            <LinearGradient colors={['#00C8FF', '#0077FF']} style={s.retryGradient}>
+            <LinearGradient colors={gradients.primary} style={s.retryGradient}>
               <Feather name="refresh-cw" size={14} color="#fff" />
               <Text style={s.retryText}>Réessayer</Text>
             </LinearGradient>
@@ -110,7 +115,7 @@ export default function WebViewWaveScreen({ route, navigation }) {
             navigation.goBack()
           }}
         >
-          <Feather name="x" size={18} color={colors.slate} />
+          <Feather name="x" size={18} color={colors.text} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Paiement Wave</Text>
         <View style={s.headerRight} />
@@ -132,7 +137,7 @@ export default function WebViewWaveScreen({ route, navigation }) {
   )
 }
 
-const s = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: {
     flexDirection: 'row',
@@ -140,7 +145,7 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
@@ -150,12 +155,12 @@ const s = StyleSheet.create({
     borderRadius: borderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.bg,
+    backgroundColor: colors.bgSecondary,
   },
   headerTitle: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: 15,
-    color: colors.slate,
+    color: colors.text,
   },
   headerRight: { width: 36 },
   webview: { flex: 1 },
@@ -169,7 +174,7 @@ const s = StyleSheet.create({
   loadingText: {
     fontFamily: fonts.jakarta.regular,
     fontSize: 13,
-    color: colors.mid,
+    color: colors.textSecondary,
   },
   centerBox: {
     flex: 1,
@@ -206,7 +211,7 @@ const s = StyleSheet.create({
   subText: {
     fontFamily: fonts.jakarta.regular,
     fontSize: 13,
-    color: colors.mid,
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   retryBtn: {

@@ -1,12 +1,16 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node"
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 60,
+      "includeFiles": "src/**/*"
     }
-  ],
+  },
   "routes": [
+    {
+      "src": "/public/(.*)",
+      "dest": "/public/$1"
+    },
     {
       "src": "/(.*)",
       "dest": "api/index.js"

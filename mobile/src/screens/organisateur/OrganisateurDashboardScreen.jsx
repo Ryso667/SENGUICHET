@@ -1,29 +1,35 @@
 // Tableau de bord organisateur (calqué sur l'app web)
 // Design glass (Apple Invites) — fond dégradé, conteneurs verre dépoli
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native'
-import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, spacing, fonts, textShadow, categoryGradients } from '../../constants/theme'
+import { fonts, categoryGradients, spacing } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
+import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import { LinearGradient } from 'expo-linear-gradient'
 import { getCategoryImageUrl } from '../../config/images'
-import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
+import { hexToRgba } from '../../utils/colors'
 
-const STATUT_CONFIG = {
-  actif: { label: 'Actif', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
-  en_attente: { label: 'En attente', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
-  refuse: { label: 'Refusé', color: '#FF4D6D', bg: 'rgba(255,77,109,0.2)' },
-  termine: { label: 'Terminé', color: '#A0B4C8', bg: 'rgba(160,180,200,0.2)' },
-  annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
-}
+const getStatutConfig = (colors) => ({
+  actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
+  en_attente: { label: 'En attente', color: colors.orange, bg: hexToRgba(colors.orange, 0.15) },
+  refuse: { label: 'Refusé', color: colors.danger, bg: hexToRgba(colors.danger, 0.15) },
+  termine: { label: 'Terminé', color: colors.textTertiary, bg: hexToRgba(colors.textTertiary, 0.15) },
+  annule: { label: 'Annulé', color: colors.textSecondary, bg: hexToRgba(colors.textSecondary, 0.15) },
+})
 
 export default function OrganisateurDashboardScreen({ navigation }) {
+  const { colors } = useTheme()
+  const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
+  const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
+  const { scrollY: tabScrollY } = useTabBarScroll()
   const { user } = useAuth()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -78,29 +84,30 @@ export default function OrganisateurDashboardScreen({ navigation }) {
 
   const stats = [
     { icon: 'ticket-outline', label: 'Total billets vendus', value: String(totalVendus) },
-    { icon: 'flower', label: 'Revenus générés', value: `${fmt(totalRevenus)} FCFA` },
+    { icon: 'cash', label: 'Revenus générés', value: `${fmt(totalRevenus)} FCFA` },
     { icon: 'calendar-check', label: 'Événements actifs', value: String(activeCount) },
     { icon: 'calendar-star', label: 'Prochain événement', value: prochainEvent?.nom || '—' },
   ]
 
   const statColors = [
-    ['rgba(0,200,255,0.25)', 'rgba(0,119,255,0.1)'],
-    ['rgba(0,229,160,0.25)', 'rgba(0,200,255,0.1)'],
-    ['rgba(99,102,241,0.25)', 'rgba(236,72,153,0.1)'],
-    ['rgba(249,115,22,0.25)', 'rgba(245,158,11,0.1)'],
+    { color: colors.cyan,   icon: 'ticket-outline' },
+    { color: colors.green,  icon: 'cash' },
+    { color: colors.violet, icon: 'calendar-check' },
+    { color: colors.orange, icon: 'calendar-star' },
   ]
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <OrganisateurLayout />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00C8FF', '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
+        onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
+        scrollEventThrottle={16}
       >
         {/* Greeting — calqué sur le web : "Bonjour, {nom}" + date */}
-        <GlassContainer blurType="light" style={s.greeting}>
+        <GlassContainer style={s.greeting}>
           <View style={s.headerRow}>
-            <MaterialCommunityIcons name="view-grid-outline" size={22} color="#fff" />
+            <Text style={s.emoji}>👋</Text>
             <Text style={s.bonjour}>Bonjour, {user?.nom || 'Organisateur'}</Text>
           </View>
           <Text style={s.dateText}>{today}</Text>
@@ -116,30 +123,55 @@ export default function OrganisateurDashboardScreen({ navigation }) {
           </View>
         ) : (
           <>
-            {/* Stats cards — une carte par ligne (évite débordement des chiffres) */}
+            {/* Stats cards — une carte par ligne avec bordure colorée gauche */}
             <View style={s.statsColumn}>
               {stats.map((st, i) => (
                 <Animated.View key={st.label} style={{ opacity: fadeAnims[i], transform: [{ translateY: slideAnims[i] }] }}>
-                  <GlassContainer blurType="light" style={[s.statCard, { borderLeftWidth: 3, borderLeftColor: statColors[i][0].replace('0.25', '1') }]} intensity={40}>
-                    <LinearGradient colors={[statColors[i][0], statColors[i][1]]} style={s.statGradient}>
-                      <View style={s.statTop}>
-                        <MaterialCommunityIcons name={st.icon} size={20} color="#fff" />
-                        <Text style={s.statValue}>{st.value}</Text>
-                      </View>
-                      <Text style={s.statLabel}>{st.label}</Text>
-                    </LinearGradient>
+                  <GlassContainer style={s.statCard} borderLeftColor={statColors[i].color}>
+                    <View style={s.statTop}>
+                      <MaterialCommunityIcons name={st.icon} size={20} color={statColors[i].color} />
+                      <Text style={s.statValue}>{st.value}</Text>
+                    </View>
+                    <Text style={s.statLabel}>{st.label}</Text>
                   </GlassContainer>
                 </Animated.View>
               ))}
             </View>
 
+            {/* Navigation rapide — remplace l'ancien drawer */}
+            <GlassContainer style={s.navSection}>
+              <Text style={s.navTitle}>Navigation rapide</Text>
+              <View style={s.navGrid}>
+                {[
+                  { icon: 'calendar-month', label: 'Événements', route: 'Evenements', color: colors.primary },
+                  { icon: 'chart-bar', label: 'Statistiques', route: 'Statistiques', color: colors.cyan },
+                  { icon: 'file-document-outline', label: 'Demandes', route: 'Demandes', color: colors.orange },
+                  { icon: 'bell-outline', label: 'Notifications', route: 'Notifications', color: colors.red },
+                  { icon: 'headphones', label: 'Support', route: 'Support', color: colors.green },
+                  { icon: 'cog-outline', label: 'Paramètres', route: 'Parametres', color: colors.violet },
+                ].map((item) => (
+                  <TouchableOpacity
+                    key={item.route}
+                    style={s.navItem}
+                    onPress={() => navigation.navigate(item.route)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[s.navIcon, { backgroundColor: hexToRgba(item.color, 0.15) }]}>
+                      <MaterialCommunityIcons name={item.icon} size={22} color={item.color} />
+                    </View>
+                    <Text style={s.navLabel}>{item.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </GlassContainer>
+
             {/* Section événements récents — calquée sur le web */}
             <Animated.View style={{ opacity: fadeAnims[4], transform: [{ translateY: slideAnims[4] }] }}>
-            <GlassContainer blurType="light" style={s.recentSection}>
+            <GlassContainer style={s.recentSection}>
               <View style={s.recentHeader}>
                 <Text style={s.recentTitle}>Mes événements récents</Text>
                 {events.length > 3 && (
-                  <TouchableOpacity onPress={() => navigation.navigate('MesEvenementsTab')}>
+                  <TouchableOpacity onPress={() => navigation.navigate('Evenements')}>
                     <Text style={s.voirTout}>Voir tout</Text>
                   </TouchableOpacity>
                 )}
@@ -153,7 +185,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
                     const cfg = STATUT_CONFIG[ev.statut] || STATUT_CONFIG.en_attente
                     const pct = Math.min(100, Math.round(((ev.remplis || 0) / (ev.capacite || 1)) * 100))
                     return (
-                      <GlassContainer blurType="light" key={ev.id} style={s.eventCard}>
+                      <GlassContainer key={ev.id} style={s.eventCard}>
                         {/* Hero image avec dégradé de catégorie + overlay */}
                         <View style={s.eventHero}>
                           {ev.affiche_url || ev.categorie ? (
@@ -202,39 +234,42 @@ export default function OrganisateurDashboardScreen({ navigation }) {
               )}
             </GlassContainer>
             </Animated.View>
+
+
           </>
         )}
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   )
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1 },
+const absoluteFill = StyleSheet.absoluteFill
+
+const makeStyles = (colors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
   // Greeting
   greeting: { marginHorizontal: spacing.lg, marginTop: spacing.sm, padding: spacing.lg },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  bonjour: { fontSize: 20, fontFamily: fonts.outfit.bold, color: '#fff', flex: 1, ...textShadow },
+  bonjour: { fontSize: 20, fontFamily: fonts.outfit.bold, color: colors.text, flex: 1 },
   dateText: {
-    fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)',
+    fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary,
     marginTop: spacing.xs, textTransform: 'capitalize',
   },
-  refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginTop: spacing.sm, marginBottom: 0 },
+  refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginTop: spacing.sm, marginBottom: 0 },
   // Stats
-  statGradient: { padding: spacing.md, borderRadius: 16, minHeight: 80, justifyContent: 'space-between' },
   statsColumn: { paddingHorizontal: spacing.lg, gap: spacing.sm, marginTop: spacing.lg },
-  statCard: { padding: 0, overflow: 'hidden' },
+  statCard: { padding: spacing.md, minHeight: 80, justifyContent: 'space-between', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6 },
   statTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  statValue: { fontSize: 20, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow, maxWidth: '70%', textAlign: 'right' },
-  statLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
+  statValue: { fontSize: 20, fontFamily: fonts.outfit.bold, color: colors.text, maxWidth: '70%', textAlign: 'right' },
+  statLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
   // Section événements récents
   recentSection: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
   recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  recentTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
-  voirTout: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
-  empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textAlign: 'center', paddingVertical: 30 },
+  recentTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
+  voirTout: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text },
+  empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', paddingVertical: 30 },
   eventsGrid: { gap: spacing.md },
   // Carte événement
   eventCard: { overflow: 'hidden', borderRadius: 16 },
@@ -256,17 +291,25 @@ const s = StyleSheet.create({
   eventMeta: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
   eventBody: { padding: spacing.md },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
-  barBg: { flex: 1, height: 8, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 4, overflow: 'hidden' },
-  barFill: { height: 8, borderRadius: 4, backgroundColor: '#00C8FF' },
-  barCount: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.7)' },
+  barBg: { flex: 1, height: 8, backgroundColor: 'rgba(0,0,0,0.06)', borderRadius: 4, overflow: 'hidden' },
+  barFill: { height: 8, borderRadius: 4, backgroundColor: colors.accent },
+  barCount: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary },
   eventFooter: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.15)', paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(0,0,0,0.06)', paddingTop: spacing.sm,
   },
-  revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  revenu: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.green },
   detailsBtn: {
-    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 8,
+    backgroundColor: colors.accent + '26', borderRadius: 8,
     paddingHorizontal: 14, paddingVertical: 6,
   },
-  detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.green },
+  // Navigation rapide
+  navSection: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
+  navTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.md },
+  navGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  navItem: { width: '30%', alignItems: 'center', gap: 6, paddingVertical: spacing.sm },
+  navIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  navLabel: { fontSize: 11, fontFamily: fonts.jakarta.semiBold, color: colors.text, textAlign: 'center' },
+
 })

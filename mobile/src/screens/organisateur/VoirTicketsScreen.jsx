@@ -1,21 +1,26 @@
 // Consultation des tickets d'un événement (lecture seule)
 // Design glass (Apple Invites)
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, spacing, borderRadius, fonts, textShadow } from '../../constants/theme'
-import { fetchEvenementDetailAPI } from '../../services/eventService'
+import { spacing, borderRadius, fonts } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
+import { fetchEvenementDetailAPI, fetchEvenementBilletsAPI } from '../../services/eventService'
 import Skeleton from '../../components/Skeleton'
-import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 
-const STATUS_BADGE = {
-  valide: { label: 'Valide', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
-  utilise: { label: 'Utilisé', color: '#94a3b8', bg: 'rgba(148,163,184,0.2)' },
-  expire: { label: 'Expiré', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
-}
+import { hexToRgba } from '../../utils/colors'
+
+const getStatusBadge = (colors) => ({
+  valide: { label: 'Valide', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
+  utilise: { label: 'Utilisé', color: colors.textTertiary, bg: hexToRgba(colors.textTertiary, 0.15) },
+  expire: { label: 'Expiré', color: colors.danger, bg: hexToRgba(colors.danger, 0.15) },
+})
 
 export default function VoirTicketsScreen({ route }) {
+  const { colors } = useTheme()
+  const STATUS_BADGE = useMemo(() => getStatusBadge(colors), [colors])
+  const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { eventId } = route.params || {}
   const [evenement, setEvenement] = useState(null)
@@ -29,9 +34,12 @@ export default function VoirTicketsScreen({ route }) {
   async function charger() {
     setLoading(true)
     try {
-      const data = await fetchEvenementDetailAPI(eventId)
-      setEvenement(data.evenement || data)
-      setTickets(data.tickets || [])
+      const [eventData, ticketsData] = await Promise.all([
+        fetchEvenementDetailAPI(eventId),
+        fetchEvenementBilletsAPI(eventId),
+      ])
+      setEvenement(eventData.evenement || eventData)
+      setTickets(ticketsData)
     } catch {}
     setLoading(false)
   }
@@ -39,7 +47,6 @@ export default function VoirTicketsScreen({ route }) {
   if (loading) {
     return (
       <View style={s.container}>
-        <OrganisateurLayout />
         <View style={{ padding: spacing.lg, paddingTop: insets.top }}>
           <Skeleton type="card" count={5} />
         </View>
@@ -49,7 +56,6 @@ export default function VoirTicketsScreen({ route }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <OrganisateurLayout />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={s.content}>
           {evenement && (
@@ -68,8 +74,8 @@ export default function VoirTicketsScreen({ route }) {
                 <GlassContainer blurType="light" key={t.id} style={s.ticketRow} intensity={40}>
                   <View style={{ flex: 1 }}>
                     <Text style={s.ticketNumero}>{t.numero || t.id?.toString()?.slice(0, 8) || '-'}</Text>
-                    <Text style={s.ticketCategorie}>{t.categorie || 'Standard'}</Text>
-                    <Text style={s.ticketTel}>{t.telephone || t.telephoneAcheteur || '-'}</Text>
+                    <Text style={s.ticketCategorie}>{t.categorie}</Text>
+                    <Text style={s.ticketTel}>{t.telephone || '-'}</Text>
                   </View>
                   <Text style={s.ticketPrix}>{t.prix || 0} FCFA</Text>
                   <View style={[s.badge, { backgroundColor: badge.bg }]}>
@@ -79,28 +85,28 @@ export default function VoirTicketsScreen({ route }) {
               )
             })
           )}
-          <View style={{ height: 40 }} />
+          <View style={{ height: 100 }} />
         </View>
       </ScrollView>
     </View>
   )
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1 },
+const makeStyles = (colors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
   content: { paddingHorizontal: spacing.lg },
   eventInfo: { marginBottom: spacing.lg, padding: spacing.md },
-  eventName: { fontSize: 22, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
-  ticketCount: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#00C8FF', marginTop: 4 },
-  empty: { textAlign: 'center', fontSize: 16, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 60 },
+  eventName: { fontSize: 22, fontFamily: fonts.outfit.bold, color: colors.text },
+  ticketCount: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, marginTop: 4 },
+  empty: { textAlign: 'center', fontSize: 16, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 60 },
   ticketRow: {
     flexDirection: 'row', alignItems: 'center',
     padding: spacing.md, marginBottom: spacing.sm,
   },
-  ticketNumero: { fontSize: 12, fontFamily: fonts.outfit.bold, color: '#00C8FF' },
-  ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#fff', marginTop: 2 },
-  ticketTel: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
-  ticketPrix: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff', marginRight: spacing.sm },
+  ticketNumero: { fontSize: 12, fontFamily: fonts.outfit.bold, color: colors.text },
+  ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, marginTop: 2 },
+  ticketTel: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 2 },
+  ticketPrix: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.text, marginRight: spacing.sm },
   badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
   badgeText: { fontSize: 11, fontFamily: fonts.outfit.semiBold },
 })

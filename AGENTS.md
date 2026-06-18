@@ -70,6 +70,7 @@ expo-camera, expo-sqlite, expo-crypto, @vercel/node, nodemailer
 
 ## Contexte mémorisé (Juin 2026)
 - **Branche de travail** : `feature/Sory`
+- **Dark mode (mobile/)** : Thème clair/sombre/auto via ThemeContext, persisté dans AsyncStorage. 10 écrans organisateur + 3 navigation + 3 contrôleur + 15 composants + 9 écrans acheteur migrés. Toggle dans ProfilScreen (cycle system→dark→light). Pattern: `useTheme()` + `makeStyles(colors)`.
 - **bcrypt pour organisateur** : backend hash avec bcrypt work factor 10
 - **Authentification** : 3 rôles (Acheteur OTP email, Contrôleur code 4 chiffres, Organisateur email+bcrypt)
 - **API déployée** sur Vercel avec base TiDB — ne pas écraser les infos de connexion

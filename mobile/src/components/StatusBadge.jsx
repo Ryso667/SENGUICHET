@@ -1,20 +1,24 @@
 // Badge de statut réutilisable pour événements et demandes
-// Props : status (ACTIF/EN_ATTENTE/TERMINE/ANNULE/EN_COURS/ACCEPTEE/REJETEE)
-import React from 'react'
+// Props : status (ACTIF/EN_ATTENTE/VALIDE/TERMINE/ANNULE/EN_COURS/ACCEPTEE/REJETEE)
 import { View, Text, StyleSheet } from 'react-native'
-
-const CONFIG = {
-  ACTIF: { label: 'ACTIF', color: '#00E5A0', bg: 'rgba(0,229,160,0.15)' },
-  EN_ATTENTE: { label: 'EN ATTENTE', color: '#FFB347', bg: 'rgba(255,179,71,0.15)' },
-  TERMINE: { label: 'TERMINÉ', color: '#6B7280', bg: 'rgba(107,114,128,0.15)' },
-  ANNULE: { label: 'ANNULÉ', color: '#FF4D6D', bg: 'rgba(255,77,109,0.15)' },
-  EN_COURS: { label: 'EN COURS', color: '#00C8FF', bg: 'rgba(0,200,255,0.15)' },
-  ACCEPTEE: { label: 'ACCEPTÉE', color: '#00E5A0', bg: 'rgba(0,229,160,0.15)' },
-  REJETEE: { label: 'REJETÉE', color: '#FF4D6D', bg: 'rgba(255,77,109,0.15)' },
-}
+import { hexToRgba } from '../utils/colors'
+import { useTheme } from '../context/ThemeContext'
 
 export default function StatusBadge({ status }) {
-  const cfg = CONFIG[status] || { label: status || 'INCONNU', color: '#A0B4C8', bg: 'rgba(160,180,200,0.15)' }
+  const { colors } = useTheme()
+
+  const CONFIG = {
+    ACTIF: { label: 'ACTIF', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
+    EN_ATTENTE: { label: 'EN ATTENTE', color: colors.warning, bg: hexToRgba(colors.warning, 0.15) },
+    VALIDE: { label: 'VALIDE', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
+    TERMINE: { label: 'TERMINÉ', color: colors.mid, bg: hexToRgba(colors.mid, 0.15) },
+    ANNULE: { label: 'ANNULÉ', color: colors.danger, bg: hexToRgba(colors.danger, 0.15) },
+    EN_COURS: { label: 'EN COURS', color: colors.slate, bg: hexToRgba(colors.slate, 0.15) },
+    ACCEPTEE: { label: 'ACCEPTÉE', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
+    REJETEE: { label: 'REJETÉE', color: colors.danger, bg: hexToRgba(colors.danger, 0.15) },
+  }
+
+  const cfg = CONFIG[status] || { label: status || 'INCONNU', color: colors.textTertiary, bg: hexToRgba(colors.textTertiary, 0.15) }
   return (
     <View style={[styles.badge, { backgroundColor: cfg.bg }]}>
       <Text style={[styles.text, { color: cfg.color }]}>{cfg.label}</Text>

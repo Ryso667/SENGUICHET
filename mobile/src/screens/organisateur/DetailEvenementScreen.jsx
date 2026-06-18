@@ -1,30 +1,40 @@
 // Détail d'un événement (lecture seule)
 // Design glass (Apple Invites)
-import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert, ActivityIndicator } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { spacing, fonts, textShadow, borderRadius } from '../../constants/theme'
+import { Feather } from '@expo/vector-icons'
+import * as FileSystem from 'expo-file-system'
+import * as Sharing from 'expo-sharing'
+import { spacing, fonts, borderRadius } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import { fetchEvenementDetailAPI } from '../../services/eventService'
+import { fetchBilletsEvenementAPI } from '../../services/billetService'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import Skeleton from '../../components/Skeleton'
-import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import GlassButton from '../../components/GlassButton'
+import { hexToRgba } from '../../utils/colors'
 
-const STATUT_CONFIG = {
-  actif: { label: 'Actif', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
-  en_attente: { label: 'En attente', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
-  refuse: { label: 'Refusé', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
-  suspendu: { label: 'Suspendu', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
-  annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
-}
+const getStatutConfig = (colors) => ({
+  actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
+  en_attente: { label: 'En attente', color: colors.orange, bg: hexToRgba(colors.orange, 0.15) },
+  refuse: { label: 'Refusé', color: colors.danger, bg: hexToRgba(colors.danger, 0.15) },
+  suspendu: { label: 'Suspendu', color: colors.warning, bg: hexToRgba(colors.warning, 0.15) },
+  annule: { label: 'Annulé', color: colors.textSecondary, bg: hexToRgba(colors.textSecondary, 0.15) },
+})
 
 export default function DetailEvenementScreen({ route }) {
+  const { colors } = useTheme()
+  const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
+  const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { eventId } = route.params || {}
   const [evenement, setEvenement] = useState(null)
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     if (eventId) charger()
@@ -40,10 +50,47 @@ export default function DetailEvenementScreen({ route }) {
     setLoading(false)
   }
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      const data = await fetchEvenementDetailAPI(eventId)
+      setEvenement(data.evenement || data)
+      setTickets(data.tickets || [])
+    } catch {}
+    setRefreshing(false)
+  }, [eventId])
+
+  const exporterCSV = async () => {
+    setExporting(true)
+    try {
+      const billets = await fetchBilletsEvenementAPI(eventId)
+      if (billets.length === 0) {
+        Alert.alert('Aucun billet', 'Aucun billet à exporter pour cet événement')
+        return
+      }
+      const echapper = v => `"${(v || '').toString().replace(/"/g, '""')}"`
+      const lignes = [
+        ['Nom', 'Email', 'Téléphone', 'Catégorie', 'Prix (FCFA)', "Date d'achat", 'Statut'].join(','),
+        ...billets.map(b => [
+          echapper(b.nom), echapper(b.email), echapper(b.telephone),
+          echapper(b.categorie), b.prix,
+          echapper(formaterDateLisible(b.dateAchat)),
+          echapper(b.statut === 'actif' ? 'Payé' : b.statut === 'utilise' ? 'Utilisé' : b.statut),
+        ].join(',')),
+      ].join('\n')
+      const uri = FileSystem.cacheDirectory + `billets-${eventId}.csv`
+      await FileSystem.writeAsStringAsync(uri, lignes, { encoding: FileSystem.EncodingType.UTF8 })
+      await Sharing.shareAsync(uri, { mimeType: 'text/csv', dialogTitle: 'Exporter les billets' })
+    } catch (e) {
+      Alert.alert('Erreur', "Impossible d'exporter les billets")
+    } finally {
+      setExporting(false)
+    }
+  }
+
   if (loading) {
     return (
       <View style={s.container}>
-        <OrganisateurLayout />
         <View style={{ padding: spacing.lg, paddingTop: insets.top }}>
           <Skeleton type="card" count={4} />
         </View>
@@ -54,7 +101,6 @@ export default function DetailEvenementScreen({ route }) {
   if (!evenement) {
     return (
       <View style={s.center}>
-        <OrganisateurLayout />
         <Text style={s.errorText}>Événement introuvable</Text>
       </View>
     )
@@ -65,8 +111,8 @@ export default function DetailEvenementScreen({ route }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <OrganisateurLayout />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         <GlassContainer blurType="light" style={s.header} intensity={35}>
           <Text style={s.title}>{evenement.nom}</Text>
           <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
@@ -88,8 +134,8 @@ export default function DetailEvenementScreen({ route }) {
             <Text style={s.infoValue}>{evenement.capacite || 0} places</Text>
           </GlassContainer>
           <GlassContainer blurType="light" style={s.infoCard} intensity={30}>
-            <Text style={s.infoLabel}>Code</Text>
-            <Text style={s.infoValue}>{evenement.code || '-'}</Text>
+            <Text style={s.infoLabel}>Code contrôleur</Text>
+            <Text style={[s.infoValue, { fontFamily: 'monospace', letterSpacing: 4, color: colors.text }]}>{evenement.code || '-'}</Text>
           </GlassContainer>
         </View>
 
@@ -113,13 +159,28 @@ export default function DetailEvenementScreen({ route }) {
 
 
         <GlassContainer blurType="light" style={s.section} intensity={30}>
-          <Text style={s.sectionTitle}>Billets ({tickets.length})</Text>
+          <View style={s.sectionHeader}>
+            <Text style={s.sectionTitle}>Billets ({tickets.length})</Text>
+            <TouchableOpacity
+              style={s.exportBtn}
+              onPress={exporterCSV}
+              disabled={exporting}
+              activeOpacity={0.7}
+            >
+              {exporting ? (
+                <ActivityIndicator size="small" color={colors.accent} />
+              ) : (
+                <Feather name="download" size={16} color={colors.accent} />
+              )}
+              <Text style={s.exportText}>{exporting ? 'Export...' : 'CSV'}</Text>
+            </TouchableOpacity>
+          </View>
           {tickets.length === 0 ? (
             <Text style={s.empty}>Aucun billet vendu</Text>
           ) : (
             tickets.map(t => (
               <View key={t.id} style={s.ticketRow}>
-                <Text style={s.ticketCategorie}>{t.categorie || t.nom}</Text>
+                <Text style={s.ticketCategorie}>{t.nom}</Text>
                 <Text style={s.ticketPrix}>{t.prix || 0} FCFA</Text>
                 <Text style={s.ticketStatut}>{t.statut || 'valide'}</Text>
               </View>
@@ -127,45 +188,55 @@ export default function DetailEvenementScreen({ route }) {
           )}
         </GlassContainer>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   )
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1 },
+const makeStyles = (colors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  errorText: { fontSize: 16, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
+  errorText: { fontSize: 16, fontFamily: fonts.jakarta.regular, color: colors.textSecondary },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     margin: spacing.lg, padding: spacing.md,
   },
-  title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', flex: 1, marginRight: spacing.sm, ...textShadow },
+  title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text, flex: 1, marginRight: spacing.sm },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 },
   statusText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.3 },
   infoGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.lg, gap: spacing.sm },
   infoCard: {
     width: '47%', padding: spacing.md,
   },
-  infoLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 0.5 },
-  infoValue: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#fff', marginTop: 4 },
+  infoLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  infoValue: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.text, marginTop: 4 },
   fillSection: { margin: spacing.lg, padding: spacing.md },
-  fillTitle: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)', marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
+  fillTitle: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  barBg: { flex: 1, height: 10, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 5, overflow: 'hidden' },
-  barFill: { height: 10, borderRadius: 5, backgroundColor: '#00C8FF' },
-  barCount: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.8)' },
-  fillPct: { fontSize: 28, fontFamily: fonts.outfit.bold, color: '#fff', marginTop: spacing.sm, ...textShadow },
+  barBg: { flex: 1, height: 10, backgroundColor: 'rgba(0,0,0,0.06)', borderRadius: 5, overflow: 'hidden' },
+  barFill: { height: 10, borderRadius: 5, backgroundColor: colors.accent },
+  barCount: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary },
+  fillPct: { fontSize: 28, fontFamily: fonts.outfit.bold, color: colors.text, marginTop: spacing.sm },
   section: { marginHorizontal: spacing.lg, marginBottom: spacing.lg, padding: spacing.md },
-  sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: '#fff', marginBottom: spacing.sm },
-  description: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)', lineHeight: 22 },
-  empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', textAlign: 'center', paddingVertical: spacing.lg },
+  sectionHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  sectionTitle: { fontSize: 16, fontFamily: fonts.outfit.semiBold, color: colors.text },
+  exportBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 8, backgroundColor: 'rgba(16,185,129,0.1)',
+  },
+  exportText: { fontSize: 12, fontFamily: fonts.jakarta.semiBold, color: colors.accent },
+  description: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, lineHeight: 22 },
+  empty: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.lg },
   ticketRow: {
     flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.15)',
+    borderBottomWidth: StyleSheet.hairlineWidth,     borderBottomColor: colors.border,
   },
-  ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#fff', flex: 1 },
-  ticketPrix: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
-  ticketStatut: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.6)', marginLeft: spacing.sm, textTransform: 'capitalize' },
+  ticketCategorie: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.text, flex: 1 },
+  ticketPrix: { fontSize: 14, fontFamily: fonts.outfit.semiBold, color: colors.green },
+  ticketStatut: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: 'rgba(0,0,0,0.35)', marginLeft: spacing.sm, textTransform: 'capitalize' },
 })

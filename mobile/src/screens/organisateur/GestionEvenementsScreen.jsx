@@ -1,31 +1,37 @@
 // Gestion des événements : liste complète calquée sur l'app web
 // Design glass (Apple Invites) — cartes avec hero image, overlay, stats
-import React, { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors, spacing, borderRadius, fonts, textShadow, categoryGradients } from '../../constants/theme'
+import { fonts, categoryGradients, gradients, spacing } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 import { LinearGradient } from 'expo-linear-gradient'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import { getCategoryImageUrl } from '../../config/images'
 import { formaterDateLisible } from '../../utils/dateUtils'
-import OrganisateurLayout from '../../components/OrganisateurLayout'
 import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
+import { useTabBarScroll } from '../../context/TabBarScrollContext'
+import { hexToRgba } from '../../utils/colors'
 
-const STATUT_CONFIG = {
-  actif: { label: 'Actif', color: '#00E5A0', bg: 'rgba(0,229,160,0.2)' },
-  en_attente: { label: 'En attente', color: '#F97316', bg: 'rgba(249,115,22,0.2)' },
-  refuse: { label: 'Refusé', color: '#EF4444', bg: 'rgba(239,68,68,0.2)' },
-  suspendu: { label: 'Suspendu', color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
-  annule: { label: 'Annulé', color: '#6B7280', bg: 'rgba(107,114,128,0.2)' },
-}
+const getStatutConfig = (colors) => ({
+  actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
+  en_attente: { label: 'En attente', color: colors.orange, bg: hexToRgba(colors.orange, 0.15) },
+  refuse: { label: 'Refusé', color: colors.danger, bg: hexToRgba(colors.danger, 0.15) },
+  suspendu: { label: 'Suspendu', color: colors.warning, bg: hexToRgba(colors.warning, 0.15) },
+  annule: { label: 'Annulé', color: colors.textSecondary, bg: hexToRgba(colors.textSecondary, 0.15) },
+})
 
 const TABS = ['Tous', 'Actifs', 'En attente', 'Terminés', 'Annulés']
 
 export default function GestionEvenementsScreen({ navigation }) {
+  const { colors } = useTheme()
+  const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
+  const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
+  const { scrollY: tabScrollY } = useTabBarScroll()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('Tous')
@@ -64,20 +70,23 @@ export default function GestionEvenementsScreen({ navigation }) {
 
   return (
     <View style={s.container}>
-      <OrganisateurLayout />
       <View style={{ paddingTop: insets.top, flex: 1 }}>
-        <ScrollView
+          <ScrollView
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00C8FF', '#fff']} tintColor="#fff" progressBackgroundColor="rgba(255,255,255,0.15)" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
+          onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
+          scrollEventThrottle={16}
         >
           {/* Header : titre + bouton demander — calqué sur le web */}
           <View style={s.header}>
             <Text style={s.headerTitle}>Mes événements</Text>
-            <TouchableOpacity style={s.demanderBtn} onPress={() => navigation.navigate('MesDemandesTab')}>
-              <MaterialCommunityIcons name="clipboard-text-outline" size={16} color="#fff" />
-              <Text style={s.demanderBtnText}>Demander</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Demandes')} activeOpacity={0.8}>
+              <LinearGradient colors={gradients.primary} style={s.demanderBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                <MaterialCommunityIcons name="clipboard-text-outline" size={16} color="#fff" />
+                <Text style={s.demanderBtnText}>Demander</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
 
@@ -92,7 +101,7 @@ export default function GestionEvenementsScreen({ navigation }) {
               return (
                 <TouchableOpacity key={tab} style={[s.tab, isActive && s.tabActive]} onPress={() => setActiveTab(tab)} activeOpacity={0.7}>
                   {isActive ? (
-                    <LinearGradient colors={['#00C8FF', '#0077FF']} style={s.tabGradient}>
+                    <LinearGradient colors={gradients.primary} style={s.tabGradient}>
                       <Text style={s.tabTextActive}>{tab}</Text>
                     </LinearGradient>
                   ) : (
@@ -105,11 +114,11 @@ export default function GestionEvenementsScreen({ navigation }) {
 
           {/* Barre de recherche */}
           <View style={s.searchContainer}>
-            <MaterialCommunityIcons name="magnify" size={18} color="rgba(255,255,255,0.4)" style={{ marginRight: 8 }} />
+            <MaterialCommunityIcons name="magnify" size={18} color={colors.textTertiary} style={{ marginRight: 8 }} />
             <TextInput
               style={s.searchInput}
               placeholder="Rechercher un événement..."
-              placeholderTextColor="rgba(255,255,255,0.4)"
+              placeholderTextColor={colors.textTertiary}
               value={search}
               onChangeText={setSearch}
             />
@@ -123,11 +132,13 @@ export default function GestionEvenementsScreen({ navigation }) {
           ) : filtered.length === 0 ? (
             /* État vide — calqué sur le web */
             <GlassContainer blurType="light" style={s.emptyState}>
-              <MaterialCommunityIcons name="ticket-outline" size={56} color="rgba(255,255,255,0.3)" />
+              <MaterialCommunityIcons name="ticket-outline" size={56} color="rgba(0,0,0,0.12)" />
               <Text style={s.emptyTitle}>Aucun événement trouvé</Text>
               <Text style={s.emptySub}>Vous n'avez pas encore d'événement. Faites une demande à l'équipe SENGUICHET.</Text>
-              <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('MesDemandesTab')}>
-                <Text style={s.emptyBtnText}>Demander un événement</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Demandes')} activeOpacity={0.8}>
+                <LinearGradient colors={gradients.primary} style={s.emptyBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                  <Text style={s.emptyBtnText}>Demander un événement</Text>
+                </LinearGradient>
               </TouchableOpacity>
             </GlassContainer>
           ) : (
@@ -189,59 +200,59 @@ export default function GestionEvenementsScreen({ navigation }) {
             </View>
           )}
 
-          <View style={{ height: 40 }} />
+          <View style={{ height: 100 }} />
         </ScrollView>
       </View>
     </View>
   )
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1 },
-  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 40 },
+const makeStyles = (colors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
+  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },
 
   /* Header */
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: '#fff', ...textShadow },
-  refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginBottom: spacing.sm },
+  headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text },
+  refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginBottom: spacing.sm },
   demanderBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12,
+    borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 8,
   },
-  demanderBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#fff' },
+  demanderBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.white },
 
   /* Tabs */
   tabsBar: {
     flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.md,
     padding: 6, borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: 'rgba(0,0,0,0.02)',
   },
   tab: { flex: 1, borderRadius: 14, overflow: 'hidden' },
   tabActive: {},
   tabGradient: { paddingVertical: 8, alignItems: 'center', borderRadius: 14 },
-  tabText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.5)', textAlign: 'center', paddingVertical: 8 },
-  tabTextActive: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: '#fff', textAlign: 'center' },
+  tabText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.textTertiary, textAlign: 'center', paddingVertical: 8 },
+  tabTextActive: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.white, textAlign: 'center' },
 
   /* Search */
   searchContainer: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14,
+    backgroundColor: colors.inputBg, borderRadius: 14,
     paddingHorizontal: 14, height: 44, marginBottom: spacing.md,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 1, borderColor: colors.border,
   },
-  searchInput: { flex: 1, fontFamily: fonts.outfit.regular, fontSize: 14, color: '#fff' },
+  searchInput: { flex: 1, fontFamily: fonts.outfit.regular, fontSize: 14, color: colors.text },
 
   /* État vide */
   emptyState: { padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
-  emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: '#fff', ...textShadow },
-  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', textAlign: 'center', lineHeight: 20 },
+  emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
+  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
   emptyBtn: {
     marginTop: spacing.sm,
-    backgroundColor: 'rgba(0,200,255,0.15)', borderRadius: 12,
+    borderRadius: 12,
     paddingHorizontal: 20, paddingVertical: 10,
   },
-  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.white },
 
   /* Liste */
   eventsList: { gap: spacing.md },
@@ -261,17 +272,17 @@ const s = StyleSheet.create({
 
   cardBody: { padding: spacing.md },
   cardStats: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
-  cardPlaces: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.7)' },
-  cardRevenu: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  cardPlaces: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary },
+  cardRevenu: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.green },
 
   cardBarRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
-  cardBarBg: { flex: 1, height: 6, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden' },
-  cardBarFill: { height: 6, borderRadius: 3, backgroundColor: '#00C8FF' },
-  cardBarPct: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: 'rgba(255,255,255,0.5)', width: 36, textAlign: 'right' },
+  cardBarBg: { flex: 1, height: 6, backgroundColor: 'rgba(0,0,0,0.04)', borderRadius: 3, overflow: 'hidden' },
+  cardBarFill: { height: 6, borderRadius: 3, backgroundColor: colors.accent },
+  cardBarPct: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.textSecondary, width: 36, textAlign: 'right' },
 
   cardBtn: {
-    backgroundColor: 'rgba(0,200,255,0.12)', borderRadius: 10,
+    backgroundColor: colors.accent + '1F', borderRadius: 10,
     paddingVertical: 10, alignItems: 'center',
   },
-  cardBtnText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: '#00C8FF' },
+  cardBtnText: { fontSize: 12, fontFamily: fonts.outfit.semiBold, color: colors.green },
 })

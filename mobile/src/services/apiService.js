@@ -30,7 +30,9 @@ export async function appelAPI(endpoint, options = {}) {
       signal: controller.signal,
     })
 
-    const data = await res.json()
+    const text = await res.text()
+    let data
+    try { data = JSON.parse(text) } catch { throw new Error(`Réponse invalide du serveur (${res.status})`) }
     if (!res.ok) throw new Error(data.message || `Erreur ${res.status}`)
     return data
   } catch (err) {

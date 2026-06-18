@@ -110,7 +110,7 @@ CREATE TABLE evenement (
   date_fin DATETIME DEFAULT NULL,
   capacite_totale INT NOT NULL DEFAULT 0,
   affiche_url VARCHAR(500) DEFAULT NULL,
-  scan_code VARCHAR(4) NOT NULL,
+  scan_code VARCHAR(4) DEFAULT NULL,
   statut ENUM('en_attente','actif','refuse','suspendu','annule') NOT NULL DEFAULT 'en_attente',
   commentaire_admin TEXT DEFAULT NULL,
   date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -228,7 +228,7 @@ CREATE TABLE transaction (
   frais INT NOT NULL DEFAULT 0,
   devise VARCHAR(10) NOT NULL DEFAULT 'FCFA',
   statut ENUM('PENDING', 'SUCCESS', 'FAILED', 'REFUNDED') NOT NULL DEFAULT 'PENDING',
-  moyen_paiement ENUM('WAVE', 'ORANGE_MONEY', 'FREE_MONEY', 'CARTE', 'AUTRE') NOT NULL DEFAULT 'WAVE',
+  moyen_paiement ENUM('WAVE', 'ORANGE_MONEY', 'FREE_MONEY', 'CARTE', 'AUTRE', 'SIMULATION') NOT NULL DEFAULT 'WAVE',
   reference_operateur VARCHAR(100) DEFAULT NULL,
   telephone_payeur VARCHAR(20) DEFAULT NULL,
   date_transaction DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -343,6 +343,23 @@ CREATE TABLE notification (
   INDEX idx_notification_destinataire (destinataire_type, destinataire_id),
   INDEX idx_notification_lu (est_lu),
   INDEX idx_notification_date (date_creation)
+) ENGINE=InnoDB;
+
+-- 6.3 Journal des envois SMS (pour suivi et réessai)
+CREATE TABLE IF NOT EXISTS sms_log (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  telephone VARCHAR(20) NOT NULL,
+  message TEXT NOT NULL,
+  uuid_billet VARCHAR(36) DEFAULT NULL,
+  statut ENUM('ENVOI_EN_COURS', 'ENVOYE', 'ECHEC') NOT NULL DEFAULT 'ENVOI_EN_COURS',
+  tentative INT NOT NULL DEFAULT 1,
+  reponse_api TEXT DEFAULT NULL,
+  date_envoi DATETIME DEFAULT NULL,
+  date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_sms_telephone (telephone),
+  INDEX idx_sms_billet (uuid_billet),
+  INDEX idx_sms_statut (statut),
+  INDEX idx_sms_date (date_creation)
 ) ENGINE=InnoDB;
 
 -- ============================================================

@@ -110,20 +110,38 @@ async function migrate() {
   }
 
   // Ajout des colonnes categorie et ville à demande_evenement si absentes
+  // NB: TiDB ne supporte pas plusieurs ADD COLUMN dans un seul ALTER TABLE,
+  // donc on exécute deux ALTER séparés
   try {
     const [cols] = await connection.query("SHOW COLUMNS FROM demande_evenement LIKE 'categorie'");
     if (cols.length === 0) {
-      await connection.query(`
-        ALTER TABLE demande_evenement
-        ADD COLUMN categorie VARCHAR(100) DEFAULT NULL AFTER capacite,
-        ADD COLUMN ville VARCHAR(100) DEFAULT NULL AFTER lieu
-      `);
-      console.log("✅ Colonnes categorie/ville ajoutées à demande_evenement");
+      try {
+        await connection.query("ALTER TABLE demande_evenement ADD COLUMN categorie VARCHAR(100) DEFAULT NULL AFTER capacite");
+        console.log("✅ Colonne categorie ajoutée à demande_evenement");
+      } catch (e2) {
+        console.error("⚠️  Impossible d'ajouter categorie:", e2.message);
+      }
     } else {
-      console.log("ℹ️  Colonnes categorie/ville existent déjà");
+      console.log("ℹ️  Colonne categorie existe déjà");
     }
   } catch (e) {
-    console.error("⚠️  Impossible de vérifier/ajouter categorie/ville:", e.message);
+    console.error("⚠️  Impossible de vérifier categorie:", e.message);
+  }
+
+  try {
+    const [cols] = await connection.query("SHOW COLUMNS FROM demande_evenement LIKE 'ville'");
+    if (cols.length === 0) {
+      try {
+        await connection.query("ALTER TABLE demande_evenement ADD COLUMN ville VARCHAR(100) DEFAULT NULL AFTER lieu");
+        console.log("✅ Colonne ville ajoutée à demande_evenement");
+      } catch (e2) {
+        console.error("⚠️  Impossible d'ajouter ville:", e2.message);
+      }
+    } else {
+      console.log("ℹ️  Colonne ville existe déjà");
+    }
+  } catch (e) {
+    console.error("⚠️  Impossible de vérifier ville:", e.message);
   }
 
   // Ajout de la colonne code_acces à controleur si absente
@@ -158,6 +176,66 @@ async function migrate() {
     }
   } catch (e) {
     console.error("⚠️  Impossible de créer le contrôleur par défaut:", e.message);
+  }
+
+  // Table des tokens push pour les notifications
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS push_tokens (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        organisateur_id INT NOT NULL,
+        token VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (organisateur_id) REFERENCES organisateur(id) ON DELETE CASCADE
+      )
+    `)
+    console.log("✅ Table push_tokens créée")
+  } catch (e) {
+    console.log("ℹ️  push_tokens peut-être déjà créée:", e.message)
+  }
+
+  // Table des notifications persistées
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        organisateur_id INT NOT NULL,
+        evenement_id INT,
+        type VARCHAR(50) NOT NULL DEFAULT 'vente',
+        message TEXT NOT NULL,
+        lue BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (organisateur_id) REFERENCES organisateur(id) ON DELETE CASCADE,
+        FOREIGN KEY (evenement_id) REFERENCES evenement(id) ON DELETE SET NULL
+      )
+    `)
+    console.log("✅ Table notifications créée")
+  } catch (e) {
+    console.log("ℹ️  notifications peut-être déjà créée:", e.message)
+  }
+
+  // Table de journalisation des envois SMS
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS sms_log (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        telephone VARCHAR(20) NOT NULL,
+        message TEXT NOT NULL,
+        uuid_billet VARCHAR(36) DEFAULT NULL,
+        statut ENUM('ENVOI_EN_COURS', 'ENVOYE', 'ECHEC') NOT NULL DEFAULT 'ENVOI_EN_COURS',
+        tentative INT NOT NULL DEFAULT 1,
+        reponse_api TEXT DEFAULT NULL,
+        date_envoi DATETIME DEFAULT NULL,
+        date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_sms_telephone (telephone),
+        INDEX idx_sms_billet (uuid_billet),
+        INDEX idx_sms_statut (statut),
+        INDEX idx_sms_date (date_creation)
+      ) ENGINE=InnoDB
+    `);
+    console.log("✅ Table sms_log créée");
+  } catch (e) {
+    console.log("ℹ️ sms_log peut-être déjà créée:", e.message);
   }
 
   console.log("✅ Migration terminée");

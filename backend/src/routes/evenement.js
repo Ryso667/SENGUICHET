@@ -7,16 +7,16 @@ const e = require("../controllers/evenementController");
 router.get('/categories', e.listerCategories);
 router.get('/public', e.listerPublic);
 router.get('/public/:id', e.detailPublic);
+router.get('/public/:id/page', e.pageEvenement);
 
 // Organisateur routes
 router.post("/", authMiddleware(["ORGANISATEUR"]), e.upload.single("affiche"), e.creer);
 router.get("/", authMiddleware(["ORGANISATEUR"]), e.lister);
 router.get("/:id", authMiddleware(["ORGANISATEUR"]), e.detail);
 router.put("/:id", authMiddleware(["ORGANISATEUR"]), e.upload.single("affiche"), e.modifier);
+router.get("/:id/stats", authMiddleware(["ORGANISATEUR"]), e.statsEvenement);
 router.put("/:id/annuler", authMiddleware(["ORGANISATEUR"]), e.annuler);
 router.get("/:id/equipe", authMiddleware(["ORGANISATEUR"]), e.getEquipe);
-router.post("/:id/regenerer-code", authMiddleware(["ORGANISATEUR"]), e.regenererScanCode);
-
 // Admin routes
 router.get("/admin/all", authMiddleware(["ADMIN"]), e.adminLister);
 router.get("/admin/:id", authMiddleware(["ADMIN"]), e.adminDetail);

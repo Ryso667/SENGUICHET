@@ -1,371 +1,172 @@
-// Navigation principale de l'application
-// 3 piles distinctes selon le rôle : acheteur / controleur / organisateur
-// Les écrans non-connectés (auth) sont affichés quand aucun rôle n'est actif
-import React, { useRef, useEffect } from 'react'
-import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Platform } from 'react-native'
-import { Feather } from '@expo/vector-icons'
-import { NavigationContainer, useFocusEffect, createNavigationContainerRef } from '@react-navigation/native'
+// Navigation principale
+// Guest/Acheteur : 4 tabs (Accueil, Explorer, Mes billets, Compte)
+// Organisateur   : Drawer hamburger (Dashboard, Événements, ...)
+// Contrôleur     : Drawer hamburger (Scanner, Historique, ...)
+import { View, ActivityIndicator, StyleSheet } from 'react-native'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '../context/AuthContext'
-import { listerMesDemandes } from '../services/eventService'
+import { fonts } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
+import { TabBarScrollProvider } from '../context/TabBarScrollContext'
 
-// Écrans auth (aucun rôle)
-import AccueilChoixScreen from '../screens/AccueilChoixScreen'
+import HomeScreen from '../screens/HomeScreen'
+import EventSearchScreen from '../screens/EventSearchScreen'
+import MesTicketsScreen from '../screens/MesTicketsScreen'
+import ProfilScreen from '../screens/ProfilScreen'
+
 import SocialAuthScreen from '../screens/auth/SocialAuthScreen'
 import ConnexionControleurScreen from '../screens/auth/ConnexionControleurScreen'
 import ConnexionOrganisateurScreen from '../screens/auth/ConnexionOrganisateurScreen'
 import InscriptionOrganisateurScreen from '../screens/auth/InscriptionOrganisateurScreen'
 import EnAttenteValidationScreen from '../screens/auth/EnAttenteValidationScreen'
-
-// Écrans acheteur
-import HomeScreen from '../screens/HomeScreen'
-import EventSearchScreen from '../screens/EventSearchScreen'
 import EventDetailScreen from '../screens/EventDetailScreen'
 import TicketScreen from '../screens/TicketScreen'
-import MesTicketsScreen from '../screens/MesTicketsScreen'
 import SupportScreen from '../screens/SupportScreen'
 import WebViewWaveScreen from '../screens/WebViewWaveScreen'
+import NotificationsScreen from '../screens/NotificationsScreen'
+import MesFavorisScreen from '../screens/MesFavorisScreen'
+import CalendarScreen from '../screens/CalendarScreen'
 
-// Écrans contrôleur
-import ScannerScreen from '../screens/controleur/ScannerScreen'
-import ScanHistoryScreen from '../screens/controleur/ScanHistoryScreen'
-
-// Écrans organisateur
-import OrganisateurDashboardScreen from '../screens/organisateur/OrganisateurDashboardScreen'
-import GestionEvenementsScreen from '../screens/organisateur/GestionEvenementsScreen'
-import DetailEvenementScreen from '../screens/organisateur/DetailEvenementScreen'
-import StatistiquesScreen from '../screens/organisateur/StatistiquesScreen'
-import MesDemandesScreen from '../screens/organisateur/MesDemandesScreen'
-import ParametresScreen from '../screens/organisateur/ParametresScreen'
-
-// Nouveaux écrans (gap 2, 3, 5)
-import ChangerMotDePasseScreen from '../screens/organisateur/ChangerMotDePasseScreen'
-import ProfilScreen from '../screens/ProfilScreen'
+import OrganizerDrawer from './OrganizerDrawer'
+import ControllerDrawer from './ControllerDrawer'
 
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
 
-// Header réutilisable pour les tabs organisateur
-function OrganisateurHeader({ title, deconnecter, badgeCount }) {
-  const insets = useSafeAreaInsets()
+function MainTabs() {
+  const { colors } = useTheme()
   return (
-    <View style={[headerStyles.container, { paddingTop: insets.top + 8 }]}>
-      <TouchableOpacity onPress={deconnecter} style={headerStyles.left}>
-        <Feather name="log-out" size={20} color="#FF4D6D" />
-      </TouchableOpacity>
-      <Text style={headerStyles.title}>{title}</Text>
-      <View style={headerStyles.right}>
-        <View style={headerStyles.logoPlaceholder}>
-          <Text style={headerStyles.logoText}>S</Text>
-        </View>
-      </View>
-    </View>
-  )
-}
-
-const headerStyles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#1E1B4B',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-  },
-  left: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,77,109,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 17,
-    fontFamily: 'Outfit_700Bold',
-    color: '#FFFFFF',
-  },
-  right: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(0,200,255,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoPlaceholder: {},
-  logoText: {
-    fontSize: 16,
-    fontFamily: 'Outfit_800ExtraBold',
-    color: '#00C8FF',
-  },
-})
-
-// Onglets organisateur : 4 tabs
-function OrganisateurTabs() {
-  const { deconnecter } = useAuth()
-  const [demandesCount, setDemandesCount] = React.useState(0)
-  const badgeRef = React.useRef(false)
-
-  // Au premier montage : badge = nombre de demandes en attente
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const data = await listerMesDemandes()
-        const pending = (data || []).filter(d => d.statut === 'soumis' || d.statut === 'en_analyse').length
-        setDemandesCount(pending)
-      } catch {}
-    })()
-  }, [])
-
-  // Dès qu'on arrive sur l'onglet MesDemandes : badge disparaît
-  useFocusEffect(
-    React.useCallback(() => {
-      setDemandesCount(0)
-    }, [])
-  )
-
-  return (
+    <TabBarScrollProvider>
     <Tab.Navigator
       screenOptions={{
-        header: () => null,
+        headerShown: false,
+        tabBarActiveTintColor: colors.navActive,
+        tabBarInactiveTintColor: colors.navInactive,
         tabBarStyle: {
-          backgroundColor: '#1E1B4B',
+          backgroundColor: colors.surface,
           borderTopWidth: 1,
-          borderTopColor: 'rgba(255,255,255,0.08)',
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 6,
+          borderTopColor: colors.border,
+          paddingBottom: 4,
+          paddingTop: 4,
+          height: 56,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 4,
         },
-        tabBarActiveTintColor: '#00C8FF',
-        tabBarInactiveTintColor: '#A0B4C8',
         tabBarLabelStyle: {
-          fontFamily: 'Outfit_600SemiBold',
-          fontSize: 11,
+          fontSize: 10,
+          fontFamily: fonts.jakarta.semiBold || 'PlusJakartaSans_600SemiBold',
+          marginTop: 0,
         },
       }}
     >
       <Tab.Screen
-        name="DashboardTab"
-        component={OrganisateurDashboardScreen}
+        name="Home"
+        component={HomeScreen}
         options={{
-          tabBarLabel: 'Tableau de bord',
+          tabBarLabel: 'Accueil',
           tabBarIcon: ({ color }) => <Feather name="home" size={20} color={color} />,
         }}
       />
       <Tab.Screen
-        name="MesEvenementsTab"
-        component={GestionEvenementsScreen}
+        name="EventSearch"
+        component={EventSearchScreen}
         options={{
-          tabBarLabel: 'Mes événements',
-          tabBarIcon: ({ color }) => <Feather name="calendar" size={20} color={color} />,
+          tabBarLabel: 'Explorer',
+          tabBarIcon: ({ color }) => <Feather name="search" size={20} color={color} />,
         }}
       />
       <Tab.Screen
-        name="StatistiquesTab"
-        component={StatistiquesScreen}
+        name="MesTickets"
+        component={MesTicketsScreen}
         options={{
-          tabBarLabel: 'Statistiques',
-          tabBarIcon: ({ color }) => <Feather name="bar-chart-2" size={20} color={color} />,
+          tabBarLabel: 'Mes billets',
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="ticket-outline" size={21} color={color} />,
         }}
       />
       <Tab.Screen
-        name="MesDemandesTab"
-        component={MesDemandesScreen}
+        name="Profil"
+        component={ProfilScreen}
         options={{
-          tabBarLabel: 'Mes demandes',
-          tabBarIcon: ({ color }) => (
-            <View style={{ position: 'relative' }}>
-              <Feather name="bell" size={20} color={color} />
-              {demandesCount > 0 && (
-                <View style={{
-                  position: 'absolute',
-                  top: -4,
-                  right: -6,
-                  width: 16,
-                  height: 16,
-                  borderRadius: 8,
-                  backgroundColor: '#FF4D6D',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <Text style={{ color: '#FFFFFF', fontSize: 10, fontFamily: 'Outfit_700Bold' }}>
-                    {demandesCount}
-                  </Text>
-                </View>
-              )}
-            </View>
-          ),
+          tabBarLabel: 'Compte',
+          tabBarIcon: ({ color }) => <Feather name="user" size={20} color={color} />,
         }}
       />
     </Tab.Navigator>
-  )
-}
-
-// Wrapper avec header personnalisé par dessus les tabs
-function OrganisateurLayout() {
-  const { deconnecter } = useAuth()
-  return (
-    <View style={{ flex: 1 }}>
-      <OrganisateurHeader title="SENGUICHET" deconnecter={deconnecter} />
-      <OrganisateurTabs />
-    </View>
-  )
-}
-
-// Onglets du contrôleur : Scanner + Historique
-function ControleurTabs() {
-  const { deconnecter } = useAuth()
-  return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: true,
-        headerStyle: { backgroundColor: '#FFFFFF' },
-        headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#0f172a' },
-        headerRight: () => (
-          <TouchableOpacity onPress={deconnecter} style={{ marginRight: 16 }}>
-            <Text style={{ fontSize: 14, color: '#FF4D6D', fontFamily: 'Outfit_600SemiBold' }}>
-              Quitter
-            </Text>
-          </TouchableOpacity>
-        ),
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#edf0f5',
-          height: 60,
-          paddingBottom: 8,
-        },
-        tabBarActiveTintColor: '#00C8FF',
-        tabBarInactiveTintColor: '#94a3b8',
-        tabBarLabelStyle: {
-          fontFamily: 'Outfit_600SemiBold',
-          fontSize: 12,
-        },
-      }}
-    >
-      <Tab.Screen
-        name="Scanner"
-        component={ScannerScreen}
-        options={{
-          tabBarLabel: 'Scanner',
-          tabBarIcon: ({ color }) => <Feather name="maximize" size={20} color={color} />,
-          title: 'Scanner',
-        }}
-      />
-      <Tab.Screen
-        name="Historique"
-        component={ScanHistoryScreen}
-        options={{
-          tabBarLabel: 'Historique',
-          tabBarIcon: ({ color }) => <Feather name="clock" size={20} color={color} />,
-          title: 'Historique',
-        }}
-      />
-    </Tab.Navigator>
+    </TabBarScrollProvider>
   )
 }
 
 const navigationRef = createNavigationContainerRef()
 
-// Point d'entrée de la navigation
-export default function AppNavigator() {
-  const { role, chargement } = useAuth()
+function GuestNavigator() {
+  const { colors } = useTheme()
+  const headerStyle = {
+    headerShown: true,
+    headerStyle: { backgroundColor: colors.surface },
+    headerTitleStyle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text },
+    headerTintColor: colors.accent,
+    headerBackTitle: 'Retour',
+  }
+  const header = (titre) => ({ ...headerStyle, headerTitle: titre })
+  return (
+    <Stack.Navigator screenOptions={{
+      headerShown: false,
+      gestureEnabled: true,
+      animation: 'slide_from_right',
+      animationDuration: 250,
+    }}>
+      <Stack.Screen name="MainTabs" component={MainTabs} />
+      <Stack.Screen name="SocialAuth" component={SocialAuthScreen} />
+      <Stack.Screen name="ConnexionControleur" component={ConnexionControleurScreen} options={header('Connexion')} />
+      <Stack.Screen name="ConnexionOrganisateur" component={ConnexionOrganisateurScreen} options={header('Connexion')} />
+      <Stack.Screen name="InscriptionOrganisateur" component={InscriptionOrganisateurScreen} options={header('Inscription')} />
+      <Stack.Screen name="EnAttenteValidation" component={EnAttenteValidationScreen} />
+      <Stack.Screen name="EventDetail" component={EventDetailScreen} />
+      <Stack.Screen name="Ticket" component={TicketScreen} />
+      <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Support" component={SupportScreen} options={header('Support')} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} options={header('Notifications')} />
+      <Stack.Screen name="MesFavoris" component={MesFavorisScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Calendar" component={CalendarScreen} options={{ headerShown: false }} />
+    </Stack.Navigator>
+  )
+}
 
-  // Redirige automatiquement vers l'écran principal du rôle connecté
-  useEffect(() => {
-    if (role && navigationRef.current?.isReady()) {
-      const routeName = role === 'acheteur' ? 'Home'
-        : role === 'controleur' ? 'ControleurTabs'
-        : 'OrganisateurTabs'
-      navigationRef.current.reset({ index: 0, routes: [{ name: routeName }] })
-    }
-  }, [role])
+
+export default function AppNavigator() {
+  const { colors } = useTheme()
+  const { role, chargement } = useAuth()
 
   if (chargement) {
     return (
-      <View style={styles.chargement}>
-        <ActivityIndicator size="large" color="#00C8FF" />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg }}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     )
   }
 
+  const headerStyle = {
+    headerShown: true,
+    headerStyle: { backgroundColor: colors.surface },
+    headerTitleStyle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text },
+    headerTintColor: colors.accent,
+    headerBackTitle: 'Retour',
+  }
+  const header = (titre) => ({ ...headerStyle, headerTitle: titre })
+
   return (
     <NavigationContainer ref={navigationRef}>
-      <Stack.Navigator screenOptions={{ headerShown: false, gestureEnabled: true }}>
-
-        {/* Pas de session active → écran d'accueil + formulaires auth */}
-        {!role && (
-          <>
-            <Stack.Screen name="AccueilChoix" component={AccueilChoixScreen} />
-            <Stack.Screen name="SocialAuth" component={SocialAuthScreen} />
-            <Stack.Screen name="ConnexionControleur" component={ConnexionControleurScreen} />
-            <Stack.Screen name="ConnexionOrganisateur" component={ConnexionOrganisateurScreen} />
-            <Stack.Screen name="InscriptionOrganisateur" component={InscriptionOrganisateurScreen} />
-            <Stack.Screen name="EnAttenteValidation" component={EnAttenteValidationScreen} />
-          </>
-        )}
-
-        {/* Acheteur connecté */}
-        {role === 'acheteur' && (
-          <>
-            <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="EventSearch" component={EventSearchScreen} />
-            <Stack.Screen name="EventDetail" component={EventDetailScreen} />
-            <Stack.Screen name="Ticket" component={TicketScreen} />
-            <Stack.Screen name="MesTickets" component={MesTicketsScreen} />
-            <Stack.Screen name="Support" component={SupportScreen} />
-            <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="Profil" component={ProfilScreen}
-              options={{ headerShown: true, headerTitle: 'Profil', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
-            />
-          </>)}
-
-        {/* Contrôleur connecté */}
-        {role === 'controleur' && (
-          <>
-            <Stack.Screen name="ControleurTabs" component={ControleurTabs} />
-            <Stack.Screen name="Profil" component={ProfilScreen}
-              options={{ headerShown: true, headerTitle: 'Profil', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
-            />
-          </>
-        )}
-
-        {/* Organisateur connecté : bottom tabs + stack screens */}
-        {role === 'organisateur' && (
-          <>
-            <Stack.Screen name="OrganisateurTabs" component={OrganisateurLayout} />
-            <Stack.Screen
-              name="DetailEvenement"
-              component={DetailEvenementScreen}
-              options={{ headerShown: true, headerTitle: 'Détail', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
-            />
-            <Stack.Screen
-              name="Parametres"
-              component={ParametresScreen}
-              options={{ headerShown: true, headerTitle: 'Paramètres', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
-            />
-            <Stack.Screen
-              name="ChangerMotDePasse"
-              component={ChangerMotDePasseScreen}
-              options={{ headerShown: true, headerTitle: 'Changer le mot de passe', headerBackTitle: 'Retour', headerStyle: { backgroundColor: '#0D1B2A' }, headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18, color: '#FFFFFF' }, headerTintColor: '#00C8FF' }}
-            />
-          </>
-        )}
-
-      </Stack.Navigator>
+      {(!role || role === 'acheteur') && <GuestNavigator />}
+      {role === 'organisateur' && <OrganizerDrawer />}
+      {role === 'controleur' && <ControllerDrawer />}
     </NavigationContainer>
   )
 }
 
-const styles = StyleSheet.create({
-  chargement: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#0D1B2A',
-  },
-})
+

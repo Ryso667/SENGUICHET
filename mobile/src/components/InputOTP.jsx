@@ -1,12 +1,15 @@
-// Champ de saisie à 6 chiffres individuels avec focus automatique
-// Utile pour les codes de validation (OTP)
-import { useRef, useState } from 'react'
-import { View, TextInput, StyleSheet } from 'react-native'
-// Composant de saisie OTP à chiffres individuels avec auto-focus
+// Champ de saisie à chiffres individuels avec auto-focus
+// Utile pour les codes PIN (contrôleur) et OTP (acheteur)
 // Props : longueur (number, défaut 6), onComplet (callback appelé quand tous les chiffres sont saisis)
+import { useRef, useState, useMemo } from 'react'
+import { View, TextInput, StyleSheet } from 'react-native'
+import { useTheme } from '../context/ThemeContext'
+
 export default function InputOTP({ longueur = 6, onComplet }) {
+  const { colors } = useTheme()
   const [codes, setCodes] = useState(Array(longueur).fill(''))
   const refs = useRef([])
+  const styles = useMemo(() => makeStyles(colors), [colors])
 
   // Gère la saisie d'un chiffre et passe automatiquement au champ suivant
   const handleChangement = (texte, index) => {
@@ -19,6 +22,7 @@ export default function InputOTP({ longueur = 6, onComplet }) {
       refs.current[index + 1]?.focus()
     }
 
+    // Notifie le parent quand tous les chiffres sont saisis
     const saisi = nouveau.join('')
     if (saisi.length === longueur) {
       onComplet?.(saisi)
@@ -43,7 +47,7 @@ export default function InputOTP({ longueur = 6, onComplet }) {
           style={[styles.case, val ? styles.caseRemplie : null]}
           value={val}
           onChangeText={(t) => handleChangement(t, i)}
-          onPress={() => handleTouche(i)}
+          onFocus={() => handleTouche(i)}
           keyboardType="number-pad"
           maxLength={1}
           selectTextOnFocus
@@ -53,7 +57,7 @@ export default function InputOTP({ longueur = 6, onComplet }) {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   conteneur: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -64,15 +68,16 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#edf0f5',
-    backgroundColor: '#FFFFFF',
+    borderColor: colors.border,
+    backgroundColor: colors.inputBg,
     textAlign: 'center',
     fontFamily: 'Outfit_700Bold',
     fontSize: 24,
-    color: '#0f172a',
+    color: colors.text,
   },
   caseRemplie: {
-    borderColor: '#00C8FF',
-    backgroundColor: '#E0F7FF',
+    borderColor: colors.accent,
+    backgroundColor: colors.accent,
+    color: '#fff',
   },
 })

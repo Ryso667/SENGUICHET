@@ -1,17 +1,22 @@
-// Bouton glass large avec animation scale au press
-// Props : title, icon, onPress, style, textStyle
-import { useRef } from 'react'
-import { TouchableOpacity, Text, Animated, StyleSheet } from 'react-native'
+// Bouton avec 3 variantes et animation scale au press
+// Props : title, icon, onPress, style, textStyle, variant ("primary"|"secondary"|"ghost")
+import { useRef, useMemo } from 'react'
+import { TouchableOpacity, Text, Animated, View, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { BlurView } from 'expo-blur'
-import { glass, fonts, borderRadius, spacing, textShadow } from '../constants/theme'
+import { fonts, borderRadius, spacing } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
+import { hapticLight } from '../utils/haptics'
 
-// Bouton glass large avec icône et animation scalePress
-// title : string du texte
-// icon : nom d'icône Feather (optionnel)
-// onPress : fonction callback
-export default function GlassButton({ title, icon, onPress, style, textStyle }) {
+// Retourne les styles selon la variante demandée
+// primary : fond accent solide, texte blanc — action principale
+// secondary : fond bgSecondary, bordure — action secondaire
+// ghost   : transparent, pas de bordure — lien texte
+export default function GlassButton({ title, icon, onPress, style, textStyle, variant = 'secondary' }) {
+  const { colors } = useTheme()
   const scale = useRef(new Animated.Value(1)).current
+
+  // Construit le map des variantes avec les couleurs du thème courant
+  const variantStyles = useMemo(() => makeVariantStyles(colors)[variant] || makeVariantStyles(colors).secondary, [colors, variant])
 
   const handlePressIn = () => {
     Animated.spring(scale, {
@@ -34,19 +39,47 @@ export default function GlassButton({ title, icon, onPress, style, textStyle }) 
   return (
     <Animated.View style={[{ transform: [{ scale }] }, style]}>
       <TouchableOpacity
-        onPress={onPress}
+        onPress={() => { if (onPress) { hapticLight(); onPress() } }}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={0.9}
       >
-        <BlurView tint="light" intensity={50} style={styles.button}>
-          {icon && <Feather name={icon} size={18} color="#fff" style={styles.icon} />}
-          <Text style={[styles.title, textStyle]}>{title}</Text>
-        </BlurView>
+        <View style={[styles.button, variantStyles.button]}>
+          {icon && <Feather name={icon} size={18} color={variantStyles.iconColor} style={styles.icon} />}
+          <Text style={[styles.title, { color: variantStyles.textColor }, textStyle]}>{title}</Text>
+        </View>
       </TouchableOpacity>
     </Animated.View>
   )
 }
+
+const makeVariantStyles = (colors) => ({
+  primary: {
+    button: {
+      backgroundColor: colors.accent,
+      borderWidth: 0,
+    },
+    textColor: '#FFFFFF',
+    iconColor: '#FFFFFF',
+  },
+  secondary: {
+    button: {
+      backgroundColor: colors.bgSecondary,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    textColor: colors.text,
+    iconColor: colors.text,
+  },
+  ghost: {
+    button: {
+      backgroundColor: 'transparent',
+      borderWidth: 0,
+    },
+    textColor: colors.accent,
+    iconColor: colors.accent,
+  },
+})
 
 const styles = StyleSheet.create({
   button: {
@@ -56,9 +89,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: glass.border,
-    backgroundColor: glass.bgLight,
     overflow: 'hidden',
   },
   icon: {
@@ -67,8 +97,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontFamily: fonts.outfit.semiBold,
-    color: '#fff',
     letterSpacing: -0.2,
-    ...textShadow,
   },
 })

@@ -22,7 +22,7 @@ export async function fetchEvenementsAPI() {
       date: e.date_debut || '',
       lieu: e.lieu || '',
       categorie: e.categorie || '',
-      code: e.code || '',
+      code: '',
       statut,
       remplis: e.remplis || 0,
       capacite: e.capacite || 0,
@@ -34,7 +34,7 @@ export async function fetchEvenementsAPI() {
 // Crée un événement via le backend
 // data : { nom, date, dateFin, lieu, ville, heure, categorie, description, categories }
 export async function creerEvenementAPI(data) {
-  const capacite = data.categories.reduce((sum, c) => sum + Number(c.capacite), 0)
+  const capacite = (data.categories || []).reduce((sum, c) => sum + Number(c.capacite), 0)
   const body = {
     titre: data.nom,
     description: data.description || '',
@@ -52,6 +52,7 @@ export async function creerEvenementAPI(data) {
       quantite: Number(c.capacite),
     })),
   }
+  if (data.poster) body.affiche_url = data.poster
   return await appelAPI('/evenements/', { method: 'POST', body })
 }
 
@@ -70,7 +71,7 @@ export async function fetchEvenementDetailAPI(id) {
       lieu: e.lieu || '',
       categorie: e.categorie || '',
       capacite: e.capacite_totale || 0,
-      code: e.scan_code || '',
+      code: e.code_controleur || '',
       statut: e.statut || 'en_attente',
       description: e.description || '',
       remplis: s.remplis ?? 0,
@@ -93,7 +94,7 @@ export async function fetchEvenementDetailAPI(id) {
 
 // Modifie un événement via le backend
 export async function modifierEvenementAPI(id, data) {
-  const capacite = data.categories.reduce((sum, c) => sum + Number(c.capacite), 0)
+  const capacite = (data.categories || []).reduce((sum, c) => sum + Number(c.capacite), 0)
   const body = {
     titre: data.nom,
     description: data.description || '',
@@ -117,6 +118,13 @@ export async function modifierEvenementAPI(id, data) {
 // Annule un événement via le backend
 export async function annulerEvenementAPI(id) {
   return await appelAPI(`/evenements/${id}/annuler`, { method: 'PUT' })
+}
+
+// Récupère les statistiques détaillées d'un événement (ventes par jour, répartition par catégorie, taux de remplissage)
+// Appelle GET /evenements/:id/stats
+export async function fetchEvenementStats(id) {
+  const response = await appelAPI(`/evenements/${id}/stats`);
+  return response;
 }
 
 // Récupère la liste des demandes de l'organisateur
@@ -182,9 +190,30 @@ export async function fetchEvenementDetailPublic(eventId) {
       name: c.nom,
       price: c.prix,
       desc: c.description || '',
+      placesDisponibles: c.places_disponibles ?? null,
+      capacite: c.capacite ?? null,
     })),
     time: e.date_debut ? e.date_debut.slice(11, 16) : '',
     priceMin: e.prix_min || 0,
     priceMax: e.prix_max || 0,
   }
+}
+
+// Récupère les billets vendus (individuels) pour un événement
+// GET /api/billets/evenement/:id
+export async function fetchEvenementBilletsAPI(eventId) {
+  const data = await appelAPI(`/billets/evenement/${eventId}`)
+  if (!Array.isArray(data)) return []
+  return data.map(b => ({
+    id: b.id,
+    uuid: b.uuid,
+    numero: b.numero,
+    telephone: b.telephone_acheteur || '',
+    email: b.email_acheteur || '',
+    nom: b.nom_acheteur || '',
+    prix: Number(b.prix_paye || 0),
+    statut: (b.statut || '').toLowerCase(),
+    categorie: b.categorie_nom || 'Standard',
+    dateCreation: b.date_creation || '',
+  }))
 }

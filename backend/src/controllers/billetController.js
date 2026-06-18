@@ -6,6 +6,7 @@ const pool = require("../config/db");
 const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
 const PaymentService = require("../services/PaymentService");
+const { envoyerNotification } = require("../services/NotificationService");
 
 const HMAC_SECRET = process.env.HMAC_SECRET;
 if (!HMAC_SECRET) console.warn('⚠️  HMAC_SECRET non défini — les signatures QR échoueront');
@@ -20,7 +21,7 @@ const acheter = async (req, res) => {
 
     // Vérifier que l'événement existe et est actif
     const [events] = await pool.query(
-      "SELECT id, titre, lieu, date_debut FROM evenement WHERE id = ? AND statut = 'actif'",
+      "SELECT id, titre, lieu, date_debut, organisateur_id FROM evenement WHERE id = ? AND statut = 'actif'",
       [evenementId]
     );
     if (!events.length) return res.status(404).json({ message: "Événement introuvable ou inactif" });
@@ -164,39 +165,39 @@ const acheter = async (req, res) => {
         transaction_ref: numero,
       });
 
-      // Envoyer les notifications (email + SMS) avant de répondre
-      // Requis pour Vercel serverless — le processus est coupé après la réponse
-      if (ticketEmail) {
-        try {
-          const { envoyerEmailBillet } = require("../services/emailService");
-          await envoyerEmailBillet(ticketEmail, {
-            uuid,
-            numero,
-            evenement: events[0].titre,
-            categorie: cat.nom,
-            prix: montantTotal,
-            dateAchat: timestamp,
-            lieu: events[0].lieu,
-            dateDebut: events[0].date_debut,
-            couleurHex: cat.couleur_hex,
-            qrPayload,
-          });
-        } catch (e) {
-          console.error("Email error:", e.message);
-        }
-      }
+      // Envoyer un SMS de confirmation à l'acheteur (fire-and-forget pour éviter le timeout)
+      const { envoyerSMSBillet } = require("../services/smsService");
+      envoyerSMSBillet(telephone, {
+        uuid,
+        numero,
+        evenement: events[0].titre,
+        categorie: cat.nom,
+        prix: montantTotal,
+      }, pool);
 
-      try {
-        const { envoyerSMSBillet } = require("../services/smsService");
-        await envoyerSMSBillet(telephone, {
+      // Envoyer un email de confirmation si l'email est renseigné
+      if (ticketEmail) {
+        const { envoyerEmailBillet } = require("../services/emailService");
+        envoyerEmailBillet(ticketEmail, {
           uuid,
           numero,
           evenement: events[0].titre,
+          dateDebut: events[0].date_debut,
+          lieu: events[0].lieu,
           categorie: cat.nom,
           prix: montantTotal,
+        }).catch(e => console.error("Email error:", e.message));
+      }
+
+      // Envoyer une notification push à l'organisateur
+      try {
+        await envoyerNotification(events[0].organisateur_id, {
+          type: 'vente',
+          message: `Nouvelle vente : ${cat.nom} pour ${events[0].titre}`,
+          evenementId: evenementId,
         });
       } catch (e) {
-        console.error("SMS error:", e.message);
+        console.error("Push notif error:", e.message);
       }
 
       // Lier l'acheteur au téléphone pour que la recherche par email fonctionne
@@ -234,8 +235,8 @@ const acheter = async (req, res) => {
       conn.release();
     }
   } catch (err) {
-    console.error("Acheter billet error:", err);
-    res.status(500).json({ message: "Erreur lors de l'achat" });
+    console.error("Acheter billet error:", { message: err.message, code: err.code, sqlMessage: err.sqlMessage, stack: err.stack?.split('\n').slice(0,3).join(' ') });
+    res.status(500).json({ message: `Erreur lors de l'achat${process.env.NODE_ENV !== 'production' ? `: ${err.sqlMessage || err.message}` : ''}` });
   }
 };
 
@@ -244,37 +245,31 @@ const mesBillets = async (req, res) => {
     const { telephone, email } = req.query;
     if (!telephone && !email) return res.status(400).json({ message: "Téléphone ou email requis" });
 
-    let rows;
+    // Construit dynamiquement les conditions selon les paramètres fournis
+    // Permet d'unionner les résultats par téléphone ET email simultanément
+    const conditions = [];
+    const params = [];
     if (telephone) {
-      [rows] = await pool.query(
-        `SELECT b.id, b.uuid, b.numero, b.prix_paye, b.statut, b.payload_signature, b.date_creation, b.telephone_acheteur,
-          b.evenement_id, e.titre AS evenement_titre, e.lieu AS evenement_lieu, e.date_debut,
-          ct.nom AS categorie_nom, ct.prix AS categorie_prix
-        FROM billet b
-        JOIN evenement e ON e.id = b.evenement_id
-        JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
-        WHERE b.telephone_acheteur = ?
-        ORDER BY b.date_creation DESC`,
-        [telephone]
-      );
-    } else {
-      // Recherche par email de l'acheteur
-      // 1) email_acheteur sur le billet (nouveaux achats)
-      // 2) telephone via la table acheteur (si renseigné)
-      // 3) téléphone direct (legacy)
-      [rows] = await pool.query(
-        `SELECT b.id, b.uuid, b.numero, b.prix_paye, b.statut, b.payload_signature, b.date_creation, b.telephone_acheteur,
-          b.evenement_id, e.titre AS evenement_titre, e.lieu AS evenement_lieu, e.date_debut,
-          ct.nom AS categorie_nom, ct.prix AS categorie_prix
-        FROM billet b
-        JOIN evenement e ON e.id = b.evenement_id
-        JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
-        WHERE b.email_acheteur = ?
-           OR b.telephone_acheteur IN (SELECT telephone FROM acheteur WHERE email = ? AND telephone IS NOT NULL)
-        ORDER BY b.date_creation DESC`,
-        [email, email]
-      );
+      conditions.push('b.telephone_acheteur = ?');
+      params.push(telephone);
     }
+    if (email) {
+      conditions.push('b.email_acheteur = ?');
+      conditions.push('b.telephone_acheteur IN (SELECT telephone FROM acheteur WHERE email = ? AND telephone IS NOT NULL)');
+      params.push(email, email);
+    }
+
+    const [rows] = await pool.query(
+      `SELECT DISTINCT b.id, b.uuid, b.numero, b.prix_paye, b.statut, b.payload_signature, b.date_creation, b.telephone_acheteur,
+        b.evenement_id, e.titre AS evenement_titre, e.lieu AS evenement_lieu, e.date_debut,
+        ct.nom AS categorie_nom, ct.prix AS categorie_prix
+      FROM billet b
+      JOIN evenement e ON e.id = b.evenement_id
+      JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+      WHERE (${conditions.join(' OR ')})
+      ORDER BY b.date_creation DESC`,
+      params
+    );
 
     res.json(rows.map(r => ({ ...r, statut: r.statut.toLowerCase() })));
   } catch (err) {
@@ -302,7 +297,7 @@ const afficherBillet = async (req, res) => {
     );
 
     if (!rows.length) {
-      return res.status(404).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Billet introuvable — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#f8f9fd"><h1 style="color:#6366F1;">SENGUICHET</h1><p style="color:#94a3b8;">Billet introuvable</p></body></html>`);
+      return res.status(404).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Billet introuvable — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#10B981;">SENGUICHET</h1><p style="color:#6EE7B7;">Billet introuvable</p></body></html>`);
     }
 
     const b = rows[0];
@@ -325,139 +320,114 @@ const afficherBillet = async (req, res) => {
     });
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrPayload)}`;
 
+    const qrHtml = `<img src="${qrUrl}" alt="QR" style="width:180px;height:180px;display:block" />`;
     res.send(`<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Billet ${b.numero} — SENGUICHET</title>
+<title>Billet ${b.numero} - SENGUICHET</title>
 <style>
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: #f0f2f5;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-  }
-  .tk {
-    width: 340px; height: 640px;
-    background: #fff; border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-    display: flex; flex-direction: column;
-    overflow: hidden; position: relative;
-    border: 1px solid #E5E7EB;
-  }
-  /* Z1: QR + ID */
-  .z1 {
-    height: 260px; background: #fff;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    position: relative;
-    border-bottom: 2px dashed #D1D5DB;
-  }
-  .z1 img { width: 180px; height: 180px; }
-  .z1 .ref { font-family: monospace; font-size: 12px; color: #6B7280; letter-spacing: 1.5px; margin-top: 8px; }
-  .z1 .notch { position: absolute; bottom: -12px; width: 24px; height: 24px; border-radius: 50%; background: #f0f2f5; }
-  .z1 .nl { left: -12px; }
-  .z1 .nr { right: -12px; }
-  /* Z2: Infos + prix */
-  .z2 {
-    height: 280px; padding: 24px;
-    display: flex; align-items: center; position: relative;
-  }
-  .z2 .wm {
-    position: absolute; right: 5px; top: 30px;
-    font-size: 140px; font-weight: 900; color: rgba(0,0,0,0.02);
-    pointer-events: none; user-select: none;
-  }
-  .z2 .body {
-    display: flex; width: 100%; align-items: flex-start; z-index: 1;
-  }
-  .z2 .left {
-    flex: 1; max-width: 70%; padding-right: 16px;
-  }
-  .z2 .left h2 {
-    font-size: 18px; font-weight: 800; color: #030712;
-    letter-spacing: -0.3px; line-height: 1.3; margin: 0 0 8px; text-transform: uppercase;
-  }
-  .z2 .left .dt { font-size: 12px; color: #4B5563; margin: 0 0 4px; }
-  .z2 .left .loc { font-size: 12px; color: #6B7280; margin: 0; }
-  .z2 .sep {
-    width: 1px; height: 120px; background: #E5E7EB;
-    align-self: center; flex-shrink: 0;
-  }
-  .z2 .right {
-    width: 80px; padding-left: 16px;
-    display: flex; flex-direction: column; align-items: flex-end;
-    justify-content: center; height: 120px; align-self: center;
-  }
-  .z2 .right .lb { font-size: 10px; color: #9CA3AF; letter-spacing: 1px; text-transform: uppercase; margin: 0 0 4px; }
-  .z2 .right .pr { font-size: 14px; font-weight: 700; color: #111827; white-space: nowrap; }
-  /* Z3: Mentions */
-  .z3 {
-    height: 100px; padding: 16px;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    background: #F9FAFB; border-top: 1px solid #F3F4F6;
-    text-align: center;
-  }
-  .z3 .br { font-size: 10px; font-weight: 700; color: #9CA3AF; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 4px; }
-  .z3 .lg { font-size: 9px; color: #9CA3AF; margin: 0 0 2px; line-height: 1.3; }
-  .z3 .dt { font-size: 8px; color: #B0B7C3; margin: 0; }
-  @media (max-width: 380px) {
-    .tk { width: 90vw; height: auto; min-height: 170vw; }
-    .z1 { height: auto; min-height: 70vw; padding: 4vw; }
-    .z1 img { width: 50vw; height: 50vw; }
-    .z2 { height: auto; min-height: 80vw; padding: 4vw; }
-    .z2 .left h2 { font-size: 4.5vw; }
-    .z3 { height: auto; min-height: 25vw; padding: 3vw; }
-    .z1 .notch { display: none; }
-  }
-  @media print {
-    body { background: #fff; padding: 0; }
-    .tk { box-shadow: none; border-radius: 0; margin: 0 auto; }
-    @page { margin: 0; size: 340px 640px; }
-  }
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0F1A0F;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+.t{width:340px;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(16,185,129,.2);position:relative}
+/* HEADER vert */
+.hd{background:#10B981;padding:24px;position:relative;overflow:hidden}
+.o1{position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:60px;background:rgba(110,231,183,.25)}
+.o2{position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:40px;background:rgba(245,158,11,.12)}
+.hr{display:flex;align-items:center;gap:10px}
+.lb{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center}
+.lb img{width:28px;height:28px;border-radius:6px}
+.ht{font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.7)}
+.gl{height:1px;background:#F59E0B;opacity:.6;margin:16px 0}
+.en{font-size:22px;font-weight:700;color:#fff;text-align:center;letter-spacing:.5px;line-height:28px}
+.ec{font-size:10px;color:rgba(255,255,255,.6);text-align:center;letter-spacing:2px;margin-top:6px}
+/* PERFORATION */
+.pf{height:22px;position:relative;background:linear-gradient(to bottom,#10B981,#F9F6EE);display:flex;align-items:center;justify-content:center}
+.pl{position:absolute;left:22px;right:22px;border-top:2px dashed rgba(16,185,129,.2)}
+.pc{position:absolute;width:22px;height:22px;border-radius:11px;background:#0F1A0F;z-index:2}
+.pc.l{left:-11px}
+.pc.r{right:-11px}
+/* BODY creme */
+.bd{background:#F9F6EE;padding:20px 24px 8px}
+.br{display:flex;justify-content:space-between}
+.bl{font-size:8px;font-weight:700;letter-spacing:2px;color:#6EE7B7;margin-bottom:2px}
+.bv{font-size:12px;font-weight:600;color:#111827}
+.ll{font-size:12px;font-weight:600;color:#10B981;letter-spacing:.5px;margin-top:2px}
+.bs{height:1px;background:rgba(16,185,129,.12);margin:14px 0}
+.rf{font-size:9px;color:#6EE7B7;letter-spacing:2px;text-align:center;margin-bottom:4px}
+.qz{background:#fff;border-radius:12px;padding:12px;margin:14px 0;border:1px solid rgba(16,185,129,.08);display:flex;justify-content:center}
+/* PERFO BASSE */
+.pb{height:22px;position:relative;background:linear-gradient(to bottom,#F9F6EE,#F0EAD6);display:flex;align-items:center;justify-content:center}
+/* FOOTER beige */
+.ft{background:#F0EAD6;border-radius:0 0 20px 20px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
+.cp{background:#10B981;border-radius:999px;padding:5px 20px}
+.ct{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#F59E0B}
+.pr{font-size:28px;font-weight:700;color:#111827;letter-spacing:-.5px;text-align:center}
+.ll2{font-size:9px;color:#6EE7B7;font-style:italic;text-align:center}
+.wm{font-size:8px;color:rgba(16,185,129,.3);letter-spacing:2px;align-self:flex-end;margin-right:4px}
+@media print{body{background:#fff;padding:0}.t{box-shadow:none}}
 </style>
 </head>
 <body>
-<div class="tk">
-  <div class="z1">
-    <img src="${qrUrl}" alt="QR billet" />
-    <div class="ref">#${b.numero}</div>
-    <div class="notch nl"></div>
-    <div class="notch nr"></div>
-  </div>
-  <div class="z2">
-    <div class="wm">S</div>
-    <div class="body">
-      <div class="left">
-        <h2>${b.titre.toUpperCase()}</h2>
-        <p class="dt">${dateFormatted} à ${heureFormatted}</p>
-        <p class="loc">${b.lieu ? b.lieu.toUpperCase() : ''}</p>
-      </div>
-      <div class="sep"></div>
-      <div class="right">
-        <p class="lb">Prix</p>
-        <p class="pr">${b.prix_paye.toLocaleString()} FCFA</p>
-      </div>
+<div class="t">
+  <div class="hd">
+    <div class="o1"></div><div class="o2"></div>
+    <div class="hr">
+      <div class="lb"><img src="/public/logo_mobile.jpeg" alt="S" /></div>
+      <div class="ht">SENGUICHET</div>
     </div>
+    <div class="gl"></div>
+    <div class="en">${(b.titre || '').toUpperCase()}</div>
+    <div class="ec">${(b.categorie || 'STANDARD').toUpperCase()}</div>
   </div>
-  <div class="z3">
-    <p class="br">SENGUICHET</p>
-    <p class="lg">Billetterie événementielle • Entrée unique et non transférable</p>
-    <p class="dt">Acheté le ${dateAchat}</p>
+  <div class="pf"><div class="pl"></div><div class="pc l"></div><div class="pc r"></div></div>
+  <div class="bd">
+    <div class="br">
+      <div><div class="bl">DATE</div><div class="bv">${dateFormatted}</div></div>
+      <div style="text-align:right"><div class="bl">HEURE</div><div class="bv">${heureFormatted}</div></div>
+    </div>
+    <div style="margin-top:10px"><div class="bl">LIEU</div><div class="ll">${(b.lieu || '').toUpperCase()}</div></div>
+    <div class="bs"></div>
+    <div class="rf">REF · ${b.numero}</div>
+    <div class="qz">${qrHtml}</div>
+  </div>
+  <div class="pb"><div class="pl"></div><div class="pc l"></div><div class="pc r"></div></div>
+  <div class="ft">
+    <div class="cp"><div class="ct">${(b.categorie || 'STANDARD').toUpperCase()}</div></div>
+    <div class="pr">${Number(b.prix_paye).toLocaleString()} FCFA</div>
+    <div class="ll2">Entrée unique et non transférable</div>
+    <div class="wm">SENGUICHET</div>
   </div>
 </div>
 </body>
 </html>`);
   } catch (err) {
     console.error("Afficher billet error:", err);
-    res.status(500).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Erreur — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#f8f9fd"><h1 style="color:#6366F1;">SENGUICHET</h1><p style="color:#94a3b8;">Erreur serveur</p></body></html>`);
+    res.status(500).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Erreur — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#10B981;">SENGUICHET</h1><p style="color:#6EE7B7;">Erreur serveur</p></body></html>`);
   }
 };
 
-module.exports = { acheter, mesBillets, afficherBillet };
+// Liste tous les billets vendus pour un événement (organisateur)
+// GET /api/billets/evenement/:id
+const evenementBillets = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [rows] = await pool.query(
+      `SELECT b.id, b.uuid, b.numero, b.nom_acheteur, b.email_acheteur, b.telephone_acheteur,
+        b.prix_paye, b.statut, b.date_creation,
+        ct.nom AS categorie_nom
+      FROM billet b
+      JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+      WHERE b.evenement_id = ?
+      ORDER BY b.date_creation DESC`,
+      [id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("Evenement billets error:", err);
+    res.status(500).json({ message: "Erreur" });
+  }
+};
+
+module.exports = { acheter, mesBillets, afficherBillet, evenementBillets };
