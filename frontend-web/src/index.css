@@ -150,7 +150,7 @@ code { font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', mon
 }
 
 .input-premium::placeholder { color: var(--color-text-muted); }
-.input-premium:focus { border-color: var(--color-accent); background: var(--color-accent-light); box-shadow: 0 0 0 4px rgba(26, 107, 69, 0.1); }
+.input-premium:focus { border-color: var(--color-accent); background: var(--color-surface); box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1); }
 .input-premium.error { border-color: var(--color-error); box-shadow: 0 0 0 4px rgba(192, 57, 43, 0.1); animation: shake 0.3s ease; }
 
 .input-premium-wrapper { position: relative; display: flex; align-items: center; }

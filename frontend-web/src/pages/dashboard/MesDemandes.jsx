@@ -16,12 +16,12 @@ const CategorySelect = ({ value, onChange, options, label }) => (
       className="input-premium appearance-none cursor-pointer"
       style={{ paddingRight: "40px", fontFamily: "'Plus Jakarta Sans', sans-serif" }}
     >
-      <option value="" disabled style={{ background: "var(--bg)", color: "var(--text-secondary)" }}>{label}</option>
+      <option value="" disabled>{label}</option>
       {options.map((o) => (
-        <option key={o} value={o} style={{ background: "var(--bg)", color: "#F1F5F9" }}>{o}</option>
+        <option key={o} value={o}>{o}</option>
       ))}
     </select>
-    <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--text-secondary)", fontSize: "0.7rem" }}>▼</span>
+    <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--color-text-muted)", fontSize: "0.7rem" }}>▼</span>
   </div>
 );
 
@@ -333,7 +333,7 @@ const MesDemandes = () => {
                   )}
 
                   {viewingDemande.commentaire_admin && viewingDemande.statut !== "soumis" && viewingDemande.statut !== "en_analyse" && (
-                    <div className="p-3 rounded-xl" style={{ background: viewingDemande.statut === "approuve" ? "rgba(0,229,160,0.08)" : "rgba(255,77,109,0.08)", border: `1px solid ${viewingDemande.statut === "approuve" ? "rgba(0,229,160,0.2)" : "rgba(255,77,109,0.2)"}` }}>
+                    <div className="p-3 rounded-xl" style={{ background: viewingDemande.statut === "approuve" ? "rgba(21,128,61,0.06)" : "rgba(255,77,109,0.08)", border: `1px solid ${viewingDemande.statut === "approuve" ? "rgba(21,128,61,0.2)" : "rgba(255,77,109,0.2)"}` }}>
                       <p className="text-[10px] font-medium mb-1" style={{ color: viewingDemande.statut === "approuve" ? "var(--success)" : "var(--error)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                         {viewingDemande.statut === "approuve" ? "Commentaire" : "Motif du refus"}
                       </p>
@@ -366,7 +366,7 @@ const MesDemandes = () => {
                 )}
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       Type de demande <span style={{ color: "var(--error)" }}>*</span>
                     </label>
                     <select
@@ -381,132 +381,146 @@ const MesDemandes = () => {
 
                   {typeAction === "CREATION" && (
                     <>
-                      <div>
-                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            Titre de l'événement <span style={{ color: "var(--error)" }}>*</span>
-                          </label>
-                        <input required value={titre} onChange={(e) => setTitre(e.target.value)} className="input-premium" placeholder="Ex: Concert de Dakar" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
-                      </div>
-                      <div>
-                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            Description <span style={{ color: "var(--error)" }}>*</span>
-                          </label>
-                        <textarea required rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="input-premium" placeholder="Décrivez votre événement..." style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", resize: "vertical" }} />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="rounded-xl p-5 space-y-4" style={{ background: "#F8FAFC", border: "1px solid var(--color-border)" }}>
+                        <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-accent)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          Informations générales
+                        </p>
                         <div>
-                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            Catégorie <span style={{ color: "var(--error)" }}>*</span>
-                          </label>
-                          <CategorySelect value={categorie} onChange={setCategorie} options={CATEGORIES} label="Sélectionnez une catégorie" />
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              Titre de l'événement <span style={{ color: "var(--error)" }}>*</span>
+                            </label>
+                          <input required value={titre} onChange={(e) => setTitre(e.target.value)} className="input-premium" placeholder="Ex: Concert de Dakar" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            Ville <span style={{ color: "var(--error)" }}>*</span>
-                          </label>
-                          <CategorySelect value={ville} onChange={setVille} options={VILLES} label="Sélectionnez une ville" />
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              Description <span style={{ color: "var(--error)" }}>*</span>
+                            </label>
+                          <textarea required rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="input-premium" placeholder="Décrivez votre événement..." style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", resize: "vertical" }} />
                         </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          Lieu <span style={{ color: "var(--error)" }}>*</span>
-                        </label>
-                        <input required value={lieu} onChange={(e) => setLieu(e.target.value)} className="input-premium" placeholder="Ex: Place de l'Indépendance" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              Catégorie <span style={{ color: "var(--error)" }}>*</span>
+                            </label>
+                            <CategorySelect value={categorie} onChange={setCategorie} options={CATEGORIES} label="Sélectionnez une catégorie" />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              Ville <span style={{ color: "var(--error)" }}>*</span>
+                            </label>
+                            <CategorySelect value={ville} onChange={setVille} options={VILLES} label="Sélectionnez une ville" />
+                          </div>
+                        </div>
                         <div>
-                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            Date début <span style={{ color: "var(--error)" }}>*</span>
+                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            Lieu <span style={{ color: "var(--error)" }}>*</span>
                           </label>
-                          <input required type="date" value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} className="input-premium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
+                          <input required value={lieu} onChange={(e) => setLieu(e.target.value)} className="input-premium" placeholder="Ex: Place de l'Indépendance" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
                         </div>
-                        <div>
-                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            Date fin
-                          </label>
-                          <input type="date" value={dateFin} onChange={(e) => setDateFin(e.target.value)} className="input-premium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          Capacité <span style={{ color: "var(--error)" }}>*</span>
-                        </label>
-                        <input required type="number" min="1" value={capacite} onChange={(e) => setCapacite(e.target.value)} className="input-premium" placeholder="Ex: 500" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
                       </div>
 
-                      <div>
-                        <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          Affiche de l'événement
-                        </label>
-                        <div
-                          onClick={() => { if (!uploading) fileInputRef.current?.click(); }}
-                          className="flex flex-col items-center justify-center gap-2 p-6 rounded-xl cursor-pointer transition-all"
-                          style={{
-                            border: `2px dashed ${uploading ? "rgba(255,183,71,0.4)" : affichePreview ? "rgba(0,200,255,0.4)" : "rgba(255,255,255,0.12)"}`,
-                            background: affichePreview ? "transparent" : "rgba(255,255,255,0.03)",
-                            minHeight: "140px",
-                          }}
-                          onMouseEnter={(e) => { if (!affichePreview && !uploading) e.currentTarget.style.borderColor = "rgba(0,200,255,0.4)"; }}
-                          onMouseLeave={(e) => { if (!affichePreview && !uploading) e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
-                        >
-                          {uploading ? (
-                            <div className="flex flex-col items-center gap-2">
-                              <Loader size={24} />
-                              <p className="text-xs" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Upload en cours...</p>
-                            </div>
-                          ) : affichePreview ? (
-                            <div className="relative w-full">
-                              <img src={affichePreview} alt="Aperçu" className="w-full object-cover rounded-xl" style={{ maxHeight: "200px" }} />
-                              <button type="button" onClick={(e) => { e.stopPropagation(); setCloudinaryUrl(null); setAffichePreview(null); }}
-                                className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm"
-                                style={{ background: "rgba(0,0,0,0.6)", color: "var(--error)", border: "none", cursor: "pointer" }}
-                              >
-                                <X size={14} />
-                              </button>
-                            </div>
-                          ) : (
-                            <>
-                              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
-                              </svg>
-                              <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Cliquez pour ajouter une affiche</p>
-                            </>
-                          )}
+                      <div className="rounded-xl p-5 space-y-4" style={{ background: "#F8FAFC", border: "1px solid var(--color-border)" }}>
+                        <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-accent)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          Date & Capacité
+                        </p>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              Date début <span style={{ color: "var(--error)" }}>*</span>
+                            </label>
+                            <input required type="date" value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} className="input-premium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              Date fin
+                            </label>
+                            <input type="date" value={dateFin} onChange={(e) => setDateFin(e.target.value)} className="input-premium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
+                          </div>
                         </div>
-                        <input ref={fileInputRef} type="file" accept="image/png,image/jpeg" className="hidden"
-                          onChange={async (e) => {
-                            const f = e.target.files?.[0];
-                            if (!f) return;
-                            setUploading(true);
-                            setAffichePreview(URL.createObjectURL(f));
-                            try {
-                              const url = await uploadToCloudinary(f);
-                              setCloudinaryUrl(url);
-                            } catch (err) {
-                              setAffichePreview(null);
-                              setError("Erreur upload affiche");
-                            } finally {
-                              setUploading(false);
-                            }
-                          }}
-                        />
-                      </div>
-
-                      <div className="border-t pt-4" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-                        <div className="flex items-center justify-between mb-3">
-                          <label className="text-xs font-medium" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            <Calendar size={16} /> Catégories de tickets <span style={{ color: "var(--error)" }}>*</span>
+                        <div>
+                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            Capacité <span style={{ color: "var(--error)" }}>*</span>
                           </label>
-                          <button type="button" onClick={addCategory} className="text-xs px-3 py-1 rounded-lg transition-all"
-                            style={{ background: "rgba(0,200,255,0.1)", color: "var(--primary)", border: "1px solid rgba(0,200,255,0.2)" }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(0,200,255,0.2)"; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(0,200,255,0.1)"; }}
+                          <input required type="number" min="1" value={capacite} onChange={(e) => setCapacite(e.target.value)} className="input-premium" placeholder="Ex: 500" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            Affiche de l'événement
+                          </label>
+                          <div
+                            onClick={() => { if (!uploading) fileInputRef.current?.click(); }}
+                            className="flex flex-col items-center justify-center gap-2 p-6 rounded-xl cursor-pointer transition-all"
+                            style={{
+                              border: `2px dashed ${uploading ? "rgba(255,183,71,0.4)" : affichePreview ? "rgba(21,128,61,0.4)" : "var(--color-border)"}`,
+                              background: affichePreview ? "transparent" : "rgba(0,0,0,0.02)",
+                              minHeight: "140px",
+                            }}
+                            onMouseEnter={(e) => { if (!affichePreview && !uploading) e.currentTarget.style.borderColor = "var(--color-accent)"; }}
+                            onMouseLeave={(e) => { if (!affichePreview && !uploading) e.currentTarget.style.borderColor = "var(--color-border)"; }}
                           >
-                            + Ajouter
+                            {uploading ? (
+                              <div className="flex flex-col items-center gap-2">
+                                <Loader size={24} />
+                                <p className="text-xs" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Upload en cours...</p>
+                              </div>
+                            ) : affichePreview ? (
+                              <div className="relative w-full">
+                                <img src={affichePreview} alt="Aperçu" className="w-full object-cover rounded-xl" style={{ maxHeight: "200px" }} />
+                                <button type="button" onClick={(e) => { e.stopPropagation(); setCloudinaryUrl(null); setAffichePreview(null); }}
+                                  className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm"
+                                  style={{ background: "rgba(0,0,0,0.6)", color: "var(--error)", border: "none", cursor: "pointer" }}
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            ) : (
+                              <>
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
+                                </svg>
+                                <p className="text-xs" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Cliquez pour ajouter une affiche</p>
+                              </>
+                            )}
+                          </div>
+                          <input ref={fileInputRef} type="file" accept="image/png,image/jpeg" className="hidden"
+                            onChange={async (e) => {
+                              const f = e.target.files?.[0];
+                              if (!f) return;
+                              setUploading(true);
+                              setAffichePreview(URL.createObjectURL(f));
+                              try {
+                                const url = await uploadToCloudinary(f);
+                                setCloudinaryUrl(url);
+                              } catch (err) {
+                                setAffichePreview(null);
+                                setError("Erreur upload affiche");
+                              } finally {
+                                setUploading(false);
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl p-5 space-y-4" style={{ background: "#F8FAFC", border: "1px solid var(--color-border)" }}>
+                        <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-accent)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          <Calendar size={14} /> Billets
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            Catégories de tickets <span style={{ color: "var(--error)" }}>*</span>
+                          </p>
+                          <button type="button" onClick={addCategory} className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all"
+                            style={{ background: "rgba(21,128,61,0.1)", color: "var(--color-accent)", border: "1px solid rgba(21,128,61,0.25)" }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(21,128,61,0.18)"; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(21,128,61,0.1)"; }}
+                          >
+                            + Ajouter une catégorie
                           </button>
                         </div>
                         {categories.map((cat, i) => (
-                          <div key={i} className="flex items-start gap-2 mb-2 p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.03)" }}>
+                          <div key={i} className="flex items-start gap-2 p-3 rounded-xl" style={{ background: "#FFFFFF", border: "1px solid var(--color-border)" }}>
                             <div className="flex-1 grid grid-cols-3 gap-2">
                               <input value={cat.nom} onChange={(e) => updateCategory(i, "nom", e.target.value)}
                                 className="input-premium text-xs" placeholder="Nom (ex: VIP)" required
@@ -519,16 +533,16 @@ const MesDemandes = () => {
                                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
                             </div>
                             <button type="button" onClick={() => removeCategory(i)}
-                              className="text-xs px-2 py-1 rounded-lg transition-all mt-0.5"
-                              style={{ background: "rgba(255,77,109,0.1)", color: "var(--error)", border: "1px solid rgba(255,77,109,0.2)" }}
-                              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,77,109,0.2)"; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,77,109,0.1)"; }}
+                              className="text-xs px-2 py-1.5 rounded-lg transition-all mt-0.5"
+                              style={{ background: "rgba(220,38,38,0.08)", color: "var(--error)", border: "1px solid rgba(220,38,38,0.2)" }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(220,38,38,0.15)"; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(220,38,38,0.08)"; }}
                             >
                               <X size={14} />
                             </button>
                           </div>
                         ))}
-                        <p className="text-[10px] mt-1" style={{ color: "rgba(255,255,255,0.3)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <p className="text-[11px]" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           Ajoutez au moins une catégorie avec son nombre de places et son prix.
                         </p>
                       </div>
@@ -537,15 +551,15 @@ const MesDemandes = () => {
 
                   {typeAction !== "CREATION" && (
                     <div>
-                      <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                        Titre / Événement concerné
+                    <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      Titre / Événement concerné
                       </label>
                       <input value={titre} onChange={(e) => setTitre(e.target.value)} className="input-premium" placeholder="Nom de l'événement concerné" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
                     </div>
                   )}
 
                   <div>
-                    <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       Message détaillé <span style={{ color: "var(--error)" }}>*</span>
                     </label>
                     <textarea required rows={3} value={message} onChange={(e) => setMessage(e.target.value)} className="input-premium"
