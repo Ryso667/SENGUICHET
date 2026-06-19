@@ -81,6 +81,7 @@ expo-camera, expo-sqlite, expo-crypto, @vercel/node, nodemailer
 - **SMTP Vercel** fonctionnel — vérifier boîte et spams
 - **migrate.js** : SSL rejectUnauthorized: false, supprime CREATE DATABASE/USE, FOREIGN_KEY_CHECKS=0
 - **db.js** : SSL rejectUnauthorized: false
+- **Dashboard (frontend-web/)** : 9 pages organisateur redesignées en thème vert clair (#15803D accent, #FAFAFA bg, #FFFFFF cards). Fichiers : Sidebar, DashboardLayout, DashboardHome, MesEvenements, DetailEvenement, Statistiques, MesDemandes, GestionBillets, Parametres. CSS vars : `--color-card`, `--gradient` ajoutées dans `theme.css`.
 
 ## Commentaires dans le code
 - TOUS les fichiers source doivent avoir des commentaires en français expliquant :
@@ -98,3 +99,4 @@ expo-camera, expo-sqlite, expo-crypto, @vercel/node, nodemailer
 - PR #16 : Fix EmailService casing Linux + fonctions email partenaires
 - PR #18 : Migration Aiven + SSL + OTP fichier→DB + table billet/acheteur fixes
 - PR #20 : Fix affiche_url + numero column schema.sql
+- PR (session) : Dashboard 9 pages redesign vert clair + adminSupprimerOrganisateur + fix listerCategories + emailService redesigned vert + Confidentialite redesign

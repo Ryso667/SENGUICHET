@@ -108,7 +108,7 @@ const GestionBillets = () => {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

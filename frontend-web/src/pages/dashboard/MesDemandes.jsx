@@ -214,8 +214,7 @@ const MesDemandes = () => {
               return (
                 <div
                   key={d.id}
-                  className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}
-                  style={{ animation: `fadeInUp 0.3s ease-out ${i * 0.08}s both` }}
+                  className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)", animation: `fadeInUp 0.3s ease-out ${i * 0.08}s both` }}
                 >
                   {d.affiche_url && (
                     <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0" style={{ border: "1px solid var(--color-border)" }}>
