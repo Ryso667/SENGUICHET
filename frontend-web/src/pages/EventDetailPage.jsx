@@ -70,6 +70,14 @@ export default function EventDetailPage() {
         if (storedRestore) {
           const saved = JSON.parse(storedQ);
           cats.forEach(c => { const k = c.id || c.nom; if (saved[k] != null) initQ[k] = saved[k]; });
+          // Auto-ouvrir le paiement après retour OTP — évite le double-clic "Acheter"
+          const selected = cats
+            .map(c => ({ id: c.id, nom: c.nom, prix: c.prix, quantite: saved[c.id || c.nom] || 0 }))
+            .filter(c => c.quantite > 0);
+          if (selected.length > 0) {
+            setAchatCategories(selected);
+            setShowPaiement(true);
+          }
         }
         setQuantities(initQ);
 
