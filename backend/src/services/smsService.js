@@ -115,19 +115,34 @@ const envoyerSMSOrange = async (numero, message) => {
 // Envoie un SMS de confirmation de billet à l'acheteur via l'API Orange
 // Log l'envoi en base pour suivi et réessai
 // numero : numéro de téléphone au format sénégalais (77XXXXXX, 76XXXXXX, etc.)
+// ticket: { evenement, categorie, prix, quantite }
 const envoyerSMSBillet = async (numero, ticket, pool) => {
   const numeroFull = numero.startsWith("+") ? numero : `+221${numero}`;
-  const ticketBase = (process.env.TICKET_URL || "https://senguichet.com/billet").replace(/\/+$/, "");
-  const message = [
-    `SENGUICHET`,
-    `Achat confirmé`,
-    ``,
-    `Événement: ${ticket.evenement}`,
-    `Catégorie: ${ticket.categorie}`,
-    `Montant: ${ticket.prix.toLocaleString()} FCFA`,
-    ``,
-    `Voir billet: ${ticketBase}/${ticket.uuid}`,
-  ].join('\n');
+  const mesBilletsUrl = "https://senguichet-frontend-web.vercel.app/acheteur/mes-billets";
+
+  const message = ticket.quantite > 1
+    ? [
+        `SENGUICHET`,
+        `Achat confirmé`,
+        ``,
+        `Événement: ${ticket.evenement}`,
+        `Catégorie: ${ticket.categorie}`,
+        `${ticket.quantite} billets · ${(ticket.prix || 0).toLocaleString()} FCFA`,
+        ``,
+        `Voir vos billets:`,
+        mesBilletsUrl,
+      ].join('\n')
+    : [
+        `SENGUICHET`,
+        `Achat confirmé`,
+        ``,
+        `Événement: ${ticket.evenement}`,
+        `Catégorie: ${ticket.categorie}`,
+        `Montant: ${(ticket.prix || 0).toLocaleString()} FCFA`,
+        ``,
+        `Voir votre billet:`,
+        mesBilletsUrl,
+      ].join('\n');
 
   // Journaliser la tentative en base
   let logId = null;
@@ -136,7 +151,7 @@ const envoyerSMSBillet = async (numero, ticket, pool) => {
       const [log] = await pool.query(
         `INSERT INTO sms_log (telephone, message, uuid_billet, statut, date_creation)
          VALUES (?, ?, ?, 'ENVOI_EN_COURS', NOW())`,
-        [numeroFull, message.substring(0, 500), ticket.uuid]
+        [numeroFull, message.substring(0, 500), ticket.quantite > 1 ? 'multi' : 'single']
       );
       logId = log.insertId;
     } catch (dbErr) {

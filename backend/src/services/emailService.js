@@ -126,17 +126,39 @@ const boutonCTA = (url, texte) => `
   <!--<![endif]-->`;
 
 // Envoie un email de confirmation de billet à l'acheteur
-// ticket: { uuid, numero, evenement, categorie, prix, dateAchat, qrPayload }
-// destinataire: email de l'acheteur
+// ticket: { evenement, dateDebut, lieu, categorie, prix, quantite, tickets?: [ { uuid, numero, qrPayload } ] }
+// Si ticket.tickets est fourni, tous les billets sont listés avec leur lien individuel
 const envoyerEmailBillet = async (destinataire, ticket) => {
   const baseUrl = process.env.TICKET_URL || "https://backend-beta-six-39.vercel.app/api/billets";
-  const lienBillet = `${baseUrl}/${ticket.uuid}`;
   const dateDebut = ticket.dateDebut ? new Date(ticket.dateDebut).toLocaleDateString("fr-FR", {
     day: "numeric", month: "long", year: "numeric"
   }) : "";
   const heureDebut = ticket.dateDebut ? new Date(ticket.dateDebut).toLocaleTimeString("fr-FR", {
     hour: "2-digit", minute: "2-digit"
   }) : "";
+
+  // Générer les blocs individuels pour chaque billet
+  const ticketsHtml = (ticket.tickets || []).map((t, i) => {
+    const lienBillet = `${baseUrl}/${t.uuid}`;
+    return `
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F0FDF4" style="background-color:#f0fdf4;border-radius:10px;margin-bottom:12px;">
+        <tr>
+          <td bgcolor="#F0FDF4" style="padding:14px 16px;background-color:#f0fdf4;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td>
+                  <span style="color:#6B7280;font-size:11px;font-family:Arial,Helvetica,sans-serif;">Billet ${i + 1}/${ticket.tickets.length}</span>
+                  <p style="color:#111827;font-size:13px;font-weight:700;margin:2px 0 0 0;font-family:Arial,Helvetica,sans-serif;">${t.numero}</p>
+                </td>
+                <td align="right" valign="middle">
+                  <a href="${lienBillet}" style="background:#15803D;border-radius:6px;color:#ffffff;font-family:Arial;font-size:12px;font-weight:700;line-height:34px;text-align:center;text-decoration:none;display:inline-block;padding:0 18px;">Voir →</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>`;
+  }).join('');
 
   const content = `
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-radius:16px;mso-border-radius:16px;">
@@ -157,7 +179,8 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
           </table>
 
           <h2 style="color:#111827;font-size:20px;margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;text-align:center;">Achat confirmé !</h2>
-          <p style="color:#6B7280;font-size:14px;margin:0 0 24px 0;font-family:Arial,Helvetica,sans-serif;text-align:center;">${ticket.evenement || 'Événement'}</p>
+          <p style="color:#6B7280;font-size:14px;margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;text-align:center;">${ticket.evenement || 'Événement'}</p>
+          ${ticket.quantite > 1 ? `<p style="color:#15803D;font-size:13px;margin:0 0 24px 0;font-family:Arial,Helvetica,sans-serif;text-align:center;font-weight:600;">${ticket.quantite} billets · ${(ticket.prix || 0).toLocaleString('fr-FR')} FCFA</p>` : ''}
 
           <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F9FAFB" style="background-color:#F9FAFB;border-radius:12px;mso-border-radius:12px;">
             <tr>
@@ -184,26 +207,31 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
                     <td style="padding:4px 0;border-top:1px solid #E5E7EB;padding-top:8px;text-align:right;"><span style="color:#111827;font-size:13px;font-weight:600;font-family:Arial,Helvetica,sans-serif;">${(ticket.categorie || 'STANDARD').toUpperCase()}</span></td>
                   </tr>
                   <tr>
-                    <td style="padding:4px 0;"><span style="color:#6B7280;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Référence</span></td>
-                    <td style="padding:4px 0;text-align:right;"><span style="color:#15803D;font-size:12px;font-family:monospace;font-weight:700;">${ticket.numero}</span></td>
+                    <td style="padding:4px 0;"><span style="color:#6B7280;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Billets</span></td>
+                    <td style="padding:4px 0;text-align:right;"><span style="color:#15803D;font-size:13px;font-weight:700;font-family:Arial,Helvetica,sans-serif;">${ticket.quantite || 1}</span></td>
                   </tr>
                 </table>
               </td>
             </tr>
           </table>
 
-          <table cellpadding="0" cellspacing="0" border="0" width="100%">
-            <tr>
-              <td align="center" style="padding:24px 0 0;">
-                <a href="${lienBillet}" style="background:linear-gradient(135deg,#15803D,#22C55E);border-radius:8px;color:#ffffff;font-family:Arial;font-size:14px;font-weight:700;line-height:44px;text-align:center;text-decoration:none;display:inline-block;padding:0 28px;">Voir mon billet →</a>
-              </td>
-            </tr>
-          </table>
+          ${ticket.tickets && ticket.tickets.length > 0 ? `
+            <p style="color:#111827;font-size:14px;font-weight:700;margin:20px 0 12px 0;font-family:Arial,Helvetica,sans-serif;">Vos billets</p>
+            ${ticketsHtml}
+          ` : `
+            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td align="center" style="padding:24px 0 0;">
+                  <a href="${baseUrl}/${ticket.uuid || '#'}" style="background:linear-gradient(135deg,#15803D,#22C55E);border-radius:8px;color:#ffffff;font-family:Arial;font-size:14px;font-weight:700;line-height:44px;text-align:center;text-decoration:none;display:inline-block;padding:0 28px;">Voir mon billet →</a>
+                </td>
+              </tr>
+            </table>
+          `}
         </td>
       </tr>
     </table>`;
 
-  return envoyerEmail(destinataire, `Votre billet · ${ticket.evenement || 'SENGUICHET'}`, emailLayout(content));
+  return envoyerEmail(destinataire, `${ticket.quantite > 1 ? `${ticket.quantite} billets · ` : ''}${ticket.evenement || 'SENGUICHET'}`, emailLayout(content));
 };
 
 // Envoie un code OTP à l'acheteur pour confirmer son email

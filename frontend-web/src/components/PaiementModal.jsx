@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2, CheckCircle, XCircle, ArrowRight, Smartphone, Ticket } from "lucide-react";
 import { acheterBillet } from "../services/billetService";
 import { statutPaiement } from "../services/paiementService";
 
 export default function PaiementModal({ open, onClose, evenementId, categories, titre }) {
+  const navigate = useNavigate();
   const [telephone, setTelephone] = useState("+221 ");
   const [email, setEmail] = useState(() => localStorage.getItem("@senguichet_acheteur_email") || "");
   const [etape, setEtape] = useState("form"); // form | pending | success | failed
@@ -160,7 +162,7 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
                 <p className="text-sm mt-2 mb-4" style={{ color: "#64748B" }}>
                   {totalAchetes} billet{totalAchetes > 1 ? "s" : ""} acheté{totalAchetes > 1 ? "s" : ""} avec succès.
                 </p>
-                <button onClick={() => { onClose(); window.location.href = "/acheteur/mes-billets"; }}
+                <button onClick={() => { onClose(); navigate("/acheteur/mes-billets"); }}
                   className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white"
                   style={{ background: "#15803D", border: "none", cursor: "pointer" }}>
                   Voir mes billets

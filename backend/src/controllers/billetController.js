@@ -188,8 +188,6 @@ const acheter = async (req, res) => {
       // Envoyer un SMS de confirmation à l'acheteur (fire-and-forget)
       const { envoyerSMSBillet } = require("../services/smsService");
       envoyerSMSBillet(telephone, {
-        uuid: premierBillet.uuid,
-        numero: premierBillet.numero,
         evenement: events[0].titre,
         categorie: cat.nom,
         prix: montantTotal,
@@ -200,14 +198,13 @@ const acheter = async (req, res) => {
       if (ticketEmail) {
         const { envoyerEmailBillet } = require("../services/emailService");
         envoyerEmailBillet(ticketEmail, {
-          uuid: premierBillet.uuid,
-          numero: premierBillet.numero,
           evenement: events[0].titre,
           dateDebut: events[0].date_debut,
           lieu: events[0].lieu,
           categorie: cat.nom,
           prix: montantTotal,
           quantite,
+          tickets: billetsCrees,
         }).catch(e => console.error("Email error:", e.message));
       }
 

@@ -1,25 +1,32 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Ticket, Calendar, MapPin, Search, X } from "lucide-react";
 import { mesBillets } from "../../services/billetService";
+import { useAuth } from "../../context/AuthContext";
 
 export default function MesBillets() {
+  const navigate = useNavigate();
+  const { userEmail, isAuthenticated } = useAuth();
   const [billets, setBillets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("actifs");
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/connexion-acheteur", { state: { from: "/acheteur/mes-billets" }, replace: true });
+      return;
+    }
     (async () => {
       try {
-        const email = localStorage.getItem("@senguichet_acheteur_email");
+        const email = userEmail || localStorage.getItem("@senguichet_acheteur_email");
         if (!email) return;
         const data = await mesBillets(email);
         const list = Array.isArray(data) ? data : data.billets || [];
         setBillets(list);
       } catch { } finally { setLoading(false); }
     })();
-  }, []);
+  }, [isAuthenticated, userEmail]);
 
   const { actifs, passes } = useMemo(() => {
     const now = new Date();
