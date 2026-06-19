@@ -7,7 +7,7 @@ import { useAuth } from "../../context/AuthContext";
 
 export default function MesBillets() {
   const navigate = useNavigate();
-  const { userEmail, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [billets, setBillets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("actifs");
@@ -19,14 +19,14 @@ export default function MesBillets() {
     }
     (async () => {
       try {
-        const email = userEmail || localStorage.getItem("@senguichet_acheteur_email");
+        const email = user?.email || localStorage.getItem("@senguichet_acheteur_email");
         if (!email) return;
         const data = await mesBillets(email);
         const list = Array.isArray(data) ? data : data.billets || [];
         setBillets(list);
       } catch { } finally { setLoading(false); }
     })();
-  }, [isAuthenticated, userEmail]);
+  }, [isAuthenticated, user?.email]);
 
   const { actifs, passes } = useMemo(() => {
     const now = new Date();

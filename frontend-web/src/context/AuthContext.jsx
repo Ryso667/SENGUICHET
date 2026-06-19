@@ -69,8 +69,21 @@ export const AuthProvider = ({ children }) => {
     });
   }, [login]);
 
+  // Crée une session acheteur légère sans OTP (utilisé après paiement)
+  // Permet à l'utilisateur de voir ses billets sans passer par la connexion OTP
+  const setBuyerSession = useCallback((email) => {
+    const token = "buyer_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+    const userData = { id: null, email, role: "ACHETEUR" };
+    login(userData, token);
+    localStorage.setItem("@senguichet_role", "acheteur");
+    localStorage.setItem("@senguichet_acheteur_email", email);
+    localStorage.setItem("@senguichet_acheteur_email_suggestion", email);
+    sessionStorage.setItem("@senguichet_jwt", token);
+    localStorage.setItem("@senguichet_profil", JSON.stringify({ nom: "", email }));
+  }, [login]);
+
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated, userRole, isLoading, login, logout, connecterAcheteurOTP }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated, userRole, isLoading, userEmail: user?.email || null, login, logout, connecterAcheteurOTP, setBuyerSession }}>
       {children}
     </AuthContext.Provider>
   );

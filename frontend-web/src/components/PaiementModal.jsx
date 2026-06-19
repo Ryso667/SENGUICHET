@@ -4,9 +4,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2, CheckCircle, XCircle, ArrowRight, Smartphone, Ticket } from "lucide-react";
 import { acheterBillet } from "../services/billetService";
 import { statutPaiement } from "../services/paiementService";
+import { useAuth } from "../context/AuthContext";
 
 export default function PaiementModal({ open, onClose, evenementId, categories, titre }) {
   const navigate = useNavigate();
+  const { setBuyerSession, isAuthenticated } = useAuth();
   const [telephone, setTelephone] = useState("+221 ");
   const [email, setEmail] = useState(() => localStorage.getItem("@senguichet_acheteur_email") || "");
   const [etape, setEtape] = useState("form"); // form | pending | success | failed
@@ -75,6 +77,10 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
     }
     setTotalAchetes(achetes);
     setEtape("success");
+    // Connecter l'utilisateur avec l'email utilisé pour l'achat
+    if (!isAuthenticated || !localStorage.getItem("@senguichet_acheteur_email") || localStorage.getItem("@senguichet_acheteur_email") !== email) {
+      setBuyerSession(email);
+    }
   };
 
   return (
@@ -126,7 +132,7 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
                     Email (pour recevoir vos billets)
                   </label>
                   <input type="email" value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    onChange={e => { setEmail(e.target.value); localStorage.setItem("@senguichet_acheteur_email", e.target.value); }}
                     placeholder="exemple@email.com"
                     className="w-full px-4 py-3 rounded-xl text-sm border"
                     style={{ borderColor: "#E8EEF4", background: "#F8FAFC", color: "#1a1a1a" }}

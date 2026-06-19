@@ -5,15 +5,31 @@ import { LogOut, Ticket, Mail, User } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Compte() {
-  const { logout } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const email = localStorage.getItem("@senguichet_acheteur_email") || "Non connecté";
+  const email = user?.email || localStorage.getItem("@senguichet_acheteur_email") || "Non connecté";
   const profil = JSON.parse(localStorage.getItem("@senguichet_profil") || "{}");
 
   const handleLogout = () => {
     logout();
     navigate("/", { replace: true });
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen p-4 flex items-center justify-center" style={{ background: "#F0F4F8" }}>
+        <div className="text-center">
+          <User size={48} className="mx-auto mb-3" style={{ color: "#94a3b8" }} />
+          <p style={{ color: "#64748B" }}>Vous n'êtes pas connecté</p>
+          <button onClick={() => navigate("/connexion-acheteur")}
+            className="mt-4 px-6 py-2.5 rounded-xl text-sm font-semibold text-white"
+            style={{ background: "#15803D", border: "none", cursor: "pointer" }}>
+            Se connecter
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4" style={{ background: "#F0F4F8" }}>
