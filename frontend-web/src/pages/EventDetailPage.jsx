@@ -47,12 +47,9 @@ export default function EventDetailPage() {
   const [achatCategories, setAchatCategories] = useState(null);
 
   useEffect(() => {
-    // Restaurer les quantités depuis sessionStorage après redirection auth
     const storedQ = sessionStorage.getItem("@senguichet_quantities");
     const storedId = sessionStorage.getItem("@senguichet_event_id");
     const storedRestore = storedQ && storedId === id;
-    if (storedRestore) sessionStorage.removeItem("@senguichet_quantities");
-    if (storedRestore) sessionStorage.removeItem("@senguichet_event_id");
 
     const fetchData = async () => {
       try {
@@ -70,14 +67,6 @@ export default function EventDetailPage() {
         if (storedRestore) {
           const saved = JSON.parse(storedQ);
           cats.forEach(c => { const k = c.id || c.nom; if (saved[k] != null) initQ[k] = saved[k]; });
-          // Auto-ouvrir le paiement après retour OTP — évite le double-clic "Acheter"
-          const selected = cats
-            .map(c => ({ id: c.id, nom: c.nom, prix: c.prix, quantite: saved[c.id || c.nom] || 0 }))
-            .filter(c => c.quantite > 0);
-          if (selected.length > 0) {
-            setAchatCategories(selected);
-            setShowPaiement(true);
-          }
         }
         setQuantities(initQ);
 
@@ -91,6 +80,24 @@ export default function EventDetailPage() {
     };
     fetchData();
   }, [id]);
+
+  // Détecter le retour OTP : dès que les catégories sont chargées et que
+  // sessionStorage contient les quantités, ouvrir le modal de paiement
+  useEffect(() => {
+    const storedQ = sessionStorage.getItem("@senguichet_quantities");
+    const storedId = sessionStorage.getItem("@senguichet_event_id");
+    if (!storedQ || storedId !== id || categories.length === 0) return;
+    sessionStorage.removeItem("@senguichet_quantities");
+    sessionStorage.removeItem("@senguichet_event_id");
+    const saved = JSON.parse(storedQ);
+    const selected = categories
+      .map(c => ({ id: c.id, nom: c.nom, prix: c.prix, quantite: saved[c.id || c.nom] || 0 }))
+      .filter(c => c.quantite > 0);
+    if (selected.length > 0) {
+      setAchatCategories(selected);
+      setShowPaiement(true);
+    }
+  }, [categories, id]);
 
   if (loading) {
     return (
