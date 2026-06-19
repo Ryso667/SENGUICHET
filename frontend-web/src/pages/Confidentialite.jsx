@@ -1,4 +1,4 @@
-/* Page Politique de Confidentialité
+/* Page Politique de Confidentialité — thème vert clair
    Conforme RGPD, Loi sénégalaise n°2008-12, Apple App Store & Google Play Store */
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -35,23 +35,23 @@ const contentMap = {
   responsable: (
     <>
       <p style={{ marginBottom: "12px" }}>Le responsable du traitement de vos données personnelles est :</p>
-      <p style={{ marginBottom: "8px", color: "#F1F5F9" }}><strong>SDP — Sen Digital Pulse</strong></p>
-      <p style={{ marginBottom: "4px" }}>Site web : <a href="https://sendigitalpulse.com" target="_blank" rel="noopener noreferrer" className="text-[#00C8FF] hover:underline">sendigitalpulse.com</a></p>
-      <p style={{ marginBottom: "4px" }}>Email : <a href="mailto:contact@senguichet.sn" className="text-[#00C8FF] hover:underline">contact@senguichet.sn</a></p>
+      <p style={{ marginBottom: "8px", color: "#111827" }}><strong>SDP — Sen Digital Pulse</strong></p>
+      <p style={{ marginBottom: "4px" }}>Site web : <a href="https://sendigitalpulse.com" target="_blank" rel="noopener noreferrer" className="text-[#15803D] hover:underline">sendigitalpulse.com</a></p>
+      <p style={{ marginBottom: "4px" }}>Email : <a href="mailto:contact@senguichet.sn" className="text-[#15803D] hover:underline">contact@senguichet.sn</a></p>
       <p style={{ marginBottom: "16px" }}>Adresse : Dakar, Sénégal</p>
-      <p>Pour toute question relative à vos données personnelles, contactez-nous à : <a href="mailto:privacy@senguichet.sn" className="text-[#00C8FF] hover:underline">privacy@senguichet.sn</a></p>
+      <p>Pour toute question relative à vos données personnelles, contactez-nous à : <a href="mailto:privacy@senguichet.sn" className="text-[#15803D] hover:underline">privacy@senguichet.sn</a></p>
     </>
   ),
   "donnees-collectees": (
     <>
-      <p className="text-[#00C8FF] font-semibold mb-2" style={{ fontSize: "15px" }}>3.1 Données que vous nous fournissez directement :</p>
+      <p className="text-[#15803D] font-semibold mb-2" style={{ fontSize: "15px" }}>3.1 Données que vous nous fournissez directement :</p>
       <ul className="list-disc pl-5 space-y-1 mb-4">
         <li>Numéro de téléphone (obligatoire pour l'authentification des acheteurs)</li>
         <li>Nom complet (pour les organisateurs)</li>
         <li>Adresse email (pour les organisateurs et administrateurs)</li>
         <li>Informations de paiement (numéro de téléphone mobile money — nous ne stockons pas les données de carte bancaire)</li>
       </ul>
-      <p className="text-[#00C8FF] font-semibold mb-2" style={{ fontSize: "15px" }}>3.2 Données collectées automatiquement :</p>
+      <p className="text-[#15803D] font-semibold mb-2" style={{ fontSize: "15px" }}>3.2 Données collectées automatiquement :</p>
       <ul className="list-disc pl-5 space-y-1 mb-4">
         <li>Données de transaction (montants, dates, références de paiement)</li>
         <li>Données d'utilisation (événements consultés, billets achetés)</li>
@@ -59,7 +59,7 @@ const contentMap = {
         <li>Adresse IP</li>
         <li>Type d'appareil et version du système d'exploitation</li>
       </ul>
-      <p className="text-[#00C8FF] font-semibold mb-2" style={{ fontSize: "15px" }}>3.3 Données que nous ne collectons PAS :</p>
+      <p className="text-[#15803D] font-semibold mb-2" style={{ fontSize: "15px" }}>3.3 Données que nous ne collectons PAS :</p>
       <ul className="list-disc pl-5 space-y-1">
         <li>Nous ne collectons pas votre localisation GPS en temps réel</li>
         <li>Nous ne collectons pas vos contacts</li>
@@ -74,27 +74,27 @@ const contentMap = {
       <p style={{ marginBottom: "12px" }}>Nous utilisons vos données uniquement pour les finalités suivantes :</p>
       <div className="space-y-4">
         <div>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ Authentification et sécurité</p>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ Authentification et sécurité</p>
           <p className="pl-5">Vérifier votre identité via code OTP envoyé par SMS à votre numéro de téléphone</p>
         </div>
         <div>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ Gestion des billets</p>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ Gestion des billets</p>
           <p className="pl-5">Générer, envoyer et valider vos billets électroniques (QR codes)</p>
         </div>
         <div>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ Traitement des paiements</p>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ Traitement des paiements</p>
           <p className="pl-5">Initier et confirmer les transactions via Wave, Orange Money, Free Money, Visa et Mastercard</p>
         </div>
         <div>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ Communication de service</p>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ Communication de service</p>
           <p className="pl-5">Vous envoyer des confirmations d'achat, rappels d'événements et notifications importantes par SMS</p>
         </div>
         <div>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ Prévention de la fraude</p>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ Prévention de la fraude</p>
           <p className="pl-5">Détecter et empêcher les utilisations frauduleuses de la plateforme</p>
         </div>
         <div>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ Amélioration du service</p>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ Amélioration du service</p>
           <p className="pl-5">Analyser l'utilisation de la plateforme pour améliorer nos fonctionnalités</p>
         </div>
       </div>
@@ -108,19 +108,19 @@ const contentMap = {
       <p style={{ marginBottom: "12px" }}>Conformément à la loi sénégalaise n°2008-12 du 25 janvier 2008 sur la protection des données personnelles et au RGPD, nos traitements reposent sur :</p>
       <div className="space-y-3">
         <div>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ L'exécution du contrat</p>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ L'exécution du contrat</p>
           <p className="pl-5">Le traitement est nécessaire pour vous fournir nos services de billetterie</p>
         </div>
         <div>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ Le consentement</p>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ Le consentement</p>
           <p className="pl-5">Pour les communications marketing (si vous y avez consenti)</p>
         </div>
         <div>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ L'intérêt légitime</p>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ L'intérêt légitime</p>
           <p className="pl-5">Pour la prévention de la fraude et la sécurité de la plateforme</p>
         </div>
         <div>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ L'obligation légale</p>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ L'obligation légale</p>
           <p className="pl-5">Pour la conservation des données financières requises par la loi</p>
         </div>
       </div>
@@ -128,14 +128,14 @@ const contentMap = {
   ),
   partage: (
     <>
-      <p className="text-[#00C8FF] font-semibold mb-2" style={{ fontSize: "15px" }}>6.1 Nous pouvons partager vos données avec :</p>
+      <p className="text-[#15803D] font-semibold mb-2" style={{ fontSize: "15px" }}>6.1 Nous pouvons partager vos données avec :</p>
       <ul className="list-disc pl-5 space-y-2 mb-4">
-        <li><strong style={{ color: "#F1F5F9" }}>Prestataires de paiement</strong> — Wave, Orange Money, Free Money, les réseaux Visa et Mastercard — uniquement les données nécessaires au traitement de votre transaction</li>
-        <li><strong style={{ color: "#F1F5F9" }}>Prestataires SMS</strong> — Firebase Authentication ou AfricasTalking — uniquement votre numéro de téléphone pour l'envoi de codes OTP et notifications</li>
-        <li><strong style={{ color: "#F1F5F9" }}>Hébergement et infrastructure</strong> — Nos prestataires techniques hébergent vos données de manière sécurisée</li>
-        <li><strong style={{ color: "#F1F5F9" }}>Autorités légales</strong> — Si la loi l'exige ou en cas de procédure judiciaire</li>
+        <li><strong style={{ color: "#111827" }}>Prestataires de paiement</strong> — Wave, Orange Money, Free Money, les réseaux Visa et Mastercard — uniquement les données nécessaires au traitement de votre transaction</li>
+        <li><strong style={{ color: "#111827" }}>Prestataires SMS</strong> — Firebase Authentication ou AfricasTalking — uniquement votre numéro de téléphone pour l'envoi de codes OTP et notifications</li>
+        <li><strong style={{ color: "#111827" }}>Hébergement et infrastructure</strong> — Nos prestataires techniques hébergent vos données de manière sécurisée</li>
+        <li><strong style={{ color: "#111827" }}>Autorités légales</strong> — Si la loi l'exige ou en cas de procédure judiciaire</li>
       </ul>
-      <p className="text-[#00C8FF] font-semibold mb-2" style={{ fontSize: "15px" }}>6.2 Nous ne partageons JAMAIS vos données avec :</p>
+      <p className="text-[#15803D] font-semibold mb-2" style={{ fontSize: "15px" }}>6.2 Nous ne partageons JAMAIS vos données avec :</p>
       <ul className="list-disc pl-5 space-y-1">
         <li>Des annonceurs ou régies publicitaires</li>
         <li>Des courtiers en données</li>
@@ -147,25 +147,25 @@ const contentMap = {
     <>
       <p style={{ marginBottom: "12px" }}>Nous conservons vos données selon les durées suivantes :</p>
       <div className="space-y-2">
-        <div className="flex justify-between items-start p-3 rounded-lg" style={{ background: "rgba(0,200,255,0.06)" }}>
+        <div className="flex justify-between items-start p-3 rounded-lg" style={{ background: "rgba(21,128,61,0.06)" }}>
           <span>Données de compte organisateur</span>
-          <span className="text-[#00C8FF] text-sm font-medium whitespace-nowrap ml-4">Partenariat + 5 ans</span>
+          <span className="text-[#15803D] text-sm font-medium whitespace-nowrap ml-4">Partenariat + 5 ans</span>
         </div>
-        <div className="flex justify-between items-start p-3 rounded-lg" style={{ background: "rgba(0,200,255,0.04)" }}>
+        <div className="flex justify-between items-start p-3 rounded-lg" style={{ background: "rgba(21,128,61,0.04)" }}>
           <span>Données de transaction et billets</span>
-          <span className="text-[#00C8FF] text-sm font-medium whitespace-nowrap ml-4">10 ans</span>
+          <span className="text-[#15803D] text-sm font-medium whitespace-nowrap ml-4">10 ans</span>
         </div>
-        <div className="flex justify-between items-start p-3 rounded-lg" style={{ background: "rgba(0,200,255,0.06)" }}>
+        <div className="flex justify-between items-start p-3 rounded-lg" style={{ background: "rgba(21,128,61,0.06)" }}>
           <span>Codes OTP</span>
-          <span className="text-[#00C8FF] text-sm font-medium whitespace-nowrap ml-4">5 minutes</span>
+          <span className="text-[#15803D] text-sm font-medium whitespace-nowrap ml-4">5 minutes</span>
         </div>
-        <div className="flex justify-between items-start p-3 rounded-lg" style={{ background: "rgba(0,200,255,0.04)" }}>
+        <div className="flex justify-between items-start p-3 rounded-lg" style={{ background: "rgba(21,128,61,0.04)" }}>
           <span>Données de navigation et logs</span>
-          <span className="text-[#00C8FF] text-sm font-medium whitespace-nowrap ml-4">12 mois</span>
+          <span className="text-[#15803D] text-sm font-medium whitespace-nowrap ml-4">12 mois</span>
         </div>
-        <div className="flex justify-between items-start p-3 rounded-lg" style={{ background: "rgba(0,200,255,0.06)" }}>
+        <div className="flex justify-between items-start p-3 rounded-lg" style={{ background: "rgba(21,128,61,0.06)" }}>
           <span>Données des acheteurs (numéro de téléphone)</span>
-          <span className="text-[#00C8FF] text-sm font-medium whitespace-nowrap ml-4">3 ans</span>
+          <span className="text-[#15803D] text-sm font-medium whitespace-nowrap ml-4">3 ans</span>
         </div>
       </div>
       <p className="mt-4">Après ces délais, vos données sont supprimées ou anonymisées de façon irréversible.</p>
@@ -193,56 +193,56 @@ const contentMap = {
     <>
       <p style={{ marginBottom: "12px" }}>Conformément à la loi sénégalaise n°2008-12 et au RGPD, vous disposez des droits suivants :</p>
       <div className="space-y-3">
-        <div className="p-3 rounded-lg" style={{ background: "rgba(0,200,255,0.06)" }}>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ Droit d'accès</p>
+        <div className="p-3 rounded-lg" style={{ background: "rgba(21,128,61,0.06)" }}>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ Droit d'accès</p>
           <p className="pl-5">Obtenir une copie de vos données personnelles que nous détenons</p>
         </div>
-        <div className="p-3 rounded-lg" style={{ background: "rgba(0,200,255,0.03)" }}>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ Droit de rectification</p>
+        <div className="p-3 rounded-lg" style={{ background: "rgba(21,128,61,0.03)" }}>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ Droit de rectification</p>
           <p className="pl-5">Corriger des données inexactes ou incomplètes</p>
         </div>
-        <div className="p-3 rounded-lg" style={{ background: "rgba(0,200,255,0.06)" }}>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ Droit à l'effacement</p>
+        <div className="p-3 rounded-lg" style={{ background: "rgba(21,128,61,0.06)" }}>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ Droit à l'effacement</p>
           <p className="pl-5">Demander la suppression de vos données (sous réserve des obligations légales de conservation)</p>
         </div>
-        <div className="p-3 rounded-lg" style={{ background: "rgba(0,200,255,0.03)" }}>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ Droit à la limitation du traitement</p>
+        <div className="p-3 rounded-lg" style={{ background: "rgba(21,128,61,0.03)" }}>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ Droit à la limitation du traitement</p>
           <p className="pl-5">Demander la suspension du traitement de vos données dans certains cas</p>
         </div>
-        <div className="p-3 rounded-lg" style={{ background: "rgba(0,200,255,0.06)" }}>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ Droit d'opposition</p>
+        <div className="p-3 rounded-lg" style={{ background: "rgba(21,128,61,0.06)" }}>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ Droit d'opposition</p>
           <p className="pl-5">Vous opposer au traitement de vos données pour des motifs légitimes</p>
         </div>
-        <div className="p-3 rounded-lg" style={{ background: "rgba(0,200,255,0.03)" }}>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ Droit à la portabilité</p>
+        <div className="p-3 rounded-lg" style={{ background: "rgba(21,128,61,0.03)" }}>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ Droit à la portabilité</p>
           <p className="pl-5">Recevoir vos données dans un format structuré et lisible par machine</p>
         </div>
-        <div className="p-3 rounded-lg" style={{ background: "rgba(0,200,255,0.06)" }}>
-          <p className="text-[#00C8FF] font-semibold" style={{ fontSize: "15px" }}>→ Droit de retirer votre consentement</p>
+        <div className="p-3 rounded-lg" style={{ background: "rgba(21,128,61,0.06)" }}>
+          <p className="text-[#15803D] font-semibold" style={{ fontSize: "15px" }}>→ Droit de retirer votre consentement</p>
           <p className="pl-5">À tout moment, sans affecter la licéité du traitement antérieur</p>
         </div>
       </div>
-      <div className="mt-5 p-4 rounded-lg" style={{ background: "rgba(0,200,255,0.08)", border: "1px solid rgba(0,200,255,0.15)" }}>
-        <p style={{ marginBottom: "8px", color: "#F1F5F9" }}><strong>Pour exercer ces droits :</strong></p>
-        <p>Email : <a href="mailto:privacy@senguichet.sn" className="text-[#00C8FF] hover:underline">privacy@senguichet.sn</a></p>
+      <div className="mt-5 p-4 rounded-lg" style={{ background: "rgba(21,128,61,0.08)", border: "1px solid rgba(21,128,61,0.15)" }}>
+        <p style={{ marginBottom: "8px", color: "#111827" }}><strong>Pour exercer ces droits :</strong></p>
+        <p>Email : <a href="mailto:privacy@senguichet.sn" className="text-[#15803D] hover:underline">privacy@senguichet.sn</a></p>
         <p>Nous répondons dans un délai de 30 jours.</p>
-        <p className="mt-2">Vous pouvez également introduire une réclamation auprès de la <strong style={{ color: "#F1F5F9" }}>Commission de Protection des Données Personnelles (CDP)</strong> du Sénégal : <a href="https://www.cdp.sn" target="_blank" rel="noopener noreferrer" className="text-[#00C8FF] hover:underline">www.cdp.sn</a></p>
+        <p className="mt-2">Vous pouvez également introduire une réclamation auprès de la <strong style={{ color: "#111827" }}>Commission de Protection des Données Personnelles (CDP)</strong> du Sénégal : <a href="https://www.cdp.sn" target="_blank" rel="noopener noreferrer" className="text-[#15803D] hover:underline">www.cdp.sn</a></p>
       </div>
     </>
   ),
   mineurs: (
     <>
       <p style={{ marginBottom: "8px" }}>SENGUICHET ne collecte pas sciemment de données personnelles concernant des enfants de moins de 18 ans.</p>
-      <p style={{ marginBottom: "8px" }}>Si vous êtes parent ou tuteur et pensez que votre enfant nous a fourni des données personnelles, contactez-nous immédiatement à <a href="mailto:privacy@senguichet.sn" className="text-[#00C8FF] hover:underline">privacy@senguichet.sn</a> et nous supprimerons ces informations dans les plus brefs délais.</p>
+      <p style={{ marginBottom: "8px" }}>Si vous êtes parent ou tuteur et pensez que votre enfant nous a fourni des données personnelles, contactez-nous immédiatement à <a href="mailto:privacy@senguichet.sn" className="text-[#15803D] hover:underline">privacy@senguichet.sn</a> et nous supprimerons ces informations dans les plus brefs délais.</p>
       <p>L'utilisation de nos services est réservée aux personnes majeures (18 ans et plus).</p>
     </>
   ),
   cookies: (
     <>
-      <p className="text-[#00C8FF] font-semibold mb-2" style={{ fontSize: "15px" }}>Notre site web utilise uniquement :</p>
+      <p className="text-[#15803D] font-semibold mb-2" style={{ fontSize: "15px" }}>Notre site web utilise uniquement :</p>
       <ul className="list-disc pl-5 space-y-1 mb-4">
-        <li><strong style={{ color: "#F1F5F9" }}>Cookies strictement nécessaires</strong> — Pour maintenir votre session de connexion et assurer la sécurité du site</li>
-        <li><strong style={{ color: "#F1F5F9" }}>Cookies de performance</strong> — Pour mesurer l'utilisation du site de façon anonyme et améliorer nos services</li>
+        <li><strong style={{ color: "#111827" }}>Cookies strictement nécessaires</strong> — Pour maintenir votre session de connexion et assurer la sécurité du site</li>
+        <li><strong style={{ color: "#111827" }}>Cookies de performance</strong> — Pour mesurer l'utilisation du site de façon anonyme et améliorer nos services</li>
       </ul>
       <p style={{ marginBottom: "8px" }}>Nous n'utilisons pas de cookies publicitaires ou de tracking tiers.</p>
       <p style={{ marginBottom: "8px" }}>Vous pouvez configurer votre navigateur pour refuser les cookies, mais certaines fonctionnalités du site pourraient ne plus fonctionner correctement.</p>
@@ -258,7 +258,7 @@ const contentMap = {
         <li>Le niveau de protection est équivalent à celui exigé par la loi sénégalaise</li>
         <li>Des clauses contractuelles types sont signées avec ces prestataires</li>
       </ul>
-      <p className="text-[#00C8FF] font-semibold mb-2" style={{ fontSize: "15px" }}>Les principaux transferts concernent :</p>
+      <p className="text-[#15803D] font-semibold mb-2" style={{ fontSize: "15px" }}>Les principaux transferts concernent :</p>
       <ul className="list-disc pl-5 space-y-1">
         <li>Firebase (Google) — authentification OTP</li>
         <li>Cloudinary — stockage des médias</li>
@@ -281,12 +281,12 @@ const contentMap = {
   contact: (
     <>
       <p style={{ marginBottom: "12px" }}>Pour toute question relative à cette politique de confidentialité :</p>
-      <p style={{ marginBottom: "4px" }}>Email : <a href="mailto:privacy@senguichet.sn" className="text-[#00C8FF] hover:underline">privacy@senguichet.sn</a></p>
+      <p style={{ marginBottom: "4px" }}>Email : <a href="mailto:privacy@senguichet.sn" className="text-[#15803D] hover:underline">privacy@senguichet.sn</a></p>
       <p style={{ marginBottom: "16px" }}>Courrier : SDP — Sen Digital Pulse, Dakar, Sénégal</p>
-      <div className="p-4 rounded-lg" style={{ background: "rgba(0,200,255,0.08)", border: "1px solid rgba(0,200,255,0.15)" }}>
-        <p style={{ color: "#F1F5F9", marginBottom: "4px" }}><strong>Autorité de contrôle sénégalaise :</strong></p>
+      <div className="p-4 rounded-lg" style={{ background: "rgba(21,128,61,0.08)", border: "1px solid rgba(21,128,61,0.15)" }}>
+        <p style={{ color: "#111827", marginBottom: "4px" }}><strong>Autorité de contrôle sénégalaise :</strong></p>
         <p>Commission de Protection des Données Personnelles (CDP)</p>
-        <p>Site : <a href="https://www.cdp.sn" target="_blank" rel="noopener noreferrer" className="text-[#00C8FF] hover:underline">www.cdp.sn</a></p>
+        <p>Site : <a href="https://www.cdp.sn" target="_blank" rel="noopener noreferrer" className="text-[#15803D] hover:underline">www.cdp.sn</a></p>
       </div>
     </>
   ),
@@ -320,15 +320,14 @@ const Confidentialite = () => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}><div className="min-h-screen bg-[#0D1B2A]">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}><div className="min-h-screen bg-[#FAFAFA]">
       
       <main className="max-w-[800px] mx-auto px-4 pt-32 pb-20">
         <div
           className="rounded-2xl p-8 md:p-10 mb-8"
           style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.06)",
-            backdropFilter: "blur(12px)",
+            background: "#FFFFFF",
+            border: "1px solid #E5E7EB",
           }}
         >
           <button
@@ -345,9 +344,7 @@ const Confidentialite = () => {
             className="text-3xl md:text-4xl font-bold mb-2"
             style={{
               fontFamily: "Outfit, sans-serif",
-              background: "linear-gradient(135deg, #F1F5F9 0%, #94A3B8 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              color: "#111827",
             }}
           >
             Politique de Confidentialité
@@ -359,13 +356,13 @@ const Confidentialite = () => {
           <div
             className="rounded-xl p-6 mb-8"
             style={{
-              background: "rgba(0,200,255,0.06)",
-              border: "1px solid rgba(0,200,255,0.12)",
+              background: "rgba(21,128,61,0.06)",
+              border: "1px solid rgba(21,128,61,0.12)",
             }}
           >
             <p
               className="text-sm font-semibold mb-3"
-              style={{ color: "#00C8FF", fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: "0.05em", textTransform: "uppercase" }}
+              style={{ color: "#15803D", fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: "0.05em", textTransform: "uppercase" }}
             >
               Table des matières
             </p>
@@ -374,12 +371,12 @@ const Confidentialite = () => {
                 <a
                   key={s.id}
                   href={`#${s.id}`}
-                  className="text-sm hover:text-[#00C8FF] transition-colors"
+                  className="text-sm hover:text-[#15803D] transition-colors"
                   style={{
-                    color: activeSection === s.id ? "#00C8FF" : "rgba(255,255,255,0.55)",
+                    color: activeSection === s.id ? "#15803D" : "#6B7280",
                     textDecoration: "none",
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    borderLeft: activeSection === s.id ? "2px solid #00C8FF" : "2px solid transparent",
+                    borderLeft: activeSection === s.id ? "2px solid #15803D" : "2px solid transparent",
                     paddingLeft: "8px",
                   }}
                 >
@@ -396,16 +393,16 @@ const Confidentialite = () => {
                 id={section.id}
                 className="scroll-mt-28 rounded-xl p-6 md:p-7"
                 style={{
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.06)",
+                  background: "#F9FAFB",
+                  border: "1px solid #E5E7EB",
                 }}
               >
                 <div className="flex items-center gap-3 mb-4">
                   <span
                     className="text-sm font-bold rounded-full w-7 h-7 flex items-center justify-center"
                     style={{
-                      background: "rgba(0,200,255,0.15)",
-                      color: "#00C8FF",
+                      background: "rgba(21,128,61,0.15)",
+                      color: "#15803D",
                       fontFamily: "'Plus Jakarta Sans', sans-serif",
                       flexShrink: 0,
                     }}
@@ -415,7 +412,7 @@ const Confidentialite = () => {
                   <h2
                     className="text-lg font-semibold"
                     style={{
-                      color: "#00C8FF",
+                      color: "#15803D",
                       fontFamily: "Outfit, sans-serif",
                     }}
                   >
@@ -424,8 +421,8 @@ const Confidentialite = () => {
                 </div>
                 <div
                   style={{
-                    color: "#E5E7EB",
-                    fontSize: "14px",
+                      color: "#6B7280",
+                      fontSize: "14px",
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
                     lineHeight: "1.7",
                   }}
@@ -444,7 +441,7 @@ const Confidentialite = () => {
           aria-label="Retour en haut"
           className="fixed bottom-6 right-6 w-11 h-11 rounded-full flex items-center justify-center shadow-lg z-50 transition-all duration-300 hover:scale-110"
           style={{
-            background: "linear-gradient(135deg, #00C8FF, #0077FF)",
+            background: "linear-gradient(135deg, #15803D, #22C55E)",
             border: "none",
             cursor: "pointer",
             color: "#fff",

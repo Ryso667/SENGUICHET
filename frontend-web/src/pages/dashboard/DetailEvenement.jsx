@@ -65,7 +65,7 @@ const DetailEvenement = () => {
     return (
       <DashboardLayout title={<span style={{display:"flex",alignItems:"center",gap:"8px"}}><Ticket size={20} /> Détail événement</span>}>
         <div className="flex items-center justify-center py-20">
-          <p style={{ color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "6px" }}><Loader size={16} /> Chargement...</p>
+          <p style={{ color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: "6px" }}><Loader size={16} /> Chargement...</p>
         </div>
       </DashboardLayout>
     );
@@ -87,7 +87,7 @@ const DetailEvenement = () => {
   return (
     <DashboardLayout title={ev.titre}>
       <div className="max-w-4xl mx-auto">
-        <div className="glass-card p-6 sm:p-8 mb-6" style={{ animation: "fadeInUp 0.4s ease" }}>
+        <div className="p-6 sm:p-8 mb-6 rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)", animation: "fadeInUp 0.4s ease" }}>
           {ev.affiche_url ? (
             <div className="relative w-full overflow-hidden rounded-xl mb-6" style={{ height: "360px" }}>
               <img
@@ -96,7 +96,7 @@ const DetailEvenement = () => {
                 className="absolute inset-0 w-full h-full object-cover"
               />
               <div className="absolute inset-0" style={{
-                background: "linear-gradient(to top, rgba(10,11,26,0.95) 0%, rgba(10,11,26,0.25) 45%, transparent 65%)"
+                background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 45%, transparent 65%)"
               }} />
               <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
                 <div className="flex items-center gap-2 mb-2">
@@ -112,8 +112,8 @@ const DetailEvenement = () => {
           ) : (
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-2xl font-bold" style={{ fontFamily: "Outfit, sans-serif", color: "#F1F5F9" }}>{ev.titre}</h1>
-                {ev.categorie && <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>{ev.categorie}</p>}
+                <h1 className="text-2xl font-bold" style={{ fontFamily: "Outfit, sans-serif", color: "var(--color-text-primary)" }}>{ev.titre}</h1>
+                {ev.categorie && <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>{ev.categorie}</p>}
               </div>
               <span className={`badge ${ev.statut === "actif" ? "badge-active" : ev.statut === "en_attente" ? "badge-pending" : "badge-sold-out"}`}>
                 {ev.statut === "actif" ? <><Calendar size={14} /> ACTIF</> : ev.statut === "en_attente" ? <><Ticket size={14} /> ATTENTE</> : ev.statut === "suspendu" ? <><X size={14} /> ANNULÉ</> : <><X size={14} /> TERMINÉ</>}
@@ -122,21 +122,21 @@ const DetailEvenement = () => {
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.03)" }}>
-              <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>Date</p>
-              <p className="text-sm font-medium" style={{ color: "#F1F5F9" }}>{dateStr} à {timeStr}</p>
+            <div className="p-4 rounded-xl" style={{ background: "rgba(0,0,0,0.02)" }}>
+              <p className="text-xs mb-1" style={{ color: "var(--color-text-muted)" }}>Date</p>
+              <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>{dateStr} à {timeStr}</p>
             </div>
-            <div className="p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.03)" }}>
-              <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>Lieu</p>
-              <p className="text-sm font-medium" style={{ color: "#F1F5F9" }}>{ev.lieu}{ev.ville ? `, ${ev.ville}` : ""}</p>
+            <div className="p-4 rounded-xl" style={{ background: "rgba(0,0,0,0.02)" }}>
+              <p className="text-xs mb-1" style={{ color: "var(--color-text-muted)" }}>Lieu</p>
+              <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>{ev.lieu}{ev.ville ? `, ${ev.ville}` : ""}</p>
             </div>
-            <div className="p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.03)" }}>
-              <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>Capacité</p>
-              <p className="text-sm font-medium" style={{ color: "#F1F5F9" }}>{ev.capacite_totale} personnes</p>
+            <div className="p-4 rounded-xl" style={{ background: "rgba(0,0,0,0.02)" }}>
+              <p className="text-xs mb-1" style={{ color: "var(--color-text-muted)" }}>Capacité</p>
+              <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>{ev.capacite_totale} personnes</p>
             </div>
-            <div className="p-4 rounded-xl" style={{ background: "rgba(0,200,255,0.06)" }}>
-              <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>Code contrôleur</p>
-              <p className="text-sm font-mono font-bold tracking-widest" style={{ color: "#00C8FF" }}>
+            <div className="p-4 rounded-xl" style={{ background: "rgba(21,128,61,0.06)" }}>
+              <p className="text-xs mb-1" style={{ color: "var(--color-text-muted)" }}>Code contrôleur</p>
+              <p className="text-sm font-mono font-bold tracking-widest" style={{ color: "var(--color-accent)" }}>
                 {ev.code_controleur || '-'}
               </p>
             </div>
@@ -144,19 +144,19 @@ const DetailEvenement = () => {
 
           {ev.description && (
             <div className="mb-6">
-              <p className="text-xs mb-2" style={{ color: "rgba(255,255,255,0.35)" }}>Description</p>
-              <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.7)" }}>{ev.description}</p>
+              <p className="text-xs mb-2" style={{ color: "var(--color-text-muted)" }}>Description</p>
+              <p className="text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>{ev.description}</p>
             </div>
           )}
 
-          <div className="flex items-center gap-4 p-4 rounded-xl mb-6" style={{ background: "rgba(0,200,255,0.08)", border: "1px solid rgba(0,200,255,0.2)" }}>
+          <div className="flex items-center gap-4 p-4 rounded-xl mb-6" style={{ background: "rgba(21,128,61,0.06)", border: "1px solid rgba(21,128,61,0.2)" }}>
             <div className="flex-1">
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>Places vendues</p>
-              <p className="text-lg font-bold text-accent" style={{ fontFamily: "Outfit, sans-serif" }}>{placesVendues}/{totalPlaces}</p>
+              <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>Places vendues</p>
+              <p className="text-lg font-bold" style={{ color: "var(--color-accent)", fontFamily: "Outfit, sans-serif" }}>{placesVendues}/{totalPlaces}</p>
             </div>
             <div className="flex-1">
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>Taux</p>
-              <p className="text-lg font-bold text-accent" style={{ fontFamily: "Outfit, sans-serif" }}>
+              <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>Taux</p>
+              <p className="text-lg font-bold" style={{ color: "var(--color-accent)", fontFamily: "Outfit, sans-serif" }}>
                 {totalPlaces > 0 ? Math.round((placesVendues / totalPlaces) * 100) : 0}%
               </p>
             </div>
@@ -173,22 +173,22 @@ const DetailEvenement = () => {
         </div>
 
         <div className="glass-card p-6 sm:p-8 mb-6" style={{ animation: "fadeInUp 0.4s ease 0.1s both" }}>
-          <h2 className="text-lg font-bold mb-6" style={{ fontFamily: "Outfit, sans-serif", color: "#F1F5F9", display:"flex", alignItems:"center", gap:"8px" }}><Calendar size={18} /> Catégories de tickets</h2>
+          <h2 className="text-lg font-bold mb-6" style={{ fontFamily: "Outfit, sans-serif", color: "var(--color-text-primary)", display:"flex", alignItems:"center", gap:"8px" }}><Calendar size={18} /> Catégories de tickets</h2>
           {tickets.length === 0 ? (
-            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Aucun billet configuré</p>
+            <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>Aucun billet configuré</p>
           ) : (
             <div className="space-y-3">
               {tickets.map((t) => (
-                <div key={t.id} className="flex items-center justify-between p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.03)" }}>
+                <div key={t.id} className="flex items-center justify-between p-4 rounded-xl" style={{ background: "rgba(0,0,0,0.02)" }}>
                   <div>
-                    <p className="text-sm font-medium" style={{ color: "#F1F5F9" }}>{t.nom}</p>
-                    {t.description && <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>{t.description}</p>}
+                    <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>{t.nom}</p>
+                    {t.description && <p className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>{t.description}</p>}
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-accent" style={{ fontFamily: "Outfit, sans-serif" }}>
+                    <p className="text-sm font-semibold" style={{ color: "var(--color-accent)", fontFamily: "Outfit, sans-serif" }}>
                       {parseInt(t.prix).toLocaleString()} FCFA
                     </p>
-                    <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                    <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                       {t.capacite - t.places_disponibles}/{t.capacite} vendus
                     </p>
                   </div>
@@ -205,12 +205,12 @@ const DetailEvenement = () => {
           style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
           onClick={(e) => { if (e.target === e.currentTarget) setModalOpen(false); }}
         >
-          <div className="w-full max-w-xl rounded-2xl p-6 sm:p-8" style={{ background: "#152232", border: "1px solid var(--border)", boxShadow: "0 24px 80px rgba(0,0,0,0.6)", maxHeight: "90vh", overflowY: "auto" }}>
+          <div className="w-full max-w-xl rounded-2xl p-6 sm:p-8" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)", boxShadow: "0 24px 80px rgba(0,0,0,0.3)", maxHeight: "90vh", overflowY: "auto" }}>
             {demandeSent ? (
               <div className="text-center py-6">
                 <Check size={40} style={{ color: "var(--success)" }} />
-                <h3 className="text-lg font-bold text-white mb-2" style={{ fontFamily: "Outfit, sans-serif" }}>Demande envoyée</h3>
-                <p className="text-sm" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <h3 className="text-lg font-bold mb-2" style={{ color: "var(--color-text-primary)", fontFamily: "Outfit, sans-serif" }}>Demande envoyée</h3>
+                <p className="text-sm" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   L'équipe SenGuichet examinera votre demande et vous tiendra informé.
                 </p>
                 <button onClick={() => setModalOpen(false)} className="btn-primary mt-6">Fermer</button>
@@ -218,17 +218,17 @@ const DetailEvenement = () => {
             ) : (
               <>
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-bold text-white" style={{ fontFamily: "Outfit, sans-serif" }}>
+                  <h3 className="text-lg font-bold" style={{ color: "var(--color-text-primary)", fontFamily: "Outfit, sans-serif" }}>
                     {modalType === "SUPPRESSION" ? <><X size={16} /> Demander la suppression</> : <><Edit size={16} /> Demander une modification</>}
                   </h3>
-                  <button onClick={() => setModalOpen(false)} style={{ color: "rgba(255,255,255,0.4)", background: "none", border: "none", cursor: "pointer" }}><X size={18} /></button>
+                  <button onClick={() => setModalOpen(false)} style={{ color: "var(--color-text-muted)", background: "none", border: "none", cursor: "pointer" }}><X size={18} /></button>
                 </div>
                 {error && (
                   <div className="mb-4 p-3 rounded-xl text-xs" style={{ background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.2)", color: "var(--error)" }}>{error}</div>
                 )}
                 <form onSubmit={handleSendDemande} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       Détails de la demande <span style={{ color: "var(--error)" }}>*</span>
                     </label>
                     <textarea

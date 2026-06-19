@@ -53,7 +53,7 @@ const MesEvenements = () => {
     return (
       <DashboardLayout title="Mes événements">
         <div className="flex items-center justify-center py-20">
-          <p style={{ color: "var(--text-secondary)" }}>Chargement...</p>
+          <p style={{ color: "var(--color-text-muted)" }}>Chargement...</p>
         </div>
       </DashboardLayout>
     );
@@ -63,7 +63,7 @@ const MesEvenements = () => {
     <DashboardLayout title="Mes événements">
       <div className="max-w-6xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>Mes événements</h1>
+          <h1 className="text-2xl font-bold" style={{ color: "var(--color-text-primary)", fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>Mes événements</h1>
           <button
             onClick={() => navigate("/dashboard/demandes")}
             className="btn-primary btn-md sm:w-auto w-full"
@@ -72,7 +72,7 @@ const MesEvenements = () => {
           </button>
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-6 p-1.5 rounded-2xl" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="flex flex-wrap gap-2 mb-6 p-1.5 rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
           {tabs.map((t) => (
             <button
               key={t}
@@ -81,7 +81,7 @@ const MesEvenements = () => {
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
                 background: activeTab === t ? "var(--gradient)" : "transparent",
-                color: activeTab === t ? "white" : "rgba(255,255,255,0.5)",
+                  color: activeTab === t ? "white" : "var(--color-text-muted)",
                 border: activeTab === t ? "none" : "1px solid transparent",
               }}
             >
@@ -101,37 +101,37 @@ const MesEvenements = () => {
             onChange={(e) => setCatFilter(e.target.value)}
             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           >
-            <option style={{ color: "#1a1a2e" }} value="">Toutes catégories</option>
+            <option value="">Toutes catégories</option>
             {categories.map((c) => (
-              <option key={c} value={c} style={{ color: "#1a1a2e" }}>{c}</option>
+              <option key={c} value={c}>{c}</option>
             ))}
           </select>
         </div>
 
         {filtered.length === 0 ? (
-          <div className="glass-card p-12 text-center">
+          <div className="p-12 text-center rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
             <div className="text-6xl mb-4">🎫</div>
-            <h2 className="text-lg font-bold mb-2" style={{ fontFamily: "Outfit, sans-serif", color: "white" }}>Aucun événement trouvé</h2>
-            <p className="text-sm mb-6" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <h2 className="text-lg font-bold mb-2" style={{ fontFamily: "Outfit, sans-serif", color: "var(--color-text-primary)" }}>Aucun événement trouvé</h2>
+            <p className="text-sm mb-6" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Vous n'avez pas encore d'événement. Faites une demande à l'équipe SENGUICHET.
             </p>
             <button onClick={() => navigate("/dashboard/demandes")} className="btn-primary">Demander un événement</button>
           </div>
         ) : (
           <>
-            <div className="hidden md:block glass-card overflow-hidden">
+            <div className="hidden md:block overflow-hidden rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
               <table className="w-full text-sm" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
+                  <tr style={{ borderBottom: "1px solid var(--color-border)", background: "rgba(0,0,0,0.02)" }}>
                     {["Événement", "Date", "Lieu", "Billets", "Progression", "Statut", "Actions"].map((h) => (
-                      <th key={h} className="text-left px-5 py-4 text-xs font-medium" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{h}</th>
+                      <th key={h} className="text-left px-5 py-4 text-xs font-medium" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map((e) => (
-                    <tr key={e.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", transition: "background 150ms" }}
-                      onMouseEnter={(el) => el.currentTarget.style.background = "rgba(255,255,255,0.02)"}
+                    <tr key={e.id} style={{ borderBottom: "1px solid var(--color-border)", transition: "background 150ms" }}
+                      onMouseEnter={(el) => el.currentTarget.style.background = "rgba(0,0,0,0.02)"}
                       onMouseLeave={(el) => el.currentTarget.style.background = "transparent"}
                     >
                       <td className="px-5 py-4">
@@ -140,20 +140,20 @@ const MesEvenements = () => {
                             <img src={normalizeImageUrl(e.affiche_url) || "/images/event-1.jpg"} alt={e.nom} className="w-full h-full object-cover" />
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-white" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 600 }}>{e.nom}</p>
-                            <p className="text-[11px]" style={{ color: "var(--text-secondary)" }}>{e.categorie}</p>
+                            <p className="text-sm font-semibold" style={{ color: "var(--color-text-primary)", fontFamily: "Outfit, sans-serif", fontWeight: 600 }}>{e.nom}</p>
+                            <p className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>{e.categorie}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>{e.date}</td>
-                      <td className="px-5 py-4 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>{e.lieu}</td>
-                      <td className="px-5 py-4 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>{e.remplis}/{e.capacite}</td>
+                      <td className="px-5 py-4 text-sm" style={{ color: "var(--color-text-secondary)" }}>{e.date}</td>
+                      <td className="px-5 py-4 text-sm" style={{ color: "var(--color-text-secondary)" }}>{e.lieu}</td>
+                      <td className="px-5 py-4 text-sm" style={{ color: "var(--color-text-secondary)" }}>{e.remplis}/{e.capacite}</td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-20 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.08)" }}>
+                          <div className="w-20 h-1.5 rounded-full" style={{ background: "rgba(0,0,0,0.06)" }}>
                             <div className="h-1.5 rounded-full" style={{ width: `${(e.remplis / e.capacite) * 100}%`, background: "var(--gradient)" }} />
                           </div>
-                          <span className="text-xs" style={{ color: "var(--text-secondary)" }}>{Math.round((e.remplis / e.capacite) * 100)}%</span>
+                          <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>{Math.round((e.remplis / e.capacite) * 100)}%</span>
                         </div>
                       </td>
                       <td className="px-5 py-4">
@@ -166,11 +166,11 @@ const MesEvenements = () => {
                           onClick={() => navigate(`/dashboard/evenements/${e.id}`)}
                           className="px-4 py-1.5 rounded-xl text-xs font-medium transition-all"
                           style={{
-                            border: "1px solid rgba(0,200,255,0.3)",
-                            color: "var(--primary)",
+                            border: "1px solid rgba(21,128,61,0.3)",
+                            color: "var(--color-accent)",
                             background: "transparent",
                           }}
-                          onMouseEnter={(el) => { el.currentTarget.style.background = "rgba(0,200,255,0.1)"; }}
+                          onMouseEnter={(el) => { el.currentTarget.style.background = "rgba(21,128,61,0.06)"; }}
                           onMouseLeave={(el) => { el.currentTarget.style.background = "transparent"; }}
                         >
                           Voir les détails
@@ -184,24 +184,24 @@ const MesEvenements = () => {
 
             <div className="md:hidden space-y-4">
               {filtered.map((e) => (
-                <div key={e.id} className="glass-card overflow-hidden">
+                <div key={e.id} className="overflow-hidden rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
                   <div className="relative h-[120px] overflow-hidden">
                     <img src={normalizeImageUrl(e.affiche_url) || "/images/event-1.jpg"} alt={e.nom} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(10,11,26,0.9), transparent)" }} />
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)" }} />
                     <span className="absolute top-3 right-3">
                       <span className={`badge ${(badgeConfig[e.statut] || badgeConfig.annule).cls}`}>
                         {(badgeConfig[e.statut] || badgeConfig.annule).label}
                       </span>
                     </span>
                     <div className="absolute bottom-3 left-4 right-4">
-                      <p className="text-sm font-semibold text-white" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 600 }}>{e.nom}</p>
+                      <p className="text-sm font-semibold" style={{ color: "#FFFFFF", fontFamily: "Outfit, sans-serif", fontWeight: 600 }}>{e.nom}</p>
                       <p className="text-xs" style={{ color: "rgba(255,255,255,0.6)" }}>{e.date} · {e.lieu}</p>
                     </div>
                   </div>
                   <div className="p-4">
                     <div className="flex items-center justify-between text-sm mb-3">
-                      <span style={{ color: "var(--text-secondary)" }}>{e.remplis}/{e.capacite} places</span>
-                      <span className="text-accent font-semibold" style={{ fontFamily: "Outfit, sans-serif" }}>{e.revenus}</span>
+                      <span style={{ color: "var(--color-text-muted)" }}>{e.remplis}/{e.capacite} places</span>
+                      <span className="font-semibold" style={{ color: "var(--color-accent)", fontFamily: "Outfit, sans-serif" }}>{e.revenus}</span>
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => navigate(`/dashboard/evenements/${e.id}`)} className="btn-primary btn-sm flex-1">Voir les détails</button>

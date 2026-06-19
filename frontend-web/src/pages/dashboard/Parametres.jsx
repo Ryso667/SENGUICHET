@@ -27,10 +27,10 @@ const Parametres = () => {
     <button
       onClick={() => setVal(!val)}
       className="w-12 h-6 rounded-full relative transition-all"
-      style={{ background: val ? "rgba(0,200,255,0.4)" : "rgba(255,255,255,0.1)" }}
+      style={{ background: val ? "rgba(21,128,61,0.35)" : "rgba(0,0,0,0.1)" }}
     >
       <div className={`w-5 h-5 rounded-full absolute top-0.5 transition-all ${val ? "left-[26px]" : "left-0.5"}`}
-        style={{ background: val ? "var(--primary)" : "rgba(255,255,255,0.3)" }} />
+        style={{ background: val ? "var(--color-accent)" : "rgba(0,0,0,0.25)" }} />
     </button>
   );
 
@@ -40,32 +40,32 @@ const Parametres = () => {
         {sections.map((s) => {
           const isOpen = open === s.key;
           return (
-            <div key={s.key} className="glass-card overflow-hidden">
+            <div key={s.key} className="overflow-hidden rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
               <button
                 onClick={() => setOpen(isOpen ? null : s.key)}
                 className="w-full flex items-center justify-between px-6 py-4 text-left"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-lg">{s.icon}</span>
-                  <span className="font-medium text-white" style={{ fontFamily: "Outfit, sans-serif" }}>{s.label}</span>
+                  <span className="font-medium" style={{ color: "var(--color-text-primary)", fontFamily: "Outfit, sans-serif" }}>{s.label}</span>
                 </div>
-                <span className="text-sm transition-transform" style={{ color: "var(--text-secondary)", transform: isOpen ? "rotate(180deg)" : "none" }}>▾</span>
+                <span className="text-sm transition-transform" style={{ color: "var(--color-text-muted)", transform: isOpen ? "rotate(180deg)" : "none" }}>▾</span>
               </button>
 
               {isOpen && (
-                <div className="px-6 pb-6 space-y-4 border-t" style={{ borderColor: "rgba(255,255,255,0.06)", paddingTop: 20 }}>
+                <div className="px-6 pb-6 space-y-4 border-t" style={{ borderColor: "var(--color-border)", paddingTop: 20 }}>
                   {s.key === "profil" && (
                     <>
                       <div>
-                        <label className="block text-xs mb-2" style={{ color: "rgba(255,255,255,0.65)" }}>Nom</label>
+                        <label className="block text-xs mb-2" style={{ color: "var(--color-text-muted)" }}>Nom</label>
                         <input value={nom} onChange={(e) => setNom(e.target.value)} className="input-premium" />
                       </div>
                       <div>
-                        <label className="block text-xs mb-2" style={{ color: "rgba(255,255,255,0.65)" }}>Email</label>
+                        <label className="block text-xs mb-2" style={{ color: "var(--color-text-muted)" }}>Email</label>
                         <input value={email} readOnly className="input-premium" style={{ opacity: 0.6 }} />
                       </div>
                       <div>
-                        <label className="block text-xs mb-2" style={{ color: "rgba(255,255,255,0.65)" }}>Téléphone</label>
+                        <label className="block text-xs mb-2" style={{ color: "var(--color-text-muted)" }}>Téléphone</label>
                         <input value={telephone} onChange={(e) => setTelephone(e.target.value)} className="input-premium" />
                       </div>
                       <button onClick={handleSave} className="btn-primary" style={{ width: "auto", paddingLeft: 28, paddingRight: 28 }}>
@@ -77,15 +77,15 @@ const Parametres = () => {
                   {s.key === "securite" && (
                     <>
                       <div>
-                        <label className="block text-xs mb-2" style={{ color: "rgba(255,255,255,0.65)" }}>Ancien mot de passe</label>
+                        <label className="block text-xs mb-2" style={{ color: "var(--color-text-muted)" }}>Ancien mot de passe</label>
                         <input type="password" value={oldPwd} onChange={(e) => setOldPwd(e.target.value)} className="input-premium" />
                       </div>
                       <div>
-                        <label className="block text-xs mb-2" style={{ color: "rgba(255,255,255,0.65)" }}>Nouveau mot de passe</label>
+                        <label className="block text-xs mb-2" style={{ color: "var(--color-text-muted)" }}>Nouveau mot de passe</label>
                         <input type="password" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} className="input-premium" />
                       </div>
                       <div>
-                        <label className="block text-xs mb-2" style={{ color: "rgba(255,255,255,0.65)" }}>Confirmer le mot de passe</label>
+                        <label className="block text-xs mb-2" style={{ color: "var(--color-text-muted)" }}>Confirmer le mot de passe</label>
                         <input type="password" value={confirmPwd} onChange={(e) => setConfirmPwd(e.target.value)} className={`input-premium ${confirmPwd && confirmPwd !== newPwd ? "error" : ""}`} />
                       </div>
                       <button onClick={handleSave} className="btn-primary" style={{ width: "auto", paddingLeft: 28, paddingRight: 28 }}>
@@ -102,7 +102,7 @@ const Parametres = () => {
                         { label: "Alertes stock faible", val: notifStock, set: setNotifStock },
                       ].map((n) => (
                         <div key={n.label} className="flex items-center justify-between">
-                          <span className="text-sm text-white">{n.label}</span>
+                          <span className="text-sm" style={{ color: "var(--color-text-primary)" }}>{n.label}</span>
                           <Toggle val={n.val} setVal={n.set} />
                         </div>
                       ))}
@@ -115,7 +115,7 @@ const Parametres = () => {
         })}
 
         {saved && (
-          <div className="glass-card px-4 py-3 text-sm text-center" style={{ color: "var(--success)", animation: "fadeInDown 0.3s ease" }}>
+          <div className="px-4 py-3 text-sm text-center rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)", color: "var(--success)", animation: "fadeInDown 0.3s ease" }}>
             <Check size={16} /> Paramètres mis à jour avec succès
           </div>
         )}

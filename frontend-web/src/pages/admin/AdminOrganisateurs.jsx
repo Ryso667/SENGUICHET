@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminSidebar from "../../components/AdminSidebar";
-import { adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur } from "../../services/authService";
-import { Lock, X, Check, Loader2, Users, ChevronUp, ChevronDown, Search, Trash2 } from "lucide-react";
+import { adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur, adminSupprimerOrganisateur } from "../../services/authService";
+import { Lock, X, Check, Loader2, Users, ChevronUp, ChevronDown, Search, Trash2, AlertTriangle } from "lucide-react";
 import { useToast } from "../../context/ToastContext";
 
 const badgeMap = {
@@ -29,6 +29,8 @@ const AdminOrganisateurs = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [preview, setPreview] = useState(null);
   const addToast = useToast();
+  const [deleteModal, setDeleteModal] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const sorted = useMemo(() => {
     if (!sortKey) return orgas;
@@ -86,6 +88,36 @@ const AdminOrganisateurs = () => {
     } finally {
       setResetting(false);
     }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteModal) return;
+    setDeleting(true);
+    try {
+      await adminSupprimerOrganisateur(deleteModal.id);
+      setOrgas((prev) => prev.filter((o) => o.id !== deleteModal.id));
+      addToast(`« ${deleteModal.nom} » et tous ses événements supprimés ✅`, "success");
+      setDeleteModal(null);
+    } catch (err) {
+      console.error("Erreur suppression:", err);
+      addToast(err.message || "Erreur lors de la suppression", "error");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = [...selected];
+    let count = 0;
+    for (const id of ids) {
+      try {
+        await adminSupprimerOrganisateur(id);
+        count++;
+      } catch { continue; }
+    }
+    setOrgas((prev) => prev.filter((o) => !selected.has(o.id)));
+    addToast(`${count} organisateur(s) supprimé(s) avec leurs événements ✅`, "success");
+    setSelected(new Set());
   };
 
   const today = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
@@ -253,14 +285,24 @@ const AdminOrganisateurs = () => {
                             </span>
                           </td>
                           <td className="px-4 py-3.5">
-                            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                              onClick={() => { setResetModal(o); setNewPassword(""); }}
-                              className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
-                              style={{ border: "1px solid rgba(21,128,61,0.3)", color: "#15803D" }}
-                              onMouseEnter={(el) => { el.currentTarget.style.background = "rgba(21,128,61,0.06)"; }}
-                              onMouseLeave={(el) => { el.currentTarget.style.background = "transparent"; }}>
-                              <Lock size={14} /> Réinitialiser
-                            </motion.button>
+                            <div className="flex items-center gap-2">
+                              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                                onClick={() => { setResetModal(o); setNewPassword(""); }}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+                                style={{ border: "1px solid rgba(21,128,61,0.3)", color: "#15803D" }}
+                                onMouseEnter={(el) => { el.currentTarget.style.background = "rgba(21,128,61,0.06)"; }}
+                                onMouseLeave={(el) => { el.currentTarget.style.background = "transparent"; }}>
+                                <Lock size={14} /> Réinitialiser
+                              </motion.button>
+                              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                                onClick={() => setDeleteModal(o)}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+                                style={{ border: "1px solid rgba(220,38,38,0.3)", color: "#DC2626" }}
+                                onMouseEnter={(el) => { el.currentTarget.style.background = "rgba(220,38,38,0.06)"; }}
+                                onMouseLeave={(el) => { el.currentTarget.style.background = "transparent"; }}>
+                                <Trash2 size={14} /> Supprimer
+                              </motion.button>
+                            </div>
                           </td>
                         </motion.tr>
                       );
@@ -288,12 +330,9 @@ const AdminOrganisateurs = () => {
               <span className="text-sm font-medium" style={{ color: "#1a1a1a" }}>
                 {selected.size} organisateur{selected.size > 1 ? "s" : ""} sélectionné{selected.size > 1 ? "s" : ""}
               </span>
-              <button onClick={async () => {
-                addToast(`${selected.size} organisateur(s) supprimé(s) de la sélection`, "info");
-                setSelected(new Set());
-              }}
-                style={{ background: "rgba(21,128,61,0.1)", color: "#15803D" }}>
-                <Trash2 size={14} style={{ verticalAlign: "middle", marginRight: 4 }} /> Effacer
+              <button onClick={handleBulkDelete}
+                style={{ background: "rgba(220,38,38,0.1)", color: "#DC2626" }}>
+                <Trash2 size={14} style={{ verticalAlign: "middle", marginRight: 4 }} /> Supprimer
               </button>
               <button onClick={() => setSelected(new Set())}
                 style={{ background: "#F1F5F9", color: "#64748B" }}>
@@ -317,6 +356,51 @@ const AdminOrganisateurs = () => {
           )}
         </AnimatePresence>
 
+        {/* ─── Modal suppression ─── */}
+        <AnimatePresence>
+          {deleteModal && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}
+              onClick={() => { if (!deleting) setDeleteModal(null); }}>
+              <motion.div initial={{ opacity: 0, scale: 0.92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.92, y: 20 }} transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="w-full max-w-md rounded-2xl p-6 sm:p-8 shadow-xl border" style={{ background: "#FFFFFF", borderColor: "#E8EEF4" }}
+                onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-bold" style={{ color: "#1a1a1a" }}>
+                    <AlertTriangle size={20} style={{ display: "inline", verticalAlign: "middle", marginRight: 8, color: "#DC2626" }} />
+                    Supprimer l'organisateur
+                  </h2>
+                  <motion.button whileHover={{ rotate: 90 }} onClick={() => { if (!deleting) setDeleteModal(null); }}
+                    className="p-1.5 rounded-lg" style={{ color: "#94a3b8" }}>
+                    <X size={18} />
+                  </motion.button>
+                </div>
+                <p className="text-sm mb-2" style={{ color: "#64748B" }}>
+                  Êtes-vous sûr de vouloir supprimer <strong style={{ color: "#1a1a1a" }}>{deleteModal.nom}</strong> — {deleteModal.email} ?
+                </p>
+                <p className="text-sm mb-6 p-3 rounded-xl" style={{ background: "#FEF2F2", color: "#DC2626", border: "1px solid rgba(220,38,38,0.2)" }}>
+                  <AlertTriangle size={14} style={{ verticalAlign: "middle", marginRight: 6 }} />
+                  Cette action supprimera définitivement l'organisateur et <strong>tous ses événements, billets, scans et données associées</strong>.
+                </p>
+                <div className="flex gap-3">
+                  <button onClick={() => setDeleteModal(null)} disabled={deleting}
+                    className="flex-1 py-3 rounded-xl text-sm font-medium transition-all"
+                    style={{ border: "1px solid #E8EEF4", color: "#64748B", opacity: deleting ? 0.5 : 1, cursor: deleting ? "not-allowed" : "pointer" }}>
+                    Annuler
+                  </button>
+                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                    onClick={handleDelete} disabled={deleting}
+                    className="flex-1 py-3 rounded-xl text-sm font-medium text-white transition-all"
+                    style={{ background: deleting ? "#94a3b8" : "#DC2626", cursor: deleting ? "not-allowed" : "pointer" }}>
+                    {deleting ? "Suppression..." : "Oui, supprimer"}
+                  </motion.button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         </main>
 
         <AnimatePresence>

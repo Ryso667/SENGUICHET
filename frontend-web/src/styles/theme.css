@@ -9,6 +9,7 @@
   --color-bg-muted: #DCFCE7;
   --color-surface: #FFFFFF;
   --color-surface-raised: #F9FAFB;
+  --color-card: #FFFFFF;
   --color-text-primary: #111827;
   --color-text-secondary: #6B7280;
   --color-text-muted: #9CA3AF;
@@ -20,6 +21,7 @@
   --color-success: #15803D;
   --color-error: #DC2626;
   --color-warning: #F59E0B;
+  --gradient: linear-gradient(135deg, #15803D, #22C55E);
   --font-primary: 'Inter', sans-serif;
   --font-display: 'Inter', sans-serif;
   --radius-sm: 8px;
