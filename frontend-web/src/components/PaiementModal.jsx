@@ -1,17 +1,26 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Loader2, CheckCircle, XCircle, ArrowRight, Smartphone, Ticket } from "lucide-react";
+import { X, Loader2, CheckCircle, XCircle, ArrowRight, ArrowLeft, Smartphone, Ticket } from "lucide-react";
 import { acheterBillet } from "../services/billetService";
 import { statutPaiement } from "../services/paiementService";
 import { useAuth } from "../context/AuthContext";
+
+import waveLogo from "../assets/payments/wave-logo.jpg";
+import orangeMoneyLogo from "../assets/payments/Orange money.jpg";
+
+const PROVIDERS = [
+  { id: "WAVE", label: "Wave", logo: waveLogo, color: "#0284c7" },
+  { id: "ORANGE_MONEY", label: "Orange Money", logo: orangeMoneyLogo, color: "#FF7900" },
+];
 
 export default function PaiementModal({ open, onClose, evenementId, categories, titre }) {
   const navigate = useNavigate();
   const { setBuyerSession, isAuthenticated } = useAuth();
   const [telephone, setTelephone] = useState("+221 ");
   const [email, setEmail] = useState(() => localStorage.getItem("@senguichet_acheteur_email") || "");
-  const [etape, setEtape] = useState("form"); // form | pending | success | failed
+  const [provider, setProvider] = useState(null);
+  const [etape, setEtape] = useState("provider"); // provider | form | pending | success | failed
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [totalAchetes, setTotalAchetes] = useState(0);
@@ -19,7 +28,8 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
 
   useEffect(() => {
     if (!open) {
-      setEtape("form");
+      setEtape("provider");
+      setProvider(null);
       setError(null);
       setTelephone("+221 ");
       setEmail(localStorage.getItem("@senguichet_acheteur_email") || "");
@@ -45,7 +55,7 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
           categorieTicketId: cat.id,
           telephone: tel,
           quantite: cat.quantite,
-          provider: "WAVE",
+          provider,
           email: email || undefined,
         });
         if (result.paiement?.redirectUrl) {
@@ -77,11 +87,12 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
     }
     setTotalAchetes(achetes);
     setEtape("success");
-    // Connecter l'utilisateur avec l'email utilisé pour l'achat
     if (!isAuthenticated || !localStorage.getItem("@senguichet_acheteur_email") || localStorage.getItem("@senguichet_acheteur_email") !== email) {
       setBuyerSession(email);
     }
   };
+
+  const providerInfo = PROVIDERS.find(p => p.id === provider);
 
   return (
     <AnimatePresence>
@@ -99,13 +110,13 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
               <X size={18} />
             </button>
 
-            {etape === "form" && (
+            {etape === "provider" && (
               <>
                 <div className="text-center mb-6">
                   <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: "rgba(21,128,61,0.1)" }}>
                     <Smartphone size={26} style={{ color: "#15803D" }} />
                   </div>
-                  <h2 className="text-lg font-bold" style={{ color: "#1a1a1a" }}>Paiement Wave</h2>
+                  <h2 className="text-lg font-bold" style={{ color: "#1a1a1a" }}>Choisir un moyen de paiement</h2>
                   <p className="text-sm mt-1" style={{ color: "#64748B" }}>{titre}</p>
                   <div className="mt-3 space-y-1 text-xs" style={{ color: "#475569" }}>
                     {categories.map(c => (
@@ -116,9 +127,46 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
                     ))}
                   </div>
                 </div>
+
+                <div className="flex gap-3">
+                  {PROVIDERS.map(p => (
+                    <button key={p.id} onClick={() => { setProvider(p.id); setEtape("form"); }}
+                      className="flex-1 flex flex-col items-center gap-3 py-6 rounded-2xl border-2 font-semibold text-sm transition-all hover:shadow-lg"
+                      style={{
+                        borderColor: provider === p.id ? p.color : "#E8EEF4",
+                        background: provider === p.id ? `${p.color}08` : "#FFFFFF",
+                        cursor: "pointer",
+                      }}>
+                      <img src={p.logo} alt={p.label}
+                        className="w-14 h-14 object-contain rounded-xl"
+                        style={{ background: "#F8FAFC" }} />
+                      <span style={{ color: "#1a1a1a" }}>{p.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {etape === "form" && providerInfo && (
+              <>
+                <div className="text-center mb-6">
+                  <img src={providerInfo.logo} alt={providerInfo.label}
+                    className="w-12 h-12 object-contain mx-auto mb-2 rounded-xl"
+                    style={{ background: "#F8FAFC" }} />
+                  <h2 className="text-lg font-bold" style={{ color: "#1a1a1a" }}>Paiement {providerInfo.label}</h2>
+                  <p className="text-sm mt-1" style={{ color: "#64748B" }}>{titre}</p>
+                  <div className="mt-2 space-y-1 text-xs" style={{ color: "#475569" }}>
+                    {categories.map(c => (
+                      <div key={c.id} className="flex justify-between px-2">
+                        <span>{c.nom} × {c.quantite}</span>
+                        <span className="font-medium" style={{ color: "#15803D" }}>{(c.prix * c.quantite).toLocaleString("fr-FR")} CFA</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium mb-1.5" style={{ color: "#334155" }}>
-                    Numéro Wave
+                    Numéro {providerInfo.label}
                   </label>
                   <input type="tel" value={telephone}
                     onChange={e => setTelephone(e.target.value.replace(/[^\d\s+]/g, "").slice(0, 18))}
@@ -139,9 +187,14 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
                     onKeyDown={e => e.key === "Enter" && handlePayer()} />
                 </div>
                 <button onClick={handlePayer}
-                  className="w-full py-3 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2"
-                  style={{ background: "#15803D", border: "none", cursor: "pointer" }}>
-                  Payer avec Wave <ArrowRight size={18} />
+                  className="w-full py-3 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 transition-all hover:opacity-90"
+                  style={{ background: providerInfo.color, border: "none", cursor: "pointer" }}>
+                  Payer avec {providerInfo.label} <ArrowRight size={18} />
+                </button>
+                <button onClick={() => setEtape("provider")}
+                  className="w-full mt-2 py-2 text-sm font-medium flex items-center justify-center gap-1"
+                  style={{ color: "#64748B", background: "none", border: "none", cursor: "pointer" }}>
+                  <ArrowLeft size={14} /> Choisir un autre moyen de paiement
                 </button>
                 {error && <p className="text-sm mt-3 text-center font-medium" style={{ color: "#EF4444" }}>{error}</p>}
               </>
@@ -183,7 +236,7 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
                 </div>
                 <h2 className="text-lg font-bold" style={{ color: "#1a1a1a" }}>Paiement échoué</h2>
                 <p className="text-sm mt-2 mb-4" style={{ color: "#64748B" }}>{error || "Une erreur est survenue."}</p>
-                <button onClick={() => setEtape("form")}
+                <button onClick={() => { setEtape("provider"); setProvider(null); setError(null); }}
                   className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white"
                   style={{ background: "#15803D", border: "none", cursor: "pointer" }}>
                   Réessayer
