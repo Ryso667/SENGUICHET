@@ -343,7 +343,9 @@ const HomePage = () => {
 
   /* ─── HERO RIGHT CARDS ─── */
   const heroEvents = useMemo(() => {
-    const src = events.slice(0, 2);
+    const src = [...events].sort(
+      (a, b) => new Date(a.date_debut) - new Date(b.date_debut)
+    ).slice(0, 2);
     if (src.length === 0) {
       // Fallback si aucun événement
       return [
@@ -542,6 +544,11 @@ const HomePage = () => {
                       className="absolute inset-0 w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                    {heroEvents[0].date_fin && new Date(heroEvents[0].date_fin) < new Date() && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
+                        <span className="text-white font-extrabold text-xl uppercase tracking-wider">Terminé</span>
+                      </div>
+                    )}
                     <div className="absolute bottom-0 left-0 right-0 p-5">
                       {heroEvents[0].date_debut && (
                         <p className="text-[#4ADE80] text-sm font-bold uppercase tracking-wide mb-1">
@@ -588,6 +595,11 @@ const HomePage = () => {
                       className="absolute inset-0 w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                    {heroEvents[1].date_fin && new Date(heroEvents[1].date_fin) < new Date() && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
+                        <span className="text-white font-extrabold text-lg uppercase tracking-wider">Terminé</span>
+                      </div>
+                    )}
                     <div className="absolute bottom-0 left-0 right-0 p-5">
                       {heroEvents[1].date_debut && (
                         <p className="text-[#4ADE80] text-sm font-bold uppercase tracking-wide mb-1">

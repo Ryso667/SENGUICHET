@@ -15,7 +15,8 @@
     "lucide-react": "^1.20.0",
     "react-hook-form": "^7.76.1",
     "react-router-dom": "^7.15.1",
-    "recharts": "^2.15.4"
+    "recharts": "^2.15.4",
+    "qrcode.react": "^4.2.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",

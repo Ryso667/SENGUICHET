@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import AdminSidebar from "../../components/AdminSidebar";
 import { adminListerDemandes, adminDetailDemande, adminTraiterDemande, adminCreerEvenementDepuisDemande } from "../../services/eventService";
 import { FileText, X, Check, Loader2, Calendar, XCircle, Inbox } from "lucide-react";
+import { useToast } from "../../context/ToastContext";
 import { normalizeImageUrl } from "../../utils/normalizeUrl";
 
 const statutConfig = {
@@ -30,6 +31,7 @@ const AdminGestionDemandes = () => {
   const [creatingEvent, setCreatingEvent] = useState(false);
   const [eventCreated, setEventCreated] = useState(false);
   const [commentaire, setCommentaire] = useState("");
+  const addToast = useToast();
 
   useEffect(() => { fetchDemandes(); }, [filterStatut, filterType]);
 
@@ -65,12 +67,24 @@ const AdminGestionDemandes = () => {
     if (!modal) return;
     setCreatingEvent(true);
     try {
-      await adminCreerEvenementDepuisDemande(modal.id);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      await adminCreerEvenementDepuisDemande(modal.id, controller.signal);
+      clearTimeout(timeout);
       setEventCreated(true);
       setModal((prev) => ({ ...prev, evenement_id: "créé" }));
+      addToast("Événement créé avec succès ! ✅", "success");
       fetchDemandes();
-    } catch (err) { console.error("Erreur création événement:", err); }
-    finally { setCreatingEvent(false); }
+      setTimeout(() => setModal(null), 1500);
+    } catch (err) {
+      const msg = err.name === "AbortError"
+        ? "La requête a expiré. Vérifie que le backend est accessible."
+        : err.message || "Erreur lors de la création de l'événement";
+      addToast(msg, "error");
+      console.error("Erreur création événement:", err);
+    } finally {
+      setCreatingEvent(false);
+    }
   };
 
   const filtered = demandes;

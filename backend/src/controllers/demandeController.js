@@ -159,13 +159,15 @@ const creerEvenementDepuisDemande = async (conn, demande) => {
     ? JSON.parse(demande.payload) : demande.payload;
   const ville = demande.ville || payload?.ville || null;
   const categorie = demande.categorie || payload?.categorie || null;
+  // Générer un code de scan aléatoire de 4 caractères pour le contrôleur
+  const scanCode = Math.random().toString(36).substring(2, 6).toUpperCase();
 
   const [evResult] = await conn.query(
     `INSERT INTO evenement (organisateur_id, titre, description, lieu, ville, categorie, date_debut, date_fin, capacite_totale, affiche_url, scan_code, statut)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'actif')`,
     [demande.organisateur_id, demande.titre, demande.description, demande.lieu,
      ville, categorie,
-     demande.date_debut, demande.date_fin, demande.capacite, demande.affiche_url || null, null]
+     demande.date_debut, demande.date_fin, demande.capacite, demande.affiche_url || null, scanCode]
   );
   const evenementId = evResult.insertId;
 

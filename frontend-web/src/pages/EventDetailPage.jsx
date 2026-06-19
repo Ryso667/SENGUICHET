@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   IconMapPin,
   IconHeart,
@@ -13,6 +13,7 @@ import {
 } from "@tabler/icons-react";
 import { detailEvenementPublic, listerEvenementsPublic } from "../services/eventService";
 import EventCard from "../components/EventCard";
+import PaiementModal from "../components/PaiementModal";
 
 const formatDateLong = (isoString) => {
   if (!isoString) return "";
@@ -33,6 +34,7 @@ const formatPrice = (price) => {
 
 export default function EventDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [categories, setCategories] = useState([]);
   const [allEvents, setAllEvents] = useState([]);
@@ -41,8 +43,17 @@ export default function EventDetailPage() {
 
   const [quantities, setQuantities] = useState({});
   const [isFav, setIsFav] = useState(false);
+  const [showPaiement, setShowPaiement] = useState(false);
+  const [achatCategories, setAchatCategories] = useState(null);
 
   useEffect(() => {
+    // Restaurer les quantités depuis sessionStorage après redirection auth
+    const storedQ = sessionStorage.getItem("@senguichet_quantities");
+    const storedId = sessionStorage.getItem("@senguichet_event_id");
+    const storedRestore = storedQ && storedId === id;
+    if (storedRestore) sessionStorage.removeItem("@senguichet_quantities");
+    if (storedRestore) sessionStorage.removeItem("@senguichet_event_id");
+
     const fetchData = async () => {
       try {
         const [detailData, allData] = await Promise.all([
@@ -56,6 +67,10 @@ export default function EventDetailPage() {
 
         const initQ = {};
         cats.forEach((c) => { initQ[c.id || c.nom] = 0; });
+        if (storedRestore) {
+          const saved = JSON.parse(storedQ);
+          cats.forEach(c => { const k = c.id || c.nom; if (saved[k] != null) initQ[k] = saved[k]; });
+        }
         setQuantities(initQ);
 
         const list = Array.isArray(allData) ? allData : allData.evenements || [];
@@ -105,6 +120,7 @@ export default function EventDetailPage() {
   );
 
   const location = event.ville ? `${event.lieu}, ${event.ville}` : event.lieu;
+  const estTermine = event.date_fin && new Date(event.date_fin) < new Date();
   const autresEvenements = allEvents.filter((e) => e.id !== event.id).slice(0, 3);
 
   return (
@@ -216,23 +232,46 @@ export default function EventDetailPage() {
                 );
               })}
 
-              {totalTickets > 0 && (
-                <div className="detail-total-row">
-                  <span className="detail-total-label">Total</span>
-                  <span className="detail-total-price">{formatPrice(totalPrice)}</span>
+              {estTermine ? (
+                <div className="detail-terminé-badge" style={{ marginTop: 16, padding: 16, borderRadius: 12, background: "#FEF2F2", border: "1px solid #FECACA", textAlign: "center" }}>
+                  <span style={{ color: "#991B1B", fontWeight: 700, fontSize: "1rem" }}>🏁 Événement terminé</span>
+                  <p style={{ color: "#7F1D1D", fontSize: "0.85rem", marginTop: 4 }}>La date de cet événement est passée. La vente de billets n'est plus disponible.</p>
                 </div>
+              ) : (
+                <>
+                  {totalTickets > 0 && (
+                    <div className="detail-total-row">
+                      <span className="detail-total-label">Total</span>
+                      <span className="detail-total-price">{formatPrice(totalPrice)}</span>
+                    </div>
+                  )}
+                  <button
+                    className="btn-primary btn-full btn-lg"
+                    disabled={totalTickets === 0}
+                    style={{ marginTop: 16 }}
+                    onClick={() => {
+                      const token = localStorage.getItem("jwt_token") || sessionStorage.getItem("@senguichet_jwt");
+                      if (!token) {
+                        sessionStorage.setItem("@senguichet_quantities", JSON.stringify(quantities));
+                        sessionStorage.setItem("@senguichet_event_id", id);
+                        navigate("/connexion-acheteur", { state: { from: `/evenements/${id}` } });
+                        return;
+                      }
+                      const selected = categories
+                        .map(c => ({ id: c.id, nom: c.nom, prix: c.prix, quantite: quantities[c.id || c.nom] || 0 }))
+                        .filter(c => c.quantite > 0);
+                      if (selected.length === 0) return;
+                      setAchatCategories(selected);
+                      setShowPaiement(true);
+                    }}
+                  >
+                    <IconTicket size={20} />
+                    {totalTickets === 0
+                      ? "Choisissez vos billets"
+                      : `Acheter ${totalTickets} billet${totalTickets > 1 ? "s" : ""}`}
+                  </button>
+                </>
               )}
-
-              <button
-                className="btn-primary btn-full btn-lg"
-                disabled={totalTickets === 0}
-                style={{ marginTop: 16 }}
-              >
-                <IconTicket size={20} />
-                {totalTickets === 0
-                  ? "Choisissez vos billets"
-                  : `Acheter ${totalTickets} billet${totalTickets > 1 ? "s" : ""}`}
-              </button>
 
               <div className="detail-purchase-trust">
                 <span><IconCheck size={14} /> Billet envoyé par email</span>
@@ -276,6 +315,16 @@ export default function EventDetailPage() {
           </Link>
         </div>
       </div>
+
+      {achatCategories && (
+        <PaiementModal
+          open={showPaiement}
+          onClose={() => { setShowPaiement(false); setAchatCategories(null); }}
+          evenementId={event.id}
+          categories={achatCategories}
+          titre={event.titre}
+        />
+      )}
     </motion.div>
   );
 }

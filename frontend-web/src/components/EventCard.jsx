@@ -59,6 +59,7 @@ const EventCard = ({
   titre,
   affiche_url,
   date_debut,
+  date_fin,
   lieu,
   ville,
   categorie,
@@ -77,6 +78,7 @@ const EventCard = ({
   const image = imgError || !affiche_url ? FALLBACK_IMG : affiche_url;
   const nouveau = !isFeatured && isNew(date_debut);
   const date = formatDate(date_debut);
+  const estTermine = date_fin && new Date(date_fin) < new Date();
   const location = [lieu, ville].filter(Boolean).join(", ");
   const priceLabel = formatPrice(prix_min, prix_max);
 
@@ -138,6 +140,13 @@ const EventCard = ({
         {isSoldOut && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
             <span className="text-white font-extrabold text-lg uppercase tracking-wider">Complet</span>
+          </div>
+        )}
+
+        {/* Overlay "TERMINÉ" */}
+        {estTermine && !isSoldOut && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
+            <span className="text-white font-extrabold text-lg uppercase tracking-wider">Terminé</span>
           </div>
         )}
 

@@ -37,6 +37,13 @@ import { ToastProvider } from "./context/ToastContext";
 import CommandPalette from "./components/CommandPalette";
 import KeyboardShortcutsOverlay from "./components/KeyboardShortcutsOverlay";
 
+import ConnexionAcheteur from "./pages/acheteur/ConnexionAcheteur";
+import MesBillets from "./pages/acheteur/MesBillets";
+import BilletDetail from "./pages/acheteur/BilletDetail";
+import Compte from "./pages/acheteur/Compte";
+import Explorer from "./pages/acheteur/Explorer";
+import AcheteurLayout from "./layouts/AcheteurLayout";
+
 function App() {
   return (
     <BrowserRouter>
@@ -79,6 +86,16 @@ function App() {
             <Route path="/admin/demandes" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminGestionDemandes /></ProtectedRoute>} />
             <Route path="/admin/controleurs" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminControleurs /></ProtectedRoute>} />
             <Route path="/admin/controleurs/:evenementId" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminCodesControleurs /></ProtectedRoute>} />
+
+            <Route path="/connexion-acheteur" element={<ConnexionAcheteur />} />
+            <Route path="/acheteur" element={<AcheteurLayout />}>
+              <Route index element={<Navigate to="accueil" replace />} />
+              <Route path="accueil" element={<HomePage />} />
+              <Route path="explorer" element={<Explorer />} />
+              <Route path="mes-billets" element={<MesBillets />} />
+              <Route path="billet/:uuid" element={<BilletDetail />} />
+              <Route path="compte" element={<Compte />} />
+            </Route>
 
             <Route path="*" element={<Navigate to="/connexion" replace />} />
           </Routes>

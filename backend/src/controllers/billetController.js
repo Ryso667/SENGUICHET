@@ -21,10 +21,14 @@ const acheter = async (req, res) => {
 
     // Vérifier que l'événement existe et est actif
     const [events] = await pool.query(
-      "SELECT id, titre, lieu, date_debut, organisateur_id FROM evenement WHERE id = ? AND statut = 'actif'",
+      "SELECT id, titre, lieu, date_debut, date_fin, organisateur_id FROM evenement WHERE id = ? AND statut = 'actif'",
       [evenementId]
     );
     if (!events.length) return res.status(404).json({ message: "Événement introuvable ou inactif" });
+    const event = events[0];
+    if (event.date_fin && new Date(event.date_fin) < new Date()) {
+      return res.status(400).json({ message: "Cet événement est déjà terminé" });
+    }
 
     // Vérifier la catégorie et les places disponibles
     const [categories] = await pool.query(
@@ -80,41 +84,64 @@ const acheter = async (req, res) => {
     try {
       await conn.beginTransaction();
 
-      // Créer le billet
-      const uuid = uuidv4();
-      const numero = `TKT-${Date.now().toString(36).toUpperCase()}`;
-      const timestamp = new Date().toISOString();
+      // Créer autant de billets que la quantité demandée (1 billet = 1 QR)
+      const billetsCrees = [];
+      for (let i = 0; i < quantite; i++) {
+        const uuid = uuidv4();
+        const numero = `TKT-${Date.now().toString(36).toUpperCase()}-${i}`;
+        const timestamp = new Date().toISOString();
 
-      // Générer la signature HMAC (identique au format utilisé par le scan offline)
-      // Utilise SHA256(data+secret) car expo-crypto ne supporte pas HMAC natif
-      const signaturePayload = `${uuid}|${numero}|${timestamp}|${evenementId}|${cat.nom}`;
-      const payload_signature = crypto.createHash('sha256').update(signaturePayload + HMAC_SECRET).digest('hex');
+        // Générer la signature HMAC (identique au format utilisé par le scan offline)
+        const signaturePayload = `${uuid}|${numero}|${timestamp}|${evenementId}|${cat.nom}`;
+        const payload_signature = crypto.createHash('sha256').update(signaturePayload + HMAC_SECRET).digest('hex');
 
-      const [billetResult] = await conn.query(
-        `INSERT INTO billet (uuid, numero, evenement_id, categorie_ticket_id, telephone_acheteur, email_acheteur, payload_signature, prix_paye, statut)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'EN_ATTENTE')`,
-        [uuid, numero, evenementId, categorieTicketId, telephone, ticketEmail || null, payload_signature, montantTotal]
-      );
+        const [billetResult] = await conn.query(
+          `INSERT INTO billet (uuid, numero, evenement_id, categorie_ticket_id, telephone_acheteur, email_acheteur, payload_signature, prix_paye, statut)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'EN_ATTENTE')`,
+          [uuid, numero, evenementId, categorieTicketId, telephone, ticketEmail || null, payload_signature, cat.prix]
+        );
 
-      const billetId = billetResult.insertId;
+        billetsCrees.push({
+          id: billetResult.insertId,
+          uuid,
+          numero,
+          prix: cat.prix,
+          evenement: event.titre,
+          categorie: cat.nom,
+          dateAchat: timestamp,
+          qrPayload: JSON.stringify({
+            uuid,
+            hmac: payload_signature,
+            event_id: evenementId,
+            category: cat.nom,
+            timestamp,
+            transaction_ref: numero,
+          }),
+        });
+      }
 
-      // Réserver les places immédiatement
+      // Réserver les places (une seule fois pour toutes les quantités)
       await conn.query(
         "UPDATE categorie_ticket SET places_disponibles = places_disponibles - ? WHERE id = ? AND places_disponibles >= ?",
         [quantite, categorieTicketId, quantite]
       );
 
-      // Créer la transaction
+      // Créer une transaction unique pour le montant total
       const reference = 'PAI-' + uuidv4().slice(0, 12).toUpperCase();
+      const premierBilletId = billetsCrees[0].id;
       await conn.query(
         `INSERT INTO transaction (reference, billet_id, montant, frais, devise, statut, moyen_paiement, telephone_payeur)
          VALUES (?, ?, ?, 0, 'FCFA', 'PENDING', ?, ?)`,
-        [reference, billetId, montantTotal, provider, telephone]
+        [reference, premierBilletId, montantTotal, provider, telephone]
       );
 
-      // Mettre à jour la transaction_id dans le billet
+      // Rattacher la transaction à TOUS les billets créés
       const [txRows] = await conn.query("SELECT id FROM transaction WHERE reference = ?", [reference]);
-      await conn.query("UPDATE billet SET transaction_id = ? WHERE id = ?", [txRows[0].id, billetId]);
+      for (const b of billetsCrees) {
+        await conn.query("UPDATE billet SET transaction_id = ? WHERE id = ?", [txRows[0].id, b.id]);
+      }
+
+      await conn.commit();
 
       await conn.commit();
 
@@ -139,15 +166,15 @@ const acheter = async (req, res) => {
         }
 
         // Si pas de redirectUrl (mode simulation/sync), confirmer immédiatement
-        // Évite que le billet reste bloqué en EN_ATTENTE sans réponse asynchrone
         if (!paymentResult.redirectUrl) {
           await pool.query(
             "UPDATE transaction SET statut = 'SUCCESS', date_mise_a_jour = NOW() WHERE reference = ?",
             [reference]
           );
+          const ids = billetsCrees.map(b => b.id);
           await pool.query(
-            "UPDATE billet SET statut = 'ACTIF' WHERE id = ?",
-            [billetId]
+            `UPDATE billet SET statut = 'ACTIF' WHERE id IN (${ids.map(() => '?').join(',')})`,
+            ids
           );
         }
       } catch (paymentError) {
@@ -155,37 +182,32 @@ const acheter = async (req, res) => {
         paymentResult = { redirectUrl: null, referenceOperateur: null };
       }
 
-      // Contenu du QR code
-      const qrPayload = JSON.stringify({
-        uuid,
-        hmac: payload_signature,
-        event_id: evenementId,
-        category: cat.nom,
-        timestamp,
-        transaction_ref: numero,
-      });
+      // Contenu du QR code (premier billet)
+      const premierBillet = billetsCrees[0];
 
-      // Envoyer un SMS de confirmation à l'acheteur (fire-and-forget pour éviter le timeout)
+      // Envoyer un SMS de confirmation à l'acheteur (fire-and-forget)
       const { envoyerSMSBillet } = require("../services/smsService");
       envoyerSMSBillet(telephone, {
-        uuid,
-        numero,
+        uuid: premierBillet.uuid,
+        numero: premierBillet.numero,
         evenement: events[0].titre,
         categorie: cat.nom,
         prix: montantTotal,
+        quantite,
       }, pool);
 
       // Envoyer un email de confirmation si l'email est renseigné
       if (ticketEmail) {
         const { envoyerEmailBillet } = require("../services/emailService");
         envoyerEmailBillet(ticketEmail, {
-          uuid,
-          numero,
+          uuid: premierBillet.uuid,
+          numero: premierBillet.numero,
           evenement: events[0].titre,
           dateDebut: events[0].date_debut,
           lieu: events[0].lieu,
           categorie: cat.nom,
           prix: montantTotal,
+          quantite,
         }).catch(e => console.error("Email error:", e.message));
       }
 
@@ -211,16 +233,9 @@ const acheter = async (req, res) => {
       }
 
       res.status(201).json({
-        billet: {
-          id: billetId,
-          uuid,
-          numero,
-          prix: montantTotal,
-          evenement: events[0].titre,
-          categorie: cat.nom,
-          dateAchat: timestamp,
-          qrPayload,
-        },
+        billet: premierBillet,
+        billets: billetsCrees,
+        quantite,
         paiement: {
           reference,
           redirectUrl: paymentResult.redirectUrl,

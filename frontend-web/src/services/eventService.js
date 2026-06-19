@@ -115,10 +115,11 @@ export const adminTraiterDemande = async (id, action, commentaire = "") => {
   return handleResponse(res);
 };
 
-export const adminCreerEvenementDepuisDemande = async (id) => {
+export const adminCreerEvenementDepuisDemande = async (id, signal) => {
   const res = await fetch(`${API_URL}/api/demandes/admin/${id}/creer-evenement`, {
     method: "POST",
     headers: headers(),
+    signal,
   });
   return handleResponse(res);
 };
