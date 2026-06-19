@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { LayoutGrid, Calendar, BarChart, FileText, Ticket, LogOut } from "../components/Icons";
-import logo from "../assets/logo.jpg";
+const logo = "/images/logo.png";
 
 const navItems = [
   { icon: <LayoutGrid size={18} />, label: "Tableau de bord", path: "/dashboard" },
