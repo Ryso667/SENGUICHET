@@ -17,7 +17,7 @@ const DashboardLayout = ({ children, title = "Dashboard" }) => {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] flex">
+    <div className="min-h-screen flex" style={{ background: "#F0F4F8" }}>
       <Sidebar />
 
       <div className="flex-1 lg:ml-[260px] flex flex-col">
