@@ -24,6 +24,7 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [totalAchetes, setTotalAchetes] = useState(0);
+  const [liensRecu, setLiensRecu] = useState([]);
   const pollingRef = useRef(null);
 
   useEffect(() => {
@@ -35,6 +36,7 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
       setEmail(localStorage.getItem("@senguichet_acheteur_email") || "");
       setProgress({ current: 0, total: 0 });
       setTotalAchetes(0);
+      setLiensRecu([]);
       if (pollingRef.current) clearInterval(pollingRef.current);
     }
   }, [open]);
@@ -79,6 +81,7 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
           if (!paid) { setEtape("failed"); setError(`Paiement échoué pour ${cat.nom}`); return; }
         }
         achetes += cat.quantite;
+        if (result.lien) setLiensRecu(prev => [...prev, result.lien]);
       } catch (err) {
         setEtape("failed");
         setError(`${err.message} — ${cat.nom}`);
@@ -221,10 +224,21 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
                 <p className="text-sm mt-2 mb-4" style={{ color: "#64748B" }}>
                   {totalAchetes} billet{totalAchetes > 1 ? "s" : ""} acheté{totalAchetes > 1 ? "s" : ""} avec succès.
                 </p>
+                {liensRecu.length > 0 && (
+                  <div className="mb-4 space-y-2">
+                    {liensRecu.map((lien, i) => (
+                      <a key={i} href={lien} target="_blank" rel="noopener noreferrer"
+                        className="block px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:opacity-85"
+                        style={{ background: "rgba(21,128,61,0.08)", color: "#15803D", textDecoration: "none" }}>
+                        Voir le reçu{liensRecu.length > 1 ? ` (${i + 1})` : ""} →
+                      </a>
+                    ))}
+                  </div>
+                )}
                 <button onClick={() => { onClose(); navigate("/acheteur/mes-billets"); }}
                   className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white"
                   style={{ background: "#15803D", border: "none", cursor: "pointer" }}>
-                  Voir mes billets
+                  Mes billets
                 </button>
               </div>
             )}

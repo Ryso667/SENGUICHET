@@ -169,6 +169,25 @@ const envoyerSMSBillet = async (numero, ticket, pool) => {
 
   console.log(`SMSDEBUG: envoi vers=${numeroFull}, sender=${process.env.ORANGE_SENDER_ADDRESS}, sandbox=${process.env.ORANGE_SANDBOX}, message=${message.substring(0,60)}...`);
 
+  // Si les credentials Orange ne sont pas configurées, passer en mode simulé
+  const clientId = process.env.ORANGE_CLIENT_ID;
+  const clientSecret = process.env.ORANGE_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    console.log("=================================");
+    console.log("📱 SMS SIMULÉ (credentials Orange manquantes)");
+    console.log(`À: ${numeroFull}`);
+    console.log(`Message:\n${message}`);
+    console.log(`Lien: ${lien}`);
+    console.log("=================================");
+    if (pool && logId) {
+      await pool.query(
+        `UPDATE sms_log SET statut = 'SIMULE', date_envoi = NOW() WHERE id = ?`,
+        [logId]
+      ).catch(() => {});
+    }
+    return { success: false, simulated: true, lien };
+  }
+
   try {
     const result = await envoyerSMSOrange(numeroFull, message);
 
@@ -200,7 +219,14 @@ const envoyerSMSBillet = async (numero, ticket, pool) => {
       ).catch(() => {});
     }
     console.error("SMS error:", err.message);
-    return { success: false, error: err.message };
+    // Fallback : loguer le SMS complet dans la console pour consultation
+    console.log("=================================");
+    console.log("📱 SMS NON ENVOYÉ (API Orange indisponible)");
+    console.log(`À: ${numeroFull}`);
+    console.log(`Message:\n${message}`);
+    console.log(`Lien: ${lien}`);
+    console.log("=================================");
+    return { success: false, simulated: true, error: err.message, lien };
   }
 };
 

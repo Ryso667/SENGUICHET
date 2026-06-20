@@ -143,8 +143,6 @@ const acheter = async (req, res) => {
 
       await conn.commit();
 
-      await conn.commit();
-
       // Initier le paiement via le provider (hors transaction)
       const paymentProvider = PaymentService.getProvider(provider);
       let paymentResult;
@@ -231,10 +229,16 @@ const acheter = async (req, res) => {
         } catch {}
       }
 
+      const ticketBase = process.env.TICKET_URL || "https://backend-beta-six-39.vercel.app/api/billets";
+      const lienBillet = quantite === 1
+        ? `${ticketBase}/${premierBillet.uuid}`
+        : `${ticketBase}/recu/${reference}`;
+
       res.status(201).json({
         billet: premierBillet,
         billets: billetsCrees,
         quantite,
+        lien: lienBillet,
         paiement: {
           reference,
           redirectUrl: paymentResult.redirectUrl,
