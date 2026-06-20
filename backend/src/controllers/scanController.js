@@ -108,7 +108,7 @@ const synchroniserScans = async (req, res) => {
          SELECT b.id, ?, b.evenement_id, ?, ?, ?, 1, NOW()
          FROM billet b
          WHERE b.uuid = ?`,
-        [controleurId, evenementId, statutDB, s.timestamp_scan, s.timestamp_scan, s.uuid_billet]
+        [controleurId, statutDB, s.timestamp_scan, s.timestamp_scan, s.uuid_billet]
       );
       compteur++;
     }

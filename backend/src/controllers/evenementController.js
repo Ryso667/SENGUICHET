@@ -628,18 +628,5 @@ const statsEvenement = async (req, res) => {
   }
 };
 
-// Renvoie la liste des catégories distinctes des événements
-const listerCategories = async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      "SELECT DISTINCT categorie FROM evenement WHERE categorie IS NOT NULL AND categorie != '' ORDER BY categorie"
-    );
-    res.json(rows);
-  } catch (err) {
-    console.error("Erreur listerCategories:", err);
-    res.status(500).json({ message: "Erreur lors du chargement des catégories" });
-  }
-};
-
-module.exports = { creer, upload, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic, pageEvenement, getEquipe, statsEvenement, listerCategories };
+module.exports = { creer, upload, lister, detail, modifier, annuler, adminLister, adminAccepter, adminRefuser, adminSuspendre, adminDetail, listerPublic, detailPublic, pageEvenement, getEquipe, statsEvenement };
 

@@ -192,9 +192,10 @@ export default function EventDetailScreen({ route, navigation }) {
 
     try {
       const telComplet = telPropre.startsWith('221') ? `+${telPropre}` : `+221${telPropre}`
+      const quantite = 1 // Sera lié à un stepper UI plus tard
       const resultat = await acheterBillet(
         event.id, selectedTicket.id,
-        telPropre ? telComplet : null, email, selectedProvider
+        telPropre ? telComplet : null, email, selectedProvider, quantite
       )
 
       if (!resultat || !resultat.billet) {
@@ -203,9 +204,10 @@ export default function EventDetailScreen({ route, navigation }) {
 
       await definirTelephone(telComplet)
 
-      // Construit l'objet ticket avec les infos événement pour le stockage local
-      const ticketData = {
-        ...resultat.billet,
+      // Sauvegarde locale de tous les billets créés
+      const ticketsAchetes = resultat.billets || [resultat.billet]
+      const ticketsData = ticketsAchetes.map(b => ({
+        ...b,
         eventId: event.id,
         eventNom: event.title || resultat.billet.evenement,
         eventDate: event.date,
@@ -213,8 +215,10 @@ export default function EventDetailScreen({ route, navigation }) {
         eventLieu: event.location,
         telephone: telComplet,
         statut: 'actif',
+      }))
+      for (const t of ticketsData) {
+        await sauvegarderTicketAcheteur(t)
       }
-      await sauvegarderTicketAcheteur(ticketData)
 
       // Planifie un rappel local J-1 avant l'événement
       try {
@@ -241,14 +245,22 @@ export default function EventDetailScreen({ route, navigation }) {
           redirectUrl: resultat.paiement.redirectUrl,
           transactionReference: resultat.paiement.reference,
           eventId: event.id,
-          ticket: ticketData,
+          ticket: ticketsData[0],
+          billets: ticketsData,
         })
       } else {
-        setPaymentResult(ticketData)
+        setPaymentResult(ticketsData[0])
         setPaymentEtape('success')
         setTimeout(() => {
           setShowPaymentSheet(false)
-          navigation.replace('Ticket', { ticket: ticketData })
+          if (ticketsData.length > 1) {
+            navigation.replace('RecuAchat', {
+              reference: resultat.paiement.reference,
+              billetsAchetes: ticketsData,
+            })
+          } else {
+            navigation.replace('Ticket', { ticket: ticketsData[0] })
+          }
         }, 2000)
       }
     } catch (err) {

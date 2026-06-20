@@ -20,4 +20,14 @@ const limiteVerifOTP = rateLimit({
   legacyHeaders: false,
 });
 
-module.exports = { limiteEnvoiOTP, limiteVerifOTP };
+// Limiteur pour la connexion contrôleur : 10 tentatives par minute par IP
+// Protège contre le brute-force des codes à 4 chiffres (10 000 combinaisons)
+const limiteConnexionControleur = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { message: "Trop de tentatives. Réessaie dans une minute." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+module.exports = { limiteEnvoiOTP, limiteVerifOTP, limiteConnexionControleur };

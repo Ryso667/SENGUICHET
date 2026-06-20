@@ -11,9 +11,9 @@ router.get("/mes-billets", billetController.mesBillets);
 // Placée AVANT /:uuid pour éviter que "evenement" soit capturé comme paramètre uuid
 router.get("/evenement/:id", authMiddleware(["ORGANISATEUR"]), billetController.evenementBillets);
 
-// Page publique du reçu d'achat (tous les billets d'une transaction, groupés par catégorie)
-// Placée AVANT /:uuid pour éviter que "recu" soit capturé comme paramètre uuid
+// Routes du reçu d'achat — à placer avant /:uuid
 router.get("/recu/:reference", billetController.afficherRecu);
+router.get("/recu/:reference/data", billetController.recuData);
 
 router.get("/:uuid", billetController.afficherBillet);
 

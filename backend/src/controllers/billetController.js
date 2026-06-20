@@ -1,6 +1,11 @@
-// Contrôleur des billets : achat et consultation
-// POST /api/billets/acheter — crée billet + transaction + initie paiement
-// GET /api/billets/mes-billets — liste les billets d'un téléphone
+/**
+ * Contrôleur des billets : achat, consultation multi-billets, reçu groupé
+ * POST /api/billets/acheter       — crée N billets + 1 transaction + initie paiement
+ * GET  /api/billets/mes-billets   — liste des billets (téléphone/email)
+ * GET  /api/billets/recu/:ref     — page HTML du reçu groupé (tous les QR)
+ * GET  /api/billets/recu/:ref/data — JSON du reçu pour mobile
+ * GET  /api/billets/:uuid         — page HTML d'un billet
+ */
 
 const pool = require("../config/db");
 const { v4: uuidv4 } = require("uuid");
@@ -11,6 +16,12 @@ const { envoyerNotification } = require("../services/NotificationService");
 const HMAC_SECRET = process.env.HMAC_SECRET;
 if (!HMAC_SECRET) console.warn('⚠️  HMAC_SECRET non défini — les signatures QR échoueront');
 
+/**
+ * Crée un ou plusieurs billets pour une même transaction
+ * POST /api/billets/acheter
+ * body : { evenementId, categorieTicketId, telephone, quantite (default 1), provider, email }
+ * Retourne le premier billet, la liste complète, le lien de reçu et les infos de paiement
+ */
 const acheter = async (req, res) => {
   try {
     const { evenementId, categorieTicketId, telephone, quantite = 1, provider = 'WAVE', email } = req.body;
@@ -19,7 +30,7 @@ const acheter = async (req, res) => {
       return res.status(400).json({ message: "Champs obligatoires manquants" });
     }
 
-    // Vérifier que l'événement existe et est actif
+    // Vérifier que l'événement existe, est actif et n'est pas terminé
     const [events] = await pool.query(
       "SELECT id, titre, lieu, date_debut, date_fin, organisateur_id FROM evenement WHERE id = ? AND statut = 'actif'",
       [evenementId]
@@ -120,7 +131,7 @@ const acheter = async (req, res) => {
         });
       }
 
-      // Réserver les places (une seule fois pour toutes les quantités)
+      // Réserver les places (une seule fois pour toute la quantité)
       await conn.query(
         "UPDATE categorie_ticket SET places_disponibles = places_disponibles - ? WHERE id = ? AND places_disponibles >= ?",
         [quantite, categorieTicketId, quantite]
@@ -186,11 +197,12 @@ const acheter = async (req, res) => {
       // Envoyer un SMS de confirmation à l'acheteur (fire-and-forget)
       const { envoyerSMSBillet } = require("../services/smsService");
       envoyerSMSBillet(telephone, {
-        evenement: events[0].titre,
+        uuid: premierBillet.uuid,
+        numero: premierBillet.numero,
+        evenement: event.titre,
         categorie: cat.nom,
         prix: montantTotal,
         quantite,
-        uuid: quantite === 1 ? premierBillet.uuid : undefined,
         reference: quantite > 1 ? reference : undefined,
       }, pool);
 
@@ -198,9 +210,11 @@ const acheter = async (req, res) => {
       if (ticketEmail) {
         const { envoyerEmailBillet } = require("../services/emailService");
         envoyerEmailBillet(ticketEmail, {
-          evenement: events[0].titre,
-          dateDebut: events[0].date_debut,
-          lieu: events[0].lieu,
+          uuid: premierBillet.uuid,
+          numero: premierBillet.numero,
+          evenement: event.titre,
+          dateDebut: event.date_debut,
+          lieu: event.lieu,
           categorie: cat.nom,
           prix: montantTotal,
           quantite,
@@ -210,9 +224,9 @@ const acheter = async (req, res) => {
 
       // Envoyer une notification push à l'organisateur
       try {
-        await envoyerNotification(events[0].organisateur_id, {
+        await envoyerNotification(event.organisateur_id, {
           type: 'vente',
-          message: `Nouvelle vente : ${cat.nom} pour ${events[0].titre}`,
+          message: `Nouvelle vente : ${cat.nom} ×${quantite} pour ${event.titre}`,
           evenementId: evenementId,
         });
       } catch (e) {
@@ -339,6 +353,18 @@ const afficherBillet = async (req, res) => {
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrPayload)}`;
 
     const qrHtml = `<img src="${qrUrl}" alt="QR" style="width:180px;height:180px;display:block" />`;
+    const statut = (b.statut || '').toLowerCase()
+    const isUsed = statut === 'utilise'
+    const isExpired = statut === 'expire'
+    const showWatermark = isUsed || isExpired
+    const watermarkLabel = isExpired ? 'EXPIRÉ' : 'UTILISÉ'
+    const watermarkColor = isExpired ? '#FF4D6D' : '#66BB6A'
+    const usedOverlay = showWatermark
+      ? '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,77,109,0.9);border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;font-weight:700;z-index:3">✕</div>'
+      : ''
+    const watermarkHtml = showWatermark
+      ? `<div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2"><span style="font-size:60px;font-weight:800;letter-spacing:8px;opacity:0.12;transform:rotate(-30deg);color:${watermarkColor}">${watermarkLabel}</span></div>`
+      : ''
     res.send(`<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -347,7 +373,7 @@ const afficherBillet = async (req, res) => {
 <title>Billet ${b.numero} - SENGUICHET</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;gap:20px}
 .t{width:340px;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(16,185,129,.2);position:relative}
 @media print{body{background:#fff;padding:0;justify-content:center}.t{box-shadow:none;page-break-after:avoid;margin:auto}.dl{display:none!important}}
 .dl{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;padding:12px 28px;border-radius:14px;border:none;font-size:14px;font-weight:600;color:#fff;background:#10B981;cursor:pointer;transition:opacity .2s;letter-spacing:.5px}
@@ -368,9 +394,7 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
 .pf{height:22px;position:relative;background:linear-gradient(to bottom,#10B981,#F9F6EE);display:flex;align-items:center;justify-content:center}
 .pl{position:absolute;left:22px;right:22px;border-top:2px dashed rgba(16,185,129,.2)}
 .pc{position:absolute;width:22px;height:22px;border-radius:11px;background:#0F1A0F;z-index:2}
-.pc.l{left:-11px}
-.pc.r{right:-11px}
-/* BODY creme */
+.pc.l{left:-11px}.pc.r{right:-11px}
 .bd{background:#F9F6EE;padding:20px 24px 8px}
 .br{display:flex;justify-content:space-between}
 .bl{font-size:8px;font-weight:700;letter-spacing:2px;color:#6EE7B7;margin-bottom:2px}
@@ -378,21 +402,23 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
 .ll{font-size:12px;font-weight:600;color:#10B981;letter-spacing:.5px;margin-top:2px}
 .bs{height:1px;background:rgba(16,185,129,.12);margin:14px 0}
 .rf{font-size:9px;color:#6EE7B7;letter-spacing:2px;text-align:center;margin-bottom:4px}
-.qz{background:#fff;border-radius:12px;padding:12px;margin:14px 0;border:1px solid rgba(16,185,129,.08);display:flex;justify-content:center}
+.qz{background:#fff;border-radius:12px;padding:12px;margin:14px 0;border:1px solid rgba(16,185,129,.08);display:flex;justify-content:center;position:relative}
 /* PERFO BASSE */
 .pb{height:22px;position:relative;background:linear-gradient(to bottom,#F9F6EE,#F0EAD6);display:flex;align-items:center;justify-content:center}
-/* FOOTER beige */
 .ft{background:#F0EAD6;border-radius:0 0 20px 20px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
 .cp{background:#10B981;border-radius:999px;padding:5px 20px}
 .ct{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#F59E0B}
 .pr{font-size:28px;font-weight:700;color:#111827;letter-spacing:-.5px;text-align:center}
 .ll2{font-size:9px;color:#6EE7B7;font-style:italic;text-align:center}
 .wm{font-size:8px;color:rgba(16,185,129,.3);letter-spacing:2px;align-self:flex-end;margin-right:4px}
-@media print{body{background:#fff;padding:0}.t{box-shadow:none}}
+.dl{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;padding:12px 28px;border-radius:14px;border:none;font-size:14px;font-weight:600;color:#fff;background:#10B981;cursor:pointer;transition:opacity .2s;letter-spacing:.5px}
+.dl:hover{opacity:.85}
+.dl svg{width:18px;height:18px}
+@media print{body{background:#fff;padding:0;gap:0;min-height:auto;justify-content:flex-start}.t{box-shadow:none;page-break-inside:avoid}.dl{display:none!important}}
 </style>
 </head>
 <body>
-<div class="t">
+<div class="t" style="${showWatermark ? 'overflow:hidden' : ''}">
   <div class="hd">
     <div class="o1"></div><div class="o2"></div>
     <div class="hr">
@@ -412,7 +438,7 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
     <div style="margin-top:10px"><div class="bl">LIEU</div><div class="ll">${(b.lieu || '').toUpperCase()}</div></div>
     <div class="bs"></div>
     <div class="rf">REF · ${b.numero}</div>
-    <div class="qz">${qrHtml}</div>
+    <div class="qz">${qrHtml}${usedOverlay}</div>
   </div>
   <div class="pb"><div class="pl"></div><div class="pc l"></div><div class="pc r"></div></div>
   <div class="ft">
@@ -420,6 +446,7 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
     <div class="pr">${Number(b.prix_paye).toLocaleString()} FCFA</div>
     <div class="ll2">Entrée unique et non transférable</div>
     <div class="wm">SENGUICHET</div>
+    ${watermarkHtml}
   </div>
   </div>
   <button class="dl" onclick="window.print()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Télécharger le billet (PDF)</button>
@@ -453,14 +480,15 @@ const evenementBillets = async (req, res) => {
   }
 };
 
-// Affiche une page HTML publique du reçu d'achat (tous les billets d'une transaction)
-// Les billets sont groupés par catégorie, chacun avec son QR code et lien de téléchargement
-// GET /api/billets/recu/:reference
+/**
+ * Affiche une page HTML publique du reçu d'achat (tous les billets d'une transaction)
+ * Les billets sont groupés par catégorie, chacun avec son QR code et lien de téléchargement
+ * GET /api/billets/recu/:reference
+ */
 const afficherRecu = async (req, res) => {
   try {
     const { reference } = req.params;
 
-    // Récupérer tous les billets de cette transaction, groupés par catégorie
     const [rows] = await pool.query(
       `SELECT b.uuid, b.numero, b.prix_paye, b.statut, b.date_creation,
         b.payload_signature, b.evenement_id,
@@ -487,6 +515,7 @@ const afficherRecu = async (req, res) => {
 
     // Grouper les billets par catégorie
     const groupes = {};
+
     for (const r of rows) {
       if (!groupes[r.categorie]) groupes[r.categorie] = { couleur: r.couleur_hex || '#10B981', prix: r.categorie_prix, tickets: [] };
       groupes[r.categorie].tickets.push(r);
@@ -622,4 +651,85 @@ body{background:#0F1A0F;min-height:100vh;font-family:'Segoe UI',system-ui,-apple
   }
 };
 
-module.exports = { acheter, mesBillets, afficherBillet, evenementBillets, afficherRecu };
+/**
+ * Retourne les données JSON du reçu d'achat pour l'application mobile
+ * GET /api/billets/recu/:reference/data
+ */
+const recuData = async (req, res) => {
+  try {
+    const { reference } = req.params;
+
+    const [rows] = await pool.query(
+      `SELECT b.uuid, b.numero, b.prix_paye, b.statut, b.date_creation,
+        b.payload_signature, b.evenement_id,
+        e.titre, e.lieu, e.date_debut, e.affiche_url,
+        ct.nom AS categorie, ct.couleur_hex, ct.prix AS categorie_prix
+      FROM billet b
+      JOIN evenement e ON e.id = b.evenement_id
+      JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+      WHERE b.transaction_id = (SELECT t.id FROM \`transaction\` t WHERE t.reference = ?)
+      ORDER BY ct.nom, b.numero`,
+      [reference]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ message: "Reçu introuvable" });
+    }
+
+    const groupes = {};
+    for (const r of rows) {
+      if (!groupes[r.categorie]) groupes[r.categorie] = { couleur: r.couleur_hex || '#10B981', prix: r.categorie_prix, tickets: [] };
+      groupes[r.categorie].tickets.push({
+        uuid: r.uuid,
+        numero: r.numero,
+        prixPaye: r.prix_paye,
+        statut: r.statut,
+        dateCreation: r.date_creation,
+        qrPayload: JSON.stringify({
+          uuid: r.uuid,
+          hmac: r.payload_signature,
+          event_id: r.evenement_id,
+          category: r.categorie,
+          timestamp: r.date_creation,
+          transaction_ref: r.numero,
+        }),
+      });
+    }
+
+    const tickets = rows.map(r => ({
+      uuid: r.uuid,
+      numero: r.numero,
+      prixPaye: r.prix_paye,
+      statut: r.statut,
+      dateCreation: r.date_creation,
+      categorie: r.categorie,
+      couleur: r.couleur_hex || '#10B981',
+      qrPayload: JSON.stringify({
+        uuid: r.uuid,
+        hmac: r.payload_signature,
+        event_id: r.evenement_id,
+        category: r.categorie,
+        timestamp: r.date_creation,
+        transaction_ref: r.numero,
+      }),
+    }));
+
+    res.json({
+      reference,
+      evenement: {
+        titre: rows[0].titre,
+        lieu: rows[0].lieu,
+        dateDebut: rows[0].date_debut,
+      },
+      groupes,
+      tickets,
+      nbTickets: rows.length,
+      montantTotal: rows.reduce((sum, r) => sum + Number(r.prix_paye), 0),
+    });
+  } catch (err) {
+    console.error("Reçu data error:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+module.exports = { acheter, mesBillets, afficherBillet, evenementBillets, afficherRecu, recuData };
