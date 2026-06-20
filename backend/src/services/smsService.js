@@ -112,22 +112,43 @@ const envoyerSMSOrange = async (numero, message) => {
   });
 };
 
-// Envoie un SMS de confirmation de billet à l'acheteur via l'API Orange
-// Log l'envoi en base pour suivi et réessai
-// numero : numéro de téléphone au format sénégalais (77XXXXXX, 76XXXXXX, etc.)
+/**
+ * Envoie un SMS de confirmation de billet à l'acheteur via l'API Orange
+ * Log l'envoi en base pour suivi et réessai
+ * numero : numéro de téléphone au format sénégalais (77XXXXXX, 76XXXXXX, etc.)
+ * ticket : { evenement, categorie, prix, quantite, uuid?, reference? }
+ *   Si uuid (1 billet) → lien direct. Si reference (N billets) → lien reçu groupé.
+ */
 const envoyerSMSBillet = async (numero, ticket, pool) => {
   const numeroFull = numero.startsWith("+") ? numero : `+221${numero}`;
-  const ticketBase = (process.env.TICKET_URL || "https://senguichet.com/billet").replace(/\/+$/, "");
-  const message = [
-    `SENGUICHET`,
-    `Achat confirmé`,
-    ``,
-    `Événement: ${ticket.evenement}`,
-    `Catégorie: ${ticket.categorie}`,
-    `Montant: ${ticket.prix.toLocaleString()} FCFA`,
-    ``,
-    `Voir billet: ${ticketBase}/${ticket.uuid}`,
-  ].join('\n');
+  const ticketBase = (process.env.TICKET_URL || "https://backend-beta-six-39.vercel.app/api/billets").replace(/\/+$/, "");
+
+  const lienDirect = ticket.uuid ? `${ticketBase}/${ticket.uuid}` : null;
+  const lienRecu = ticket.reference ? `${ticketBase}/recu/${ticket.reference}` : null;
+  const mesBilletsUrl = "https://senguichet-frontend-web.vercel.app/acheteur/mes-billets";
+  const lien = lienDirect || lienRecu || mesBilletsUrl;
+
+  const message = ticket.quantite > 1
+    ? [
+        `SENGUICHET`,
+        `Achat confirmé pour ${ticket.quantite} billets`,
+        ``,
+        `Événement: ${ticket.evenement}`,
+        `Catégorie: ${ticket.categorie}`,
+        `Montant: ${ticket.prix.toLocaleString()} FCFA`,
+        ``,
+        `Voir reçu: ${lien}`,
+      ].join('\n')
+    : [
+        `SENGUICHET`,
+        `Achat confirmé`,
+        ``,
+        `Événement: ${ticket.evenement}`,
+        `Catégorie: ${ticket.categorie}`,
+        `Montant: ${ticket.prix.toLocaleString()} FCFA`,
+        ``,
+        `Voir billet: ${lien}`,
+      ].join('\n');
 
   // Journaliser la tentative en base
   let logId = null;
@@ -136,7 +157,7 @@ const envoyerSMSBillet = async (numero, ticket, pool) => {
       const [log] = await pool.query(
         `INSERT INTO sms_log (telephone, message, uuid_billet, statut, date_creation)
          VALUES (?, ?, ?, 'ENVOI_EN_COURS', NOW())`,
-        [numeroFull, message.substring(0, 500), ticket.uuid]
+        [numeroFull, message.substring(0, 500), ticket.uuid || ticket.reference || '']
       );
       logId = log.insertId;
     } catch (dbErr) {
@@ -146,6 +167,25 @@ const envoyerSMSBillet = async (numero, ticket, pool) => {
 
   console.log(`SMSDEBUG: envoi vers=${numeroFull}, sender=${process.env.ORANGE_SENDER_ADDRESS}, sandbox=${process.env.ORANGE_SANDBOX}, message=${message.substring(0,60)}...`);
 
+  // Si les credentials Orange ne sont pas configurées, passer en mode simulé
+  const clientId = process.env.ORANGE_CLIENT_ID;
+  const clientSecret = process.env.ORANGE_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    console.log("=================================");
+    console.log("📱 SMS SIMULÉ (credentials Orange manquantes)");
+    console.log(`À: ${numeroFull}`);
+    console.log(`Message:\n${message}`);
+    console.log(`Lien: ${lien}`);
+    console.log("=================================");
+    if (pool && logId) {
+      await pool.query(
+        `UPDATE sms_log SET statut = 'ENVOYE', date_envoi = NOW() WHERE id = ?`,
+        [logId]
+      ).catch(() => {});
+    }
+    return { success: false, simulated: true, lien };
+  }
+
   try {
     const result = await envoyerSMSOrange(numeroFull, message);
 
@@ -153,7 +193,6 @@ const envoyerSMSBillet = async (numero, ticket, pool) => {
       const deliveryStatus = result.outboundSMSMessageRequest.deliveryInfoList?.deliveryInfo?.[0]?.deliveryStatus;
       console.log(`SMSDEBUG: resourceURL=${result.outboundSMSMessageRequest.resourceURL}, status=${deliveryStatus}`);
 
-      // Mettre à jour le log en succès
       if (pool && logId) {
         await pool.query(
           `UPDATE sms_log SET statut = 'ENVOYE', date_envoi = NOW(), reponse_api = ? WHERE id = ?`,
@@ -169,15 +208,21 @@ const envoyerSMSBillet = async (numero, ticket, pool) => {
 
     throw new Error(JSON.stringify(result));
   } catch (err) {
-    // Marquer l'échec en base
     if (pool && logId) {
       await pool.query(
         `UPDATE sms_log SET statut = 'ECHEC', date_envoi = NOW(), reponse_api = ? WHERE id = ?`,
         [err.message, logId]
       ).catch(() => {});
     }
-    console.error("SMS error:", err.message);
-    return { success: false, error: err.message };
+
+    // Fallback : loguer le SMS complet dans la console
+    console.log("=================================");
+    console.log("📱 SMS NON ENVOYÉ (API Orange indisponible)");
+    console.log(`À: ${numeroFull}`);
+    console.log(`Message:\n${message}`);
+    console.log(`Lien: ${lien}`);
+    console.log("=================================");
+    return { success: false, simulated: true, error: err.message, lien };
   }
 };
 

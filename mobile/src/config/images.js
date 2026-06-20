@@ -24,7 +24,8 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1492684223066-81342ee5
 const DEFAULTS = {
   Concert: { bg: '#6d28d9', icon: 'music', emoji: '🎶' },
   Festival: { bg: '#059669', icon: 'tent', emoji: '🎪' },
-  Théâtre: { bg: '#b91c1c', icon: 'theater-masks', emoji: '🎭' },
+  Théâtre: { bg: '#b91c1c', icon: 'theater', emoji: '🎭' },
+  Theatre: { bg: '#b91c1c', icon: 'theater', emoji: '🎭' },
   Sport: { bg: '#2563eb', icon: 'soccer', emoji: '⚽' },
   Conférence: { bg: '#1e293b', icon: 'laptop', emoji: '🎤' },
   Atelier: { bg: '#d97706', icon: 'wrench', emoji: '🔧' },

@@ -117,7 +117,6 @@ export default function HomeScreen({ navigation }) {
     : []
 
   const une = evenementsFiltres.slice(0, 5)
-  const tous = evenementsFiltres.slice(5)
 
   const renderEventCard = (item, distance = null) => {
     const compteRebours = formaterCompteRebours(item.date)
@@ -310,18 +309,6 @@ export default function HomeScreen({ navigation }) {
             </View>
             <View style={styles.eventsList}>
               {proximite.map(item => renderEventCard(item, item.distance))}
-            </View>
-          </>
-        )}
-
-        {/* Section Tous les événements */}
-        {!chargement && tous.length > 0 && (
-          <>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Tous les événements</Text>
-            </View>
-            <View style={styles.eventsList}>
-              {tous.map(item => renderEventCard(item))}
             </View>
           </>
         )}

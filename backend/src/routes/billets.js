@@ -11,6 +11,10 @@ router.get("/mes-billets", billetController.mesBillets);
 // Placée AVANT /:uuid pour éviter que "evenement" soit capturé comme paramètre uuid
 router.get("/evenement/:id", authMiddleware(["ORGANISATEUR"]), billetController.evenementBillets);
 
+// Routes du reçu d'achat — à placer avant /:uuid
+router.get("/recu/:reference", billetController.afficherRecu);
+router.get("/recu/:reference/data", billetController.recuData);
+
 router.get("/:uuid", billetController.afficherBillet);
 
 module.exports = router;

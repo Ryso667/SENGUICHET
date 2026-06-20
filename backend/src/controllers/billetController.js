@@ -1,6 +1,11 @@
-// Contrôleur des billets : achat et consultation
-// POST /api/billets/acheter — crée billet + transaction + initie paiement
-// GET /api/billets/mes-billets — liste les billets d'un téléphone
+/**
+ * Contrôleur des billets : achat, consultation multi-billets, reçu groupé
+ * POST /api/billets/acheter       — crée N billets + 1 transaction + initie paiement
+ * GET  /api/billets/mes-billets   — liste des billets (téléphone/email)
+ * GET  /api/billets/recu/:ref     — page HTML du reçu groupé (tous les QR)
+ * GET  /api/billets/recu/:ref/data — JSON du reçu pour mobile
+ * GET  /api/billets/:uuid         — page HTML d'un billet
+ */
 
 const pool = require("../config/db");
 const { v4: uuidv4 } = require("uuid");
@@ -11,6 +16,12 @@ const { envoyerNotification } = require("../services/NotificationService");
 const HMAC_SECRET = process.env.HMAC_SECRET;
 if (!HMAC_SECRET) console.warn('⚠️  HMAC_SECRET non défini — les signatures QR échoueront');
 
+/**
+ * Crée un ou plusieurs billets pour une même transaction
+ * POST /api/billets/acheter
+ * body : { evenementId, categorieTicketId, telephone, quantite (default 1), provider, email }
+ * Retourne le premier billet, la liste complète, le lien de reçu et les infos de paiement
+ */
 const acheter = async (req, res) => {
   try {
     const { evenementId, categorieTicketId, telephone, quantite = 1, provider = 'WAVE', email } = req.body;
@@ -19,12 +30,16 @@ const acheter = async (req, res) => {
       return res.status(400).json({ message: "Champs obligatoires manquants" });
     }
 
-    // Vérifier que l'événement existe et est actif
+    // Vérifier que l'événement existe, est actif et n'est pas terminé
     const [events] = await pool.query(
-      "SELECT id, titre, lieu, date_debut, organisateur_id FROM evenement WHERE id = ? AND statut = 'actif'",
+      "SELECT id, titre, lieu, date_debut, date_fin, organisateur_id FROM evenement WHERE id = ? AND statut = 'actif'",
       [evenementId]
     );
     if (!events.length) return res.status(404).json({ message: "Événement introuvable ou inactif" });
+    const event = events[0];
+    if (event.date_fin && new Date(event.date_fin) < new Date()) {
+      return res.status(400).json({ message: "Cet événement est déjà terminé" });
+    }
 
     // Vérifier la catégorie et les places disponibles
     const [categories] = await pool.query(
@@ -80,41 +95,62 @@ const acheter = async (req, res) => {
     try {
       await conn.beginTransaction();
 
-      // Créer le billet
-      const uuid = uuidv4();
-      const numero = `TKT-${Date.now().toString(36).toUpperCase()}`;
-      const timestamp = new Date().toISOString();
+      // Créer autant de billets que la quantité demandée (1 billet = 1 QR)
+      const billetsCrees = [];
+      for (let i = 0; i < quantite; i++) {
+        const uuid = uuidv4();
+        const numero = `TKT-${Date.now().toString(36).toUpperCase()}-${i}`;
+        const timestamp = new Date().toISOString();
 
-      // Générer la signature HMAC (identique au format utilisé par le scan offline)
-      // Utilise SHA256(data+secret) car expo-crypto ne supporte pas HMAC natif
-      const signaturePayload = `${uuid}|${numero}|${timestamp}|${evenementId}|${cat.nom}`;
-      const payload_signature = crypto.createHash('sha256').update(signaturePayload + HMAC_SECRET).digest('hex');
+        // Générer la signature
+        const signaturePayload = `${uuid}|${numero}|${timestamp}|${evenementId}|${cat.nom}`;
+        const payload_signature = crypto.createHash('sha256').update(signaturePayload + HMAC_SECRET).digest('hex');
 
-      const [billetResult] = await conn.query(
-        `INSERT INTO billet (uuid, numero, evenement_id, categorie_ticket_id, telephone_acheteur, email_acheteur, payload_signature, prix_paye, statut)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'EN_ATTENTE')`,
-        [uuid, numero, evenementId, categorieTicketId, telephone, ticketEmail || null, payload_signature, montantTotal]
-      );
+        const [billetResult] = await conn.query(
+          `INSERT INTO billet (uuid, numero, evenement_id, categorie_ticket_id, telephone_acheteur, email_acheteur, payload_signature, prix_paye, statut)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'EN_ATTENTE')`,
+          [uuid, numero, evenementId, categorieTicketId, telephone, ticketEmail || null, payload_signature, cat.prix]
+        );
 
-      const billetId = billetResult.insertId;
+        billetsCrees.push({
+          id: billetResult.insertId,
+          uuid,
+          numero,
+          prix: cat.prix,
+          evenement: event.titre,
+          categorie: cat.nom,
+          dateAchat: timestamp,
+          qrPayload: JSON.stringify({
+            uuid,
+            hmac: payload_signature,
+            event_id: evenementId,
+            category: cat.nom,
+            timestamp,
+            transaction_ref: numero,
+          }),
+        });
+      }
 
-      // Réserver les places immédiatement
+      // Réserver les places (une seule fois pour toute la quantité)
       await conn.query(
         "UPDATE categorie_ticket SET places_disponibles = places_disponibles - ? WHERE id = ? AND places_disponibles >= ?",
         [quantite, categorieTicketId, quantite]
       );
 
-      // Créer la transaction
+      // Créer une transaction unique pour le montant total
       const reference = 'PAI-' + uuidv4().slice(0, 12).toUpperCase();
+      const premierBilletId = billetsCrees[0].id;
       await conn.query(
         `INSERT INTO transaction (reference, billet_id, montant, frais, devise, statut, moyen_paiement, telephone_payeur)
          VALUES (?, ?, ?, 0, 'FCFA', 'PENDING', ?, ?)`,
-        [reference, billetId, montantTotal, provider, telephone]
+        [reference, premierBilletId, montantTotal, provider, telephone]
       );
 
-      // Mettre à jour la transaction_id dans le billet
+      // Rattacher la transaction à TOUS les billets créés
       const [txRows] = await conn.query("SELECT id FROM transaction WHERE reference = ?", [reference]);
-      await conn.query("UPDATE billet SET transaction_id = ? WHERE id = ?", [txRows[0].id, billetId]);
+      for (const b of billetsCrees) {
+        await conn.query("UPDATE billet SET transaction_id = ? WHERE id = ?", [txRows[0].id, b.id]);
+      }
 
       await conn.commit();
 
@@ -139,15 +175,15 @@ const acheter = async (req, res) => {
         }
 
         // Si pas de redirectUrl (mode simulation/sync), confirmer immédiatement
-        // Évite que le billet reste bloqué en EN_ATTENTE sans réponse asynchrone
         if (!paymentResult.redirectUrl) {
           await pool.query(
             "UPDATE transaction SET statut = 'SUCCESS', date_mise_a_jour = NOW() WHERE reference = ?",
             [reference]
           );
+          const ids = billetsCrees.map(b => b.id);
           await pool.query(
-            "UPDATE billet SET statut = 'ACTIF' WHERE id = ?",
-            [billetId]
+            `UPDATE billet SET statut = 'ACTIF' WHERE id IN (${ids.map(() => '?').join(',')})`,
+            ids
           );
         }
       } catch (paymentError) {
@@ -155,45 +191,41 @@ const acheter = async (req, res) => {
         paymentResult = { redirectUrl: null, referenceOperateur: null };
       }
 
-      // Contenu du QR code
-      const qrPayload = JSON.stringify({
-        uuid,
-        hmac: payload_signature,
-        event_id: evenementId,
-        category: cat.nom,
-        timestamp,
-        transaction_ref: numero,
-      });
+      // Contenu du QR code (premier billet)
+      const premierBillet = billetsCrees[0];
 
-      // Envoyer un SMS de confirmation à l'acheteur (fire-and-forget pour éviter le timeout)
+      // Envoyer un SMS de confirmation à l'acheteur (fire-and-forget)
       const { envoyerSMSBillet } = require("../services/smsService");
       envoyerSMSBillet(telephone, {
-        uuid,
-        numero,
-        evenement: events[0].titre,
+        uuid: premierBillet.uuid,
+        numero: premierBillet.numero,
+        evenement: event.titre,
         categorie: cat.nom,
         prix: montantTotal,
+        quantite,
+        reference: quantite > 1 ? reference : undefined,
       }, pool);
 
       // Envoyer un email de confirmation si l'email est renseigné
       if (ticketEmail) {
         const { envoyerEmailBillet } = require("../services/emailService");
         envoyerEmailBillet(ticketEmail, {
-          uuid,
-          numero,
-          evenement: events[0].titre,
-          dateDebut: events[0].date_debut,
-          lieu: events[0].lieu,
+          uuid: premierBillet.uuid,
+          numero: premierBillet.numero,
+          evenement: event.titre,
+          dateDebut: event.date_debut,
+          lieu: event.lieu,
           categorie: cat.nom,
           prix: montantTotal,
+          quantite,
         }).catch(e => console.error("Email error:", e.message));
       }
 
       // Envoyer une notification push à l'organisateur
       try {
-        await envoyerNotification(events[0].organisateur_id, {
+        await envoyerNotification(event.organisateur_id, {
           type: 'vente',
-          message: `Nouvelle vente : ${cat.nom} pour ${events[0].titre}`,
+          message: `Nouvelle vente : ${cat.nom} ×${quantite} pour ${event.titre}`,
           evenementId: evenementId,
         });
       } catch (e) {
@@ -210,17 +242,16 @@ const acheter = async (req, res) => {
         } catch {}
       }
 
+      const ticketBase = process.env.TICKET_URL || "https://backend-beta-six-39.vercel.app/api/billets";
+      const lienBillet = quantite === 1
+        ? `${ticketBase}/${premierBillet.uuid}`
+        : `${ticketBase}/recu/${reference}`;
+
       res.status(201).json({
-        billet: {
-          id: billetId,
-          uuid,
-          numero,
-          prix: montantTotal,
-          evenement: events[0].titre,
-          categorie: cat.nom,
-          dateAchat: timestamp,
-          qrPayload,
-        },
+        billet: premierBillet,
+        billets: billetsCrees,
+        quantite,
+        lien: lienBillet,
         paiement: {
           reference,
           redirectUrl: paymentResult.redirectUrl,
@@ -321,6 +352,18 @@ const afficherBillet = async (req, res) => {
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrPayload)}`;
 
     const qrHtml = `<img src="${qrUrl}" alt="QR" style="width:180px;height:180px;display:block" />`;
+    const statut = (b.statut || '').toLowerCase()
+    const isUsed = statut === 'utilise'
+    const isExpired = statut === 'expire'
+    const showWatermark = isUsed || isExpired
+    const watermarkLabel = isExpired ? 'EXPIRÉ' : 'UTILISÉ'
+    const watermarkColor = isExpired ? '#FF4D6D' : '#66BB6A'
+    const usedOverlay = showWatermark
+      ? '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,77,109,0.9);border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;font-weight:700;z-index:3">✕</div>'
+      : ''
+    const watermarkHtml = showWatermark
+      ? `<div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2"><span style="font-size:60px;font-weight:800;letter-spacing:8px;opacity:0.12;transform:rotate(-30deg);color:${watermarkColor}">${watermarkLabel}</span></div>`
+      : ''
     res.send(`<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -329,9 +372,8 @@ const afficherBillet = async (req, res) => {
 <title>Billet ${b.numero} - SENGUICHET</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0F1A0F;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;gap:20px}
 .t{width:340px;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(16,185,129,.2);position:relative}
-/* HEADER vert */
 .hd{background:#10B981;padding:24px;position:relative;overflow:hidden}
 .o1{position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:60px;background:rgba(110,231,183,.25)}
 .o2{position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:40px;background:rgba(245,158,11,.12)}
@@ -342,13 +384,10 @@ body{background:#0F1A0F;min-height:100vh;display:flex;align-items:center;justify
 .gl{height:1px;background:#F59E0B;opacity:.6;margin:16px 0}
 .en{font-size:22px;font-weight:700;color:#fff;text-align:center;letter-spacing:.5px;line-height:28px}
 .ec{font-size:10px;color:rgba(255,255,255,.6);text-align:center;letter-spacing:2px;margin-top:6px}
-/* PERFORATION */
 .pf{height:22px;position:relative;background:linear-gradient(to bottom,#10B981,#F9F6EE);display:flex;align-items:center;justify-content:center}
 .pl{position:absolute;left:22px;right:22px;border-top:2px dashed rgba(16,185,129,.2)}
 .pc{position:absolute;width:22px;height:22px;border-radius:11px;background:#0F1A0F;z-index:2}
-.pc.l{left:-11px}
-.pc.r{right:-11px}
-/* BODY creme */
+.pc.l{left:-11px}.pc.r{right:-11px}
 .bd{background:#F9F6EE;padding:20px 24px 8px}
 .br{display:flex;justify-content:space-between}
 .bl{font-size:8px;font-weight:700;letter-spacing:2px;color:#6EE7B7;margin-bottom:2px}
@@ -356,21 +395,22 @@ body{background:#0F1A0F;min-height:100vh;display:flex;align-items:center;justify
 .ll{font-size:12px;font-weight:600;color:#10B981;letter-spacing:.5px;margin-top:2px}
 .bs{height:1px;background:rgba(16,185,129,.12);margin:14px 0}
 .rf{font-size:9px;color:#6EE7B7;letter-spacing:2px;text-align:center;margin-bottom:4px}
-.qz{background:#fff;border-radius:12px;padding:12px;margin:14px 0;border:1px solid rgba(16,185,129,.08);display:flex;justify-content:center}
-/* PERFO BASSE */
+.qz{background:#fff;border-radius:12px;padding:12px;margin:14px 0;border:1px solid rgba(16,185,129,.08);display:flex;justify-content:center;position:relative}
 .pb{height:22px;position:relative;background:linear-gradient(to bottom,#F9F6EE,#F0EAD6);display:flex;align-items:center;justify-content:center}
-/* FOOTER beige */
 .ft{background:#F0EAD6;border-radius:0 0 20px 20px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
 .cp{background:#10B981;border-radius:999px;padding:5px 20px}
 .ct{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#F59E0B}
 .pr{font-size:28px;font-weight:700;color:#111827;letter-spacing:-.5px;text-align:center}
 .ll2{font-size:9px;color:#6EE7B7;font-style:italic;text-align:center}
 .wm{font-size:8px;color:rgba(16,185,129,.3);letter-spacing:2px;align-self:flex-end;margin-right:4px}
-@media print{body{background:#fff;padding:0}.t{box-shadow:none}}
+.btn{display:inline-flex;align-items:center;gap:8px;background:#10B981;color:#fff;border:none;border-radius:999px;padding:14px 32px;font-size:14px;font-weight:700;letter-spacing:1px;cursor:pointer;text-decoration:none;transition:opacity .2s}
+.btn:hover{opacity:.8}
+.btn svg{width:16px;height:16px}
+@media print{body{background:#fff;padding:0;gap:0;min-height:auto;justify-content:flex-start}.t{box-shadow:none;page-break-inside:avoid}.btn,.no-print{display:none!important}}
 </style>
 </head>
 <body>
-<div class="t">
+<div class="t" style="${showWatermark ? 'overflow:hidden' : ''}">
   <div class="hd">
     <div class="o1"></div><div class="o2"></div>
     <div class="hr">
@@ -390,7 +430,7 @@ body{background:#0F1A0F;min-height:100vh;display:flex;align-items:center;justify
     <div style="margin-top:10px"><div class="bl">LIEU</div><div class="ll">${(b.lieu || '').toUpperCase()}</div></div>
     <div class="bs"></div>
     <div class="rf">REF · ${b.numero}</div>
-    <div class="qz">${qrHtml}</div>
+    <div class="qz">${qrHtml}${usedOverlay}</div>
   </div>
   <div class="pb"><div class="pl"></div><div class="pc l"></div><div class="pc r"></div></div>
   <div class="ft">
@@ -398,8 +438,24 @@ body{background:#0F1A0F;min-height:100vh;display:flex;align-items:center;justify
     <div class="pr">${Number(b.prix_paye).toLocaleString()} FCFA</div>
     <div class="ll2">Entrée unique et non transférable</div>
     <div class="wm">SENGUICHET</div>
+    ${watermarkHtml}
   </div>
 </div>
+<button class="btn no-print" onclick="window.print()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+  Télécharger le PDF
+</button>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.querySelector('.btn');
+  if (btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.print();
+    });
+  }
+});
+</script>
 </body>
 </html>`);
   } catch (err) {
@@ -430,4 +486,247 @@ const evenementBillets = async (req, res) => {
   }
 };
 
-module.exports = { acheter, mesBillets, afficherBillet, evenementBillets };
+/**
+ * Affiche une page HTML publique du reçu d'achat (tous les billets d'une transaction)
+ * Les billets sont groupés par catégorie, chacun avec son QR code et lien de téléchargement
+ * GET /api/billets/recu/:reference
+ */
+const afficherRecu = async (req, res) => {
+  try {
+    const { reference } = req.params;
+
+    const [rows] = await pool.query(
+      `SELECT b.uuid, b.numero, b.prix_paye, b.statut, b.date_creation,
+        b.payload_signature, b.evenement_id,
+        e.titre, e.lieu, e.date_debut, e.date_fin, e.affiche_url,
+        ct.nom AS categorie, ct.couleur_hex, ct.prix AS categorie_prix
+      FROM billet b
+      JOIN evenement e ON e.id = b.evenement_id
+      JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+      WHERE b.transaction_id = (SELECT t.id FROM \`transaction\` t WHERE t.reference = ?)
+      ORDER BY ct.nom, b.numero`,
+      [reference]
+    );
+
+    if (!rows.length) {
+      return res.status(404).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Reçu introuvable — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#10B981;">SENGUICHET</h1><p style="color:#6EE7B7;">Reçu introuvable</p></body></html>`);
+    }
+
+    const eventInfo = {
+      titre: rows[0].titre,
+      lieu: rows[0].lieu,
+      date_debut: rows[0].date_debut,
+      date_fin: rows[0].date_fin,
+    };
+
+    const groupes = {};
+    for (const r of rows) {
+      if (!groupes[r.categorie]) groupes[r.categorie] = { couleur: r.couleur_hex || '#10B981', prix: r.categorie_prix, tickets: [] };
+      groupes[r.categorie].tickets.push(r);
+    }
+
+    const dateFormatted = new Date(eventInfo.date_debut).toLocaleDateString("fr-FR", {
+      day: "numeric", month: "long", year: "numeric"
+    });
+    const heureFormatted = new Date(eventInfo.date_debut).toLocaleTimeString("fr-FR", {
+      hour: "2-digit", minute: "2-digit"
+    });
+
+    const groupesHtml = Object.entries(groupes).map(([nom, g]) => {
+      const ticketsHtml = g.tickets.map(t => {
+        const qrPayload = JSON.stringify({
+          uuid: t.uuid,
+          hmac: t.payload_signature,
+          event_id: t.evenement_id,
+          category: t.categorie,
+          timestamp: t.date_creation,
+          transaction_ref: t.numero,
+        });
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(qrPayload)}`;
+        const dateAchat = new Date(t.date_creation).toLocaleDateString("fr-FR", {
+          day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
+        });
+        return `
+          <div class="ticket">
+            <img src="${qrUrl}" alt="QR" class="qrcode" />
+            <div class="tinfo">
+              <div class="tref">${t.numero}</div>
+              <div class="tdate">${dateAchat}</div>
+              <div class="tprix">${Number(t.prix_paye).toLocaleString()} FCFA</div>
+              <a href="/api/billets/${t.uuid}" class="tlink">Voir le billet →</a>
+            </div>
+          </div>`;
+      }).join('');
+
+      return `
+        <div class="groupe">
+          <div class="gentete" style="border-left:4px solid ${g.couleur};">
+            <span class="gnom">${nom.toUpperCase()}</span>
+            <span class="gqte">×${g.tickets.length}</span>
+            <span class="gprix">${(g.prix * g.tickets.length).toLocaleString()} FCFA</span>
+          </div>
+          <div class="gtickets">${ticketsHtml}</div>
+        </div>`;
+    }).join('');
+
+    const nbTickets = rows.length;
+    const montantTotal = rows.reduce((sum, r) => sum + Number(r.prix_paye), 0);
+
+    res.send(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reçu d'achat - SENGUICHET</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0F1A0F;min-height:100vh;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;padding:20px;display:flex;flex-direction:column;align-items:center}
+.recu{max-width:640px;width:100%;background:#F9F6EE;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(16,185,129,.2)}
+@media print{body{background:#fff;padding:0}.recu{box-shadow:none;page-break-after:avoid}.noprint{display:none!important}}
+.hd{background:linear-gradient(135deg,#10B981,#059669);padding:24px;text-align:center;position:relative}
+.hd h1{color:#fff;font-size:22px;font-weight:700;letter-spacing:1px}
+.hd p{color:rgba(255,255,255,.7);font-size:12px;margin-top:4px}
+.hd .ref{color:rgba(255,255,255,.5);font-size:10px;letter-spacing:2px;margin-top:8px}
+.evinfo{background:#fff;margin:0 16px 16px;border-radius:12px;padding:16px;border:1px solid rgba(16,185,129,.08)}
+.evinfo .evtitre{font-size:16px;font-weight:700;color:#111827}
+.evinfo .evdetail{font-size:12px;color:#6B7280;margin-top:4px}
+.groupe{margin:0 16px 16px}
+.gentete{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border-radius:10px 10px 0 0;border-bottom:1px solid #E5E7EB}
+.gnom{font-size:11px;font-weight:700;letter-spacing:2px;color:#111827;flex:1}
+.gqte{font-size:13px;font-weight:700;color:#10B981}
+.gprix{font-size:12px;font-weight:600;color:#6B7280}
+.gtickets{background:#fff;border-radius:0 0 10px 10px;padding:12px}
+.ticket{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid #F3F4F6}
+.ticket:last-child{border-bottom:none}
+.qrcode{width:120px;height:120px;border-radius:8px;flex-shrink:0}
+.tinfo{flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.tref{font-size:13px;font-weight:700;color:#111827;letter-spacing:.5px}
+.tdate{font-size:11px;color:#6B7280}
+.tprix{font-size:14px;font-weight:700;color:#10B981}
+.tlink{display:inline-block;margin-top:6px;font-size:12px;font-weight:600;color:#10B981;text-decoration:none;border:1px solid #10B981;border-radius:6px;padding:4px 14px;align-self:flex-start;transition:all .2s}
+.tlink:hover{background:#10B981;color:#fff}
+.total{background:#fff;margin:0 16px 16px;border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(16,185,129,.08)}
+.total .tlabel{font-size:12px;color:#6B7280;letter-spacing:1px}
+.total .tmontant{font-size:20px;font-weight:700;color:#111827}
+.ft{background:#F0EAD6;padding:16px;text-align:center}
+.ft p{font-size:10px;color:rgba(16,185,129,.4);letter-spacing:1px}
+.printbtn{display:flex;align-items:center;justify-content:center;gap:8px;margin:20px auto;padding:12px 28px;border-radius:14px;border:none;font-size:14px;font-weight:600;color:#fff;background:#10B981;cursor:pointer;transition:opacity .2s;letter-spacing:.5px}
+.printbtn:hover{opacity:.85}
+.printbtn svg{width:18px;height:18px}
+</style>
+</head>
+<body>
+<button class="printbtn noprint" onclick="window.print()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Télécharger le reçu (PDF)</button>
+<div class="recu">
+  <div class="hd">
+    <h1>SENGUICHET</h1>
+    <p>Achat confirmé</p>
+    <div class="ref">RÉFÉRENCE · ${reference}</div>
+  </div>
+  <div class="evinfo">
+    <div class="evtitre">${(eventInfo.titre || '').toUpperCase()}</div>
+    <div class="evdetail">${dateFormatted} à ${heureFormatted}</div>
+    <div class="evdetail">${eventInfo.lieu || ''}</div>
+  </div>
+  <p style="font-size:14px;font-weight:700;color:#111827;margin:0 16px 12px">${nbTickets} billet${nbTickets > 1 ? 's' : ''}</p>
+  ${groupesHtml}
+  <div class="total">
+    <span class="tlabel">TOTAL</span>
+    <span class="tmontant">${montantTotal.toLocaleString()} FCFA</span>
+  </div>
+  <div class="ft">
+    <p>SENGUICHET — Sen Digital Pulse</p>
+    <p>Entrée unique et non transférable</p>
+  </div>
+</div>
+<button class="printbtn noprint" onclick="window.print()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Télécharger le reçu (PDF)</button>
+</body>
+</html>`);
+  } catch (err) {
+    console.error("Afficher recu error:", err);
+    res.status(500).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Erreur — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#10B981;">SENGUICHET</h1><p style="color:#6EE7B7;">Erreur serveur</p></body></html>`);
+  }
+};
+
+/**
+ * Retourne les données JSON du reçu d'achat pour l'application mobile
+ * GET /api/billets/recu/:reference/data
+ */
+const recuData = async (req, res) => {
+  try {
+    const { reference } = req.params;
+
+    const [rows] = await pool.query(
+      `SELECT b.uuid, b.numero, b.prix_paye, b.statut, b.date_creation,
+        b.payload_signature, b.evenement_id,
+        e.titre, e.lieu, e.date_debut, e.affiche_url,
+        ct.nom AS categorie, ct.couleur_hex, ct.prix AS categorie_prix
+      FROM billet b
+      JOIN evenement e ON e.id = b.evenement_id
+      JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+      WHERE b.transaction_id = (SELECT t.id FROM \`transaction\` t WHERE t.reference = ?)
+      ORDER BY ct.nom, b.numero`,
+      [reference]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ message: "Reçu introuvable" });
+    }
+
+    const groupes = {};
+    for (const r of rows) {
+      if (!groupes[r.categorie]) groupes[r.categorie] = { couleur: r.couleur_hex || '#10B981', prix: r.categorie_prix, tickets: [] };
+      groupes[r.categorie].tickets.push({
+        uuid: r.uuid,
+        numero: r.numero,
+        prixPaye: r.prix_paye,
+        statut: r.statut,
+        dateCreation: r.date_creation,
+        qrPayload: JSON.stringify({
+          uuid: r.uuid,
+          hmac: r.payload_signature,
+          event_id: r.evenement_id,
+          category: r.categorie,
+          timestamp: r.date_creation,
+          transaction_ref: r.numero,
+        }),
+      });
+    }
+
+    const tickets = rows.map(r => ({
+      uuid: r.uuid,
+      numero: r.numero,
+      prixPaye: r.prix_paye,
+      statut: r.statut,
+      dateCreation: r.date_creation,
+      categorie: r.categorie,
+      couleur: r.couleur_hex || '#10B981',
+      qrPayload: JSON.stringify({
+        uuid: r.uuid,
+        hmac: r.payload_signature,
+        event_id: r.evenement_id,
+        category: r.categorie,
+        timestamp: r.date_creation,
+        transaction_ref: r.numero,
+      }),
+    }));
+
+    res.json({
+      reference,
+      evenement: {
+        titre: rows[0].titre,
+        lieu: rows[0].lieu,
+        dateDebut: rows[0].date_debut,
+      },
+      groupes,
+      tickets,
+      nbTickets: rows.length,
+      montantTotal: rows.reduce((sum, r) => sum + Number(r.prix_paye), 0),
+    });
+  } catch (err) {
+    console.error("Reçu data error:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+module.exports = { acheter, mesBillets, afficherBillet, evenementBillets, afficherRecu, recuData };

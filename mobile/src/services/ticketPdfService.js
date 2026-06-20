@@ -1,4 +1,4 @@
-// Service de génération de ticket PDF — format paysage, design vert émeraude, 3 colonnes
+// Service de génération de ticket PDF — format portrait, design vert émeraude (identique à TicketScreen.js)
 import * as Print from 'expo-print'
 import * as Sharing from 'expo-sharing'
 import * as FileSystem from 'expo-file-system/legacy'
@@ -35,21 +35,26 @@ function construireHtmlTicket(ticket, qrDataUrl, logoBase64) {
   const prixStr = formatPrix(ticket.prix)
   const refStr = ticket.numero || '—'
 
-  const catStr = ticket.categorie || 'STANDARD'
-
   const logoImg = logoBase64
-    ? `<img src="${logoBase64}" style="width:48px;height:48px;border-radius:10px;border:2px solid rgba(255,255,255,0.2);display:block" />`
-    : '<div style="width:48px;height:48px;border-radius:10px;background:#1B4332;border:2px solid rgba(255,255,255,0.2)"></div>'
+    ? `<img src="${logoBase64}" style="width:38px;height:38px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);display:block" />`
+    : '<div style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2)"></div>'
 
   const qrImg = qrDataUrl
     ? `<img src="${qrDataUrl}" style="width:160px;height:160px;display:block" />`
-    : '<div style="width:160px;height:160px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#999">QR</div>'
+    : '<div style="width:160px;height:160px;"></div>'
 
-  const statutOverlay = ticket.statut === 'utilise'
+  const statutOverlay = (ticket.statut || '').toLowerCase() === 'utilise' || (ticket.statut || '').toLowerCase() === 'expire'
     ? '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,77,109,0.9);border-radius:50%;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff;font-weight:700;">✕</div>'
     : ''
 
-  // Design paysage 3 colonnes — palette vert émeraude #1B4332 / #40916C / #D4AF37 / #F9F6EE / #F0EAD6
+  const isUsed = (ticket.statut || '').toLowerCase() === 'utilise'
+  const isExpired = (ticket.statut || '').toLowerCase() === 'expire'
+  const watermarkLabel = isExpired ? 'EXPIRÉ' : 'UTILISÉ'
+  const watermarkColor = isExpired ? '#FF4D6D' : '#66BB6A'
+  const showWatermark = isUsed || isExpired
+
+  // Design portrait — identique au TicketScreen.js
+  // Header vert #10B981 → perforation → corps crème #F9F6EE → perforation → souche beige #F0EAD6
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -65,274 +70,295 @@ function construireHtmlTicket(ticket, qrDataUrl, logoBase64) {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     padding: 24px;
     font-family: 'Outfit', 'Helvetica Neue', Arial, sans-serif;
   }
   .ticket {
-    display: flex;
-    flex-direction: row;
     width: 100%;
-    max-width: 780px;
-    height: 480px;
+    max-width: 360px;
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0,0,0,0.35);
     position: relative;
   }
 
-  /* ===== COLONNE GAUCHE — HEADER ===== */
-  .col-left {
-    width: 25%;
-    background: #1B4332;
-    border-radius: 20px 0 0 20px;
+  /* ===== HEADER ===== */
+  .header {
+    background: #10B981;
+    padding: 32px 28px;
     position: relative;
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-    padding: 32px 20px;
-    flex-shrink: 0;
+    text-align: center;
   }
-  .col-left .orbe1 {
+  .header .orbe1 {
     position: absolute; top: -40px; right: -40px;
     width: 140px; height: 140px; border-radius: 50%;
-    background: rgba(64,145,108,0.35);
+    background: rgba(16,185,129,0.3);
   }
-  .col-left .orbe2 {
+  .header .orbe2 {
     position: absolute; bottom: -30px; left: -30px;
     width: 100px; height: 100px; border-radius: 50%;
-    background: rgba(212,175,55,0.15);
+    background: rgba(245,158,11,0.12);
   }
-  .col-left .brand {
+  .header .orbe3 {
+    position: absolute; top: 60px; left: -20px;
+    width: 60px; height: 60px; border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+  }
+  .logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .logo-wrap {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .brand {
     font-size: 10px; letter-spacing: 3px; color: rgba(255,255,255,0.7);
-    font-weight: 600; text-transform: uppercase;
-    position: relative; z-index: 1;
+    font-weight: 700;
   }
-  .col-left .gold-line {
-    width: 60px; height: 1px; background: #D4AF37; opacity: 0.7;
-    position: relative; z-index: 1;
+  .gold-line {
+    height: 1px; background: #F59E0B; opacity: 0.5;
+    margin: 20px auto 18px; width: 80%;
   }
-  .col-left .event-name {
+  .event-name {
     font-size: 22px; font-weight: 800; color: #fff;
-    text-align: center; line-height: 1.25;
-    position: relative; z-index: 1;
+    text-align: center; letter-spacing: 0.5px;
+    line-height: 1.25;
   }
-  .col-left .event-sub {
-    font-size: 9px; color: rgba(255,255,255,0.5);
-    letter-spacing: 2px; text-transform: uppercase;
-    position: relative; z-index: 1;
+  .cat-pill {
+    display: inline-block;
+    background: rgba(245,158,11,0.15);
+    border-radius: 999px;
+    padding: 4px 14px;
+    margin-top: 10px;
   }
-  .col-left .logo-wrap {
-    position: relative; z-index: 1;
+  .cat-pill-text {
+    font-size: 9px; font-weight: 700; letter-spacing: 2px;
+    color: #F59E0B;
   }
 
-  /* ===== SÉPARATEUR PERFORÉ VERTICAL ===== */
-  .sep {
-    width: 24px;
+  /* ===== PERFORATION ===== */
+  .perf {
+    height: 24px;
     position: relative;
-    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  .sep.dark-cream {
-    background: linear-gradient(to right, #1B4332, #F9F6EE);
-  }
-  .sep.cream-beige {
-    background: linear-gradient(to right, #F9F6EE, #F0EAD6);
-  }
-  .sep .dash {
-    position: absolute; left: 50%; top: 0; bottom: 0;
-    border-left: 2px dashed rgba(27,67,50,0.2);
-  }
-  .sep .sc {
-    position: absolute; left: 50%; transform: translateX(-50%);
-    width: 24px; height: 24px; border-radius: 50%;
-    background: #0F1A0F; z-index: 2;
-  }
-  .sep .sc.top { top: -12px; }
-  .sep .sc.bot { bottom: -12px; }
-
-  /* ===== COLONNE CENTRALE — CORPS ===== */
-  .col-center {
-    width: 45%;
-    background: #F9F6EE;
-    padding: 36px 28px;
+  .perf.green-cream { background: linear-gradient(to bottom, #10B981, #F9F6EE); }
+  .perf.cream-beige { background: linear-gradient(to bottom, #F9F6EE, #F0EAD6); }
+  .perf .dash-line {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 16px;
-    flex-shrink: 0;
+    justify-content: space-evenly;
+    align-items: center;
+    width: calc(100% - 60px);
+    position: absolute;
+    left: 30px; right: 30px;
   }
-  .col-center .row2 {
+  .perf .dash {
+    width: 5px; height: 2px;
+    background: #3D4356;
+    border-radius: 1px;
+  }
+  .perf .hc {
+    position: absolute;
+    top: 50%;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: #0F1A0F;
+    margin-top: -12px;
+  }
+  .perf .hc.left { left: -12px; }
+  .perf .hc.right { right: -12px; }
+
+  /* ===== BODY ===== */
+  .body {
+    background: #F9F6EE;
+    padding: 28px 28px 16px;
+  }
+  .info-row {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
   }
-  .col-center .lbl {
-    font-size: 8px; letter-spacing: 2px; color: #40916C;
-    font-weight: 600; text-transform: uppercase; margin-bottom: 3px;
+  .info-block {
+    flex: 1;
   }
-  .col-center .val {
-    font-size: 13px; color: #1B4332;
-    font-weight: 600; font-family: 'Outfit', sans-serif;
+  .info-block-right {
+    text-align: right;
   }
-  .col-center .lieu {
-    color: #40916C; letter-spacing: 0.5px;
-    font-weight: 700; font-size: 13px;
+  .info-label {
+    font-size: 8px; letter-spacing: 2px; color: #6EE7B7;
+    font-weight: 700; margin-bottom: 3px;
   }
-  .col-center .sep-line {
-    height: 1px; background: rgba(27,67,50,0.1);
+  .info-value {
+    font-size: 14px; font-weight: 600; color: #111827;
   }
-  .col-center .ref {
-    font-size: 9px; color: #40916C; letter-spacing: 2px;
-    text-align: center; font-family: monospace;
+  .lieu-block {
+    margin-top: 14px;
   }
-  .col-center .qr-wrap {
-    background: #fff; border-radius: 12px; padding: 12px;
-    border: 1px solid rgba(27,67,50,0.08);
+  .lieu-label {
+    font-size: 8px; letter-spacing: 2px; color: #6EE7B7;
+    font-weight: 700; margin-bottom: 3px;
+  }
+  .lieu-value {
+    font-size: 13px; font-weight: 600; color: #6EE7B7;
+    letter-spacing: 0.5px;
+  }
+  .separator {
+    height: 1px; background: rgba(17,24,39,0.08);
+    margin: 18px 0;
+  }
+  .ref-text {
+    font-size: 9px; color: #6EE7B7;
+    text-align: center; letter-spacing: 2px;
+    font-family: monospace;
+    margin-bottom: 6px;
+  }
+  .qr-wrap {
+    background: #fff; border-radius: 14px; padding: 16px;
+    margin-top: 10px; margin-bottom: 6px;
+    border: 1px solid rgba(17,24,39,0.06);
     display: flex; justify-content: center; align-items: center;
-    align-self: center; position: relative;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   }
 
-  /* ===== COLONNE DROITE — SOUCHE ===== */
-  .col-right {
-    width: 30%;
+  /* ===== FOOTER ===== */
+  .footer {
     background: #F0EAD6;
-    border-radius: 0 20px 20px 0;
-    padding: 32px 24px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
+    padding: 24px 28px;
+    text-align: center;
     position: relative;
-    flex-shrink: 0;
   }
-  .col-right .badge {
-    background: #1B4332;
+  .footer .badge {
+    background: #10B981;
     border-radius: 999px;
+    display: inline-block;
     padding: 6px 24px;
+    margin-bottom: 10px;
   }
-  .col-right .badge-text {
+  .footer .badge-text {
     font-size: 9px; font-weight: 700; letter-spacing: 2.5px;
-    color: #D4AF37; text-transform: uppercase;
-    font-family: 'Outfit', sans-serif;
+    color: #F59E0B;
   }
-  .col-right .price {
-    font-size: 32px; font-weight: 800; color: #1B4332;
-    font-family: 'Outfit', sans-serif; letter-spacing: -0.5px;
-    text-align: center;
+  .footer .price {
+    font-size: 28px; font-weight: 800; color: #111827;
+    letter-spacing: -0.5px;
   }
-  .col-right .legal {
-    font-size: 9px; color: #40916C; font-style: italic; text-align: center;
+  .footer .legal {
+    font-size: 9px; color: #6EE7B7;
+    font-style: italic; margin-top: 10px;
   }
-  .col-right .thin-sep {
-    width: 40px; height: 1px; background: rgba(27,67,50,0.15);
+  .footer .wm {
+    font-size: 8px; color: rgba(17,24,39,0.25);
+    letter-spacing: 3px; font-weight: 700;
+    text-align: right;
+    margin-top: 4px;
   }
-  .col-right .info {
-    text-align: center;
+
+  /* ===== WATERMARK ===== */
+  .watermark {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
   }
-  .col-right .info .ilbl {
-    font-size: 8px; letter-spacing: 2px; color: #40916C;
-    font-weight: 600; text-transform: uppercase; margin-bottom: 2px;
-  }
-  .col-right .info .ival {
-    font-size: 11px; font-weight: 700; color: #1B4332;
-  }
-  .col-right .info .iref {
-    font-size: 9px; color: #40916C; font-family: monospace; letter-spacing: 1px;
-  }
-  .col-right .wm {
-    font-size: 8px; color: rgba(27,67,50,0.25);
-    letter-spacing: 3px; position: absolute; bottom: 16px; right: 16px;
+  .watermark-text {
+    font-size: 60px; font-weight: 800;
+    letter-spacing: 8px;
+    opacity: 0.12;
+    transform: rotate(-30deg);
   }
 </style>
 </head>
 <body>
 <div class="ticket">
 
-  <!-- COLONNE GAUCHE : Header -->
-  <div class="col-left">
+  <!-- HEADER -->
+  <div class="header">
     <div class="orbe1"></div>
     <div class="orbe2"></div>
-    <div class="logo-wrap">${logoImg}</div>
-    <div class="brand">SENGUICHET</div>
+    <div class="orbe3"></div>
+    <div class="logo-row">
+      <div class="logo-wrap">${logoImg}</div>
+      <div class="brand">SENGUICHET</div>
+    </div>
     <div class="gold-line"></div>
     <div class="event-name">${eventNom}</div>
-    <div class="event-sub">${categorie}</div>
+    <div class="cat-pill">
+      <div class="cat-pill-text">${categorie}</div>
+    </div>
   </div>
 
-  <!-- SÉPARATEUR PERFORÉ -->
-  <div class="sep dark-cream">
-    <div class="dash"></div>
-    <div class="sc top"></div>
-    <div class="sc bot"></div>
+  <!-- PERFORATION HAUTE -->
+  <div class="perf green-cream">
+    <div class="dash-line">${'<div class="dash"></div>'.repeat(30)}</div>
+    <div class="hc left"></div>
+    <div class="hc right"></div>
   </div>
 
-  <!-- COLONNE CENTRALE : Corps -->
-  <div class="col-center">
-    <div class="row2">
-      <div>
-        <div class="lbl">DATE</div>
-        <div class="val">${dateFormatted}</div>
+  <!-- BODY -->
+  <div class="body">
+    <div class="info-row">
+      <div class="info-block">
+        <div class="info-label">DATE</div>
+        <div class="info-value">${dateFormatted || '—'}</div>
       </div>
-      ${heureStr ? '<div style="text-align:right">' +
-        '<div class="lbl">HEURE</div>' +
-        '<div class="val">' + heureStr + '</div>' +
-      '</div>' : ''}
+      <div class="info-block info-block-right">
+        <div class="info-label">HEURE</div>
+        <div class="info-value">${heureStr || '—'}</div>
+      </div>
     </div>
 
-    ${lieuStr ? '<div>' +
-      '<div class="lbl">LIEU</div>' +
-      '<div class="lieu">' + lieuStr + '</div>' +
-    '</div>' : ''}
+    <div class="lieu-block">
+      <div class="lieu-label">LIEU</div>
+      <div class="lieu-value">${lieuStr || 'À VENIR'}</div>
+    </div>
 
-    <div class="sep-line"></div>
+    <div class="separator"></div>
 
-    <div class="ref">REF · ${refStr}</div>
+    <div class="ref-text">REF · ${refStr}</div>
 
-    <div class="qr-wrap" style="${statutOverlay ? 'position:relative' : ''}">
+    <div class="qr-wrap">
       ${qrImg}
-      ${statutOverlay}
+      ${showWatermark ? '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,77,109,0.9);border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;font-weight:700;">✕</div>' : ''}
     </div>
   </div>
 
-  <!-- SÉPARATEUR PERFORÉ -->
-  <div class="sep cream-beige">
-    <div class="dash"></div>
-    <div class="sc top"></div>
-    <div class="sc bot"></div>
+  <!-- PERFORATION BASSE -->
+  <div class="perf cream-beige">
+    <div class="dash-line">${'<div class="dash"></div>'.repeat(30)}</div>
+    <div class="hc left"></div>
+    <div class="hc right"></div>
   </div>
 
-  <!-- COLONNE DROITE : Souche -->
-  <div class="col-right">
+  <!-- FOOTER -->
+  <div class="footer">
     <div class="badge">
       <div class="badge-text">${categorie}</div>
     </div>
     <div class="price">${prixStr}</div>
     <div class="legal">Entrée unique et non transférable</div>
-    <div class="thin-sep"></div>
-    <div class="info">
-      <div class="ilbl">Catégorie</div>
-      <div class="ival">${catStr}</div>
-      <div style="margin-top:6px">
-        <div class="ilbl">Billet N°</div>
-        <div class="iref">${refStr}</div>
-      </div>
-    </div>
     <div class="wm">SENGUICHET</div>
   </div>
+
+  ${showWatermark ? '<div class="watermark"><div class="watermark-text" style="color:' + watermarkColor + '">' + watermarkLabel + '</div></div>' : ''}
 
 </div>
 </body>
 </html>`
 }
 
-// Génère le HTML du ticket pour l'export web (format paysage 3 colonnes, palette indigo)
+// Génère le HTML du ticket pour l'export web (format portrait, palette vert émeraude)
 export function genererHtmlWebTicket(ticket, qrDataUrl) {
   const nomEvent = (ticket.eventNom || 'ÉVÉNEMENT').toUpperCase()
   const dateFmt = ticket.eventDate
@@ -343,13 +369,14 @@ export function genererHtmlWebTicket(ticket, qrDataUrl) {
   const categorie = (ticket.categorie || 'STANDARD').toUpperCase()
   const prix = ticket.prix ? `${Number(ticket.prix).toLocaleString('fr-FR')} FCFA` : '—'
   const ref = ticket.numero || '—'
-  const estInvalide = (ticket.statut || '').toLowerCase() === 'utilise' || (ticket.statut || '').toLowerCase() === 'expire'
+  const isUsed = (ticket.statut || '').toLowerCase() === 'utilise'
+  const isExpired = (ticket.statut || '').toLowerCase() === 'expire'
+  const showWatermark = isUsed || isExpired
+  const watermarkLabel = isExpired ? 'EXPIRÉ' : 'UTILISÉ'
+  const watermarkColor = isExpired ? '#FF4D6D' : '#66BB6A'
   const qrImg = qrDataUrl
     ? `<img src="${qrDataUrl}" style="width:160px;height:160px;display:block" />`
     : '<div style="width:160px;height:160px;"></div>'
-  const usedOverlay = estInvalide
-    ? '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,77,109,0.9);border-radius:50%;width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff;font-weight:700;">✕</div>'
-    : ''
 
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -358,50 +385,64 @@ export function genererHtmlWebTicket(ticket, qrDataUrl) {
 <style>
   @page{margin:0}*{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%}
-  body{background:#0F1A0F;display:flex;justify-content:center;align-items:center;height:100vh;padding:24px;font-family:'Outfit','Helvetica Neue',Arial,sans-serif}
-  .t{display:flex;flex-direction:row;width:100%;max-width:780px;height:480px;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.35);position:relative}
-  .cl{width:25%;background:#5C6BC0;border-radius:20px 0 0 20px;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;padding:32px 20px;flex-shrink:0}
-  .cl .o1{position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(92,107,192,0.35)}
-  .cl .o2{position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;border-radius:50%;background:rgba(212,175,55,0.15)}
-  .cl .brand{font-size:10px;letter-spacing:3px;color:rgba(255,255,255,0.7);font-weight:600;text-transform:uppercase;position:relative;z-index:1}
-  .cl .gl{width:60px;height:1px;background:#D4AF37;opacity:0.7;position:relative;z-index:1}
-  .cl .en{font-size:22px;font-weight:800;color:#fff;text-align:center;line-height:1.25;position:relative;z-index:1}
-  .cl .sub{font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;position:relative;z-index:1}
-  .cl .lw{position:relative;z-index:1}
-  .sp{width:24px;position:relative;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-  .sp.dc{background:linear-gradient(to right,#5C6BC0,#F9F6EE)}.sp.cb{background:linear-gradient(to right,#F9F6EE,#F0EAD6)}
-  .sp .d{position:absolute;left:50%;top:0;bottom:0;border-left:2px dashed rgba(37,43,122,0.2)}
-  .sp .sc{position:absolute;left:50%;transform:translateX(-50%);width:24px;height:24px;border-radius:50%;background:#0F1A0F;z-index:2}
-  .sp .sc.t{top:-12px}.sp .sc.b{bottom:-12px}
-  .cc{width:45%;background:#F9F6EE;padding:36px 28px;display:flex;flex-direction:column;justify-content:center;gap:16px;flex-shrink:0}
-  .cc .r2{display:flex;justify-content:space-between;align-items:flex-start}
-  .cc .lbl{font-size:8px;letter-spacing:2px;color:#B8944A;font-weight:600;text-transform:uppercase;margin-bottom:3px}
-  .cc .val{font-size:13px;color:#1E2250;font-weight:600}
-  .cc .lieu{color:#B8944A;letter-spacing:0.5px;font-weight:700;font-size:13px}
-  .cc .sl{height:1px;background:rgba(37,43,122,0.1)}
-  .cc .ref{font-size:9px;color:#B8944A;letter-spacing:2px;text-align:center;font-family:monospace}
-  .cc .qw{background:#fff;border-radius:12px;padding:12px;border:1px solid rgba(37,43,122,0.08);display:flex;justify-content:center;align-items:center;align-self:center;position:relative}
-  .cr{width:30%;background:#F0EAD6;border-radius:0 20px 20px 0;padding:32px 24px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;position:relative;flex-shrink:0}
-  .cr .bdg{background:#5C6BC0;border-radius:999px;padding:6px 24px}
-  .cr .bt{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#D4AF37;text-transform:uppercase}
-  .cr .pr{font-size:32px;font-weight:800;color:#1E2250;letter-spacing:-0.5px;text-align:center}
-  .cr .lg{font-size:9px;color:#B8944A;font-style:italic;text-align:center}
-  .cr .ts{width:40px;height:1px;background:rgba(37,43,122,0.15)}
-  .cr .wm{font-size:8px;color:rgba(37,43,122,0.25);letter-spacing:3px;position:absolute;bottom:16px;right:16px}
+  body{background:#0F1A0F;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:24px;font-family:'Outfit','Helvetica Neue',Arial,sans-serif}
+  .t{width:100%;max-width:360px;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.35);position:relative}
+  .h{background:#10B981;padding:32px 28px;position:relative;overflow:hidden;text-align:center}
+  .h .o1{position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(16,185,129,0.3)}
+  .h .o2{position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;border-radius:50%;background:rgba(245,158,11,0.12)}
+  .lr{display:flex;align-items:center;justify-content:center;gap:10px}
+  .br{font-size:10px;letter-spacing:3px;color:rgba(255,255,255,0.7);font-weight:700}
+  .gl{height:1px;background:#F59E0B;opacity:0.5;margin:20px auto 18px;width:80%}
+  .en{font-size:22px;font-weight:800;color:#fff;text-align:center;letter-spacing:0.5px;line-height:1.25}
+  .cp{display:inline-block;background:rgba(245,158,11,0.15);border-radius:999px;padding:4px 14px;margin-top:10px}
+  .ct{font-size:9px;font-weight:700;letter-spacing:2px;color:#F59E0B}
+  .pf{height:24px;position:relative;display:flex;align-items:center;justify-content:center}
+  .pf.gc{background:linear-gradient(to bottom,#10B981,#F9F6EE)}
+  .pf.cb{background:linear-gradient(to bottom,#F9F6EE,#F0EAD6)}
+  .pf .dl{display:flex;justify-content:space-evenly;align-items:center;width:calc(100% - 60px);position:absolute;left:30px;right:30px}
+  .pf .d{width:5px;height:2px;background:#3D4356;border-radius:1px}
+  .pf .hc{position:absolute;top:50%;width:24px;height:24px;border-radius:50%;background:#0F1A0F;margin-top:-12px}
+  .pf .hc.l{left:-12px}.pf .hc.r{right:-12px}
+  .b{background:#F9F6EE;padding:28px 28px 16px}
+  .ir{display:flex;justify-content:space-between}
+  .ib{flex:1}.ibr{text-align:right}
+  .il{font-size:8px;letter-spacing:2px;color:#6EE7B7;font-weight:700;margin-bottom:3px}
+  .iv{font-size:14px;font-weight:600;color:#111827}
+  .lb{margin-top:14px}
+  .ll{font-size:8px;letter-spacing:2px;color:#6EE7B7;font-weight:700;margin-bottom:3px}
+  .lv{font-size:13px;font-weight:600;color:#6EE7B7;letter-spacing:0.5px}
+  .sl{height:1px;background:rgba(17,24,39,0.08);margin:18px 0}
+  .rt{font-size:9px;color:#6EE7B7;text-align:center;letter-spacing:2px;font-family:monospace;margin-bottom:6px}
+  .qw{background:#fff;border-radius:14px;padding:16px;margin-top:10px;margin-bottom:6px;border:1px solid rgba(17,24,39,0.06);display:flex;justify-content:center;align-items:center;position:relative;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+  .f{background:#F0EAD6;padding:24px 28px;text-align:center;position:relative}
+  .f .bd{background:#10B981;border-radius:999px;display:inline-block;padding:6px 24px;margin-bottom:10px}
+  .f .bt{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#F59E0B}
+  .f .pr{font-size:28px;font-weight:800;color:#111827;letter-spacing:-0.5px}
+  .f .lg{font-size:9px;color:#6EE7B7;font-style:italic;margin-top:10px}
+  .f .wm{font-size:8px;color:rgba(17,24,39,0.25);letter-spacing:3px;font-weight:700;text-align:right;margin-top:4px}
+  .wt{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .wt-text{font-size:60px;font-weight:800;letter-spacing:8px;opacity:0.12;transform:rotate(-30deg)}
 </style></head>
 <body>
 <div class="t">
-  <div class="cl"><div class="o1"></div><div class="o2"></div><div class="lw"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='rgba(255,255,255,0.12)' stroke='rgba(255,255,255,0.2)' stroke-width='1'/%3E%3Ctext x='24' y='28' text-anchor='middle' font-size='20' font-weight='700' fill='%23D4AF37' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E" style="width:38px;height:38px;display:block;border-radius:8px" /></div><div class="brand">SENGUICHET</div><div class="gl"></div><div class="en">${nomEvent}</div><div class="sub">${categorie}</div></div>
-  <div class="sp dc"><div class="d"></div><div class="sc t"></div><div class="sc b"></div></div>
-  <div class="cc">
-    <div class="r2"><div><div class="lbl">DATE</div><div class="val">${dateFmt}</div></div>${heure ? '<div style="text-align:right"><div class="lbl">HEURE</div><div class="val">' + heure + '</div></div>' : ''}</div>
-    ${lieu ? '<div><div class="lbl">LIEU</div><div class="lieu">' + lieu + '</div></div>' : ''}
-    <div class="sl"></div>
-    <div class="ref">REF · ${ref}</div>
-    <div class="qw" style="${usedOverlay ? 'position:relative' : ''}">${qrImg}${usedOverlay}</div>
+  <div class="h">
+    <div class="o1"></div><div class="o2"></div>
+    <div class="lr"><svg width="38" height="38" viewBox="0 0 38 38"><rect width="38" height="38" rx="10" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/><text x="19" y="24" text-anchor="middle" font-size="18" font-weight="800" fill="#F59E0B" font-family="Arial">S</text></svg><div class="br">SENGUICHET</div></div>
+    <div class="gl"></div>
+    <div class="en">${nomEvent}</div>
+    <div class="cp"><div class="ct">${categorie}</div></div>
   </div>
-  <div class="sp cb"><div class="d"></div><div class="sc t"></div><div class="sc b"></div></div>
-  <div class="cr"><div class="bdg"><div class="bt">${categorie}</div></div><div class="pr">${prix}</div><div class="lg">Entrée unique et non transférable</div><div class="ts"></div><div class="wm">SENGUICHET</div></div>
+  <div class="pf gc"><div class="dl">${'<div class="d"></div>'.repeat(30)}</div><div class="hc l"></div><div class="hc r"></div></div>
+  <div class="b">
+    <div class="ir"><div class="ib"><div class="il">DATE</div><div class="iv">${dateFmt || '—'}</div></div><div class="ib ibr"><div class="il">HEURE</div><div class="iv">${heure || '—'}</div></div></div>
+    <div class="lb"><div class="ll">LIEU</div><div class="lv">${lieu || 'À VENIR'}</div></div>
+    <div class="sl"></div>
+    <div class="rt">REF · ${ref}</div>
+    <div class="qw">${qrImg}${showWatermark ? '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,77,109,0.9);border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;font-weight:700;">✕</div>' : ''}</div>
+  </div>
+  <div class="pf cb"><div class="dl">${'<div class="d"></div>'.repeat(30)}</div><div class="hc l"></div><div class="hc r"></div></div>
+  <div class="f"><div class="bd"><div class="bt">${categorie}</div></div><div class="pr">${prix}</div><div class="lg">Entrée unique et non transférable</div><div class="wm">SENGUICHET</div></div>
+  ${showWatermark ? '<div class="wt"><div class="wt-text" style="color:' + watermarkColor + '">' + watermarkLabel + '</div></div>' : ''}
 </div>
 </body></html>`
 }

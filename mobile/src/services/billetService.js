@@ -1,3 +1,12 @@
+import { appelAPI } from './apiService'
+
+// Récupère les données du reçu d'achat groupé (tous les billets d'une transaction)
+// Appelle GET /api/billets/recu/:reference/data
+// Retourne { evenement, groupes (par catégorie), tickets[], nbTickets, montantTotal }
+export async function fetcherRecuAchat(reference) {
+  return await appelAPI(`/billets/recu/${reference}/data`)
+}
+
 // Récupère tous les billets vendus pour un événement (organisateur)
 // Appelle GET /api/billets/evenement/:id
 // Retourne un tableau de billets avec nom, email, téléphone, catégorie, prix, statut, date
@@ -20,15 +29,15 @@ export async function fetchBilletsEvenementAPI(eventId) {
 
 // Service d'achat et consultation de billets côté acheteur + organisateur
 // Communique avec le backend pour les achats et la liste des billets
-import { appelAPI } from './apiService'
 
-// Achète un billet via le backend
+// Achète un ou plusieurs billets via le backend
 // Appelle POST /api/billets/acheter
-// body : { evenement_id, categorie_ticket_id, telephone, email }
+// body : { evenement_id, categorie_ticket_id, telephone, email, quantite }
 // email : optionnel, permet au backend d'envoyer la confirmation
-// Retourne { billet: { id, uuid, numero, prix_paye, qrData, statut }, transaction: { reference, montant, statut } }
-export async function acheterBillet(evenementId, categorieTicketId, telephone, email, provider = 'WAVE') {
-  const body = { evenementId, categorieTicketId, telephone, provider }
+// quantite : nombre de billets à créer (default 1)
+// Retourne { billet, billets[], quantite, lien, paiement }
+export async function acheterBillet(evenementId, categorieTicketId, telephone, email, provider = 'WAVE', quantite = 1) {
+  const body = { evenementId, categorieTicketId, telephone, quantite, provider }
   if (email) body.email = email
   return await appelAPI('/billets/acheter', {
     method: 'POST',
@@ -61,7 +70,7 @@ export async function mesBillets(telephone, email) {
     eventId: b.evenement_id,
     eventNom: b.evenement_titre || '',
     eventDate: b.date_debut || '',
-    eventHeure: b.heure_debut || b.event_heure || '',
+    eventHeure: b.heure_debut || b.event_heure || (() => { try { return new Date(b.date_debut).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) } catch { return '' } })(),
     eventLieu: b.evenement_lieu || '',
     categorie: b.categorie_nom || '',
     numero: b.numero || `TKT-${b.id}`,

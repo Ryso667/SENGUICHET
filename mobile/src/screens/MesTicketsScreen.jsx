@@ -131,11 +131,8 @@ export default function MesTicketsScreen() {
   return (
     <View style={styles.container}>
           <View style={[styles.content, { paddingTop: insets.top }]}>
-        {/* Header natif avec bouton retour et compteur */}
+        {/* Header natif avec compteur */}
         <View style={styles.headerBar}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.7}>
-            <Feather name="chevron-left" size={24} color={colors.text} />
-          </TouchableOpacity>
           <Text style={styles.headerTitle}>Mes tickets</Text>
           <View style={styles.headerRight}>
             {syncing && <ActivityIndicator size="small" color={colors.accent} />}
