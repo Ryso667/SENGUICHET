@@ -193,6 +193,7 @@ const acheter = async (req, res) => {
         prix: montantTotal,
         quantite,
         uuid: quantite === 1 ? premierBillet.uuid : undefined,
+        reference: quantite > 1 ? reference : undefined,
       }, pool);
 
       // Envoyer un email de confirmation si l'email est renseigné
@@ -448,4 +449,173 @@ const evenementBillets = async (req, res) => {
   }
 };
 
-module.exports = { acheter, mesBillets, afficherBillet, evenementBillets };
+// Affiche une page HTML publique du reçu d'achat (tous les billets d'une transaction)
+// Les billets sont groupés par catégorie, chacun avec son QR code et lien de téléchargement
+// GET /api/billets/recu/:reference
+const afficherRecu = async (req, res) => {
+  try {
+    const { reference } = req.params;
+
+    // Récupérer tous les billets de cette transaction, groupés par catégorie
+    const [rows] = await pool.query(
+      `SELECT b.uuid, b.numero, b.prix_paye, b.statut, b.date_creation,
+        b.payload_signature, b.evenement_id,
+        e.titre, e.lieu, e.date_debut, e.date_fin, e.affiche_url,
+        ct.nom AS categorie, ct.couleur_hex, ct.prix AS categorie_prix
+      FROM billet b
+      JOIN evenement e ON e.id = b.evenement_id
+      JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+      WHERE b.transaction_id = (SELECT t.id FROM \`transaction\` t WHERE t.reference = ?)
+      ORDER BY ct.nom, b.numero`,
+      [reference]
+    );
+
+    if (!rows.length) {
+      return res.status(404).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Reçu introuvable — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#10B981;">SENGUICHET</h1><p style="color:#6EE7B7;">Reçu introuvable</p></body></html>`);
+    }
+
+    const eventInfo = {
+      titre: rows[0].titre,
+      lieu: rows[0].lieu,
+      date_debut: rows[0].date_debut,
+      date_fin: rows[0].date_fin,
+    };
+
+    // Grouper les billets par catégorie
+    const groupes = {};
+    for (const r of rows) {
+      if (!groupes[r.categorie]) groupes[r.categorie] = { couleur: r.couleur_hex || '#10B981', prix: r.categorie_prix, tickets: [] };
+      groupes[r.categorie].tickets.push(r);
+    }
+
+    const dateFormatted = new Date(eventInfo.date_debut).toLocaleDateString("fr-FR", {
+      day: "numeric", month: "long", year: "numeric"
+    });
+    const heureFormatted = new Date(eventInfo.date_debut).toLocaleTimeString("fr-FR", {
+      hour: "2-digit", minute: "2-digit"
+    });
+
+    // Générer les blocs HTML pour chaque groupe
+    const groupesHtml = Object.entries(groupes).map(([nom, g]) => {
+      const ticketsHtml = g.tickets.map(t => {
+        const qrPayload = JSON.stringify({
+          uuid: t.uuid,
+          hmac: t.payload_signature,
+          event_id: t.evenement_id,
+          category: t.categorie,
+          timestamp: t.date_creation,
+          transaction_ref: t.numero,
+        });
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(qrPayload)}`;
+        const dateAchat = new Date(t.date_creation).toLocaleDateString("fr-FR", {
+          day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
+        });
+        return `
+          <div class="ticket">
+            <img src="${qrUrl}" alt="QR" class="qrcode" />
+            <div class="tinfo">
+              <div class="tref">${t.numero}</div>
+              <div class="tdate">${dateAchat}</div>
+              <div class="tprix">${Number(t.prix_paye).toLocaleString()} FCFA</div>
+              <a href="/api/billets/${t.uuid}" class="tlink">Voir le billet →</a>
+            </div>
+          </div>`;
+      }).join('');
+
+      return `
+        <div class="groupe">
+          <div class="gentete" style="border-left:4px solid ${g.couleur};">
+            <span class="gnom">${nom.toUpperCase()}</span>
+            <span class="gqte">×${g.tickets.length}</span>
+            <span class="gprix">${(g.prix * g.tickets.length).toLocaleString()} FCFA</span>
+          </div>
+          <div class="gtickets">${ticketsHtml}</div>
+        </div>`;
+    }).join('');
+
+    const nbTickets = rows.length;
+    const montantTotal = rows.reduce((sum, r) => sum + Number(r.prix_paye), 0);
+
+    res.send(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reçu d'achat - SENGUICHET</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0F1A0F;min-height:100vh;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;padding:20px;display:flex;flex-direction:column;align-items:center}
+.recu{max-width:640px;width:100%;background:#F9F6EE;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(16,185,129,.2)}
+@media print{body{background:#fff;padding:0}.recu{box-shadow:none;page-break-after:avoid}.noprint{display:none!important}}
+/* HEADER */
+.hd{background:linear-gradient(135deg,#10B981,#059669);padding:24px;text-align:center;position:relative}
+.hd h1{color:#fff;font-size:22px;font-weight:700;letter-spacing:1px}
+.hd p{color:rgba(255,255,255,.7);font-size:12px;margin-top:4px}
+.hd .ref{color:rgba(255,255,255,.5);font-size:10px;letter-spacing:2px;margin-top:8px}
+/* EVENT INFO */
+.evinfo{background:#fff;margin:0 16px 16px;border-radius:12px;padding:16px;border:1px solid rgba(16,185,129,.08)}
+.evinfo .evtitre{font-size:16px;font-weight:700;color:#111827}
+.evinfo .evdetail{font-size:12px;color:#6B7280;margin-top:4px}
+/* GROUPES */
+.groupe{margin:0 16px 16px}
+.gentete{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border-radius:10px 10px 0 0;border-bottom:1px solid #E5E7EB}
+.gnom{font-size:11px;font-weight:700;letter-spacing:2px;color:#111827;flex:1}
+.gqte{font-size:13px;font-weight:700;color:#10B981}
+.gprix{font-size:12px;font-weight:600;color:#6B7280}
+.gtickets{background:#fff;border-radius:0 0 10px 10px;padding:12px}
+.ticket{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid #F3F4F6}
+.ticket:last-child{border-bottom:none}
+.qrcode{width:120px;height:120px;border-radius:8px;flex-shrink:0}
+.tinfo{flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.tref{font-size:13px;font-weight:700;color:#111827;letter-spacing:.5px}
+.tdate{font-size:11px;color:#6B7280}
+.tprix{font-size:14px;font-weight:700;color:#10B981}
+.tlink{display:inline-block;margin-top:6px;font-size:12px;font-weight:600;color:#10B981;text-decoration:none;border:1px solid #10B981;border-radius:6px;padding:4px 14px;align-self:flex-start;transition:all .2s}
+.tlink:hover{background:#10B981;color:#fff}
+/* TOTAL */
+.total{background:#fff;margin:0 16px 16px;border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(16,185,129,.08)}
+.total .tlabel{font-size:12px;color:#6B7280;letter-spacing:1px}
+.total .tmontant{font-size:20px;font-weight:700;color:#111827}
+/* FOOTER */
+.ft{background:#F0EAD6;padding:16px;text-align:center}
+.ft p{font-size:10px;color:rgba(16,185,129,.4);letter-spacing:1px}
+/* PRINT BUTTON */
+.printbtn{display:flex;align-items:center;justify-content:center;gap:8px;margin:20px auto;padding:12px 28px;border-radius:14px;border:none;font-size:14px;font-weight:600;color:#fff;background:#10B981;cursor:pointer;transition:opacity .2s;letter-spacing:.5px}
+.printbtn:hover{opacity:.85}
+.printbtn svg{width:18px;height:18px}
+</style>
+</head>
+<body>
+<button class="printbtn noprint" onclick="window.print()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Télécharger le reçu (PDF)</button>
+<div class="recu">
+  <div class="hd">
+    <h1>SENGUICHET</h1>
+    <p>Achat confirmé</p>
+    <div class="ref">RÉFÉRENCE · ${reference}</div>
+  </div>
+  <div class="evinfo">
+    <div class="evtitre">${(eventInfo.titre || '').toUpperCase()}</div>
+    <div class="evdetail">${dateFormatted} à ${heureFormatted}</div>
+    <div class="evdetail">${eventInfo.lieu || ''}</div>
+  </div>
+  <p style="font-size:14px;font-weight:700;color:#111827;margin:0 16px 12px">${nbTickets} billet${nbTickets > 1 ? 's' : ''}</p>
+  ${groupesHtml}
+  <div class="total">
+    <span class="tlabel">TOTAL</span>
+    <span class="tmontant">${montantTotal.toLocaleString()} FCFA</span>
+  </div>
+  <div class="ft">
+    <p>SENGUICHET — Sen Digital Pulse</p>
+    <p>Entrée unique et non transférable</p>
+  </div>
+</div>
+<button class="printbtn noprint" onclick="window.print()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Télécharger le reçu (PDF)</button>
+</body>
+</html>`);
+  } catch (err) {
+    console.error("Afficher recu error:", err);
+    res.status(500).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Erreur — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#10B981;">SENGUICHET</h1><p style="color:#6EE7B7;">Erreur serveur</p></body></html>`);
+  }
+};
+
+module.exports = { acheter, mesBillets, afficherBillet, evenementBillets, afficherRecu };

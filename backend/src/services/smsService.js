@@ -115,15 +115,18 @@ const envoyerSMSOrange = async (numero, message) => {
 // Envoie un SMS de confirmation de billet à l'acheteur via l'API Orange
 // Log l'envoi en base pour suivi et réessai
 // numero : numéro de téléphone au format sénégalais (77XXXXXX, 76XXXXXX, etc.)
-// ticket: { evenement, categorie, prix, quantite, uuid? }
-// Si uuid est fourni (1 billet), envoie le lien direct. Sinon, lien vers mes-billets.
+// ticket: { evenement, categorie, prix, quantite, uuid?, reference? }
+// Si uuid est fourni (1 billet), envoie le lien direct.
+// Si reference est fourni (N billets), envoie le lien vers le reçu d'achat (tous les QR codes).
+// Sinon, lien vers mes-billets (fallback).
 const envoyerSMSBillet = async (numero, ticket, pool) => {
   const numeroFull = numero.startsWith("+") ? numero : `+221${numero}`;
   const ticketBase = "https://backend-beta-six-39.vercel.app/api/billets";
 
   const lienDirect = ticket.uuid ? `${ticketBase}/${ticket.uuid}` : null;
+  const lienRecu = ticket.reference ? `${ticketBase}/recu/${ticket.reference}` : null;
   const mesBilletsUrl = "https://senguichet-frontend-web.vercel.app/acheteur/mes-billets";
-  const lien = lienDirect || mesBilletsUrl;
+  const lien = lienDirect || lienRecu || mesBilletsUrl;
 
   const message = ticket.quantite > 1
     ? [
@@ -135,7 +138,7 @@ const envoyerSMSBillet = async (numero, ticket, pool) => {
         `${ticket.quantite} billets · ${(ticket.prix || 0).toLocaleString()} FCFA`,
         ``,
         `Voir vos billets:`,
-        mesBilletsUrl,
+        lien,
       ].join('\n')
     : [
         `SENGUICHET`,
