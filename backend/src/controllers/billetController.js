@@ -102,7 +102,7 @@ const acheter = async (req, res) => {
         const numero = `TKT-${Date.now().toString(36).toUpperCase()}-${i}`;
         const timestamp = new Date().toISOString();
 
-        // Générer la signature
+        // Générer la signature HMAC (identique au format utilisé par le scan offline)
         const signaturePayload = `${uuid}|${numero}|${timestamp}|${evenementId}|${cat.nom}`;
         const payload_signature = crypto.createHash('sha256').update(signaturePayload + HMAC_SECRET).digest('hex');
 
@@ -218,6 +218,7 @@ const acheter = async (req, res) => {
           categorie: cat.nom,
           prix: montantTotal,
           quantite,
+          tickets: billetsCrees,
         }).catch(e => console.error("Email error:", e.message));
       }
 
@@ -374,6 +375,11 @@ const afficherBillet = async (req, res) => {
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;gap:20px}
 .t{width:340px;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(16,185,129,.2);position:relative}
+@media print{body{background:#fff;padding:0;justify-content:center}.t{box-shadow:none;page-break-after:avoid;margin:auto}.dl{display:none!important}}
+.dl{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;padding:12px 28px;border-radius:14px;border:none;font-size:14px;font-weight:600;color:#fff;background:#10B981;cursor:pointer;transition:opacity .2s;letter-spacing:.5px}
+.dl:hover{opacity:.85}
+.dl svg{width:18px;height:18px}
+/* HEADER vert */
 .hd{background:#10B981;padding:24px;position:relative;overflow:hidden}
 .o1{position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:60px;background:rgba(110,231,183,.25)}
 .o2{position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:40px;background:rgba(245,158,11,.12)}
@@ -384,6 +390,7 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
 .gl{height:1px;background:#F59E0B;opacity:.6;margin:16px 0}
 .en{font-size:22px;font-weight:700;color:#fff;text-align:center;letter-spacing:.5px;line-height:28px}
 .ec{font-size:10px;color:rgba(255,255,255,.6);text-align:center;letter-spacing:2px;margin-top:6px}
+/* PERFORATION */
 .pf{height:22px;position:relative;background:linear-gradient(to bottom,#10B981,#F9F6EE);display:flex;align-items:center;justify-content:center}
 .pl{position:absolute;left:22px;right:22px;border-top:2px dashed rgba(16,185,129,.2)}
 .pc{position:absolute;width:22px;height:22px;border-radius:11px;background:#0F1A0F;z-index:2}
@@ -396,6 +403,7 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
 .bs{height:1px;background:rgba(16,185,129,.12);margin:14px 0}
 .rf{font-size:9px;color:#6EE7B7;letter-spacing:2px;text-align:center;margin-bottom:4px}
 .qz{background:#fff;border-radius:12px;padding:12px;margin:14px 0;border:1px solid rgba(16,185,129,.08);display:flex;justify-content:center;position:relative}
+/* PERFO BASSE */
 .pb{height:22px;position:relative;background:linear-gradient(to bottom,#F9F6EE,#F0EAD6);display:flex;align-items:center;justify-content:center}
 .ft{background:#F0EAD6;border-radius:0 0 20px 20px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
 .cp{background:#10B981;border-radius:999px;padding:5px 20px}
@@ -403,10 +411,10 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
 .pr{font-size:28px;font-weight:700;color:#111827;letter-spacing:-.5px;text-align:center}
 .ll2{font-size:9px;color:#6EE7B7;font-style:italic;text-align:center}
 .wm{font-size:8px;color:rgba(16,185,129,.3);letter-spacing:2px;align-self:flex-end;margin-right:4px}
-.btn{display:inline-flex;align-items:center;gap:8px;background:#10B981;color:#fff;border:none;border-radius:999px;padding:14px 32px;font-size:14px;font-weight:700;letter-spacing:1px;cursor:pointer;text-decoration:none;transition:opacity .2s}
-.btn:hover{opacity:.8}
-.btn svg{width:16px;height:16px}
-@media print{body{background:#fff;padding:0;gap:0;min-height:auto;justify-content:flex-start}.t{box-shadow:none;page-break-inside:avoid}.btn,.no-print{display:none!important}}
+.dl{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;padding:12px 28px;border-radius:14px;border:none;font-size:14px;font-weight:600;color:#fff;background:#10B981;cursor:pointer;transition:opacity .2s;letter-spacing:.5px}
+.dl:hover{opacity:.85}
+.dl svg{width:18px;height:18px}
+@media print{body{background:#fff;padding:0;gap:0;min-height:auto;justify-content:flex-start}.t{box-shadow:none;page-break-inside:avoid}.dl{display:none!important}}
 </style>
 </head>
 <body>
@@ -440,22 +448,8 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
     <div class="wm">SENGUICHET</div>
     ${watermarkHtml}
   </div>
-</div>
-<button class="btn no-print" onclick="window.print()">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-  Télécharger le PDF
-</button>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var btn = document.querySelector('.btn');
-  if (btn) {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      window.print();
-    });
-  }
-});
-</script>
+  </div>
+  <button class="dl" onclick="window.print()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Télécharger le billet (PDF)</button>
 </body>
 </html>`);
   } catch (err) {
@@ -519,7 +513,9 @@ const afficherRecu = async (req, res) => {
       date_fin: rows[0].date_fin,
     };
 
+    // Grouper les billets par catégorie
     const groupes = {};
+
     for (const r of rows) {
       if (!groupes[r.categorie]) groupes[r.categorie] = { couleur: r.couleur_hex || '#10B981', prix: r.categorie_prix, tickets: [] };
       groupes[r.categorie].tickets.push(r);
@@ -532,6 +528,7 @@ const afficherRecu = async (req, res) => {
       hour: "2-digit", minute: "2-digit"
     });
 
+    // Générer les blocs HTML pour chaque groupe
     const groupesHtml = Object.entries(groupes).map(([nom, g]) => {
       const ticketsHtml = g.tickets.map(t => {
         const qrPayload = JSON.stringify({
@@ -583,13 +580,16 @@ const afficherRecu = async (req, res) => {
 body{background:#0F1A0F;min-height:100vh;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;padding:20px;display:flex;flex-direction:column;align-items:center}
 .recu{max-width:640px;width:100%;background:#F9F6EE;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(16,185,129,.2)}
 @media print{body{background:#fff;padding:0}.recu{box-shadow:none;page-break-after:avoid}.noprint{display:none!important}}
+/* HEADER */
 .hd{background:linear-gradient(135deg,#10B981,#059669);padding:24px;text-align:center;position:relative}
 .hd h1{color:#fff;font-size:22px;font-weight:700;letter-spacing:1px}
 .hd p{color:rgba(255,255,255,.7);font-size:12px;margin-top:4px}
 .hd .ref{color:rgba(255,255,255,.5);font-size:10px;letter-spacing:2px;margin-top:8px}
+/* EVENT INFO */
 .evinfo{background:#fff;margin:0 16px 16px;border-radius:12px;padding:16px;border:1px solid rgba(16,185,129,.08)}
 .evinfo .evtitre{font-size:16px;font-weight:700;color:#111827}
 .evinfo .evdetail{font-size:12px;color:#6B7280;margin-top:4px}
+/* GROUPES */
 .groupe{margin:0 16px 16px}
 .gentete{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border-radius:10px 10px 0 0;border-bottom:1px solid #E5E7EB}
 .gnom{font-size:11px;font-weight:700;letter-spacing:2px;color:#111827;flex:1}
@@ -605,11 +605,14 @@ body{background:#0F1A0F;min-height:100vh;font-family:'Segoe UI',system-ui,-apple
 .tprix{font-size:14px;font-weight:700;color:#10B981}
 .tlink{display:inline-block;margin-top:6px;font-size:12px;font-weight:600;color:#10B981;text-decoration:none;border:1px solid #10B981;border-radius:6px;padding:4px 14px;align-self:flex-start;transition:all .2s}
 .tlink:hover{background:#10B981;color:#fff}
+/* TOTAL */
 .total{background:#fff;margin:0 16px 16px;border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(16,185,129,.08)}
 .total .tlabel{font-size:12px;color:#6B7280;letter-spacing:1px}
 .total .tmontant{font-size:20px;font-weight:700;color:#111827}
+/* FOOTER */
 .ft{background:#F0EAD6;padding:16px;text-align:center}
 .ft p{font-size:10px;color:rgba(16,185,129,.4);letter-spacing:1px}
+/* PRINT BUTTON */
 .printbtn{display:flex;align-items:center;justify-content:center;gap:8px;margin:20px auto;padding:12px 28px;border-radius:14px;border:none;font-size:14px;font-weight:600;color:#fff;background:#10B981;cursor:pointer;transition:opacity .2s;letter-spacing:.5px}
 .printbtn:hover{opacity:.85}
 .printbtn svg{width:18px;height:18px}

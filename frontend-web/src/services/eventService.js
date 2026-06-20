@@ -115,10 +115,28 @@ export const adminTraiterDemande = async (id, action, commentaire = "") => {
   return handleResponse(res);
 };
 
-export const adminCreerEvenementDepuisDemande = async (id) => {
+export const adminCreerEvenementDepuisDemande = async (id, signal) => {
   const res = await fetch(`${API_URL}/api/demandes/admin/${id}/creer-evenement`, {
     method: "POST",
     headers: headers(),
+    signal,
   });
+  return handleResponse(res);
+};
+
+export const listerCategories = async () => {
+  const res = await fetch(`${API_URL}/api/evenements/categories`);
+  return handleResponse(res);
+};
+
+// ─── Routes publiques ───
+
+export const listerEvenementsPublic = async () => {
+  const res = await fetch(`${API_URL}/api/evenements/public`);
+  return handleResponse(res);
+};
+
+export const detailEvenementPublic = async (id) => {
+  const res = await fetch(`${API_URL}/api/evenements/public/${id}`);
   return handleResponse(res);
 };

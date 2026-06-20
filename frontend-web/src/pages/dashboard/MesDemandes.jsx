@@ -16,12 +16,12 @@ const CategorySelect = ({ value, onChange, options, label }) => (
       className="input-premium appearance-none cursor-pointer"
       style={{ paddingRight: "40px", fontFamily: "'Plus Jakarta Sans', sans-serif" }}
     >
-      <option value="" disabled style={{ background: "var(--bg)", color: "var(--text-secondary)" }}>{label}</option>
+      <option value="" disabled>{label}</option>
       {options.map((o) => (
-        <option key={o} value={o} style={{ background: "var(--bg)", color: "#F1F5F9" }}>{o}</option>
+        <option key={o} value={o}>{o}</option>
       ))}
     </select>
-    <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--text-secondary)", fontSize: "0.7rem" }}>▼</span>
+    <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "var(--color-text-muted)", fontSize: "0.7rem" }}>▼</span>
   </div>
 );
 
@@ -188,21 +188,21 @@ const MesDemandes = () => {
     <DashboardLayout title={<><FileText size={20} /> Mes demandes</>}>
       <div className="max-w-4xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px" }}><FileText size={24} /> Mes demandes</h1>
+          <h1 className="text-2xl font-bold" style={{ color: "var(--color-text-primary)", fontFamily: "Outfit, sans-serif", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px" }}><FileText size={24} /> Mes demandes</h1>
           <button onClick={() => openNewDemande("CREATION")} className="btn-primary btn-md sm:w-auto w-full">
             <Calendar size={16} /> Nouvelle demande
           </button>
         </div>
 
         {loading ? (
-          <div className="glass-card p-12 text-center">
-            <p style={{ color: "var(--text-secondary)" }}><Loader size={16} /> Chargement...</p>
+          <div className="p-12 text-center rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
+            <p style={{ color: "var(--color-text-muted)" }}><Loader size={16} /> Chargement...</p>
           </div>
         ) : demandes.length === 0 ? (
-          <div className="glass-card p-12 text-center">
-            <Inbox size={48} style={{ opacity: 0.3 }} />
-            <h2 className="text-lg font-bold mb-2" style={{ fontFamily: "Outfit, sans-serif", color: "white" }}>Aucune demande</h2>
-            <p className="text-sm mb-6" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <div className="p-12 text-center rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
+            <Inbox size={48} style={{ opacity: 0.3, color: "var(--color-text-muted)" }} />
+            <h2 className="text-lg font-bold mb-2" style={{ fontFamily: "Outfit, sans-serif", color: "var(--color-text-primary)" }}>Aucune demande</h2>
+            <p className="text-sm mb-6" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Vous n'avez encore fait aucune demande. Utilisez le bouton ci-dessus pour créer votre première demande.
             </p>
             <button onClick={() => openNewDemande("CREATION")} className="btn-primary"><Calendar size={16} /> Créer une demande</button>
@@ -214,22 +214,21 @@ const MesDemandes = () => {
               return (
                 <div
                   key={d.id}
-                  className="glass-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                  style={{ animation: `fadeInUp 0.3s ease-out ${i * 0.08}s both` }}
+                  className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)", animation: `fadeInUp 0.3s ease-out ${i * 0.08}s both` }}
                 >
                   {d.affiche_url && (
-                    <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0" style={{ border: "1px solid var(--color-border)" }}>
                       <img src={normalizeImageUrl(d.affiche_url)} alt="" className="w-full h-full object-cover" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-sm font-semibold text-white truncate" style={{ fontFamily: "Outfit, sans-serif" }}>
+                      <h3 className="text-sm font-semibold truncate" style={{ color: "var(--color-text-primary)", fontFamily: "Outfit, sans-serif" }}>
                         {TYPE_LABELS[d.type_action] || d.type_action}
                       </h3>
                       <span className={`badge ${cfg.cls}`}>{cfg.label}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <div className="flex items-center gap-3 text-xs" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       <span>{new Date(d.date_soumission).toLocaleDateString("fr-FR")}</span>
                       {d.titre && <span>· {d.titre}</span>}
                     </div>
@@ -241,8 +240,8 @@ const MesDemandes = () => {
                   </div>
                   <button
                     className="px-4 py-1.5 rounded-xl text-xs font-medium transition-all whitespace-nowrap"
-                    style={{ border: "1px solid rgba(0,200,255,0.3)", color: "var(--primary)", background: "transparent" }}
-                    onMouseEnter={(el) => el.currentTarget.style.background = "rgba(0,200,255,0.1)"}
+                    style={{ border: "1px solid rgba(21,128,61,0.3)", color: "var(--color-accent)", background: "transparent" }}
+                    onMouseEnter={(el) => el.currentTarget.style.background = "rgba(21,128,61,0.06)"}
                     onMouseLeave={(el) => el.currentTarget.style.background = "transparent"}
                     onClick={() => openDetail(d)}
                   >
@@ -261,21 +260,21 @@ const MesDemandes = () => {
           style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
           onClick={(e) => { if (e.target === e.currentTarget) setModalOpen(false); }}
         >
-          <div className="w-full max-w-xl rounded-2xl p-6 sm:p-8" style={{ background: "#152232", border: "1px solid var(--border)", boxShadow: "0 24px 80px rgba(0,0,0,0.6)", maxHeight: "90vh", overflowY: "auto" }}>
+          <div className="w-full max-w-xl rounded-2xl p-6 sm:p-8" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)", boxShadow: "0 24px 80px rgba(0,0,0,0.3)", maxHeight: "90vh", overflowY: "auto" }}>
             {modalMode === "detail" && viewingDemande ? (
               <>
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-bold text-white" style={{ fontFamily: "Outfit, sans-serif" }}>
+                  <h3 className="text-lg font-bold" style={{ color: "var(--color-text-primary)", fontFamily: "Outfit, sans-serif" }}>
                     <FileText size={16} /> Détail de la demande
                   </h3>
-                  <button onClick={() => setModalOpen(false)} className="text-xl" style={{ color: "rgba(255,255,255,0.4)" }}><X size={18} /></button>
+                  <button onClick={() => setModalOpen(false)} className="text-xl" style={{ color: "var(--color-text-muted)" }}><X size={18} /></button>
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`badge ${(statutConfig[viewingDemande.statut] || statutConfig.soumis).cls}`}>
                       {(statutConfig[viewingDemande.statut] || statutConfig.soumis).label}
                     </span>
-                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(0,200,255,0.1)", color: "var(--primary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(21,128,61,0.1)", color: "var(--color-accent)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       {TYPE_LABELS[viewingDemande.type_action] || viewingDemande.type_action}
                     </span>
                   </div>
@@ -292,35 +291,35 @@ const MesDemandes = () => {
 
                   {viewingDemande.titre && (
                     <div>
-                      <p className="text-[10px] font-medium mb-1" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Événement</p>
-                      <p className="text-sm text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{viewingDemande.titre}</p>
+                    <p className="text-[10px] font-medium mb-1" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Événement</p>
+                    <p className="text-sm" style={{ color: "var(--color-text-primary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{viewingDemande.titre}</p>
                     </div>
                   )}
 
                   {viewingDemande.description && (
                     <div>
-                      <p className="text-[10px] font-medium mb-1" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Description</p>
-                      <p className="text-sm" style={{ color: "rgba(255,255,255,0.7)", fontFamily: "'Plus Jakarta Sans', sans-serif", whiteSpace: "pre-wrap" }}>{viewingDemande.description}</p>
+                    <p className="text-[10px] font-medium mb-1" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Description</p>
+                    <p className="text-sm" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif", whiteSpace: "pre-wrap" }}>{viewingDemande.description}</p>
                     </div>
                   )}
 
                   {viewingDemande.lieu && (
                     <div>
-                      <p className="text-[10px] font-medium mb-1" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Lieu</p>
-                      <p className="text-sm text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{viewingDemande.lieu}</p>
+                    <p className="text-[10px] font-medium mb-1" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Lieu</p>
+                    <p className="text-sm" style={{ color: "var(--color-text-primary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{viewingDemande.lieu}</p>
                     </div>
                   )}
 
                   {viewingDemande.date_debut && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-[10px] font-medium mb-1" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Date début</p>
-                        <p className="text-sm text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{new Date(viewingDemande.date_debut).toLocaleDateString("fr-FR")}</p>
+                        <p className="text-[10px] font-medium mb-1" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Date début</p>
+                        <p className="text-sm" style={{ color: "var(--color-text-primary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{new Date(viewingDemande.date_debut).toLocaleDateString("fr-FR")}</p>
                       </div>
                       {viewingDemande.date_fin && (
                         <div>
-                          <p className="text-[10px] font-medium mb-1" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Date fin</p>
-                          <p className="text-sm text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{new Date(viewingDemande.date_fin).toLocaleDateString("fr-FR")}</p>
+                            <p className="text-[10px] font-medium mb-1" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Date fin</p>
+                            <p className="text-sm" style={{ color: "var(--color-text-primary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{new Date(viewingDemande.date_fin).toLocaleDateString("fr-FR")}</p>
                         </div>
                       )}
                     </div>
@@ -328,17 +327,17 @@ const MesDemandes = () => {
 
                   {viewingDemande.capacite > 0 && (
                     <div>
-                      <p className="text-[10px] font-medium mb-1" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Capacité</p>
-                      <p className="text-sm text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{viewingDemande.capacite} places</p>
+                    <p className="text-[10px] font-medium mb-1" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Capacité</p>
+                    <p className="text-sm" style={{ color: "var(--color-text-primary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{viewingDemande.capacite} places</p>
                     </div>
                   )}
 
                   {viewingDemande.commentaire_admin && viewingDemande.statut !== "soumis" && viewingDemande.statut !== "en_analyse" && (
-                    <div className="p-3 rounded-xl" style={{ background: viewingDemande.statut === "approuve" ? "rgba(0,229,160,0.08)" : "rgba(255,77,109,0.08)", border: `1px solid ${viewingDemande.statut === "approuve" ? "rgba(0,229,160,0.2)" : "rgba(255,77,109,0.2)"}` }}>
+                    <div className="p-3 rounded-xl" style={{ background: viewingDemande.statut === "approuve" ? "rgba(21,128,61,0.06)" : "rgba(255,77,109,0.08)", border: `1px solid ${viewingDemande.statut === "approuve" ? "rgba(21,128,61,0.2)" : "rgba(255,77,109,0.2)"}` }}>
                       <p className="text-[10px] font-medium mb-1" style={{ color: viewingDemande.statut === "approuve" ? "var(--success)" : "var(--error)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                         {viewingDemande.statut === "approuve" ? "Commentaire" : "Motif du refus"}
                       </p>
-                      <p className="text-xs" style={{ color: "rgba(255,255,255,0.7)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{viewingDemande.commentaire_admin}</p>
+                      <p className="text-xs" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{viewingDemande.commentaire_admin}</p>
                     </div>
                   )}
                 </div>
@@ -346,8 +345,8 @@ const MesDemandes = () => {
             ) : demandeSent ? (
               <div className="text-center py-6">
                 <Check size={40} style={{ color: "var(--success)" }} />
-                <h3 className="text-lg font-bold text-white mb-2" style={{ fontFamily: "Outfit, sans-serif" }}>Demande soumise</h3>
-                <p className="text-sm" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <h3 className="text-lg font-bold mb-2" style={{ color: "var(--color-text-primary)", fontFamily: "Outfit, sans-serif" }}>Demande soumise</h3>
+                <p className="text-sm" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   Votre demande a été transmise à l'équipe SenGuichet. Vous recevrez une réponse par email.
                 </p>
                 <button onClick={() => setModalOpen(false)} className="btn-primary mt-6">Fermer</button>
@@ -355,10 +354,10 @@ const MesDemandes = () => {
             ) : (
               <>
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-bold text-white" style={{ fontFamily: "Outfit, sans-serif" }}>
+                  <h3 className="text-lg font-bold" style={{ color: "var(--color-text-primary)", fontFamily: "Outfit, sans-serif" }}>
                     {typeAction === "CREATION" ? <><Calendar size={16} /> Nouvel événement</> : typeAction === "MODIFICATION" ? <><Edit size={16} /> Modifier</> : <><X size={16} /> Supprimer</>}
                   </h3>
-                  <button onClick={() => setModalOpen(false)} className="text-xl" style={{ color: "rgba(255,255,255,0.4)" }}><X size={18} /></button>
+                  <button onClick={() => setModalOpen(false)} className="text-xl" style={{ color: "var(--color-text-muted)" }}><X size={18} /></button>
                 </div>
                 {error && (
                   <div className="mb-4 p-3 rounded-xl text-xs" style={{ background: "rgba(255,77,109,0.1)", border: "1px solid rgba(255,77,109,0.2)", color: "var(--error)" }}>
@@ -367,7 +366,7 @@ const MesDemandes = () => {
                 )}
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       Type de demande <span style={{ color: "var(--error)" }}>*</span>
                     </label>
                     <select
@@ -375,139 +374,153 @@ const MesDemandes = () => {
                       className="input-premium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                     >
                       {DEMANDE_TYPES.map((t) => (
-                        <option key={t.value} value={t.value} style={{ color: "#1a1a2e" }}>{t.label}</option>
+                        <option key={t.value} value={t.value}>{t.label}</option>
                       ))}
                     </select>
                   </div>
 
                   {typeAction === "CREATION" && (
                     <>
-                      <div>
-                        <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          Titre de l'événement <span style={{ color: "var(--error)" }}>*</span>
-                        </label>
-                        <input required value={titre} onChange={(e) => setTitre(e.target.value)} className="input-premium" placeholder="Ex: Concert de Dakar" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          Description <span style={{ color: "var(--error)" }}>*</span>
-                        </label>
-                        <textarea required rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="input-premium" placeholder="Décrivez votre événement..." style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", resize: "vertical" }} />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="rounded-xl p-5 space-y-4" style={{ background: "#F8FAFC", border: "1px solid var(--color-border)" }}>
+                        <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-accent)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          Informations générales
+                        </p>
                         <div>
-                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            Catégorie <span style={{ color: "var(--error)" }}>*</span>
-                          </label>
-                          <CategorySelect value={categorie} onChange={setCategorie} options={CATEGORIES} label="Sélectionnez une catégorie" />
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              Titre de l'événement <span style={{ color: "var(--error)" }}>*</span>
+                            </label>
+                          <input required value={titre} onChange={(e) => setTitre(e.target.value)} className="input-premium" placeholder="Ex: Concert de Dakar" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            Ville <span style={{ color: "var(--error)" }}>*</span>
-                          </label>
-                          <CategorySelect value={ville} onChange={setVille} options={VILLES} label="Sélectionnez une ville" />
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              Description <span style={{ color: "var(--error)" }}>*</span>
+                            </label>
+                          <textarea required rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="input-premium" placeholder="Décrivez votre événement..." style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", resize: "vertical" }} />
                         </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          Lieu <span style={{ color: "var(--error)" }}>*</span>
-                        </label>
-                        <input required value={lieu} onChange={(e) => setLieu(e.target.value)} className="input-premium" placeholder="Ex: Place de l'Indépendance" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              Catégorie <span style={{ color: "var(--error)" }}>*</span>
+                            </label>
+                            <CategorySelect value={categorie} onChange={setCategorie} options={CATEGORIES} label="Sélectionnez une catégorie" />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              Ville <span style={{ color: "var(--error)" }}>*</span>
+                            </label>
+                            <CategorySelect value={ville} onChange={setVille} options={VILLES} label="Sélectionnez une ville" />
+                          </div>
+                        </div>
                         <div>
-                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            Date début <span style={{ color: "var(--error)" }}>*</span>
+                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            Lieu <span style={{ color: "var(--error)" }}>*</span>
                           </label>
-                          <input required type="date" value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} className="input-premium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
+                          <input required value={lieu} onChange={(e) => setLieu(e.target.value)} className="input-premium" placeholder="Ex: Place de l'Indépendance" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
                         </div>
-                        <div>
-                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            Date fin
-                          </label>
-                          <input type="date" value={dateFin} onChange={(e) => setDateFin(e.target.value)} className="input-premium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          Capacité <span style={{ color: "var(--error)" }}>*</span>
-                        </label>
-                        <input required type="number" min="1" value={capacite} onChange={(e) => setCapacite(e.target.value)} className="input-premium" placeholder="Ex: 500" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
                       </div>
 
-                      <div>
-                        <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          Affiche de l'événement
-                        </label>
-                        <div
-                          onClick={() => { if (!uploading) fileInputRef.current?.click(); }}
-                          className="flex flex-col items-center justify-center gap-2 p-6 rounded-xl cursor-pointer transition-all"
-                          style={{
-                            border: `2px dashed ${uploading ? "rgba(255,183,71,0.4)" : affichePreview ? "rgba(0,200,255,0.4)" : "rgba(255,255,255,0.12)"}`,
-                            background: affichePreview ? "transparent" : "rgba(255,255,255,0.03)",
-                            minHeight: "140px",
-                          }}
-                          onMouseEnter={(e) => { if (!affichePreview && !uploading) e.currentTarget.style.borderColor = "rgba(0,200,255,0.4)"; }}
-                          onMouseLeave={(e) => { if (!affichePreview && !uploading) e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
-                        >
-                          {uploading ? (
-                            <div className="flex flex-col items-center gap-2">
-                              <Loader size={24} />
-                              <p className="text-xs" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Upload en cours...</p>
-                            </div>
-                          ) : affichePreview ? (
-                            <div className="relative w-full">
-                              <img src={affichePreview} alt="Aperçu" className="w-full object-cover rounded-xl" style={{ maxHeight: "200px" }} />
-                              <button type="button" onClick={(e) => { e.stopPropagation(); setCloudinaryUrl(null); setAffichePreview(null); }}
-                                className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm"
-                                style={{ background: "rgba(0,0,0,0.6)", color: "var(--error)", border: "none", cursor: "pointer" }}
-                              >
-                                <X size={14} />
-                              </button>
-                            </div>
-                          ) : (
-                            <>
-                              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
-                              </svg>
-                              <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Cliquez pour ajouter une affiche</p>
-                            </>
-                          )}
+                      <div className="rounded-xl p-5 space-y-4" style={{ background: "#F8FAFC", border: "1px solid var(--color-border)" }}>
+                        <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-accent)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          Date & Capacité
+                        </p>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              Date début <span style={{ color: "var(--error)" }}>*</span>
+                            </label>
+                            <input required type="date" value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} className="input-premium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              Date fin
+                            </label>
+                            <input type="date" value={dateFin} onChange={(e) => setDateFin(e.target.value)} className="input-premium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
+                          </div>
                         </div>
-                        <input ref={fileInputRef} type="file" accept="image/png,image/jpeg" className="hidden"
-                          onChange={async (e) => {
-                            const f = e.target.files?.[0];
-                            if (!f) return;
-                            setUploading(true);
-                            setAffichePreview(URL.createObjectURL(f));
-                            try {
-                              const url = await uploadToCloudinary(f);
-                              setCloudinaryUrl(url);
-                            } catch (err) {
-                              setAffichePreview(null);
-                              setError("Erreur upload affiche");
-                            } finally {
-                              setUploading(false);
-                            }
-                          }}
-                        />
-                      </div>
-
-                      <div className="border-t pt-4" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-                        <div className="flex items-center justify-between mb-3">
-                          <label className="text-xs font-medium" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            <Calendar size={16} /> Catégories de tickets <span style={{ color: "var(--error)" }}>*</span>
+                        <div>
+                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            Capacité <span style={{ color: "var(--error)" }}>*</span>
                           </label>
-                          <button type="button" onClick={addCategory} className="text-xs px-3 py-1 rounded-lg transition-all"
-                            style={{ background: "rgba(0,200,255,0.1)", color: "var(--primary)", border: "1px solid rgba(0,200,255,0.2)" }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(0,200,255,0.2)"; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(0,200,255,0.1)"; }}
+                          <input required type="number" min="1" value={capacite} onChange={(e) => setCapacite(e.target.value)} className="input-premium" placeholder="Ex: 500" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            Affiche de l'événement
+                          </label>
+                          <div
+                            onClick={() => { if (!uploading) fileInputRef.current?.click(); }}
+                            className="flex flex-col items-center justify-center gap-2 p-6 rounded-xl cursor-pointer transition-all"
+                            style={{
+                              border: `2px dashed ${uploading ? "rgba(255,183,71,0.4)" : affichePreview ? "rgba(21,128,61,0.4)" : "var(--color-border)"}`,
+                              background: affichePreview ? "transparent" : "rgba(0,0,0,0.02)",
+                              minHeight: "140px",
+                            }}
+                            onMouseEnter={(e) => { if (!affichePreview && !uploading) e.currentTarget.style.borderColor = "var(--color-accent)"; }}
+                            onMouseLeave={(e) => { if (!affichePreview && !uploading) e.currentTarget.style.borderColor = "var(--color-border)"; }}
                           >
-                            + Ajouter
+                            {uploading ? (
+                              <div className="flex flex-col items-center gap-2">
+                                <Loader size={24} />
+                                <p className="text-xs" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Upload en cours...</p>
+                              </div>
+                            ) : affichePreview ? (
+                              <div className="relative w-full">
+                                <img src={affichePreview} alt="Aperçu" className="w-full object-cover rounded-xl" style={{ maxHeight: "200px" }} />
+                                <button type="button" onClick={(e) => { e.stopPropagation(); setCloudinaryUrl(null); setAffichePreview(null); }}
+                                  className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm"
+                                  style={{ background: "rgba(0,0,0,0.6)", color: "var(--error)", border: "none", cursor: "pointer" }}
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            ) : (
+                              <>
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
+                                </svg>
+                                <p className="text-xs" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Cliquez pour ajouter une affiche</p>
+                              </>
+                            )}
+                          </div>
+                          <input ref={fileInputRef} type="file" accept="image/png,image/jpeg" className="hidden"
+                            onChange={async (e) => {
+                              const f = e.target.files?.[0];
+                              if (!f) return;
+                              setUploading(true);
+                              setAffichePreview(URL.createObjectURL(f));
+                              try {
+                                const url = await uploadToCloudinary(f);
+                                setCloudinaryUrl(url);
+                              } catch (err) {
+                                setAffichePreview(null);
+                                setError("Erreur upload affiche");
+                              } finally {
+                                setUploading(false);
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl p-5 space-y-4" style={{ background: "#F8FAFC", border: "1px solid var(--color-border)" }}>
+                        <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-accent)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          <Calendar size={14} /> Billets
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            Catégories de tickets <span style={{ color: "var(--error)" }}>*</span>
+                          </p>
+                          <button type="button" onClick={addCategory} className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all"
+                            style={{ background: "rgba(21,128,61,0.1)", color: "var(--color-accent)", border: "1px solid rgba(21,128,61,0.25)" }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(21,128,61,0.18)"; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(21,128,61,0.1)"; }}
+                          >
+                            + Ajouter une catégorie
                           </button>
                         </div>
                         {categories.map((cat, i) => (
-                          <div key={i} className="flex items-start gap-2 mb-2 p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.03)" }}>
+                          <div key={i} className="flex items-start gap-2 p-3 rounded-xl" style={{ background: "#FFFFFF", border: "1px solid var(--color-border)" }}>
                             <div className="flex-1 grid grid-cols-3 gap-2">
                               <input value={cat.nom} onChange={(e) => updateCategory(i, "nom", e.target.value)}
                                 className="input-premium text-xs" placeholder="Nom (ex: VIP)" required
@@ -520,16 +533,16 @@ const MesDemandes = () => {
                                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
                             </div>
                             <button type="button" onClick={() => removeCategory(i)}
-                              className="text-xs px-2 py-1 rounded-lg transition-all mt-0.5"
-                              style={{ background: "rgba(255,77,109,0.1)", color: "var(--error)", border: "1px solid rgba(255,77,109,0.2)" }}
-                              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,77,109,0.2)"; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,77,109,0.1)"; }}
+                              className="text-xs px-2 py-1.5 rounded-lg transition-all mt-0.5"
+                              style={{ background: "rgba(220,38,38,0.08)", color: "var(--error)", border: "1px solid rgba(220,38,38,0.2)" }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(220,38,38,0.15)"; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(220,38,38,0.08)"; }}
                             >
                               <X size={14} />
                             </button>
                           </div>
                         ))}
-                        <p className="text-[10px] mt-1" style={{ color: "rgba(255,255,255,0.3)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <p className="text-[11px]" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           Ajoutez au moins une catégorie avec son nombre de places et son prix.
                         </p>
                       </div>
@@ -538,15 +551,15 @@ const MesDemandes = () => {
 
                   {typeAction !== "CREATION" && (
                     <div>
-                      <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                        Titre / Événement concerné
+                    <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      Titre / Événement concerné
                       </label>
                       <input value={titre} onChange={(e) => setTitre(e.target.value)} className="input-premium" placeholder="Nom de l'événement concerné" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} />
                     </div>
                   )}
 
                   <div>
-                    <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <label className="block text-xs font-medium mb-1.5" style={{ color: "var(--color-text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       Message détaillé <span style={{ color: "var(--error)" }}>*</span>
                     </label>
                     <textarea required rows={3} value={message} onChange={(e) => setMessage(e.target.value)} className="input-premium"

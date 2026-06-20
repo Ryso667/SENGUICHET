@@ -22,8 +22,8 @@ const inscription = async (req, res) => {
     }
 
     const [existing] = await pool.query(
-      "SELECT id FROM organisateur WHERE email = ? OR telephone = ?",
-      [email, telephone]
+      "SELECT id FROM organisateur WHERE email = ? OR telephone = ? UNION SELECT id FROM partenaire WHERE email = ?",
+      [email, telephone, email]
     );
     if (existing.length) {
       return res.status(400).json({ message: "Email ou téléphone déjà utilisé" });
@@ -208,6 +208,58 @@ const reinitialiserMotDePasseOrganisateur = async (req, res) => {
   }
 };
 
+// Supprime un organisateur et ses événements (CASCADE), nettoie aussi partenaire/partenaire_demande
+const adminSupprimerOrganisateur = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [rows] = await pool.query("SELECT id, email, nom FROM organisateur WHERE id = ?", [id]);
+    if (!rows.length) {
+      return res.status(404).json({ message: "Organisateur introuvable" });
+    }
+
+    const { email, nom } = rows[0];
+
+    // Nettoyer les tables partenaire et partenaire_demande liées au même email
+    const [pRows] = await pool.query("SELECT id FROM partenaire WHERE email = ?", [email]);
+    if (pRows.length) {
+      await pool.query("DELETE FROM partenaire WHERE email = ?", [email]);
+      console.log(`Partenaire (email: ${email}) supprimé avec l'organisateur`);
+    }
+    await pool.query("DELETE FROM partenaire_demande WHERE email = ?", [email]);
+
+    await pool.query("DELETE FROM organisateur WHERE id = ?", [id]);
+
+    console.log(`Organisateur ${nom} (id: ${id}) supprimé avec ses événements`);
+    res.json({ message: `Organisateur « ${nom} » et tous ses événements supprimés` });
+  } catch (err) {
+    console.error("Erreur suppression organisateur:", err);
+    res.status(500).json({ message: "Erreur serveur lors de la suppression" });
+  }
+};
+
+// Supprime un compte partenaire par email (admin)
+const adminSupprimerPartenaireEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+    if (!email) return res.status(400).json({ message: "Email requis" });
+
+    const [rows] = await pool.query("SELECT id, email FROM partenaire WHERE email = ?", [email]);
+    if (!rows.length) {
+      return res.status(404).json({ message: "Aucun partenaire trouvé avec cet email" });
+    }
+
+    await pool.query("DELETE FROM partenaire WHERE email = ?", [email]);
+    await pool.query("DELETE FROM partenaire_demande WHERE email = ?", [email]);
+
+    console.log(`Partenaire ${email} supprimé`);
+    res.json({ message: `Partenaire « ${email} » supprimé` });
+  } catch (err) {
+    console.error("Erreur suppression partenaire:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
 // Envoie un code OTP à l'email de l'acheteur pour confirmer sa connexion
 // Stocke le code temporairement (5 min), retourne un accusé
 const envoyerCodeOTP = async (req, res) => {
@@ -383,4 +435,4 @@ const connexionControleur = async (req, res) => {
   }
 };
 
-module.exports = { inscription, connexionOrganisateur, connexionAdmin, connexionPartenaire, connexionControleur, adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur, envoyerCodeOTP, verifierCodeOTP, changerMotDePasse };
+module.exports = { inscription, connexionOrganisateur, connexionAdmin, connexionPartenaire, connexionControleur, adminListerOrganisateurs, reinitialiserMotDePasseOrganisateur, adminSupprimerOrganisateur, adminSupprimerPartenaireEmail, envoyerCodeOTP, verifierCodeOTP, changerMotDePasse };

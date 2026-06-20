@@ -3,6 +3,7 @@
 
 const ProviderSimulation = require('./providers/ProviderSimulation');
 const ProviderWave = require('./providers/ProviderWave');
+const ProviderOrangeMoney = require('./providers/ProviderOrangeMoney');
 
 class PaymentService {
   static getProvider(type) {
@@ -15,6 +16,8 @@ class PaymentService {
           return new ProviderSimulation();
         }
         return new ProviderWave();
+      case 'ORANGE_MONEY':
+        return new ProviderOrangeMoney();
       default:
         throw new Error(`Provider ${type} non supporté`);
     }

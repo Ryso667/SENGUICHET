@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { LayoutGrid, Calendar, BarChart, FileText, Ticket, LogOut } from "../components/Icons";
-import logo from "../assets/logo.jpg";
+const logo = "/images/logo.png";
 
 const navItems = [
   { icon: <LayoutGrid size={18} />, label: "Tableau de bord", path: "/dashboard" },
@@ -19,17 +19,17 @@ const Sidebar = () => {
   const handleLogout = () => { logout(); navigate("/connexion"); };
 
   return (
-    <aside className="hidden lg:flex flex-col w-[260px] fixed h-full z-20" style={{ background: "#0D1B2A", borderRight: "1px solid rgba(0, 200, 255, 0.15)" }}>
-      <div className="py-8 px-6 border-b flex justify-center" style={{ borderColor: "rgba(0, 200, 255, 0.12)" }}>
+    <aside className="hidden lg:flex flex-col w-[260px] fixed h-full z-20" style={{ background: "var(--color-surface)", borderRight: "1px solid var(--color-border)" }}>
+      <div className="py-8 px-6 border-b flex justify-center" style={{ borderColor: "var(--color-border)" }}>
         <img src={logo} alt="SENGUICHET" style={{ height: 72, width: "auto" }} />
       </div>
 
-      <div className="p-4 border-b flex items-center gap-3" style={{ borderColor: "rgba(0, 200, 255, 0.12)" }}>
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00C8FF] to-[#0077FF] flex items-center justify-center text-white font-bold text-sm">
+      <div className="p-4 border-b flex items-center gap-3" style={{ borderColor: "var(--color-border)" }}>
+        <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm" style={{ background: "var(--gradient)" }}>
           {user?.nom?.charAt(0)?.toUpperCase() || <Ticket size={14} />}
         </div>
         <div>
-          <p className="text-sm font-medium text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{user?.nom || "Organisateur"}</p>
+          <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{user?.nom || "Organisateur"}</p>
           <span className={`badge ${user?.statut === "VALIDE" ? "badge-active" : "badge-pending"}`}>
             {user?.statut === "VALIDE" ? <>Actif</> : <>Attente</>}
           </span>
@@ -46,11 +46,11 @@ const Sidebar = () => {
               className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all"
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                background: active ? "rgba(0,200,255,0.10)" : "transparent",
-                color: active ? "#F1F5F9" : "rgba(255,255,255,0.45)",
-                borderLeft: active ? "3px solid var(--primary)" : "3px solid transparent",
+                background: active ? "rgba(21,128,61,0.08)" : "transparent",
+                color: active ? "var(--color-accent)" : "var(--color-text-muted)",
+                borderLeft: active ? "3px solid var(--color-accent)" : "3px solid transparent",
               }}
-              onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+              onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "rgba(0,0,0,0.03)"; }}
               onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "transparent"; }}
             >
               <span>{item.icon}</span>
@@ -63,17 +63,17 @@ const Sidebar = () => {
         })}
       </nav>
 
-      <div className="p-3 border-t" style={{ borderColor: "rgba(0, 200, 255, 0.12)" }}>
+      <div className="p-3 border-t" style={{ borderColor: "var(--color-border)" }}>
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all"
           style={{
             fontFamily: "'Plus Jakarta Sans', sans-serif",
-            color: "rgba(255,255,255,0.45)",
+            color: "var(--color-text-muted)",
             background: "transparent",
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,77,109,0.1)"; e.currentTarget.style.color = "var(--error)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,77,109,0.08)"; e.currentTarget.style.color = "var(--error)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--color-text-muted)"; }}
         >
           <LogOut size={18} />
           <span>Déconnexion</span>
@@ -85,14 +85,14 @@ const Sidebar = () => {
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              color: "#374151",
+              color: "var(--color-text-muted)",
               fontSize: "11px",
               fontFamily: "'Plus Jakarta Sans', sans-serif",
               textDecoration: "none",
               transition: "color 0.2s",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#6B7280"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = "#374151"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-text-secondary)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--color-text-muted)"; }}
           >
             Propulsé par SDP — Sen Digital Pulse
           </a>

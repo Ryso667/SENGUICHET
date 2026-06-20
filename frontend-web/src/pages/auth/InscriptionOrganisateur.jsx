@@ -8,6 +8,7 @@ import Button from "../../components/Button";
 import AlertMessage from "../../components/AlertMessage";
 import logo from "../../assets/logo.jpg";
 import { Check } from "../../components/Icons";
+import { motion } from "framer-motion";
 
 const strengthConfig = [
   { label: "Faible", color: "var(--error)", segments: 1 },
@@ -67,7 +68,7 @@ const InscriptionOrganisateur = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0D1B2A] flex">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}><div className="min-h-screen bg-[#0D1B2A] flex">
       <div className="hidden lg:flex w-[40%] relative overflow-hidden items-center justify-center">
         <img src="/images/event-3.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" style={{ filter: "brightness(0.25) blur(3px)", transform: "scale(1.08)" }} />
         <div className="absolute inset-0 bg-gradient-to-br from-[#0D1B2A]/90 via-[#0D1B2A]/50 to-transparent" />
@@ -84,9 +85,7 @@ const InscriptionOrganisateur = () => {
       </div>
 
       <div className="flex-1 flex items-center justify-center px-4 py-8 relative overflow-y-auto">
-        <div className="orb-indigo" />
 
-        <div className="orb-accent" />
         <div className="w-full max-w-[440px]" style={{ animation: "fadeInUp 0.4s ease-out" }}>
           <div className="lg:hidden text-center mb-6">
             <img src={logo} alt="SENGUICHET" style={{ height: 50, width: "auto", display: "block", margin: "0 auto 8px" }} />
@@ -98,7 +97,7 @@ const InscriptionOrganisateur = () => {
               <img src={logo} alt="SENGUICHET" style={{ height: 80, width: "auto", display: "block", margin: "0 auto" }} />
               <p className="text-sm mt-2" style={{ color: "#A0B4C8", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Billetterie en ligne tout événement</p>
             </div>
-            <h1 className="text-2xl font-bold gradient-text mb-1" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>Créer votre compte</h1>
+            <h1 className="text-2xl font-bold text-accent mb-1" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>Créer votre compte</h1>
             <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Créez votre compte et commencez à organiser</p>
 
             {alert && <div className="mb-4"><AlertMessage message={alert.message} type={alert.type} dismissible /></div>}
@@ -148,7 +147,7 @@ const InscriptionOrganisateur = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div></motion.div>
   );
 };
 

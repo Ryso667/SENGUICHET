@@ -27,47 +27,47 @@ const QRModal = ({ ticket, onClose }) => (
     style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
     onClick={onClose}
   >
-    <div className="glass-card p-8 w-full max-w-sm text-center" onClick={(e) => e.stopPropagation()}>
+    <div className="p-8 w-full max-w-sm text-center rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }} onClick={(e) => e.stopPropagation()}>
       <svg width="200" height="200" viewBox="0 0 200 200" className="mx-auto mb-4">
-        <rect x="10" y="10" width="40" height="40" fill="white" />
-        <rect x="60" y="10" width="10" height="10" fill="white" />
-        <rect x="80" y="10" width="10" height="10" fill="white" />
-        <rect x="100" y="10" width="10" height="10" fill="white" />
-        <rect x="120" y="10" width="40" height="40" fill="white" />
-        <rect x="10" y="60" width="10" height="10" fill="white" />
-        <rect x="30" y="60" width="20" height="10" fill="white" />
-        <rect x="80" y="60" width="30" height="10" fill="white" />
-        <rect x="120" y="60" width="10" height="10" fill="white" />
-        <rect x="140" y="60" width="20" height="10" fill="white" />
-        <rect x="170" y="60" width="20" height="40" fill="white" />
-        <rect x="10" y="80" width="10" height="20" fill="white" />
-        <rect x="30" y="80" width="20" height="20" fill="white" />
-        <rect x="100" y="80" width="30" height="20" fill="white" />
-        <rect x="140" y="80" width="20" height="20" fill="white" />
-        <rect x="10" y="110" width="10" height="20" fill="white" />
-        <rect x="40" y="110" width="10" height="20" fill="white" />
-        <rect x="60" y="110" width="30" height="20" fill="white" />
-        <rect x="100" y="110" width="10" height="20" fill="white" />
-        <rect x="120" y="110" width="10" height="20" fill="white" />
-        <rect x="150" y="110" width="10" height="10" fill="white" />
-        <rect x="170" y="110" width="20" height="20" fill="white" />
-        <rect x="10" y="140" width="20" height="10" fill="white" />
-        <rect x="40" y="140" width="20" height="10" fill="white" />
-        <rect x="80" y="140" width="20" height="10" fill="white" />
-        <rect x="140" y="140" width="40" height="10" fill="white" />
-        <rect x="10" y="160" width="40" height="30" fill="white" />
-        <rect x="60" y="160" width="30" height="10" fill="white" />
-        <rect x="100" y="160" width="10" height="30" fill="white" />
-        <rect x="120" y="160" width="40" height="30" fill="white" />
-        <rect x="30" y="30" width="10" height="10" fill="#00C8FF" />
-        <rect x="130" y="30" width="10" height="10" fill="#00C8FF" />
-        <rect x="170" y="20" width="10" height="10" fill="#00C8FF" />
-        <rect x="100" y="70" width="10" height="10" fill="#0077FF" />
-        <rect x="170" y="50" width="10" height="10" fill="#00C8FF" />
+        <rect x="10" y="10" width="40" height="40" fill="#1a1a2e" />
+        <rect x="60" y="10" width="10" height="10" fill="#1a1a2e" />
+        <rect x="80" y="10" width="10" height="10" fill="#1a1a2e" />
+        <rect x="100" y="10" width="10" height="10" fill="#1a1a2e" />
+        <rect x="120" y="10" width="40" height="40" fill="#1a1a2e" />
+        <rect x="10" y="60" width="10" height="10" fill="#1a1a2e" />
+        <rect x="30" y="60" width="20" height="10" fill="#1a1a2e" />
+        <rect x="80" y="60" width="30" height="10" fill="#1a1a2e" />
+        <rect x="120" y="60" width="10" height="10" fill="#1a1a2e" />
+        <rect x="140" y="60" width="20" height="10" fill="#1a1a2e" />
+        <rect x="170" y="60" width="20" height="40" fill="#1a1a2e" />
+        <rect x="10" y="80" width="10" height="20" fill="#1a1a2e" />
+        <rect x="30" y="80" width="20" height="20" fill="#1a1a2e" />
+        <rect x="100" y="80" width="30" height="20" fill="#1a1a2e" />
+        <rect x="140" y="80" width="20" height="20" fill="#1a1a2e" />
+        <rect x="10" y="110" width="10" height="20" fill="#1a1a2e" />
+        <rect x="40" y="110" width="10" height="20" fill="#1a1a2e" />
+        <rect x="60" y="110" width="30" height="20" fill="#1a1a2e" />
+        <rect x="100" y="110" width="10" height="20" fill="#1a1a2e" />
+        <rect x="120" y="110" width="10" height="20" fill="#1a1a2e" />
+        <rect x="150" y="110" width="10" height="10" fill="#1a1a2e" />
+        <rect x="170" y="110" width="20" height="20" fill="#1a1a2e" />
+        <rect x="10" y="140" width="20" height="10" fill="#1a1a2e" />
+        <rect x="40" y="140" width="20" height="10" fill="#1a1a2e" />
+        <rect x="80" y="140" width="20" height="10" fill="#1a1a2e" />
+        <rect x="140" y="140" width="40" height="10" fill="#1a1a2e" />
+        <rect x="10" y="160" width="40" height="30" fill="#1a1a2e" />
+        <rect x="60" y="160" width="30" height="10" fill="#1a1a2e" />
+        <rect x="100" y="160" width="10" height="30" fill="#1a1a2e" />
+        <rect x="120" y="160" width="40" height="30" fill="#1a1a2e" />
+        <rect x="30" y="30" width="10" height="10" fill="#15803D" />
+        <rect x="130" y="30" width="10" height="10" fill="#15803D" />
+        <rect x="170" y="20" width="10" height="10" fill="#15803D" />
+        <rect x="100" y="70" width="10" height="10" fill="#16A34A" />
+        <rect x="170" y="50" width="10" height="10" fill="#15803D" />
       </svg>
-      <p className="text-sm font-bold text-white" style={{ fontFamily: "Outfit, sans-serif" }}>{ticket.id}</p>
-      <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>{ticket.telephone} • {ticket.type}</p>
-      <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{ticket.prix}</p>
+      <p className="text-sm font-bold" style={{ color: "var(--color-text-primary)", fontFamily: "Outfit, sans-serif" }}>{ticket.id}</p>
+      <p className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>{ticket.telephone} • {ticket.type}</p>
+      <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>{ticket.prix}</p>
       <div className="flex justify-center mt-3">
         <span className={`badge ${badgeClass[ticket.statut]}`}>{ticket.statut}</span>
       </div>
@@ -96,32 +96,39 @@ const GestionBillets = () => {
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="stat-card"><span className="stat-value">{totalVendus}</span><span className="stat-label">Billets vendus</span></div>
-        <div className="stat-card"><span className="stat-value">{totalDisponibles - totalVendus}</span><span className="stat-label">Disponibles</span></div>
-        <div className="stat-card"><span className="stat-value">{revenus.toLocaleString()} F</span><span className="stat-label">Revenus total</span></div>
+        {[
+          { value: String(totalVendus), label: "Billets vendus" },
+          { value: String(totalDisponibles - totalVendus), label: "Disponibles" },
+          { value: `${revenus.toLocaleString()} F`, label: "Revenus total" },
+        ].map((s, i) => (
+          <div key={i} className="p-4 rounded-2xl text-center" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: "var(--color-accent)", marginBottom: 2 }}>{s.value}</div>
+            <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>{s.label}</div>
+          </div>
+        ))}
       </div>
 
-      <div className="glass-card overflow-hidden">
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--border)" }}>
+              <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
                 {["N° Billet", "Téléphone", "Type", "Prix", "Date achat", "Statut", "QR"].map((h) => (
-                  <th key={h} className="text-left px-4 py-3 text-xs font-medium" style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{h}</th>
+                  <th key={h} className="text-left px-4 py-3 text-xs font-medium" style={{ color: "var(--color-text-muted)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {mockTickets.map((t) => (
-                <tr key={t.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                  <td className="px-4 py-3 font-mono text-xs" style={{ color: "var(--text-primary)" }}>{t.id}</td>
-                  <td className="px-4 py-3" style={{ color: "var(--text-primary)" }}>{t.telephone}</td>
-                  <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{t.type}</td>
-                  <td className="px-4 py-3 font-medium" style={{ color: "var(--text-primary)" }}>{t.prix}</td>
-                  <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{t.date}</td>
+                <tr key={t.id} style={{ borderBottom: "1px solid var(--color-border)" }}>
+                  <td className="px-4 py-3 font-mono text-xs" style={{ color: "var(--color-text-primary)" }}>{t.id}</td>
+                  <td className="px-4 py-3" style={{ color: "var(--color-text-primary)" }}>{t.telephone}</td>
+                  <td className="px-4 py-3" style={{ color: "var(--color-text-muted)" }}>{t.type}</td>
+                  <td className="px-4 py-3 font-medium" style={{ color: "var(--color-text-primary)" }}>{t.prix}</td>
+                  <td className="px-4 py-3" style={{ color: "var(--color-text-muted)" }}>{t.date}</td>
                   <td className="px-4 py-3"><span className={`badge ${badgeClass[t.statut]}`}>{t.statut}</span></td>
                   <td className="px-4 py-3">
-                    <button onClick={() => setQrTicket(t)} className="px-2.5 py-1.5 rounded-lg text-xs transition-all hover:scale-95" style={{ background: "rgba(0,200,255,0.12)", border: "1px solid rgba(0,200,255,0.25)", color: "#818CF8" }}>
+                    <button onClick={() => setQrTicket(t)} className="px-2.5 py-1.5 rounded-lg text-xs transition-all hover:scale-95" style={{ background: "rgba(21,128,61,0.1)", border: "1px solid rgba(21,128,61,0.25)", color: "var(--color-accent)" }}>
                       👁 QR
                     </button>
                   </td>

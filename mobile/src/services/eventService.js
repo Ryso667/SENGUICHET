@@ -179,6 +179,7 @@ export async function fetchEvenementDetailPublic(eventId) {
     id: String(e.id),
     title: e.titre || '',
     date: e.date_debut || '',
+    date_fin: e.date_fin || '',
     location: e.lieu || '',
     category: e.categorie || '',
     desc: e.description || '',

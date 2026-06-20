@@ -83,6 +83,16 @@ export const adminListerOrganisateurs = async () => {
   return data;
 };
 
+export const adminSupprimerOrganisateur = async (id) => {
+  const res = await fetch(`${BASE_URL}/api/auth/admin/organisateurs/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Erreur serveur");
+  return data;
+};
+
 export const reinitialiserMotDePasseOrganisateur = async (id, nouveauMotDePasse) => {
   const res = await fetch(`${BASE_URL}/api/auth/admin/organisateurs/${id}/reinitialiser-mot-de-passe`, {
     method: "PUT",

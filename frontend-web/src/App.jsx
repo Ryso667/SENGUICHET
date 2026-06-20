@@ -3,11 +3,18 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Footer from "./components/Footer";
-import Accueil from "./pages/Accueil";
+import Navbar from "./components/Navbar";
+import BottomNav from "./components/BottomNav";
+import HomePage from "./pages/HomePage";
+import EventsPage from "./pages/EventsPage";
+import EventDetailPage from "./pages/EventDetailPage";
+import PartnershipPage from "./pages/PartnershipPage";
 import Connexion from "./pages/auth/ConnexionOrganisateur";
 import MentionsLegales from "./pages/MentionsLegales";
 import Confidentialite from "./pages/Confidentialite";
 import InscriptionOrganisateur from "./pages/auth/InscriptionOrganisateur";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import MesEvenements from "./pages/dashboard/MesEvenements";
 import DetailEvenement from "./pages/dashboard/DetailEvenement";
@@ -26,15 +33,31 @@ import AdminControleurs from "./pages/admin/AdminControleurs";
 import AdminCodesControleurs from "./pages/admin/AdminCodesControleurs";
 import EnAttenteValidation from "./pages/EnAttenteValidation";
 import Unauthorized from "./pages/Unauthorized";
+import { ToastProvider } from "./context/ToastContext";
+import CommandPalette from "./components/CommandPalette";
+import KeyboardShortcutsOverlay from "./components/KeyboardShortcutsOverlay";
+
+import ConnexionAcheteur from "./pages/acheteur/ConnexionAcheteur";
+import MesBillets from "./pages/acheteur/MesBillets";
+import BilletDetail from "./pages/acheteur/BilletDetail";
+import Compte from "./pages/acheteur/Compte";
+import Explorer from "./pages/acheteur/Explorer";
+import AcheteurLayout from "./layouts/AcheteurLayout";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <div className="min-h-screen bg-[#0D1B2A]">
+        <ToastProvider>
+        <CommandPalette />
+        <KeyboardShortcutsOverlay />
+        <div className="min-h-screen bg-bg">
           <Routes>
-            <Route element={<><Outlet /><Footer /></>}>
-              <Route path="/" element={<Accueil />} />
+            <Route element={<div className="pb-16 md:pb-0"><Navbar /><Outlet /><Footer /><BottomNav /></div>}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/evenements" element={<EventsPage />} />
+              <Route path="/evenements/:id" element={<EventDetailPage />} />
+              <Route path="/partenariat" element={<PartnershipPage />} />
               <Route path="/connexion" element={<Connexion />} />
               <Route path="/inscription" element={<InscriptionOrganisateur />} />
               <Route path="/admin/connexion" element={<Navigate to="/connexion" replace />} />
@@ -42,6 +65,8 @@ function App() {
               <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="/mentions-legales" element={<MentionsLegales />} />
               <Route path="/confidentialite" element={<Confidentialite />} />
+              <Route path="/a-propos" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
             </Route>
 
             <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["ORGANISATEUR", "PARTENAIRE"]}><DashboardHome /></ProtectedRoute>} />
@@ -62,9 +87,20 @@ function App() {
             <Route path="/admin/controleurs" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminControleurs /></ProtectedRoute>} />
             <Route path="/admin/controleurs/:evenementId" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminCodesControleurs /></ProtectedRoute>} />
 
+            <Route path="/connexion-acheteur" element={<ConnexionAcheteur />} />
+            <Route path="/acheteur" element={<AcheteurLayout />}>
+              <Route index element={<Navigate to="accueil" replace />} />
+              <Route path="accueil" element={<HomePage />} />
+              <Route path="explorer" element={<Explorer />} />
+              <Route path="mes-billets" element={<MesBillets />} />
+              <Route path="billet/:uuid" element={<BilletDetail />} />
+              <Route path="compte" element={<Compte />} />
+            </Route>
+
             <Route path="*" element={<Navigate to="/connexion" replace />} />
           </Routes>
         </div>
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   );

@@ -153,6 +153,10 @@ export default function EventDetailScreen({ route, navigation }) {
   // Ouvre le modal de paiement à l'étape de confirmation
   const handleBuy = () => {
     if (!selectedTicket) return
+    if (event?.date_fin && new Date(event.date_fin) < new Date()) {
+      Alert.alert('Événement terminé', 'La date de cet événement est passée. La vente de billets n\'est plus disponible.')
+      return
+    }
     setShowPaymentSheet(true)
     setPaymentEtape('confirm')
     setSelectedProvider('WAVE')
@@ -431,25 +435,33 @@ export default function EventDetailScreen({ route, navigation }) {
         </Animated.ScrollView>
         {/* Barre d'achat fixe en bas — effet glass */}
         <BlurView tint="dark" intensity={90} style={styles.bottomBar}>
-          <View style={styles.bottomBarTotal}>
-            <Text style={styles.bottomBarTotalLabel}>Total</Text>
-            <Text style={styles.bottomBarTotalPrice}>{selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
-          </View>
-          <TouchableOpacity
-            onPress={handleBuy}
-            activeOpacity={0.9}
-            style={styles.buyBtnWrap}
-          >
-            <LinearGradient
-              colors={['#5C6BC0', '#4A5AAF']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.buyBtnGradient}
-            >
-              <Text style={styles.buyBtnText}>Acheter</Text>
-              <Feather name="arrow-right" size={16} color="#fff" />
-            </LinearGradient>
-          </TouchableOpacity>
+          {event?.date_fin && new Date(event.date_fin) < new Date() ? (
+            <View style={[styles.bottomBarTotal, { flex: 1, justifyContent: 'center' }]}>
+              <Text style={[styles.bottomBarTotalPrice, { color: '#ef4444' }]}>🏁 Événement terminé</Text>
+            </View>
+          ) : (
+            <>
+              <View style={styles.bottomBarTotal}>
+                <Text style={styles.bottomBarTotalLabel}>Total</Text>
+                <Text style={styles.bottomBarTotalPrice}>{selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
+              </View>
+              <TouchableOpacity
+                onPress={handleBuy}
+                activeOpacity={0.9}
+                style={styles.buyBtnWrap}
+              >
+                <LinearGradient
+                  colors={['#5C6BC0', '#4A5AAF']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.buyBtnGradient}
+                >
+                  <Text style={styles.buyBtnText}>Acheter</Text>
+                  <Feather name="arrow-right" size={16} color="#fff" />
+                </LinearGradient>
+              </TouchableOpacity>
+            </>
+          )}
         </BlurView>
 
       {/* Modal de sélection de catégorie */}

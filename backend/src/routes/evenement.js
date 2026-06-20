@@ -4,6 +4,7 @@ const authMiddleware = require("../middleware/auth");
 const e = require("../controllers/evenementController");
 
 // Routes publiques (sans authentification)
+router.get('/categories', e.listerCategories);
 router.get('/public', e.listerPublic);
 router.get('/public/:id', e.detailPublic);
 router.get('/public/:id/page', e.pageEvenement);

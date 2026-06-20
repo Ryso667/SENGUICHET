@@ -7,7 +7,7 @@ import {
 import DashboardLayout from "../../components/DashboardLayout";
 import { listerEvenements } from "../../services/eventService";
 
-const COLORS = ["#00E5A0", "#00C8FF", "#FFB347", "#FF4D6D", "#A78BFA"];
+const COLORS = ["#15803D", "#16A34A", "#22C55E", "#4ADE80", "#86EFAC"];
 
 const Statistiques = () => {
   const [events, setEvents] = useState([]);
@@ -70,7 +70,7 @@ const Statistiques = () => {
     return (
       <DashboardLayout title="Mes statistiques">
         <div className="flex items-center justify-center py-20">
-          <p style={{ color: "var(--text-secondary)" }}>Chargement...</p>
+          <p style={{ color: "var(--color-text-muted)" }}>Chargement...</p>
         </div>
       </DashboardLayout>
     );
@@ -86,11 +86,11 @@ const Statistiques = () => {
             { label: "Taux remplissage", value: `${tauxRemplissage} %` },
             { label: "Événements total", value: String(events.length) },
           ].map((s, i) => (
-            <div key={i} className="glass-card p-4 text-center">
-              <div style={{ fontSize: 28, fontWeight: 700, color: "var(--accent)", marginBottom: 4 }}>
+            <div key={i} className="p-4 text-center rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
+              <div style={{ fontSize: 28, fontWeight: 700, color: "var(--color-accent)", marginBottom: 4 }}>
                 {s.value}
               </div>
-              <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+              <div style={{ fontSize: 13, color: "var(--color-text-muted)" }}>
                 {s.label}
               </div>
             </div>
@@ -98,29 +98,29 @@ const Statistiques = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <div className="glass-card p-4">
-            <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
+          <div className="p-4 rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
+            <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--color-text-primary)" }}>
               Aperçu des ventes (30 jours)
             </h3>
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={ventesData}>
                 <defs>
                   <linearGradient id="ventesGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00E5A0" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#00E5A0" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#15803D" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#15803D" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "var(--text-secondary)" }} />
-                <YAxis tick={{ fontSize: 10, fill: "var(--text-secondary)" }} />
-                <Tooltip contentStyle={{ background: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: 8 }} />
-                <Area type="monotone" dataKey="billets" stroke="#00E5A0" fill="url(#ventesGradient)" strokeWidth={2} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "var(--color-text-muted)" }} />
+                <YAxis tick={{ fontSize: 10, fill: "var(--color-text-muted)" }} />
+                <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 8 }} />
+                <Area type="monotone" dataKey="billets" stroke="#15803D" fill="url(#ventesGradient)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="glass-card p-4">
-            <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
+          <div className="p-4 rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
+            <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--color-text-primary)" }}>
               Répartition par catégorie
             </h3>
             <ResponsiveContainer width="100%" height={220}>
@@ -130,47 +130,47 @@ const Statistiques = () => {
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ background: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: 8 }} />
+                <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 8 }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="glass-card p-4">
-            <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
+          <div className="p-4 rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
+            <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--color-text-primary)" }}>
               Revenus
             </h3>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={revenusCumules}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="mois" tick={{ fontSize: 10, fill: "var(--text-secondary)" }} />
-                <YAxis tick={{ fontSize: 10, fill: "var(--text-secondary)" }} />
-                <Tooltip contentStyle={{ background: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: 8 }} />
-                <Bar dataKey="montant" fill="#00C8FF" radius={[4, 4, 0, 0]} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                <XAxis dataKey="mois" tick={{ fontSize: 10, fill: "var(--color-text-muted)" }} />
+                <YAxis tick={{ fontSize: 10, fill: "var(--color-text-muted)" }} />
+                <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 8 }} />
+                <Bar dataKey="montant" fill="#15803D" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="glass-card p-4">
-            <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
+          <div className="p-4 rounded-2xl" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
+            <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--color-text-primary)" }}>
               Taux de remplissage par événement
             </h3>
             <div className="space-y-3">
               {remplissageData.map((e, i) => (
                 <div key={i}>
-                  <div className="flex justify-between text-xs mb-1" style={{ color: "var(--text-secondary)" }}>
+                  <div className="flex justify-between text-xs mb-1" style={{ color: "var(--color-text-muted)" }}>
                     <span>{e.nom}</span>
                     <span>{e.taux}%</span>
                   </div>
-                  <div className="progress-bar" style={{ height: 8, borderRadius: 4, background: "var(--border)", overflow: "hidden" }}>
+                  <div className="progress-bar" style={{ height: 8, borderRadius: 4, background: "var(--color-border)", overflow: "hidden" }}>
                     <div
                       className="progress-fill"
                       style={{
                         width: `${e.taux}%`,
                         height: "100%",
                         borderRadius: 4,
-                        background: "linear-gradient(90deg, #00E5A0, #00C8FF)",
+                        background: "linear-gradient(90deg, #15803D, #22C55E)",
                         transition: "width 0.6s ease",
                       }}
                     />

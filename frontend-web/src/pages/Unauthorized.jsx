@@ -1,16 +1,16 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const Unauthorized = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#0D1B2A] flex items-center justify-center px-4 relative">
-      <div className="orb-indigo" />
-      <div className="orb-accent" />
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}><div className="min-h-screen bg-[#0D1B2A] flex items-center justify-center px-4 relative">
+
 
       <div className="text-center" style={{ animation: "fadeInUp 0.4s ease-out" }}>
-        <p className="text-[8rem] sm:text-[10rem] font-bold gradient-text leading-none mb-4" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 800 }}>
+        <p className="text-[8rem] sm:text-[10rem] font-bold text-accent leading-none mb-4" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 800 }}>
           403
         </p>
         <h1 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "Outfit, sans-serif", fontWeight: 700 }}>
@@ -28,7 +28,7 @@ const Unauthorized = () => {
           </button>
         </div>
       </div>
-    </div>
+    </div></motion.div>
   );
 };
 
