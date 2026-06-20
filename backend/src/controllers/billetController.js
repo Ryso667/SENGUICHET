@@ -192,6 +192,7 @@ const acheter = async (req, res) => {
         categorie: cat.nom,
         prix: montantTotal,
         quantite,
+        uuid: quantite === 1 ? premierBillet.uuid : undefined,
       }, pool);
 
       // Envoyer un email de confirmation si l'email est renseigné
@@ -341,8 +342,12 @@ const afficherBillet = async (req, res) => {
 <title>Billet ${b.numero} - SENGUICHET</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0F1A0F;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
 .t{width:340px;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(16,185,129,.2);position:relative}
+@media print{body{background:#fff;padding:0;justify-content:center}.t{box-shadow:none;page-break-after:avoid;margin:auto}.dl{display:none!important}}
+.dl{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;padding:12px 28px;border-radius:14px;border:none;font-size:14px;font-weight:600;color:#fff;background:#10B981;cursor:pointer;transition:opacity .2s;letter-spacing:.5px}
+.dl:hover{opacity:.85}
+.dl svg{width:18px;height:18px}
 /* HEADER vert */
 .hd{background:#10B981;padding:24px;position:relative;overflow:hidden}
 .o1{position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:60px;background:rgba(110,231,183,.25)}
@@ -411,7 +416,8 @@ body{background:#0F1A0F;min-height:100vh;display:flex;align-items:center;justify
     <div class="ll2">Entrée unique et non transférable</div>
     <div class="wm">SENGUICHET</div>
   </div>
-</div>
+  </div>
+  <button class="dl" onclick="window.print()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Télécharger le billet (PDF)</button>
 </body>
 </html>`);
   } catch (err) {

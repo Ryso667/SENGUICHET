@@ -115,10 +115,15 @@ const envoyerSMSOrange = async (numero, message) => {
 // Envoie un SMS de confirmation de billet à l'acheteur via l'API Orange
 // Log l'envoi en base pour suivi et réessai
 // numero : numéro de téléphone au format sénégalais (77XXXXXX, 76XXXXXX, etc.)
-// ticket: { evenement, categorie, prix, quantite }
+// ticket: { evenement, categorie, prix, quantite, uuid? }
+// Si uuid est fourni (1 billet), envoie le lien direct. Sinon, lien vers mes-billets.
 const envoyerSMSBillet = async (numero, ticket, pool) => {
   const numeroFull = numero.startsWith("+") ? numero : `+221${numero}`;
+  const ticketBase = "https://backend-beta-six-39.vercel.app/api/billets";
+
+  const lienDirect = ticket.uuid ? `${ticketBase}/${ticket.uuid}` : null;
   const mesBilletsUrl = "https://senguichet-frontend-web.vercel.app/acheteur/mes-billets";
+  const lien = lienDirect || mesBilletsUrl;
 
   const message = ticket.quantite > 1
     ? [
@@ -141,7 +146,7 @@ const envoyerSMSBillet = async (numero, ticket, pool) => {
         `Montant: ${(ticket.prix || 0).toLocaleString()} FCFA`,
         ``,
         `Voir votre billet:`,
-        mesBilletsUrl,
+        lien,
       ].join('\n');
 
   // Journaliser la tentative en base

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { Ticket, Calendar, MapPin, Search, X } from "lucide-react";
+import { Ticket, Calendar, MapPin, Download } from "lucide-react";
 import { mesBillets } from "../../services/billetService";
 import { useAuth } from "../../context/AuthContext";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 export default function MesBillets() {
   const navigate = useNavigate();
@@ -103,6 +105,12 @@ export default function MesBillets() {
                         }}>
                         {b.statut === "ACTIF" ? "Valide" : "Utilisé"}
                       </span>
+                      <button onClick={e => { e.preventDefault(); window.open(`${API_URL}/api/billets/${b.uuid}`, "_blank"); }}
+                        className="p-2 rounded-xl transition-all flex-shrink-0"
+                        style={{ background: "rgba(21,128,61,0.06)", border: "none", cursor: "pointer" }}
+                        title="Télécharger le billet (PDF)">
+                        <Download size={16} style={{ color: "#15803D" }} />
+                      </button>
                       <Ticket size={18} style={{ color: "#15803D" }} />
                     </div>
                   </Link>
