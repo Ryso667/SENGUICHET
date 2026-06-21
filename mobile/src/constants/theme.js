@@ -10,7 +10,7 @@ export const lightColors = {
   white: '#FFFFFF',
   text: '#111827',
   textSecondary: '#6B7280',
-  textTertiary: '#9CA3AF',
+  textTertiary: '#6B7280',
   accent: '#10B981',
   accentLight: '#D1FAE5',
   green: '#047857',
