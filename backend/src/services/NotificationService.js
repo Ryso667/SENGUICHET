@@ -51,3 +51,33 @@ exports.envoyerNotification = async (organisateurId, data) => {
     console.error('Erreur NotificationService:', err.message)
   }
 }
+
+// Envoyer une notification push à un acheteur via Expo Push API directe
+// @param {string} token - Expo push token de l'acheteur
+// @param {string} titre - Titre de la notification
+// @param {string} message - Corps de la notification
+// @param {object} [data] - Données supplémentaires transmises à l'app
+// @returns {Promise<boolean>} Succès ou échec de l'envoi
+exports.envoyerPushAcheteur = async (token, titre, message, data = {}) => {
+  try {
+    if (!token || typeof token !== 'string' || !token.startsWith('ExponentPushToken')) return false
+    const notification = {
+      to: token,
+      sound: 'default',
+      title: titre,
+      body: message,
+      data,
+      _displayInForeground: true,
+    }
+    const response = await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(notification),
+    })
+    const result = await response.json()
+    return result.data?.status === 'ok' || false
+  } catch (err) {
+    console.error('Erreur envoi push acheteur:', err.message)
+    return false
+  }
+}
