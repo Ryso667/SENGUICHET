@@ -238,6 +238,31 @@ async function migrate() {
     console.log("ℹ️ sms_log peut-être déjà créée:", e.message);
   }
 
+  // Table des codes promo
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS code_promo (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        organisateur_id INT NOT NULL,
+        evenement_id INT NULL,
+        code VARCHAR(50) NOT NULL,
+        type ENUM('pourcentage','fixe') NOT NULL DEFAULT 'pourcentage',
+        valeur DECIMAL(10,2) NOT NULL,
+        utilisations_max INT NOT NULL DEFAULT 0,
+        utilisations_actuelles INT NOT NULL DEFAULT 0,
+        date_expiration DATETIME NOT NULL,
+        actif TINYINT(1) NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_code (code),
+        FOREIGN KEY (organisateur_id) REFERENCES organisateur(id) ON DELETE CASCADE,
+        FOREIGN KEY (evenement_id) REFERENCES evenement(id) ON DELETE SET NULL
+      )
+    `);
+    console.log("✅ Table code_promo créée");
+  } catch (e) {
+    console.log("ℹ️  code_promo peut-être déjà créée:", e.message);
+  }
+
   console.log("✅ Migration terminée");
   await connection.end();
 }
