@@ -14,6 +14,7 @@ import Skeleton from '../components/Skeleton'
 import FavoriButton from '../components/FavoriButton'
 import { formaterDateLisible, formaterCompteRebours } from '../utils/dateUtils'
 import { formaterPourEventCard } from '../utils/eventUtils'
+import { normalizeSearch } from '../utils/searchUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
 import { mesBillets } from '../services/billetService'
 import { useAuth } from '../context/AuthContext'
@@ -78,7 +79,7 @@ export default function HomeScreen({ navigation }) {
 
   const evenementsFiltres = evenements.filter(ev => {
     const matchCategorie = categorieActive === 'Tout' || ev.category === categorieActive
-    const matchRecherche = !recherche || ev.title?.toLowerCase().includes(recherche.toLowerCase())
+    const matchRecherche = !recherche || normalizeSearch(ev.title).includes(normalizeSearch(recherche)) || normalizeSearch(ev.category).includes(normalizeSearch(recherche)) || normalizeSearch(ev.location).includes(normalizeSearch(recherche))
     return matchCategorie && matchRecherche
   })
 

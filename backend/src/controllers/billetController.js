@@ -8,7 +8,6 @@
  */
 
 const pool = require("../config/db");
-const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const PaymentService = require("../services/PaymentService");
@@ -136,13 +135,14 @@ const acheter = async (req, res) => {
       // Créer les billets pour chaque catégorie
       const billetsCrees = [];
       const billetsParCategorie = {};
+      const nowBase36 = Date.now().toString(36).toUpperCase();
       let ticketIdx = 0;
 
       for (const achat of catsData) {
         const groupe = [];
         for (let i = 0; i < achat.quantiteDemandee; i++) {
-          const uuid = uuidv4();
-          const numero = `TKT-${Date.now().toString(36).toUpperCase()}-${ticketIdx}`;
+          const uuid = crypto.randomUUID();
+          const numero = `TKT-${nowBase36}-${ticketIdx}`;
           const timestamp = new Date().toISOString();
 
           const signaturePayload = `${uuid}|${numero}|${timestamp}|${evenementId}|${achat.nom}`;
@@ -191,7 +191,7 @@ const acheter = async (req, res) => {
       }
 
       // Créer une transaction unique pour le montant total
-      const reference = 'PAI-' + uuidv4().slice(0, 12).toUpperCase();
+      const reference = 'PAI-' + crypto.randomUUID().slice(0, 12).toUpperCase();
       const premierBilletId = billetsCrees[0].id;
       await conn.query(
         `INSERT INTO transaction (reference, billet_id, montant, frais, devise, statut, moyen_paiement, telephone_payeur)
@@ -267,15 +267,19 @@ const acheter = async (req, res) => {
 
       // Envoyer un email unique avec toutes les catégories groupées
       if (ticketEmail) {
-        const { envoyerEmailMultiCat } = require("../services/emailService");
-        envoyerEmailMultiCat(ticketEmail, {
-          evenement: event.titre,
-          dateDebut: event.date_debut,
-          lieu: event.lieu,
-          categories: categoriesEmail,
-          prixTotal: montantTotal,
-          quantiteTotal,
-        }).catch(e => console.error("Email error:", e.message));
+        try {
+          const { envoyerEmailMultiCat } = require("../services/emailService");
+          await envoyerEmailMultiCat(ticketEmail, {
+            evenement: event.titre,
+            dateDebut: event.date_debut,
+            lieu: event.lieu,
+            categories: categoriesEmail,
+            prixTotal: montantTotal,
+            quantiteTotal,
+          });
+        } catch (e) {
+          console.error("Email error:", e.message);
+        }
       }
 
       // Envoyer une notification push de confirmation à l'acheteur si token enregistré
@@ -644,12 +648,12 @@ const evenementBillets = async (req, res) => {
 };
 
 // Page HTML du reçu groupé avec tous les QR codes (pour impression / téléchargement)
-// GET /api/billets/recu/:ref
+// GET /api/billets/recu/:reference
 const afficherRecu = async (req, res) => {
   try {
-    const { ref } = req.params;
+    const ref = req.params.reference;
     const [txs] = await pool.query(
-      "SELECT id, reference, montant, devise, moyen_paiement, telephone_payeur, statut, date_creation FROM `transaction` WHERE reference = ?",
+      "SELECT id, reference, montant, devise, moyen_paiement, telephone_payeur, statut, date_transaction FROM `transaction` WHERE reference = ?",
       [ref]
     );
     if (!txs.length) return res.status(404).send("Reçu introuvable");
@@ -759,12 +763,12 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
 };
 
 // Route JSON pour récupérer les données d'un reçu (mobile)
-// GET /api/billets/recu/:ref/data
+// GET /api/billets/recu/:reference/data
 const recuData = async (req, res) => {
   try {
-    const { ref } = req.params;
+    const ref = req.params.reference;
     const [txs] = await pool.query(
-      "SELECT id, reference, montant, devise, moyen_paiement, telephone_payeur, statut, date_creation FROM `transaction` WHERE reference = ?",
+      "SELECT id, reference, montant, devise, moyen_paiement, telephone_payeur, statut, date_transaction FROM `transaction` WHERE reference = ?",
       [ref]
     );
     if (!txs.length) return res.status(404).json({ message: "Reçu introuvable" });

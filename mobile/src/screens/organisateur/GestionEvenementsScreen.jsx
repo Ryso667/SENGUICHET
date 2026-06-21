@@ -13,6 +13,7 @@ import { getCategoryImageUrl } from '../../config/images'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import GlassContainer from '../../components/GlassContainer'
 import EmptyState from '../../components/EmptyState'
+import { normalizeSearch } from '../../utils/searchUtils'
 import Skeleton from '../../components/Skeleton'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { hexToRgba } from '../../utils/colors'
@@ -107,7 +108,7 @@ export default function GestionEvenementsScreen({ navigation }) {
     if (activeTab === 'Annulés') return evt.statut === 'annule'
     return true
   }).filter(evt =>
-    !search || evt.nom?.toLowerCase().includes(search.toLowerCase())
+    !search || normalizeSearch(evt.nom).includes(normalizeSearch(search))
   )
 
   return (
