@@ -16,6 +16,7 @@ import { fetchEvenementsPublics } from '../services/eventService'
 import { formaterPourEventCard } from '../utils/eventUtils'
 import { optimiserUrlCloudinary } from '../components/BlurBackground'
 import { hapticLight } from '../utils/haptics'
+import { normalizeSearch } from '../utils/searchUtils'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import RecentSearchChips from '../components/RecentSearchChips'
 
@@ -157,8 +158,8 @@ export default function EventSearchScreen({ navigation }) {
   const filtered = useMemo(() => {
     return events.filter((e) => {
       const matchCat = activeCat === 'Tout' || e.category === activeCat
-      const matchSearch = !search || e.title?.toLowerCase().includes(search.toLowerCase())
-      const matchLieu = !filtres.lieu || e.lieu?.toLowerCase().includes(filtres.lieu.toLowerCase())
+      const matchSearch = !search || normalizeSearch(e.title).includes(normalizeSearch(search)) || normalizeSearch(e.category).includes(normalizeSearch(search))
+      const matchLieu = !filtres.lieu || normalizeSearch(e.lieu || e.location).includes(normalizeSearch(filtres.lieu))
       // Filtre par date
       const dateEvent = e.date ? new Date(e.date) : null
       const matchDateDebut = !filtres.dateDebut || !dateEvent || dateEvent >= new Date(filtres.dateDebut.split('/').reverse().join('-'))
