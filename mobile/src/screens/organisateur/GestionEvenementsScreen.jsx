@@ -18,7 +18,7 @@ import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { hexToRgba } from '../../utils/colors'
 import * as FileSystem from 'expo-file-system'
 import * as Sharing from 'expo-sharing'
-import { ActivityIndicator } from 'react-native'
+
 import { Feather } from '@expo/vector-icons'
 import { fetchBilletsEvenementAPI } from '../../services/billetService'
 

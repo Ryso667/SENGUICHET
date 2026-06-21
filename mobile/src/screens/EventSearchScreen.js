@@ -19,7 +19,7 @@ import { hapticLight } from '../utils/haptics'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import RecentSearchChips from '../components/RecentSearchChips'
 
-const CATEGORIES = ['Tout', 'Concert', 'Festival', 'Sport', 'Theatre', 'Conference']
+const CATEGORIES = ['Tout', 'Concert', 'Festival', 'Sport', 'Théâtre', 'Conférence', 'Atelier', 'Exposition', 'Club / Soirée', 'Gala']
 
 // Composant stable pour le header de la FlatList — évite les remounts sur chaque render
 function SearchHeader({ search, setSearch, activeCat, setActiveCat, filtresActifs, onOpenFilters, colors, styles, recentSearches, ajouterRecherche, supprimerRecherche }) {
@@ -61,6 +61,7 @@ function SearchHeader({ search, setSearch, activeCat, setActiveCat, filtresActif
             label={cat}
             active={activeCat === cat}
             onPress={() => setActiveCat(cat)}
+            style={styles.catChip}
           />
         ))}
       </ScrollView>
@@ -234,13 +235,11 @@ export default function EventSearchScreen({ navigation }) {
         viewabilityConfig={viewabilityConfig}
         ListHeaderComponent={<SearchHeader search={search} setSearch={setSearch} activeCat={activeCat} setActiveCat={setActiveCat} filtresActifs={nbFiltresActifs} onOpenFilters={() => setShowFilters(true)} colors={colors} styles={styles} recentSearches={recentSearches} ajouterRecherche={ajouterRecherche} supprimerRecherche={supprimerRecherche} />}
         ListEmptyComponent={
-          search.length > 0 ? (
-            <EmptyState
-              icon="🔍"
-              title="Aucun résultat"
-              subtitle="Essaie un autre mot-clé ou catégorie"
-            />
-          ) : null
+          <EmptyState
+            icon="🔍"
+            title={activeCat !== 'Tout' ? `Aucun ${activeCat.toLowerCase()}` : 'Aucun résultat'}
+            subtitle={search ? 'Essaie un autre mot-clé' : activeCat !== 'Tout' ? 'Essaie une autre catégorie' : 'Aucun événement pour le moment'}
+          />
         }
       />
 
@@ -304,14 +303,15 @@ const makeStyles = (colors) => StyleSheet.create({
   searchBar: {
     flexDirection: 'row', alignItems: 'center',
     marginHorizontal: spacing.lg, marginTop: spacing.md,
-    paddingHorizontal: spacing.md, paddingVertical: 12, gap: 10,
+    paddingHorizontal: spacing.md, paddingVertical: 10, gap: 8,
   },
   searchInput: {
     flex: 1, fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.text,
     padding: 0,
   },
-  chipsRow: { marginTop: spacing.md, marginBottom: spacing.sm },
-  chipsContent: { paddingHorizontal: spacing.lg, gap: 8 },
+  chipsRow: { marginTop: 12, marginBottom: 8 },
+  chipsContent: { paddingHorizontal: spacing.lg, gap: 8, alignItems: 'center' },
+  catChip: { paddingHorizontal: 16, paddingVertical: 8, minHeight: 0 },
   columnWrapper: {
     gap: 12,
   },

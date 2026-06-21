@@ -309,9 +309,10 @@ const verifierCodeOTP = async (req, res) => {
     }
 
     let acheteur;
+    let estNouveau = false;
     try {
       const [existants] = await pool.query(
-        "SELECT id, nom, email FROM acheteur WHERE email = ? LIMIT 1",
+        "SELECT id, nom, email, telephone FROM acheteur WHERE email = ? LIMIT 1",
         [email]
       );
       if (existants.length > 0) {
@@ -321,22 +322,49 @@ const verifierCodeOTP = async (req, res) => {
           [acheteur.id]
         );
       } else {
+        estNouveau = true;
         const tel = email.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 18) || 'acheteur_inconnu';
         const [result] = await pool.query(
           "INSERT INTO acheteur (email, telephone, date_inscription, dernier_acces) VALUES (?, ?, NOW(), NOW())",
           [email, tel]
         );
-        acheteur = { id: result.insertId, email };
+        acheteur = { id: result.insertId, email, telephone: tel };
       }
     } catch (dbErr) {
       console.error("DB erreur acheteur:", dbErr.message, dbErr.sqlState, dbErr.code);
       return res.status(503).json({ message: "Erreur lors de la création du compte" });
     }
 
+    // Fusion : lier les billets achetés anonymement au compte
+    // 1. Par email (couvre le cas où l'email a été fourni à l'achat)
+    const [liaisonEmail] = await pool.query(
+      "UPDATE billet SET acheteur_id = ?, email_acheteur = COALESCE(email_acheteur, ?) WHERE email_acheteur = ? AND acheteur_id IS NULL",
+      [acheteur.id, email, email]
+    );
+
+    // 2. Par téléphone découvert dans les billets liés par email
+    //    Cela permet de rattraper des billets achetés avec le même numéro sans email
+    const [telRows] = await pool.query(
+      "SELECT telephone_acheteur FROM billet WHERE acheteur_id = ? AND LENGTH(telephone_acheteur) >= 6 LIMIT 1",
+      [acheteur.id]
+    );
+    if (telRows.length > 0) {
+      const telReel = telRows[0].telephone_acheteur;
+      await pool.query("UPDATE acheteur SET telephone = ? WHERE id = ?", [telReel, acheteur.id]);
+      await pool.query(
+        "UPDATE billet SET acheteur_id = ?, email_acheteur = COALESCE(email_acheteur, ?) WHERE telephone_acheteur = ? AND acheteur_id IS NULL",
+        [acheteur.id, email, telReel]
+      );
+    }
+
     const token = generateToken({ id: acheteur.id, email }, "ACHETEUR");
     res.json({
       token,
-      user: { id: acheteur.id, email },
+      user: {
+        id: acheteur.id,
+        email,
+        billetsLies: liaisonEmail.affectedRows + (telRows.length > 0 ? 1 : 0),
+      },
     });
   } catch (err) {
     console.error("Erreur vérification OTP:", err);
