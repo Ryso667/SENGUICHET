@@ -185,7 +185,7 @@ export function AuthProvider({ children }) {
     try {
       configurerNotifications()
       const pushToken = await obtenirTokenPush()
-      if (pushToken) await enregistrerToken(pushToken)
+      if (pushToken) await enregistrerToken(pushToken, 'organisateur')
     } catch (err) {
       console.error('Erreur push token:', err.message)
     }
@@ -219,7 +219,7 @@ export function AuthProvider({ children }) {
     try {
       configurerNotifications()
       const pushToken = await obtenirTokenPush()
-      if (pushToken) await enregistrerToken(pushToken)
+      if (pushToken) await enregistrerToken(pushToken, 'acheteur')
     } catch (err) {
       console.error('Erreur push token acheteur:', err.message)
     }
