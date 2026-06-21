@@ -230,6 +230,7 @@ export default function EventDetailScreen({ route, navigation }) {
 
     try {
       const telComplet = telPropre.startsWith('221') ? `+${telPropre}` : `+221${telPropre}`
+      const quantite = 1 // Sera lié à un stepper UI plus tard
       const resultat = await acheterBillet(
         event.id, selectedTicket.id,
         telPropre ? telComplet : null, email, selectedProvider, quantite, promoId
