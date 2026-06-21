@@ -654,6 +654,24 @@ export default function EventDetailScreen({ route, navigation }) {
                 </Animated.View>
                 <Text style={styles.paySuccessTitle}>Paiement confirmé !</Text>
                 <Text style={styles.payStatusSub}>Redirection vers votre ticket...</Text>
+                <CelebrationOverlay
+                  visible={showCelebration}
+                  onFinish={() => {
+                    setShowCelebration(false)
+                    setShowPaymentSheet(false)
+                    setTimeout(() => {
+                      const data = ticketsDataRef.current || []
+                      if (data.length > 1) {
+                        navigation.replace('RecuAchat', {
+                          reference: paiementRef.current,
+                          billetsAchetes: data,
+                        })
+                      } else if (data.length === 1) {
+                        navigation.replace('Ticket', { ticket: data[0] })
+                      }
+                    }, 400)
+                  }}
+                />
               </View>
             )}
 
@@ -680,22 +698,6 @@ export default function EventDetailScreen({ route, navigation }) {
         </TouchableOpacity>
         </View>
       </Modal>
-      <CelebrationOverlay
-        visible={showCelebration}
-        onFinish={() => {
-          setShowCelebration(false)
-          setShowPaymentSheet(false)
-          const data = ticketsDataRef.current || []
-          if (data.length > 1) {
-            navigation.replace('RecuAchat', {
-              reference: paiementRef.current,
-              billetsAchetes: data,
-            })
-          } else if (data.length === 1) {
-            navigation.replace('Ticket', { ticket: data[0] })
-          }
-        }}
-      />
     </KeyboardAvoidingView>
   )
 }
