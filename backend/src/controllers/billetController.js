@@ -135,13 +135,14 @@ const acheter = async (req, res) => {
       // Créer les billets pour chaque catégorie
       const billetsCrees = [];
       const billetsParCategorie = {};
+      const nowBase36 = Date.now().toString(36).toUpperCase();
       let ticketIdx = 0;
 
       for (const achat of catsData) {
         const groupe = [];
         for (let i = 0; i < achat.quantiteDemandee; i++) {
           const uuid = crypto.randomUUID();
-          const numero = `TKT-${Date.now().toString(36).toUpperCase()}-${ticketIdx}`;
+          const numero = `TKT-${nowBase36}-${ticketIdx}`;
           const timestamp = new Date().toISOString();
 
           const signaturePayload = `${uuid}|${numero}|${timestamp}|${evenementId}|${achat.nom}`;
@@ -266,15 +267,19 @@ const acheter = async (req, res) => {
 
       // Envoyer un email unique avec toutes les catégories groupées
       if (ticketEmail) {
-        const { envoyerEmailMultiCat } = require("../services/emailService");
-        envoyerEmailMultiCat(ticketEmail, {
-          evenement: event.titre,
-          dateDebut: event.date_debut,
-          lieu: event.lieu,
-          categories: categoriesEmail,
-          prixTotal: montantTotal,
-          quantiteTotal,
-        }).catch(e => console.error("Email error:", e.message));
+        try {
+          const { envoyerEmailMultiCat } = require("../services/emailService");
+          await envoyerEmailMultiCat(ticketEmail, {
+            evenement: event.titre,
+            dateDebut: event.date_debut,
+            lieu: event.lieu,
+            categories: categoriesEmail,
+            prixTotal: montantTotal,
+            quantiteTotal,
+          });
+        } catch (e) {
+          console.error("Email error:", e.message);
+        }
       }
 
       // Envoyer une notification push de confirmation à l'acheteur si token enregistré
