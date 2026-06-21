@@ -36,7 +36,7 @@ function AccueilNavigator() {
   return (
     <AccueilStack.Navigator screenOptions={{ headerShown: false }}>
       <AccueilStack.Screen name="Dashboard" component={OrganisateurDashboardScreen} />
-      <AccueilStack.Screen name="DetailEvenement" component={DetailEvenementScreen} options={{ ...h, headerShown: true, title: 'Détails' }} />
+      <AccueilStack.Screen name="DetailEvenement" component={DetailEvenementScreen} options={{ ...h, headerShown: true, title: 'Détails', headerBackTitle: 'Retour' }} />
     </AccueilStack.Navigator>
   )
 }
@@ -47,9 +47,9 @@ function EvenementsNavigator() {
   return (
     <EvenementsStack.Navigator screenOptions={{ headerShown: false }}>
       <EvenementsStack.Screen name="EvenementsList" component={GestionEvenementsScreen} />
-      <EvenementsStack.Screen name="DetailEvenement" component={DetailEvenementScreen} options={{ ...h, headerShown: true, title: 'Détails' }} />
-      <EvenementsStack.Screen name="VoirTickets" component={VoirTicketsScreen} options={{ ...h, headerShown: true, title: 'Billets' }} />
-      <EvenementsStack.Screen name="Statistiques" component={StatistiquesScreen} options={{ ...h, headerShown: true, title: 'Statistiques' }} />
+      <EvenementsStack.Screen name="DetailEvenement" component={DetailEvenementScreen} options={{ ...h, headerShown: true, title: 'Détails', headerBackTitle: 'Retour' }} />
+      <EvenementsStack.Screen name="VoirTickets" component={VoirTicketsScreen} options={{ ...h, headerShown: true, title: 'Billets', headerBackTitle: 'Retour' }} />
+      <EvenementsStack.Screen name="Statistiques" component={StatistiquesScreen} options={{ ...h, headerShown: true, title: 'Statistiques', headerBackTitle: 'Retour' }} />
     </EvenementsStack.Navigator>
   )
 }
@@ -68,9 +68,9 @@ function ProfilNavigator() {
   return (
     <ProfilStack.Navigator screenOptions={{ headerShown: false }}>
       <ProfilStack.Screen name="ProfilSettings" component={ParametresScreen} />
-      <ProfilStack.Screen name="DetailEvenement" component={DetailEvenementScreen} options={{ ...h, headerShown: true, title: 'Détails' }} />
-      <ProfilStack.Screen name="Notifications" component={NotificationsScreen} options={{ ...h, headerShown: true, title: 'Notifications' }} />
-      <ProfilStack.Screen name="Support" component={SupportScreen} options={{ ...h, headerShown: true, title: 'Support' }} />
+      <ProfilStack.Screen name="DetailEvenement" component={DetailEvenementScreen} options={{ ...h, headerShown: true, title: 'Détails', headerBackTitle: 'Retour' }} />
+      <ProfilStack.Screen name="Notifications" component={NotificationsScreen} options={{ ...h, headerShown: true, title: 'Notifications', headerBackTitle: 'Retour' }} />
+      <ProfilStack.Screen name="Support" component={SupportScreen} options={{ ...h, headerShown: true, title: 'Support', headerBackTitle: 'Retour' }} />
       <ProfilStack.Screen name="ChangerMotDePasse" component={ChangerMotDePasseScreen} options={{ headerShown: false }} />
     </ProfilStack.Navigator>
   )
