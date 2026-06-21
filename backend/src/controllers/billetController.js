@@ -24,7 +24,7 @@ if (!HMAC_SECRET) console.warn('⚠️  HMAC_SECRET non défini — les signatur
  */
 const acheter = async (req, res) => {
   try {
-    const { evenementId, categorieTicketId, telephone, quantite = 1, provider = 'WAVE', email } = req.body;
+    const { evenementId, categorieTicketId, telephone, quantite = 1, provider = 'WAVE', email, pushToken } = req.body;
     const promoId = req.body.promoId || null
     let reduction = 0
 
@@ -241,6 +241,21 @@ const acheter = async (req, res) => {
           reference: quantite > 1 ? reference : undefined,
           tickets: billetsCrees,
         }).catch(e => console.error("Email error:", e.message));
+      }
+
+      // Envoyer une notification push de confirmation à l'acheteur si token enregistré
+      if (pushToken) {
+        try {
+          const { envoyerPushAcheteur } = require("../services/NotificationService");
+          await envoyerPushAcheteur(
+            pushToken,
+            "🎫 Billet confirmé",
+            `Votre billet pour ${event.titre} est confirmé !`,
+            { screen: "RecuAchat", billetId: premierBillet.id }
+          );
+        } catch (pushErr) {
+          console.warn("Push acheteur non envoyé:", pushErr.message);
+        }
       }
 
       // Envoyer une notification push à l'organisateur
