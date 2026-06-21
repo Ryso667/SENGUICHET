@@ -1,8 +1,6 @@
 // Navigation par onglets bas pour l'organisateur connecté
 // 4 tabs (Accueil, Événements, Demandes, Profil) avec stacks imbriquées
-import { BlurView } from 'expo-blur'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
-import { StyleSheet } from 'react-native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { fonts } from '../constants/theme'
@@ -87,13 +85,10 @@ export default function OrganizerTabs() {
           headerShown: false,
           tabBarActiveTintColor: colors.navActive,
           tabBarInactiveTintColor: colors.navInactive,
-          tabBarBackground: () => (
-            <BlurView intensity={80} tint="systemChromeMaterial" style={StyleSheet.absoluteFill} />
-          ),
           tabBarStyle: {
-            backgroundColor: 'transparent',
+            backgroundColor: colors.surface,
             borderTopWidth: 1,
-            borderTopColor: colors.border + '40',
+            borderTopColor: colors.border,
             paddingBottom: 4,
             paddingTop: 4,
             height: 56,
