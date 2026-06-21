@@ -27,28 +27,33 @@ export async function configurerNotifications() {
 
 // Demande la permission et récupère le token Expo push
 export async function obtenirTokenPush() {
-  const { status: existingStatus } = await Notifications.getPermissionsAsync()
-  let finalStatus = existingStatus
+  try {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync()
+    let finalStatus = existingStatus
 
-  if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync()
-    finalStatus = status
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync()
+      finalStatus = status
+    }
+
+    if (finalStatus !== 'granted') return null
+
+    const tokenData = await Notifications.getExpoPushTokenAsync()
+    return tokenData.data
+  } catch (err) {
+    console.warn('Push token non disponible:', err.message)
+    return null
   }
-
-  if (finalStatus !== 'granted') return null
-
-  const tokenData = await Notifications.getExpoPushTokenAsync({
-    projectId: '39861a89-78c6-49ed-97cf-aefb808e3c86',
-  })
-  return tokenData.data
 }
 
 // Enregistre le token push sur le backend
-export async function enregistrerToken(token) {
+// Utilise le endpoint correspondant au rôle (acheteur ou organisateur)
+export async function enregistrerToken(token, role = 'organisateur') {
   try {
-    await appelAPI('/notifications/register-token', {
+    const endpoint = role === 'acheteur' ? '/acheteur/push/register' : '/notifications/register-token'
+    await appelAPI(endpoint, {
       method: 'POST',
-      body: { token },
+      body: role === 'acheteur' ? { pushToken: token } : { token },
     })
     await Securite.SET('push_token', token)
   } catch (err) {
@@ -57,13 +62,14 @@ export async function enregistrerToken(token) {
 }
 
 // Supprime le token push sur le backend (déconnexion)
-export async function supprimerToken() {
+export async function supprimerToken(role = 'organisateur') {
   try {
     const token = await Securite.GET('push_token')
     if (token) {
-      await appelAPI('/notifications/unregister-token', {
+      const endpoint = role === 'acheteur' ? '/acheteur/push/unregister' : '/notifications/unregister-token'
+      await appelAPI(endpoint, {
         method: 'POST',
-        body: { token },
+        body: role === 'acheteur' ? { pushToken: token } : { token },
       })
       await Securite.SUPPRIMER('push_token')
     }

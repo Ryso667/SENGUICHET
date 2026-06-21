@@ -3,14 +3,14 @@
   "functions": {
     "api/index.js": {
       "maxDuration": 60,
-      "includeFiles": "src/**/*"
+      "includeFiles": [
+        "src/**/*",
+        "uploads/**",
+        "public/**"
+      ]
     }
   },
   "routes": [
-    {
-      "src": "/public/(.*)",
-      "dest": "/public/$1"
-    },
     {
       "src": "/(.*)",
       "dest": "api/index.js"

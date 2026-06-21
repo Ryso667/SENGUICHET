@@ -9,7 +9,11 @@ const SITE_URL = process.env.SITE_URL
 
 const LOGO_URL = `${SITE_URL}/uploads/logo.jpg`;
 const LOGO_CID = "logo@senguichet";
-const LOGO_ATTACHMENT = { filename: "logo.jpg", path: path.join(__dirname, "..", "..", "uploads", "logo.jpg"), cid: LOGO_CID };
+const LOGO_PATH = path.join(__dirname, "..", "..", "uploads", "logo.jpg");
+const fs = require("fs");
+const LOGO_ATTACHMENT = fs.existsSync(LOGO_PATH)
+  ? { filename: "logo.jpg", path: LOGO_PATH, cid: LOGO_CID }
+  : null;
 
 const emailLayout = (content, options = {}) => {
   const { preheader } = options;
@@ -100,13 +104,14 @@ const envoyerEmail = async (destinataire, sujet, html) => {
     console.log(`[EMAIL SIMULÉ] À: ${destinataire} — ${sujet}`);
     return { simulé: true, destinataire };
   }
-  const info = await transporter.sendMail({
+  const mailOptions = {
     from: `"SENGUICHET" <${process.env.MAIL_FROM || process.env.SMTP_USER}>`,
     to: destinataire,
     subject: sujet,
     html,
-    attachments: [LOGO_ATTACHMENT],
-  });
+  };
+  if (LOGO_ATTACHMENT) mailOptions.attachments = [LOGO_ATTACHMENT];
+  const info = await transporter.sendMail(mailOptions);
   console.log(`Email envoyé à ${destinataire}: ${info.messageId}`);
   return { success: true, messageId: info.messageId };
 };

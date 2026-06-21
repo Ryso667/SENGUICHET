@@ -28,7 +28,6 @@ import TicketScreen from '../screens/TicketScreen'
 import SupportScreen from '../screens/SupportScreen'
 import WebViewWaveScreen from '../screens/WebViewWaveScreen'
 import RecuAchatScreen from '../screens/RecuAchatScreen'
-import NotificationsScreen from '../screens/NotificationsScreen'
 import MesFavorisScreen from '../screens/MesFavorisScreen'
 import CalendarScreen from '../screens/CalendarScreen'
 
@@ -138,7 +137,6 @@ function GuestNavigator() {
       <Stack.Screen name="RecuAchat" component={RecuAchatScreen} />
       <Stack.Screen name="WebViewWave" component={WebViewWaveScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Support" component={SupportScreen} options={header('Support')} />
-      <Stack.Screen name="Notifications" component={NotificationsScreen} options={header('Notifications')} />
       <Stack.Screen name="MesFavoris" component={MesFavorisScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Calendar" component={CalendarScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
