@@ -14,6 +14,7 @@ import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { hexToRgba } from '../../utils/colors'
+import { getBlurType } from '../../utils/themeUtils'
 
 const getStatutConfig = (colors) => ({
   soumis: { label: 'Soumis', color: colors.orange, bg: hexToRgba(colors.orange, 0.15) },
@@ -269,7 +270,7 @@ export default function MesDemandesScreen({ navigation }) {
   const renderEventPicker = () => (
     <Modal visible={eventsVisible} transparent animationType="fade">
       <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setEventsVisible(false)}>
-        <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+        <GlassContainer blurType={getBlurType(isDark)} style={s.picker} intensity={50}>
           <Text style={s.pickerTitle}>Sélectionner un événement</Text>
           {eventsLoading ? (
             <ActivityIndicator color="#fff" style={{ marginVertical: 20 }} />
@@ -748,7 +749,7 @@ export default function MesDemandesScreen({ navigation }) {
       {/* Modale catégorie */}
       <Modal visible={catVisible} transparent animationType="fade">
         <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setCatVisible(false)}>
-          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+          <GlassContainer blurType={getBlurType(isDark)} style={s.picker} intensity={50}>
             <Text style={s.pickerTitle}>Catégorie d'événement</Text>
             <FlatList
               data={CATEGORIES}
@@ -770,7 +771,7 @@ export default function MesDemandesScreen({ navigation }) {
       {/* Modale catégorie billet */}
       <Modal visible={billetCatIndex !== null} transparent animationType="fade">
         <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setBilletCatIndex(null)}>
-          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+          <GlassContainer blurType={getBlurType(isDark)} style={s.picker} intensity={50}>
             <Text style={s.pickerTitle}>Type de billet</Text>
             <FlatList
               data={BILLET_CATEGORIES}
@@ -795,7 +796,7 @@ export default function MesDemandesScreen({ navigation }) {
       {/* Modale ville */}
       <Modal visible={villeVisible} transparent animationType="fade">
         <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setVilleVisible(false)}>
-          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+          <GlassContainer blurType={getBlurType(isDark)} style={s.picker} intensity={50}>
             <Text style={s.pickerTitle}>Ville</Text>
             <FlatList
               data={VILLES}

@@ -15,6 +15,7 @@ import { creerEvenementAPI } from '../../services/eventService'
 import { uploadImage } from '../../services/cloudinaryService'
 import GlassContainer from '../../components/GlassContainer'
 import GlassButton from '../../components/GlassButton'
+import { getBlurType } from '../../utils/themeUtils'
 
 const CATEGORIES = [
   'Concert', 'Festival', 'Théâtre', 'Sport', 'Conférence',
@@ -546,7 +547,7 @@ export default function CreerEvenementScreen({ navigation }) {
 
       <Modal visible={catVisible} transparent animationType="fade">
         <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setCatVisible(false)}>
-          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+          <GlassContainer blurType={getBlurType(isDark)} style={s.picker} intensity={50}>
             <Text style={s.pickerTitle}>Catégorie d'événement</Text>
             <FlatList
               data={CATEGORIES}
@@ -567,7 +568,7 @@ export default function CreerEvenementScreen({ navigation }) {
 
       <Modal visible={billetCatIndex !== null} transparent animationType="fade">
         <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setBilletCatIndex(null)}>
-          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+          <GlassContainer blurType={getBlurType(isDark)} style={s.picker} intensity={50}>
             <Text style={s.pickerTitle}>Type de billet</Text>
             <FlatList
               data={BILLET_CATEGORIES}
@@ -591,7 +592,7 @@ export default function CreerEvenementScreen({ navigation }) {
 
       <Modal visible={villeVisible} transparent animationType="fade">
         <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setVilleVisible(false)}>
-          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+          <GlassContainer blurType={getBlurType(isDark)} style={s.picker} intensity={50}>
             <Text style={s.pickerTitle}>Ville</Text>
             <FlatList
               data={VILLES}
