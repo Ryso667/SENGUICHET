@@ -138,32 +138,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
               ))}
             </View>
 
-            {/* Navigation rapide — remplace l'ancien drawer */}
-            <GlassContainer style={s.navSection}>
-              <Text style={s.navTitle}>Navigation rapide</Text>
-              <View style={s.navGrid}>
-                {[
-                  { icon: 'calendar-month', label: 'Événements', route: 'Evenements', params: undefined, color: colors.primary },
-                  { icon: 'chart-bar', label: 'Statistiques', route: 'Statistiques', params: undefined, color: colors.cyan },
-                  { icon: 'file-document-outline', label: 'Demandes', route: 'Demandes', params: undefined, color: colors.orange },
-                  { icon: 'bell-outline', label: 'Notifications', route: 'Notifications', params: undefined, color: colors.red },
-                  { icon: 'headphones', label: 'Support', route: 'Support', params: undefined, color: colors.green },
-                  { icon: 'cog-outline', label: 'Paramètres', route: 'Parametres', params: undefined, color: colors.violet },
-                ].map((item) => (
-                  <TouchableOpacity
-                    key={item.route}
-                    style={s.navItem}
-                    onPress={() => navigation.navigate(item.route, item.params)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={[s.navIcon, { backgroundColor: hexToRgba(item.color, 0.15) }]}>
-                      <MaterialCommunityIcons name={item.icon} size={22} color={item.color} />
-                    </View>
-                    <Text style={s.navLabel}>{item.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </GlassContainer>
+
 
             {/* Section événements récents — calquée sur le web */}
             <Animated.View style={{ opacity: fadeAnims[4], transform: [{ translateY: slideAnims[4] }] }}>
@@ -264,13 +239,6 @@ const makeStyles = (colors) => StyleSheet.create({
   statTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   statValue: { fontSize: 20, fontFamily: fonts.outfit.bold, color: colors.text, maxWidth: '70%', textAlign: 'right' },
   statLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
-  // Navigation rapide
-  navSection: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
-  navTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.md },
-  navGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  navItem: { width: '30%', alignItems: 'center', gap: 6, paddingVertical: spacing.sm },
-  navIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  navLabel: { fontSize: 11, fontFamily: fonts.jakarta.semiBold, color: colors.text, textAlign: 'center' },
   // Section événements récents
   recentSection: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
   recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },

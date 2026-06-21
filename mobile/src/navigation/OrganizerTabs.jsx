@@ -36,11 +36,6 @@ function AccueilNavigator() {
   return (
     <AccueilStack.Navigator screenOptions={{ headerShown: false }}>
       <AccueilStack.Screen name="Dashboard" component={OrganisateurDashboardScreen} />
-      <AccueilStack.Screen name="Statistiques" component={StatistiquesScreen} options={{ ...h, headerShown: true, title: 'Statistiques' }} />
-      <AccueilStack.Screen name="Demandes" component={MesDemandesScreen} options={{ ...h, headerShown: true, title: 'Mes demandes' }} />
-      <AccueilStack.Screen name="Notifications" component={NotificationsScreen} options={{ ...h, headerShown: true, title: 'Notifications' }} />
-      <AccueilStack.Screen name="Support" component={SupportScreen} options={{ ...h, headerShown: true, title: 'Support' }} />
-      <AccueilStack.Screen name="Parametres" component={ParametresScreen} options={{ ...h, headerShown: true, title: 'Paramètres' }} />
       <AccueilStack.Screen name="DetailEvenement" component={DetailEvenementScreen} options={{ ...h, headerShown: true, title: 'Détails' }} />
     </AccueilStack.Navigator>
   )
