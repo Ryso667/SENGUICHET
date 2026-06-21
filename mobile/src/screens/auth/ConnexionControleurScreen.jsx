@@ -34,7 +34,6 @@ export default function ConnexionControleurScreen({ navigation }) {
       const result = await apiConnecterControleur(codeAcces)
       await connecterControleur(result.token, result.user)
       toast.success('Accès contrôleur activé')
-      navigation.goBack()
     } catch (e) {
       console.error('Erreur connexion controleur:', e.message)
       alert(e.message || "Code d'accès invalide")

@@ -60,7 +60,6 @@ export default function ConnexionOrganisateurScreen({ navigation }) {
       const reponse = await connecterOrganisateur(email, mdp)
       await connecter(reponse.token, reponse.user)
       toast.success('Connexion réussie !')
-      navigation.goBack()
     } catch (err) {
       alert(err.message)
     } finally {

@@ -54,6 +54,7 @@ export default function EventDetailScreen({ route, navigation }) {
   const [error, setError] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
   const [telephone, setTelephone] = useState(numeroTel || '')
+  const [quantite, setQuantite] = useState(1)
 
   // Partage de l'événement via l'API Share native avec lien web
   const partagerEvenement = () => {
@@ -192,7 +193,6 @@ export default function EventDetailScreen({ route, navigation }) {
 
     try {
       const telComplet = telPropre.startsWith('221') ? `+${telPropre}` : `+221${telPropre}`
-      const quantite = 1 // Sera lié à un stepper UI plus tard
       const resultat = await acheterBillet(
         event.id, selectedTicket.id,
         telPropre ? telComplet : null, email, selectedProvider, quantite
@@ -432,6 +432,38 @@ export default function EventDetailScreen({ route, navigation }) {
           </GlassContainer>
         </TouchableOpacity>
 
+        {/* Sélecteur de quantité — max 3 tickets par achat */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Quantité</Text>
+          <Text style={styles.sectionSub}>Maximum 3 billets par achat</Text>
+        </View>
+
+        <GlassContainer style={styles.quantiteSelector}>
+          <TouchableOpacity
+            style={[styles.quantiteBtn, quantite <= 1 && styles.quantiteBtnDisabled]}
+            onPress={() => setQuantite(q => Math.max(1, q - 1))}
+            disabled={quantite <= 1}
+            activeOpacity={0.6}
+          >
+            <Feather name="minus" size={20} color={quantite <= 1 ? colors.textTertiary : colors.text} />
+          </TouchableOpacity>
+          <View style={styles.quantiteValueWrap}>
+            <Text style={styles.quantiteValue}>{quantite}</Text>
+            <Text style={styles.quantiteLabel}>billet{quantite > 1 ? 's' : ''}</Text>
+          </View>
+          <TouchableOpacity
+            style={[styles.quantiteBtn, quantite >= 3 && styles.quantiteBtnDisabled]}
+            onPress={() => setQuantite(q => Math.min(3, q + 1))}
+            disabled={quantite >= 3}
+            activeOpacity={0.6}
+          >
+            <Feather name="plus" size={20} color={quantite >= 3 ? colors.textTertiary : colors.text} />
+          </TouchableOpacity>
+          <View style={styles.quantiteMaxBadge}>
+            <Text style={styles.quantiteMaxText}>max 3</Text>
+          </View>
+        </GlassContainer>
+
         </Animated.ScrollView>
         {/* Barre d'achat fixe en bas — effet glass */}
         <BlurView tint="dark" intensity={90} style={styles.bottomBar}>
@@ -443,7 +475,7 @@ export default function EventDetailScreen({ route, navigation }) {
             <>
               <View style={styles.bottomBarTotal}>
                 <Text style={styles.bottomBarTotalLabel}>Total</Text>
-                <Text style={styles.bottomBarTotalPrice}>{selectedTicket?.price?.toLocaleString() || '0'} FCFA</Text>
+                <Text style={styles.bottomBarTotalPrice}>{((selectedTicket?.price || 0) * quantite).toLocaleString()} FCFA</Text>
               </View>
               <TouchableOpacity
                 onPress={handleBuy}
@@ -451,7 +483,7 @@ export default function EventDetailScreen({ route, navigation }) {
                 style={styles.buyBtnWrap}
               >
                 <LinearGradient
-                  colors={['#5C6BC0', '#4A5AAF']}
+                  colors={[colors.accent, '#059669']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.buyBtnGradient}
@@ -553,11 +585,14 @@ export default function EventDetailScreen({ route, navigation }) {
             {paymentEtape === 'confirm' && (
               <>
                 {/* Montant uniquement */}
-                <Text style={styles.payAmountLabel}>{selectedTicket.name}</Text>
+                <Text style={styles.payAmountLabel}>{selectedTicket.name}{quantite > 1 ? ` × ${quantite}` : ''}</Text>
                 <GlassContainer intensity={30} style={[styles.payAmountCard, { borderColor: hexToRgba(colors.accent, 0.27) }]}>
                   <Text style={styles.payAmountValue}>
-                    {selectedTicket.price.toLocaleString()} FCFA
+                    {(selectedTicket.price * quantite).toLocaleString()} FCFA
                   </Text>
+                  {quantite > 1 && (
+                    <Text style={styles.payAmountDetail}>{selectedTicket.price.toLocaleString()} FCFA × {quantite}</Text>
+                  )}
                 </GlassContainer>
 
                 {/* Champ téléphone dans le modal */}
@@ -591,7 +626,7 @@ export default function EventDetailScreen({ route, navigation }) {
                     style={styles.confirmPayGradient}
                   >
                     <Image source={require('../../assets/wave_logo.png')} style={styles.confirmBtnLogo} resizeMode="contain" />
-                    <Text style={styles.confirmPayText}>Payer {selectedTicket.price.toLocaleString()} FCFA</Text>
+                    <Text style={styles.confirmPayText}>Payer {(selectedTicket.price * quantite).toLocaleString()} FCFA</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </>
@@ -1197,6 +1232,71 @@ const makeStyles = (colors) => StyleSheet.create({
     gap: scale(8),
     paddingHorizontal: scale(28),
     paddingVertical: scale(14),
+  },
+  // Sélecteur de quantité — carte glass dans le contenu scrollable
+  quantiteSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: scale(20),
+    paddingVertical: scale(18),
+    paddingHorizontal: scale(20),
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.xl,
+  },
+  quantiteBtn: {
+    width: scale(44),
+    height: scale(44),
+    borderRadius: scale(22),
+    backgroundColor: hexToRgba(colors.accent, 0.1),
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: hexToRgba(colors.accent, 0.2),
+  },
+  quantiteBtnDisabled: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    opacity: 0.5,
+  },
+  quantiteValueWrap: {
+    alignItems: 'center',
+    minWidth: scale(60),
+  },
+  quantiteValue: {
+    fontSize: fontScale(32),
+    fontFamily: fonts.outfit.extraBold,
+    color: colors.text,
+    letterSpacing: scale(-1),
+    lineHeight: lineHeightScale(36),
+  },
+  quantiteLabel: {
+    fontSize: fontScale(11),
+    fontFamily: fonts.jakarta.regular,
+    color: colors.textSecondary,
+    marginTop: scale(2),
+  },
+  quantiteMaxBadge: {
+    position: 'absolute',
+    right: scale(16),
+    top: scale(8),
+    backgroundColor: hexToRgba(colors.accent, 0.08),
+    borderRadius: scale(10),
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(3),
+  },
+  quantiteMaxText: {
+    fontSize: fontScale(9),
+    fontFamily: fonts.jakarta.semiBold,
+    color: colors.textTertiary,
+    letterSpacing: scale(0.5),
+  },
+  // Détail du calcul dans le modal
+  payAmountDetail: {
+    fontSize: fontScale(11),
+    fontFamily: fonts.jakarta.regular,
+    color: colors.textSecondary,
+    marginTop: scale(4),
   },
   payRetryText: {
     fontFamily: fonts.outfit.bold,

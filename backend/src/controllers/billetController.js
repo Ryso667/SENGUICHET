@@ -218,6 +218,7 @@ const acheter = async (req, res) => {
           categorie: cat.nom,
           prix: montantTotal,
           quantite,
+          reference: quantite > 1 ? reference : undefined,
           tickets: billetsCrees,
         }).catch(e => console.error("Email error:", e.message));
       }
