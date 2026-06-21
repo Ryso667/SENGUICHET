@@ -32,6 +32,8 @@ const makeStyles = (colors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    minHeight: 44,
+    minWidth: 44,
     backgroundColor: 'rgba(0,0,0,0.04)',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
