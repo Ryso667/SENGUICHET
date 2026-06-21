@@ -1,13 +1,17 @@
 // Écran calendrier — vue mensuelle des événements
 // Permet de naviguer par mois et de voir les événements d'un jour spécifique
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Image } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useFocusEffect } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
 import { spacing } from '../constants/theme'
 import { useTheme } from '../context/ThemeContext'
+import { useAuth } from '../context/AuthContext'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { fetchEvenementsPublics } from '../services/eventService'
+import { mesBillets } from '../services/billetService'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const JOURS_SEMAINE = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 const MOIS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -44,6 +48,10 @@ export default function CalendarScreen({ navigation }) {
   const [selection, setSelection] = useState(toDateKey(maintenant))
   const [evenements, setEvenements] = useState([])
   const [chargement, setChargement] = useState(true)
+  const [filtreCalendrier, setFiltreCalendrier] = useState('tout')
+  const [ticketsDates, setTicketsDates] = useState({})
+  const [loadingTickets, setLoadingTickets] = useState(false)
+  const { numeroTel, email } = useAuth()
   const styles = useMemo(() => makeStyles(colors), [colors])
 
   useEffect(() => {
@@ -55,6 +63,33 @@ export default function CalendarScreen({ navigation }) {
       setChargement(false)
     })()
   }, [])
+
+  // Charge les billets de l'acheteur quand le filtre est actif
+  useFocusEffect(
+    useCallback(() => {
+      if (filtreCalendrier !== 'mes-billets') return
+      let actif = true
+      ;(async () => {
+        setLoadingTickets(true)
+        try {
+          const telStocke = numeroTel || await AsyncStorage.getItem('@senguichet_telephone')
+          const tickets = await mesBillets(telStocke, email)
+          if (!actif) return
+          const map = {}
+          tickets.forEach(t => {
+            const key = toDateKey(t.eventDate)
+            if (key) {
+              if (!map[key]) map[key] = []
+              map[key].push(t)
+            }
+          })
+          setTicketsDates(map)
+        } catch { /* silencieux */ }
+        if (actif) setLoadingTickets(false)
+      })()
+      return () => { actif = false }
+    }, [filtreCalendrier, numeroTel, email])
+  )
 
   // Indexe les événements par date pour un lookup rapide
   const eventsParDate = useMemo(() => {
@@ -108,6 +143,26 @@ export default function CalendarScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      {/* Filtre calendrier */}
+      <View style={styles.filterRow}>
+        <TouchableOpacity
+          style={[styles.filterChip, filtreCalendrier === 'tout' && styles.filterChipActive]}
+          onPress={() => setFiltreCalendrier('tout')}
+        >
+          <Text style={[styles.filterText, filtreCalendrier === 'tout' && styles.filterTextActive]}>
+            Tous les événements
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterChip, filtreCalendrier === 'mes-billets' && styles.filterChipActive]}
+          onPress={() => setFiltreCalendrier('mes-billets')}
+        >
+          <Text style={[styles.filterText, filtreCalendrier === 'mes-billets' && styles.filterTextActive]}>
+            Mes billets
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Jours de la semaine */}
       <View style={styles.joursHeader}>
         {JOURS_SEMAINE.map(j => (
@@ -122,16 +177,27 @@ export default function CalendarScreen({ navigation }) {
           const dateKey = `${annee}-${String(mois + 1).padStart(2, '0')}-${String(jour).padStart(2, '0')}`
           const estSelection = dateKey === selection
           const aEvents = !!eventsParDate[dateKey]
+          const aTickets = filtreCalendrier === 'mes-billets' && !!ticketsDates[dateKey]
           return (
             <TouchableOpacity
               key={`${mois}-${jour}`}
               style={[styles.cell, estSelection && styles.cellActive]}
-              onPress={() => setSelection(dateKey)}
+              onPress={() => {
+                if (filtreCalendrier === 'mes-billets' && ticketsDates[dateKey]) {
+                  navigation.navigate('RecuAchat', {
+                    reference: ticketsDates[dateKey][0].numero,
+                    billetsAchetes: ticketsDates[dateKey],
+                  })
+                } else {
+                  setSelection(dateKey)
+                }
+              }}
             >
               <Text style={[styles.cellJour, estSelection && styles.cellJourActive]}>
                 {jour}
               </Text>
-              {aEvents && <View style={[styles.dot, estSelection && styles.dotActive]} />}
+              {aTickets && <View style={[styles.dotVert, estSelection && styles.dotVertActive]} />}
+              {!aTickets && aEvents && <View style={[styles.dot, estSelection && styles.dotActive]} />}
             </TouchableOpacity>
           )
         })}
@@ -199,8 +265,15 @@ const makeStyles = (colors) => StyleSheet.create({
   cellActive: { backgroundColor: colors.accent },
   cellJour: { fontSize: 14, fontFamily: 'PlusJakartaSans_500Medium', color: colors.text },
   cellJourActive: { color: colors.white, fontFamily: 'PlusJakartaSans_700Bold' },
+  filterRow: { flexDirection: 'row', paddingHorizontal: 16, paddingBottom: 8, gap: 8 },
+  filterChip: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16, backgroundColor: colors.bgSecondary },
+  filterChipActive: { backgroundColor: colors.accent },
+  filterText: { fontSize: 12, fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.textSecondary },
+  filterTextActive: { color: colors.white },
   dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.accent, marginTop: 2 },
   dotActive: { backgroundColor: colors.white },
+  dotVert: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#10B981', marginTop: 2 },
+  dotVertActive: { backgroundColor: colors.white },
   eventSection: { flex: 1, paddingHorizontal: 16, marginTop: 12 },
   eventSectionTitre: { fontSize: 14, fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.textSecondary, marginBottom: 8 },
   centrer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
