@@ -6,6 +6,7 @@ import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, categoryGradients, spacing } from '../../constants/theme'
 import { useTheme } from '../../context/ThemeContext'
+import { hapticLight } from '../../utils/haptics'
 import { fetchEvenementsAPI } from '../../services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
@@ -25,7 +26,7 @@ const getStatutConfig = (colors) => ({
 })
 
 export default function OrganisateurDashboardScreen({ navigation }) {
-  const { colors } = useTheme()
+  const { colors, mode } = useTheme()
   const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
   const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
@@ -99,7 +100,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <ScrollView
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
         onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
         scrollEventThrottle={16}
@@ -146,7 +147,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
               <View style={s.recentHeader}>
                 <Text style={s.recentTitle}>Mes événements récents</Text>
                 {events.length > 3 && (
-                  <TouchableOpacity onPress={() => navigation.navigate('Evenements')}>
+                  <TouchableOpacity onPress={() => { hapticLight(); navigation.navigate('Evenements') }}>
                     <Text style={s.voirTout}>Voir tout</Text>
                   </TouchableOpacity>
                 )}
@@ -195,7 +196,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
                             <Text style={s.revenu}>{ev.revenus || '0 FCFA'}</Text>
                             <TouchableOpacity
                               style={s.detailsBtn}
-                              onPress={() => navigation.navigate('DetailEvenement', { eventId: ev.id })}
+                              onPress={() => { hapticLight(); navigation.navigate('DetailEvenement', { eventId: ev.id }) }}
                               activeOpacity={0.8}
                             >
                               <Text style={s.detailsBtnText}>Détails</Text>

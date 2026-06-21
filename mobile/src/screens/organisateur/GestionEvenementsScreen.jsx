@@ -27,7 +27,7 @@ const getStatutConfig = (colors) => ({
 const TABS = ['Tous', 'Actifs', 'En attente', 'Terminés', 'Annulés']
 
 export default function GestionEvenementsScreen({ navigation }) {
-  const { colors } = useTheme()
+  const { colors, mode } = useTheme()
   const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
   const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
@@ -73,7 +73,7 @@ export default function GestionEvenementsScreen({ navigation }) {
       <View style={{ paddingTop: insets.top, flex: 1 }}>
           <ScrollView
           contentContainerStyle={s.content}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
           keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
           onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}

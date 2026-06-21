@@ -22,7 +22,7 @@ import * as Location from 'expo-location'
 const CATEGORIES = ['Tout', 'Concert', 'Festival', 'Sport', 'Théâtre', 'Conférence', 'Atelier']
 
 export default function HomeScreen({ navigation }) {
-  const { colors } = useTheme()
+  const { colors, mode } = useTheme()
   const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { role, email: authEmail, numeroTel, acheteurEmailSuggestion } = useAuth()
@@ -206,7 +206,7 @@ export default function HomeScreen({ navigation }) {
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={{ paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
       >
         {/* Search bar */}
         <View style={styles.searchBar}>

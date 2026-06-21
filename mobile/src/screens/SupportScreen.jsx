@@ -10,7 +10,7 @@ import GlassContainer from '../components/GlassContainer'
 import GlassChip from '../components/GlassChip'
 
 export default function SupportScreen() {
-  const { colors } = useTheme()
+  const { colors, mode } = useTheme()
   const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
 
@@ -22,7 +22,7 @@ export default function SupportScreen() {
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
       >
         {/* Header */}
         <GlassContainer style={styles.headerCard} intensity={50}>

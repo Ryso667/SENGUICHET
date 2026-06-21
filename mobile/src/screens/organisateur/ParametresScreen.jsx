@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { spacing, fonts } from '../../constants/theme'
 import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
+import { hapticLight, hapticHeavy } from '../../utils/haptics'
 import GlassContainer from '../../components/GlassContainer'
 
 const NOTIF_KEY_SMS = '@senguichet_notif_sms_vente'
@@ -28,7 +29,7 @@ export default function ParametresScreen({ navigation }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}>
         <GlassContainer blurType="light" style={s.section} intensity={35}>
           <Text style={s.sectionTitle}>Mon profil</Text>
           <View style={s.row}>
@@ -62,7 +63,7 @@ export default function ParametresScreen({ navigation }) {
 
         <GlassContainer blurType="light" style={s.section} intensity={35}>
           <Text style={s.sectionTitle}>Sécurité</Text>
-          <TouchableOpacity style={s.securityRow} onPress={() => navigation.navigate('ChangerMotDePasse')}>
+          <TouchableOpacity style={s.securityRow} onPress={() => { hapticLight(); navigation.navigate('ChangerMotDePasse') }}>
             <View style={s.securityIcon}>
               <MaterialCommunityIcons name="lock-outline" size={18} color={colors.accent} />
             </View>
@@ -73,7 +74,7 @@ export default function ParametresScreen({ navigation }) {
 
         <GlassContainer blurType="light" style={s.section} intensity={35}>
           <Text style={s.sectionTitle}>Thème</Text>
-          <TouchableOpacity style={s.securityRow} onPress={() => setShowThemeModal(true)}>
+          <TouchableOpacity style={s.securityRow} onPress={() => { hapticLight(); setShowThemeModal(true) }}>
             <Feather name={mode === 'dark' ? 'moon' : mode === 'light' ? 'sun' : 'smartphone'} size={18} color={colors.accent} />
             <Text style={s.securityLabel}>{mode === 'dark' ? 'Sombre' : mode === 'light' ? 'Clair' : 'Système'}</Text>
             <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textTertiary} />
@@ -82,7 +83,7 @@ export default function ParametresScreen({ navigation }) {
 
         <GlassContainer blurType="light" style={s.section} intensity={35}>
           <Text style={s.sectionTitle}>Support</Text>
-          <TouchableOpacity style={s.securityRow} onPress={() => navigation.navigate('Support')}>
+          <TouchableOpacity style={s.securityRow} onPress={() => { hapticLight(); navigation.navigate('Support') }}>
             <MaterialCommunityIcons name="headphones" size={18} color={colors.accent} />
             <Text style={s.securityLabel}>Contacter le support</Text>
             <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textTertiary} />
@@ -91,7 +92,7 @@ export default function ParametresScreen({ navigation }) {
 
         <View style={s.spacer} />
 
-        <TouchableOpacity style={s.logoutButton} onPress={() => deconnecter()} activeOpacity={0.7}>
+        <TouchableOpacity style={s.logoutButton} onPress={() => { hapticHeavy(); deconnecter() }} activeOpacity={0.7}>
           <MaterialCommunityIcons name="logout" size={22} color="#FF4D6D" />
           <Text style={s.logoutText}>Se déconnecter</Text>
         </TouchableOpacity>

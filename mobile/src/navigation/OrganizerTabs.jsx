@@ -3,6 +3,7 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import { hapticLight } from '../utils/haptics'
 import { fonts } from '../constants/theme'
 import { useTheme } from '../context/ThemeContext'
 import { TabBarScrollProvider } from '../context/TabBarScrollContext'
@@ -85,6 +86,9 @@ export default function OrganizerTabs() {
           headerShown: false,
           tabBarActiveTintColor: colors.navActive,
           tabBarInactiveTintColor: colors.navInactive,
+          listeners: ({ navigation, route }) => ({
+            tabPress: () => hapticLight(),
+          }),
           tabBarStyle: {
             backgroundColor: colors.surface,
             borderTopWidth: 1,

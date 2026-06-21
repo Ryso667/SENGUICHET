@@ -148,7 +148,7 @@ export default function TicketScreen({ route, navigation }) {
 
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 40 }]}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
       >
         <View style={styles.ticketWrapper}>
           <View style={styles.ticketCard}>

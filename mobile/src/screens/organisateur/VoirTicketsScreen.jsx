@@ -18,7 +18,7 @@ const getStatusBadge = (colors) => ({
 })
 
 export default function VoirTicketsScreen({ route }) {
-  const { colors } = useTheme()
+  const { colors, mode } = useTheme()
   const STATUS_BADGE = useMemo(() => getStatusBadge(colors), [colors])
   const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
@@ -56,7 +56,7 @@ export default function VoirTicketsScreen({ route }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}>
         <View style={s.content}>
           {evenement && (
             <GlassContainer blurType="light" style={s.eventInfo} intensity={35}>

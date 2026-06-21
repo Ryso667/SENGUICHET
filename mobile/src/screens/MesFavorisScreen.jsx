@@ -13,7 +13,7 @@ import { getAllFavoris, basculerFavori } from '../utils/favorisStorage'
 import { formaterDateLisible } from '../utils/dateUtils'
 
 export default function MesFavorisScreen({ navigation }) {
-  const { colors } = useTheme()
+  const { colors, mode } = useTheme()
   const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const [favoris, setFavoris] = useState([])
@@ -92,7 +92,7 @@ export default function MesFavorisScreen({ navigation }) {
           renderItem={renderItem}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
         />
       )}
     </View>

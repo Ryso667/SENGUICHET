@@ -58,7 +58,7 @@ function SearchHeader({ search, setSearch, activeCat, setActiveCat, filtresActif
 }
 
 export default function EventSearchScreen({ navigation }) {
-  const { colors } = useTheme()
+  const { colors, mode } = useTheme()
   const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const [search, setSearch] = useState('')
@@ -186,7 +186,7 @@ export default function EventSearchScreen({ navigation }) {
         keyExtractor={(item) => item.id?.toString()}
         columnWrapperStyle={styles.columnWrapper}
         contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingTop: insets.top + spacing.sm, paddingBottom: spacing.lg }}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         ListHeaderComponent={<SearchHeader search={search} setSearch={setSearch} activeCat={activeCat} setActiveCat={setActiveCat} filtresActifs={nbFiltresActifs} onOpenFilters={() => setShowFilters(true)} colors={colors} styles={styles} />}
@@ -212,7 +212,7 @@ export default function EventSearchScreen({ navigation }) {
                   </TouchableOpacity>
                 </View>
 
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 8 }}>
+                <ScrollView showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"} contentContainerStyle={{ paddingBottom: 8 }}>
                   <Text style={styles.filterLabel}>Période</Text>
                   <View style={styles.chipsWrap}>
                     {PRESETS_DATE.map(p => (

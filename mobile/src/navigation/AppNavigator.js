@@ -3,6 +3,7 @@
 // Organisateur   : Drawer hamburger (Dashboard, Événements, ...)
 // Contrôleur     : Drawer hamburger (Scanner, Historique, ...)
 import { View, ActivityIndicator, StyleSheet } from 'react-native'
+import { hapticLight } from '../utils/haptics'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
@@ -46,6 +47,9 @@ function MainTabs() {
         headerShown: false,
         tabBarActiveTintColor: colors.navActive,
         tabBarInactiveTintColor: colors.navInactive,
+        listeners: ({ navigation, route }) => ({
+          tabPress: () => hapticLight(),
+        }),
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopWidth: 1,

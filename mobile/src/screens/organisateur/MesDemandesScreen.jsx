@@ -46,7 +46,7 @@ const VILLES = [
 ]
 
 export default function MesDemandesScreen({ navigation }) {
-  const { colors } = useTheme()
+  const { colors, mode } = useTheme()
   const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
   const s = useMemo(() => makeStyles(colors), [colors])
   const f = useMemo(() => makeFormStyles(colors), [colors])
@@ -431,7 +431,7 @@ export default function MesDemandesScreen({ navigation }) {
       <View style={{ paddingTop: insets.top, flex: 1 }}>
         <ScrollView
           contentContainerStyle={s.content}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
           keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" colors={["#10B981"]} />}
           onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
@@ -507,7 +507,7 @@ export default function MesDemandesScreen({ navigation }) {
         <Animated.View style={[s.modalOverlay, { opacity: fadeAnim }]}>
           <TouchableOpacity style={s.modalBackdrop} activeOpacity={1} onPress={closeModal} />
           <Animated.View style={[s.modalContent, { transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [300, 0] }) }] }]}>
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <ScrollView showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"} keyboardShouldPersistTaps="handled">
               {modalMode === 'detail' && viewingDemande ? (
                 /* === MODE DÉTAIL === */
                 <>
