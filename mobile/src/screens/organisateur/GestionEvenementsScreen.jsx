@@ -79,15 +79,21 @@ export default function GestionEvenementsScreen({ navigation }) {
           onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
           scrollEventThrottle={16}
         >
-          {/* Header : titre + bouton demander — calqué sur le web */}
+          {/* Header : titre + boutons actions */}
           <View style={s.header}>
             <Text style={s.headerTitle}>Mes événements</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Demandes')} activeOpacity={0.8}>
-              <LinearGradient colors={gradients.primary} style={s.demanderBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                <MaterialCommunityIcons name="clipboard-text-outline" size={16} color="#fff" />
-                <Text style={s.demanderBtnText}>Demander</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+            <View style={s.headerActions}>
+              <TouchableOpacity onPress={() => navigation.navigate('Statistiques')} activeOpacity={0.8} style={s.statBtn}>
+                <MaterialCommunityIcons name="chart-bar" size={16} color={colors.accent} />
+                <Text style={s.statBtnText}>Statistiques</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Demandes')} activeOpacity={0.8}>
+                <LinearGradient colors={gradients.primary} style={s.demanderBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                  <MaterialCommunityIcons name="clipboard-text-outline" size={16} color="#fff" />
+                  <Text style={s.demanderBtnText}>Demander</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {!loading && filtered.length > 0 && (
@@ -215,6 +221,14 @@ const makeStyles = (colors) => StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
   headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text },
   refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginBottom: spacing.sm },
+  headerActions: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
+  statBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: 8,
+    borderWidth: 1, borderColor: colors.border,
+  },
+  statBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
   demanderBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     borderRadius: 12,

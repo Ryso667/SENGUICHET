@@ -80,6 +80,15 @@ export default function ParametresScreen({ navigation }) {
           </TouchableOpacity>
         </GlassContainer>
 
+        <GlassContainer blurType="light" style={s.section} intensity={35}>
+          <Text style={s.sectionTitle}>Support</Text>
+          <TouchableOpacity style={s.securityRow} onPress={() => navigation.navigate('Support')}>
+            <MaterialCommunityIcons name="headphones" size={18} color={colors.accent} />
+            <Text style={s.securityLabel}>Contacter le support</Text>
+            <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textTertiary} />
+          </TouchableOpacity>
+        </GlassContainer>
+
         <View style={s.spacer} />
 
         <TouchableOpacity style={s.logoutButton} onPress={() => deconnecter()} activeOpacity={0.7}>
