@@ -218,8 +218,8 @@ const makeStyles = (colors) => StyleSheet.create({
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },
 
   /* Header */
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text },
+  header: { marginBottom: spacing.md },
+  headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text, marginBottom: spacing.sm },
   refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginBottom: spacing.sm },
   headerActions: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
   statBtn: {
