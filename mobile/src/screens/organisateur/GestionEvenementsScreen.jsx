@@ -12,6 +12,7 @@ import { useAuth } from '../../context/AuthContext'
 import { getCategoryImageUrl } from '../../config/images'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import GlassContainer from '../../components/GlassContainer'
+import EmptyState from '../../components/EmptyState'
 import Skeleton from '../../components/Skeleton'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { hexToRgba } from '../../utils/colors'
@@ -136,17 +137,13 @@ export default function GestionEvenementsScreen({ navigation }) {
               <Skeleton type="card" count={3} />
             </View>
           ) : filtered.length === 0 ? (
-            /* État vide — calqué sur le web */
-            <GlassContainer blurType="light" style={s.emptyState}>
-              <MaterialCommunityIcons name="ticket-outline" size={56} color="rgba(0,0,0,0.12)" />
-              <Text style={s.emptyTitle}>Aucun événement trouvé</Text>
-              <Text style={s.emptySub}>Vous n'avez pas encore d'événement. Faites une demande à l'équipe SENGUICHET.</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Demandes')} activeOpacity={0.8}>
-                <LinearGradient colors={gradients.primary} style={s.emptyBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                  <Text style={s.emptyBtnText}>Demander un événement</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </GlassContainer>
+            <EmptyState
+              icon="🎫"
+              title="Aucun événement trouvé"
+              subtitle="Vous n'avez pas encore d'événement. Faites une demande à l'équipe SENGUICHET."
+              actionLabel="Demander un événement"
+              onAction={() => navigation.navigate('Demandes')}
+            />
           ) : (
             /* Liste d'événements — cartes calquées sur le web (version mobile) */
             <View style={s.eventsList}>
@@ -256,17 +253,6 @@ const makeStyles = (colors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.border,
   },
   searchInput: { flex: 1, fontFamily: fonts.outfit.regular, fontSize: 14, color: colors.text },
-
-  /* État vide */
-  emptyState: { padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
-  emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
-  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
-  emptyBtn: {
-    marginTop: spacing.sm,
-    borderRadius: 12,
-    paddingHorizontal: 20, paddingVertical: 10,
-  },
-  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.white },
 
   /* Liste */
   eventsList: { gap: spacing.md },
