@@ -643,12 +643,12 @@ const evenementBillets = async (req, res) => {
 };
 
 // Page HTML du reçu groupé avec tous les QR codes (pour impression / téléchargement)
-// GET /api/billets/recu/:ref
+// GET /api/billets/recu/:reference
 const afficherRecu = async (req, res) => {
   try {
-    const { ref } = req.params;
+    const ref = req.params.reference;
     const [txs] = await pool.query(
-      "SELECT id, reference, montant, devise, moyen_paiement, telephone_payeur, statut, date_creation FROM `transaction` WHERE reference = ?",
+      "SELECT id, reference, montant, devise, moyen_paiement, telephone_payeur, statut, date_transaction FROM `transaction` WHERE reference = ?",
       [ref]
     );
     if (!txs.length) return res.status(404).send("Reçu introuvable");
@@ -758,12 +758,12 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
 };
 
 // Route JSON pour récupérer les données d'un reçu (mobile)
-// GET /api/billets/recu/:ref/data
+// GET /api/billets/recu/:reference/data
 const recuData = async (req, res) => {
   try {
-    const { ref } = req.params;
+    const ref = req.params.reference;
     const [txs] = await pool.query(
-      "SELECT id, reference, montant, devise, moyen_paiement, telephone_payeur, statut, date_creation FROM `transaction` WHERE reference = ?",
+      "SELECT id, reference, montant, devise, moyen_paiement, telephone_payeur, statut, date_transaction FROM `transaction` WHERE reference = ?",
       [ref]
     );
     if (!txs.length) return res.status(404).json({ message: "Reçu introuvable" });
