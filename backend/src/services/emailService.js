@@ -8,6 +8,7 @@ const SITE_URL = process.env.SITE_URL
 
 const LOGO_URL = `${SITE_URL}/uploads/logo.jpg`;
 
+
 const emailLayout = (content, options = {}) => {
   const { preheader } = options;
   return `
