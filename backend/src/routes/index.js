@@ -13,5 +13,6 @@ router.use("/demandes", require("./demandes"));
 router.use("/scans", require("./scans"));
 router.use("/controleurs", require("./controleur"));
 router.use("/notifications", require("./notifications"));
+router.use("/codes", require("./codes"));
 
 module.exports = router;
