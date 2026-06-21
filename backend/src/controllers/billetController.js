@@ -25,11 +25,14 @@ if (!HMAC_SECRET) console.warn('⚠️  HMAC_SECRET non défini — les signatur
  */
 const acheter = async (req, res) => {
   try {
-    const { evenementId, categorieTicketId, telephone, quantite = 1, provider = 'WAVE', email, pushToken } = req.body;
-    const promoId = req.body.promoId || null
-    let reduction = 0
+    const { evenementId, categorieTicketId, telephone, quantite = 1, provider = 'WAVE', email, pushToken, categories: categoriesReq } = req.body;
+    const promoId = req.body.promoId || null;
+    const isMulti = Array.isArray(categoriesReq) && categoriesReq.length > 0;
 
-    if (!evenementId || !categorieTicketId || !telephone) {
+    if (!evenementId || !telephone) {
+      return res.status(400).json({ message: "Champs obligatoires manquants" });
+    }
+    if (!isMulti && !categorieTicketId) {
       return res.status(400).json({ message: "Champs obligatoires manquants" });
     }
 
@@ -44,35 +47,47 @@ const acheter = async (req, res) => {
       return res.status(400).json({ message: "Cet événement est déjà terminé" });
     }
 
-    // Vérifier la catégorie et les places disponibles
-    const [categories] = await pool.query(
-      "SELECT id, nom, prix, places_disponibles, couleur_hex FROM categorie_ticket WHERE id = ? AND evenement_id = ?",
-      [categorieTicketId, evenementId]
-    );
-    if (!categories.length) return res.status(404).json({ message: "Catégorie introuvable" });
+    // Construire la liste des catégories à traiter (une seule ou plusieurs)
+    const achatsCategories = isMulti
+      ? categoriesReq
+      : [{ categorieTicketId, quantite }];
 
-    const cat = categories[0];
-    if (cat.places_disponibles < quantite) {
-      return res.status(400).json({ message: "Places insuffisantes" });
+    // Vérifier toutes les catégories et leurs places
+    const catsData = [];
+    for (const achat of achatsCategories) {
+      const [catRows] = await pool.query(
+        "SELECT id, nom, prix, places_disponibles FROM categorie_ticket WHERE id = ? AND evenement_id = ?",
+        [achat.categorieTicketId, evenementId]
+      );
+      if (!catRows.length) {
+        return res.status(404).json({ message: `Catégorie id ${achat.categorieTicketId} introuvable` });
+      }
+      const cat = catRows[0];
+      if (cat.places_disponibles < achat.quantite) {
+        return res.status(400).json({ message: `Places insuffisantes pour ${cat.nom}` });
+      }
+      catsData.push({ ...cat, quantiteDemandee: achat.quantite });
     }
 
-    let montantTotal = cat.prix * quantite;
+    let montantTotal = catsData.reduce((sum, c) => sum + c.prix * c.quantiteDemandee, 0);
+    const quantiteTotal = catsData.reduce((sum, c) => sum + c.quantiteDemandee, 0);
+    let reduction = 0;
 
-    // Appliquer réduction code promo si fourni
+    // Appliquer réduction code promo si fourni (sur le montant total)
     if (promoId) {
       const [promos] = await pool.query(
         `SELECT * FROM code_promo WHERE id = ? AND actif = 1
          AND date_expiration > NOW()
          AND (utilisations_max = 0 OR utilisations_actuelles < utilisations_max)`,
         [promoId]
-      )
+      );
       if (promos.length > 0) {
-        const promo = promos[0]
+        const promo = promos[0];
         reduction = promo.type === 'pourcentage'
-          ? Math.round(cat.prix * quantite * promo.valeur / 100)
-          : Math.min(Number(promo.valeur), cat.prix * quantite)
-        montantTotal -= reduction
-        await pool.query('UPDATE code_promo SET utilisations_actuelles = utilisations_actuelles + 1 WHERE id = ?', [promoId])
+          ? Math.round(montantTotal * promo.valeur / 100)
+          : Math.min(Number(promo.valeur), montantTotal);
+        montantTotal -= reduction;
+        await pool.query('UPDATE code_promo SET utilisations_actuelles = utilisations_actuelles + 1 WHERE id = ?', [promoId]);
       }
     }
 
@@ -85,78 +100,95 @@ const acheter = async (req, res) => {
       } catch {}
     }
 
-    // Anti-doublon : si le mobile appelle 2× (StrictMode, retry...), on ne crée pas 2 billets
-    const [recent] = await pool.query(
-      `SELECT b.id, b.uuid, b.numero, b.prix_paye AS prix, e.titre AS evenement, ct.nom AS categorie, b.date_creation AS dateAchat, b.payload_signature
-       FROM billet b
-       JOIN evenement e ON e.id = b.evenement_id
-       JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
-       WHERE b.evenement_id = ? AND b.categorie_ticket_id = ? AND b.telephone_acheteur = ? AND b.statut IN ('ACTIF', 'EN_ATTENTE') AND b.date_creation > DATE_SUB(NOW(), INTERVAL 5 SECOND)
-       LIMIT 1`,
-      [evenementId, categorieTicketId, telephone]
-    );
-    if (recent.length > 0) {
-      const existing = recent[0];
-      return res.status(200).json({
-        billet: {
-          id: existing.id,
-          uuid: existing.uuid,
-          numero: existing.numero,
-          prix: existing.prix,
-          evenement: existing.evenement,
-          categorie: existing.categorie,
-          dateAchat: existing.dateAchat,
-          qrPayload: existing.payload_signature,
-        },
-        paiement: { reference: existing.id + '-dup', redirectUrl: null, referenceOperateur: null, provider: 'DUPLICATE' },
-      });
+    // Anti-doublon : ne s'applique qu'aux achats mono-catégorie (retry StrictMode)
+    if (!isMulti) {
+      const [recent] = await pool.query(
+        `SELECT b.id, b.uuid, b.numero, b.prix_paye AS prix, e.titre AS evenement, ct.nom AS categorie, b.date_creation AS dateAchat, b.payload_signature
+         FROM billet b
+         JOIN evenement e ON e.id = b.evenement_id
+         JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
+         WHERE b.evenement_id = ? AND b.categorie_ticket_id = ? AND b.telephone_acheteur = ? AND b.statut IN ('ACTIF', 'EN_ATTENTE') AND b.date_creation > DATE_SUB(NOW(), INTERVAL 5 SECOND)
+         LIMIT 1`,
+        [evenementId, categorieTicketId, telephone]
+      );
+      if (recent.length > 0) {
+        const existing = recent[0];
+        return res.status(200).json({
+          billet: {
+            id: existing.id,
+            uuid: existing.uuid,
+            numero: existing.numero,
+            prix: existing.prix,
+            evenement: existing.evenement,
+            categorie: existing.categorie,
+            dateAchat: existing.dateAchat,
+            qrPayload: existing.payload_signature,
+          },
+          paiement: { reference: existing.id + '-dup', redirectUrl: null, referenceOperateur: null, provider: 'DUPLICATE' },
+        });
+      }
     }
 
     const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
 
-      // Créer autant de billets que la quantité demandée (1 billet = 1 QR)
+      // Créer les billets pour chaque catégorie
       const billetsCrees = [];
-      for (let i = 0; i < quantite; i++) {
-        const uuid = uuidv4();
-        const numero = `TKT-${Date.now().toString(36).toUpperCase()}-${i}`;
-        const timestamp = new Date().toISOString();
+      const billetsParCategorie = {};
+      let ticketIdx = 0;
 
-        // Générer la signature HMAC (identique au format utilisé par le scan offline)
-        const signaturePayload = `${uuid}|${numero}|${timestamp}|${evenementId}|${cat.nom}`;
-        const payload_signature = crypto.createHash('sha256').update(signaturePayload + HMAC_SECRET).digest('hex');
+      for (const achat of catsData) {
+        const groupe = [];
+        for (let i = 0; i < achat.quantiteDemandee; i++) {
+          const uuid = uuidv4();
+          const numero = `TKT-${Date.now().toString(36).toUpperCase()}-${ticketIdx}`;
+          const timestamp = new Date().toISOString();
 
-        const [billetResult] = await conn.query(
-          `INSERT INTO billet (uuid, numero, evenement_id, categorie_ticket_id, telephone_acheteur, email_acheteur, payload_signature, prix_paye, statut)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'EN_ATTENTE')`,
-          [uuid, numero, evenementId, categorieTicketId, telephone, ticketEmail || null, payload_signature, cat.prix]
+          const signaturePayload = `${uuid}|${numero}|${timestamp}|${evenementId}|${achat.nom}`;
+          const payload_signature = crypto.createHash('sha256').update(signaturePayload + HMAC_SECRET).digest('hex');
+
+          const [billetResult] = await conn.query(
+            `INSERT INTO billet (uuid, numero, evenement_id, categorie_ticket_id, telephone_acheteur, email_acheteur, payload_signature, prix_paye, statut)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'EN_ATTENTE')`,
+            [uuid, numero, evenementId, achat.id, telephone, ticketEmail || null, payload_signature, achat.prix]
+          );
+
+          const billetData = {
+            id: billetResult.insertId,
+            uuid,
+            numero,
+            prix: achat.prix,
+            evenement: event.titre,
+            categorie: achat.nom,
+            dateAchat: timestamp,
+            qrPayload: JSON.stringify({
+              uuid,
+              hmac: payload_signature,
+              event_id: evenementId,
+              category: achat.nom,
+              timestamp,
+              transaction_ref: numero,
+            }),
+          };
+          billetsCrees.push(billetData);
+          groupe.push(billetData);
+          ticketIdx++;
+        }
+
+        // Réserver les places pour cette catégorie
+        await conn.query(
+          "UPDATE categorie_ticket SET places_disponibles = places_disponibles - ? WHERE id = ? AND places_disponibles >= ?",
+          [achat.quantiteDemandee, achat.id, achat.quantiteDemandee]
         );
 
-        billetsCrees.push({
-          id: billetResult.insertId,
-          uuid,
-          numero,
-          prix: cat.prix,
-          evenement: event.titre,
-          categorie: cat.nom,
-          dateAchat: timestamp,
-          qrPayload: JSON.stringify({
-            uuid,
-            hmac: payload_signature,
-            event_id: evenementId,
-            category: cat.nom,
-            timestamp,
-            transaction_ref: numero,
-          }),
-        });
+        billetsParCategorie[achat.nom] = {
+          nom: achat.nom,
+          quantite: achat.quantiteDemandee,
+          prixUnitaire: achat.prix,
+          tickets: groupe,
+        };
       }
-
-      // Réserver les places (une seule fois pour toute la quantité)
-      await conn.query(
-        "UPDATE categorie_ticket SET places_disponibles = places_disponibles - ? WHERE id = ? AND places_disponibles >= ?",
-        [quantite, categorieTicketId, quantite]
-      );
 
       // Créer une transaction unique pour le montant total
       const reference = 'PAI-' + uuidv4().slice(0, 12).toUpperCase();
@@ -187,7 +219,6 @@ const acheter = async (req, res) => {
           metadata: { reference },
         });
 
-        // Mettre à jour la référence opérateur
         if (paymentResult.referenceOperateur) {
           await pool.query(
             "UPDATE transaction SET reference_operateur = ? WHERE reference = ?",
@@ -195,7 +226,6 @@ const acheter = async (req, res) => {
           );
         }
 
-        // Si pas de redirectUrl (mode simulation/sync), confirmer immédiatement
         if (!paymentResult.redirectUrl) {
           await pool.query(
             "UPDATE transaction SET statut = 'SUCCESS', date_mise_a_jour = NOW() WHERE reference = ?",
@@ -212,35 +242,39 @@ const acheter = async (req, res) => {
         paymentResult = { redirectUrl: null, referenceOperateur: null };
       }
 
-      // Contenu du QR code (premier billet)
       const premierBillet = billetsCrees[0];
+      const premiereCategorie = catsData[0];
 
-      // Envoyer un SMS de confirmation à l'acheteur (fire-and-forget)
+      // Envoyer un SMS (fire-and-forget)
       const { envoyerSMSBillet } = require("../services/smsService");
       envoyerSMSBillet(telephone, {
         uuid: premierBillet.uuid,
         numero: premierBillet.numero,
         evenement: event.titre,
-        categorie: cat.nom,
+        categorie: premiereCategorie.nom,
         prix: montantTotal,
-        quantite,
-        reference: quantite > 1 ? reference : undefined,
+        quantite: quantiteTotal,
+        reference: quantiteTotal > 1 ? reference : undefined,
       }, pool);
 
-      // Envoyer un email de confirmation si l'email est renseigné
+      // Préparer les données des catégories pour l'email et la notification
+      const categoriesEmail = Object.values(billetsParCategorie).map(g => ({
+        nom: g.nom,
+        quantite: g.quantite,
+        prixUnitaire: g.prixUnitaire,
+        tickets: g.tickets,
+      }));
+
+      // Envoyer un email unique avec toutes les catégories groupées
       if (ticketEmail) {
-        const { envoyerEmailBillet } = require("../services/emailService");
-        envoyerEmailBillet(ticketEmail, {
-          uuid: premierBillet.uuid,
-          numero: premierBillet.numero,
+        const { envoyerEmailMultiCat } = require("../services/emailService");
+        envoyerEmailMultiCat(ticketEmail, {
           evenement: event.titre,
           dateDebut: event.date_debut,
           lieu: event.lieu,
-          categorie: cat.nom,
-          prix: montantTotal,
-          quantite,
-          reference: quantite > 1 ? reference : undefined,
-          tickets: billetsCrees,
+          categories: categoriesEmail,
+          prixTotal: montantTotal,
+          quantiteTotal,
         }).catch(e => console.error("Email error:", e.message));
       }
 
@@ -259,11 +293,11 @@ const acheter = async (req, res) => {
         }
       }
 
-      // Envoyer une notification push à l'organisateur
+      // Notification push à l'organisateur
       try {
         await envoyerNotification(event.organisateur_id, {
           type: 'vente',
-          message: `Nouvelle vente : ${cat.nom} ×${quantite} pour ${event.titre}`,
+          message: `Nouvelle vente : ${categoriesEmail.map(c => `${c.nom}×${c.quantite}`).join(', ')} pour ${event.titre}`,
           evenementId: evenementId,
         });
       } catch (e) {
@@ -282,14 +316,19 @@ const acheter = async (req, res) => {
       }
 
       const ticketBase = process.env.TICKET_URL || "https://backend-beta-six-39.vercel.app/api/billets";
-      const lienBillet = quantite === 1
+      const lienBillet = quantiteTotal === 1
         ? `${ticketBase}/${premierBillet.uuid}`
         : `${ticketBase}/recu/${reference}`;
 
       res.status(201).json({
         billet: premierBillet,
         billets: billetsCrees,
-        quantite,
+        quantite: quantiteTotal,
+        categories: Object.values(billetsParCategorie).map(g => ({
+          nom: g.nom,
+          quantite: g.quantite,
+          prixUnitaire: g.prixUnitaire,
+        })),
         lien: lienBillet,
         paiement: {
           reference,
@@ -426,6 +465,8 @@ const afficherBillet = async (req, res) => {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Billet ${b.numero} - SENGUICHET</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;gap:20px}
@@ -466,6 +507,11 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
 .pr{font-size:32px;font-weight:700;color:#111827;letter-spacing:-.5px;text-align:center}
 .ll2{font-size:10px;color:#6EE7B7;font-style:italic;text-align:center}
 .wm{font-size:9px;color:rgba(16,185,129,.3);letter-spacing:2px;align-self:flex-end;margin-right:4px}
+.loading{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,26,15,0.85);z-index:999;justify-content:center;align-items:center;flex-direction:column;gap:16px}
+.loading.show{display:flex}
+.loading .spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,0.1);border-top-color:#D4AF37;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{color:#D4AF37;font-size:14px;font-weight:600;letter-spacing:1px}
 @media print{body{background:#fff;padding:0;gap:0;min-height:auto;justify-content:flex-start}.t{box-shadow:none;page-break-inside:avoid}.dl{display:none!important}}
 </style>
 </head>
@@ -481,27 +527,92 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
     <div class="en">${(b.titre || '').toUpperCase()}</div>
     <div class="ec">${(b.categorie || 'STANDARD').toUpperCase()}</div>
   </div>
-  <div class="pf"><div class="pl"></div><div class="pc l"></div><div class="pc r"></div></div>
-  <div class="bd">
-    <div class="br">
-      <div><div class="bl">DATE</div><div class="bv">${dateFormatted}</div></div>
-      <div style="text-align:right"><div class="bl">HEURE</div><div class="bv">${heureFormatted}</div></div>
+  <div class="sep dark-cream"><div class="dash"></div><div class="sc top"></div><div class="sc bot"></div></div>
+  <div class="col-center">
+    <div class="row2">
+      <div><div class="lbl">DATE</div><div class="val">${dateFormatted}</div></div>
+      <div style="text-align:right"><div class="lbl">HEURE</div><div class="val">${heureFormatted}</div></div>
     </div>
     <div style="margin-top:10px"><div class="bl">LIEU</div><div class="ll">${(b.lieu || '').toUpperCase()}</div></div>
     <div class="bs"></div>
     <div class="rf">REF · ${b.numero}</div>
     <div class="qz">${qrHtml}${usedOverlay}</div>
   </div>
-  <div class="pb"><div class="pl"></div><div class="pc l"></div><div class="pc r"></div></div>
+  <div class="pf">
+    <div class="pl"></div>
+    <div class="pc l"></div>
+    <div class="pc r"></div>
+  </div>
+  <div class="bd">
+    <div class="br">
+      <div><div class="bl">DATE</div><div class="bv">${dateFormatted}</div></div>
+      <div style="text-align:right"><div class="bl">HEURE</div><div class="bv">${heureFormatted}</div></div>
+    </div>
+    <div class="bs"></div>
+    <div><div class="bl">LIEU</div><div class="ll">${(b.lieu || '').toUpperCase()}</div></div>
+    <div class="bs"></div>
+    <div><div class="bl">CATÉGORIE</div><div class="bv">${(b.categorie || 'STANDARD').toUpperCase()}</div></div>
+    <div class="bs"></div>
+    <div class="rf">REF · ${b.numero}</div>
+  </div>
+  <div class="pb">
+    <div class="pl"></div>
+    <div class="pc l"></div>
+    <div class="pc r"></div>
+  </div>
   <div class="ft">
     <div class="cp"><div class="ct">${(b.categorie || 'STANDARD').toUpperCase()}</div></div>
     <div class="pr">${Number(b.prix_paye).toLocaleString()} FCFA</div>
-    <div class="ll2">Entrée unique et non transférable</div>
+    <div class="ll2">Entrée unique · Non transférable</div>
     <div class="wm">SENGUICHET</div>
     ${watermarkHtml}
   </div>
-  </div>
-  <button class="dl" onclick="window.print()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Télécharger le billet (PDF)</button>
+</div>
+<div id="loading" class="loading"><div class="spinner"></div><p>Génération du PDF...</p></div>
+<button class="dl" onclick="telechargerPDF()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Télécharger le billet (PDF)</button>
+<script>
+function telechargerPDF() {
+  var el = document.querySelector('.t');
+  var loading = document.getElementById('loading');
+  loading.classList.add('show');
+  var opt = {
+    margin: 0,
+    filename: 'Billet-${b.numero}.pdf',
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0F1A0F' },
+    jsPDF: { unit: 'mm', format: [210, 130], orientation: 'landscape' }
+  };
+  html2pdf().set(opt).from(el).toPdf().get('pdf').then(function(pdf) {
+    var blob = pdf.output('blob');
+    var file = new File([blob], 'Billet-${b.numero}.pdf', { type: 'application/pdf' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: 'Mon billet SENGUICHET' }).then(function() {
+        loading.classList.remove('show');
+      }).catch(function(err) {
+        if (err.name !== 'AbortError') fallbackDownload(pdf);
+        loading.classList.remove('show');
+      });
+    } else {
+      fallbackDownload(pdf);
+      loading.classList.remove('show');
+    }
+  }).catch(function() {
+    loading.classList.remove('show');
+    alert('Erreur lors de la génération du PDF. R\u00e9essayez.');
+  });
+}
+function fallbackDownload(pdf) {
+  var blob = pdf.output('blob');
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'Billet-${b.numero}.pdf';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
+}
+</script>
 </body>
 </html>`);
   } catch (err) {
@@ -532,256 +643,151 @@ const evenementBillets = async (req, res) => {
   }
 };
 
-/**
- * Affiche une page HTML publique du reçu d'achat (tous les billets d'une transaction)
- * Les billets sont groupés par catégorie, chacun avec son QR code et lien de téléchargement
- * GET /api/billets/recu/:reference
- */
+// Page HTML du reçu groupé avec tous les QR codes (pour impression / téléchargement)
+// GET /api/billets/recu/:ref
 const afficherRecu = async (req, res) => {
   try {
-    const { reference } = req.params;
+    const { ref } = req.params;
+    const [txs] = await pool.query(
+      "SELECT id, reference, montant, devise, moyen_paiement, telephone_payeur, statut, date_creation FROM `transaction` WHERE reference = ?",
+      [ref]
+    );
+    if (!txs.length) return res.status(404).send("Reçu introuvable");
 
-    const [rows] = await pool.query(
-      `SELECT b.uuid, b.numero, b.prix_paye, b.statut, b.date_creation,
-        b.payload_signature, b.evenement_id,
-        e.titre, e.lieu, e.date_debut, e.date_fin, e.affiche_url,
-        ct.nom AS categorie, ct.couleur_hex, ct.prix AS categorie_prix
+    const tx = txs[0];
+    const [billets] = await pool.query(
+      `SELECT b.uuid, b.numero, b.prix_paye, b.payload_signature, b.date_creation,
+        e.titre, e.date_debut AS date_debut, e.lieu, e.affiche_url, ct.nom AS categorie
       FROM billet b
       JOIN evenement e ON e.id = b.evenement_id
       JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
-      WHERE b.transaction_id = (SELECT t.id FROM \`transaction\` t WHERE t.reference = ?)
-      ORDER BY ct.nom, b.numero`,
-      [reference]
+      WHERE b.transaction_id = ?`,
+      [tx.id]
     );
+    if (!billets.length) return res.status(404).send("Aucun billet trouvé");
 
-    if (!rows.length) {
-      return res.status(404).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Reçu introuvable — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#10B981;">SENGUICHET</h1><p style="color:#6EE7B7;">Reçu introuvable</p></body></html>`);
-    }
-
-    const eventInfo = {
-      titre: rows[0].titre,
-      lieu: rows[0].lieu,
-      date_debut: rows[0].date_debut,
-      date_fin: rows[0].date_fin,
-    };
-
-    // Grouper les billets par catégorie
-    const groupes = {};
-
-    for (const r of rows) {
-      if (!groupes[r.categorie]) groupes[r.categorie] = { couleur: r.couleur_hex || '#10B981', prix: r.categorie_prix, tickets: [] };
-      groupes[r.categorie].tickets.push(r);
-    }
-
-    const dateFormatted = new Date(eventInfo.date_debut).toLocaleDateString("fr-FR", {
+    const evenement = billets[0];
+    const dateEvenement = new Date(evenement.date_debut).toLocaleDateString("fr-FR", {
       day: "numeric", month: "long", year: "numeric"
     });
-    const heureFormatted = new Date(eventInfo.date_debut).toLocaleTimeString("fr-FR", {
-      hour: "2-digit", minute: "2-digit"
-    });
 
-    // Générer les blocs HTML pour chaque groupe
-    const groupesHtml = Object.entries(groupes).map(([nom, g]) => {
-      const ticketsHtml = g.tickets.map(t => {
-        const qrPayload = JSON.stringify({
-          uuid: t.uuid,
-          hmac: t.payload_signature,
-          event_id: t.evenement_id,
-          category: t.categorie,
-          timestamp: t.date_creation,
-          transaction_ref: t.numero,
-        });
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(qrPayload)}`;
-        const dateAchat = new Date(t.date_creation).toLocaleDateString("fr-FR", {
-          day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
-        });
-        return `
-          <div class="ticket">
-            <img src="${qrUrl}" alt="QR" class="qrcode" />
-            <div class="tinfo">
-              <div class="tref">${t.numero}</div>
-              <div class="tdate">${dateAchat}</div>
-              <div class="tprix">${Number(t.prix_paye).toLocaleString()} FCFA</div>
-              <a href="/api/billets/${t.uuid}" class="tlink">Voir le billet →</a>
-            </div>
-          </div>`;
-      }).join('');
-
+    const billetsHtml = billets.map((b, i) => {
+      const qrPayload = JSON.stringify({
+        uuid: b.uuid, hmac: b.payload_signature,
+        event_id: null, category: b.categorie,
+        timestamp: b.date_creation, transaction_ref: b.numero,
+      });
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrPayload)}`;
       return `
-        <div class="groupe">
-          <div class="gentete" style="border-left:4px solid ${g.couleur};">
-            <span class="gnom">${nom.toUpperCase()}</span>
-            <span class="gqte">×${g.tickets.length}</span>
-            <span class="gprix">${(g.prix * g.tickets.length).toLocaleString()} FCFA</span>
-          </div>
-          <div class="gtickets">${ticketsHtml}</div>
-        </div>`;
+      <div class="recu-billet">
+        <div class="recu-billet-left">
+          <div class="recu-billet-num">Billet ${i + 1}</div>
+          <div class="recu-billet-ref">${b.numero}</div>
+          <div class="recu-billet-cat">${b.categorie}</div>
+        </div>
+        <div class="recu-billet-right">
+          <img src="${qrUrl}" alt="QR" style="width:120px;height:120px;display:block" />
+        </div>
+      </div>`;
     }).join('');
 
-    const nbTickets = rows.length;
-    const montantTotal = rows.reduce((sum, r) => sum + Number(r.prix_paye), 0);
+    const totalMontant = billets.reduce((s, b) => s + Number(b.prix_paye), 0);
 
     res.send(`<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reçu d'achat - SENGUICHET</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Reçu ${ref} — SENGUICHET</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0F1A0F;min-height:100vh;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;padding:20px;display:flex;flex-direction:column;align-items:center}
-.recu{max-width:640px;width:100%;background:#F9F6EE;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(16,185,129,.2)}
-@media print{body{background:#fff;padding:0}.recu{box-shadow:none;page-break-after:avoid}.noprint{display:none!important}}
-/* HEADER */
-.hd{background:linear-gradient(135deg,#10B981,#059669);padding:24px;text-align:center;position:relative}
-.hd h1{color:#fff;font-size:22px;font-weight:700;letter-spacing:1px}
-.hd p{color:rgba(255,255,255,.7);font-size:12px;margin-top:4px}
-.hd .ref{color:rgba(255,255,255,.5);font-size:10px;letter-spacing:2px;margin-top:8px}
-/* EVENT INFO */
-.evinfo{background:#fff;margin:0 16px 16px;border-radius:12px;padding:16px;border:1px solid rgba(16,185,129,.08)}
-.evinfo .evtitre{font-size:16px;font-weight:700;color:#111827}
-.evinfo .evdetail{font-size:12px;color:#6B7280;margin-top:4px}
-/* GROUPES */
-.groupe{margin:0 16px 16px}
-.gentete{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border-radius:10px 10px 0 0;border-bottom:1px solid #E5E7EB}
-.gnom{font-size:11px;font-weight:700;letter-spacing:2px;color:#111827;flex:1}
-.gqte{font-size:13px;font-weight:700;color:#10B981}
-.gprix{font-size:12px;font-weight:600;color:#6B7280}
-.gtickets{background:#fff;border-radius:0 0 10px 10px;padding:12px}
-.ticket{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid #F3F4F6}
-.ticket:last-child{border-bottom:none}
-.qrcode{width:120px;height:120px;border-radius:8px;flex-shrink:0}
-.tinfo{flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px}
-.tref{font-size:13px;font-weight:700;color:#111827;letter-spacing:.5px}
-.tdate{font-size:11px;color:#6B7280}
-.tprix{font-size:14px;font-weight:700;color:#10B981}
-.tlink{display:inline-block;margin-top:6px;font-size:12px;font-weight:600;color:#10B981;text-decoration:none;border:1px solid #10B981;border-radius:6px;padding:4px 14px;align-self:flex-start;transition:all .2s}
-.tlink:hover{background:#10B981;color:#fff}
-/* TOTAL */
-.total{background:#fff;margin:0 16px 16px;border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(16,185,129,.08)}
-.total .tlabel{font-size:12px;color:#6B7280;letter-spacing:1px}
-.total .tmontant{font-size:20px;font-weight:700;color:#111827}
-/* FOOTER */
-.ft{background:#F0EAD6;padding:16px;text-align:center}
-.ft p{font-size:10px;color:rgba(16,185,129,.4);letter-spacing:1px}
-/* PRINT BUTTON */
-.printbtn{display:flex;align-items:center;justify-content:center;gap:8px;margin:20px auto;padding:12px 28px;border-radius:14px;border:none;font-size:14px;font-weight:600;color:#fff;background:#10B981;cursor:pointer;transition:opacity .2s;letter-spacing:.5px}
-.printbtn:hover{opacity:.85}
-.printbtn svg{width:18px;height:18px}
+body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;font-family:'Outfit','Segoe UI',system-ui,-apple-system,sans-serif}
+.recu{max-width:700px;width:100%;background:#F9F6EE;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.35)}
+.recu-head{background:#1B4332;padding:28px;text-align:center;position:relative;overflow:hidden}
+.recu-head .orb{position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(64,145,108,0.2)}
+.recu-head h1{color:#D4AF37;font-size:20px;font-weight:800;letter-spacing:2px;position:relative;z-index:1}
+.recu-head p{color:rgba(255,255,255,0.6);font-size:12px;margin-top:4px;position:relative;z-index:1}
+.recu-head .ref{color:rgba(255,255,255,0.4);font-size:11px;font-family:monospace;margin-top:8px;position:relative;z-index:1}
+.recu-body{padding:24px 20px}
+.recu-event{text-align:center;margin-bottom:20px}
+.recu-event h2{color:#1B4332;font-size:18px;font-weight:700}
+.recu-event .meta{color:#40916C;font-size:13px;margin-top:4px}
+.recu-section-title{color:#1B4332;font-size:13px;font-weight:700;margin-bottom:12px;letter-spacing:2px;text-transform:uppercase}
+.recu-billet{display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:10px;border:1px solid rgba(27,67,50,0.06)}
+.recu-billet-num{color:#40916C;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.recu-billet-ref{color:#1B4332;font-size:14px;font-weight:700;margin-top:2px}
+.recu-billet-cat{color:#1B4332;font-size:12px;margin-top:2px;opacity:0.7}
+.recu-billet-right img{border-radius:8px}
+.recu-total{display:flex;justify-content:space-between;align-items:center;padding:16px 0 0;margin-top:12px;border-top:2px solid rgba(27,67,50,0.08)}
+.recu-total .lbl{color:#40916C;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase}
+.recu-total .val{color:#1B4332;font-size:24px;font-weight:800}
+.recu-foot{background:#F0EAD6;padding:16px;text-align:center}
+.recu-foot p{color:#40916C;font-size:11px}
+@media print{body{background:#fff;padding:0;justify-content:flex-start}.recu{box-shadow:none;border-radius:0}}
 </style>
 </head>
 <body>
-<button class="printbtn noprint" onclick="window.print()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Télécharger le reçu (PDF)</button>
 <div class="recu">
-  <div class="hd">
+  <div class="recu-head">
+    <div class="orb"></div>
     <h1>SENGUICHET</h1>
-    <p>Achat confirmé</p>
-    <div class="ref">RÉFÉRENCE · ${reference}</div>
+    <p>Reçu d'achat</p>
+    <div class="ref">${ref}</div>
   </div>
-  <div class="evinfo">
-    <div class="evtitre">${(eventInfo.titre || '').toUpperCase()}</div>
-    <div class="evdetail">${dateFormatted} à ${heureFormatted}</div>
-    <div class="evdetail">${eventInfo.lieu || ''}</div>
+  <div class="recu-body">
+    <div class="recu-event">
+      <h2>${evenement.titre}</h2>
+      <div class="meta">${dateEvenement} · ${evenement.lieu}</div>
+    </div>
+    <div class="recu-section-title">Billets achetés</div>
+    ${billetsHtml}
+    <div class="recu-total">
+      <span class="lbl">Total payé</span>
+      <span class="val">${totalMontant.toLocaleString()} FCFA</span>
+    </div>
   </div>
-  <p style="font-size:14px;font-weight:700;color:#111827;margin:0 16px 12px">${nbTickets} billet${nbTickets > 1 ? 's' : ''}</p>
-  ${groupesHtml}
-  <div class="total">
-    <span class="tlabel">TOTAL</span>
-    <span class="tmontant">${montantTotal.toLocaleString()} FCFA</span>
-  </div>
-  <div class="ft">
+  <div class="recu-foot">
     <p>SENGUICHET — Sen Digital Pulse</p>
-    <p>Entrée unique et non transférable</p>
   </div>
 </div>
-<button class="printbtn noprint" onclick="window.print()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Télécharger le reçu (PDF)</button>
 </body>
 </html>`);
   } catch (err) {
     console.error("Afficher recu error:", err);
-    res.status(500).send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Erreur — SENGUICHET</title></head><body style="font-family:sans-serif;text-align:center;padding:60px 20px;background:#F9F6EE"><h1 style="color:#10B981;">SENGUICHET</h1><p style="color:#6EE7B7;">Erreur serveur</p></body></html>`);
+    res.status(500).send("Erreur serveur");
   }
 };
 
-/**
- * Retourne les données JSON du reçu d'achat pour l'application mobile
- * GET /api/billets/recu/:reference/data
- */
+// Route JSON pour récupérer les données d'un reçu (mobile)
+// GET /api/billets/recu/:ref/data
 const recuData = async (req, res) => {
   try {
-    const { reference } = req.params;
-
-    const [rows] = await pool.query(
+    const { ref } = req.params;
+    const [txs] = await pool.query(
+      "SELECT id, reference, montant, devise, moyen_paiement, telephone_payeur, statut, date_creation FROM `transaction` WHERE reference = ?",
+      [ref]
+    );
+    if (!txs.length) return res.status(404).json({ message: "Reçu introuvable" });
+    const tx = txs[0];
+    const [billets] = await pool.query(
       `SELECT b.uuid, b.numero, b.prix_paye, b.statut, b.date_creation,
-        b.payload_signature, b.evenement_id,
-        e.titre, e.lieu, e.date_debut, e.affiche_url,
-        ct.nom AS categorie, ct.couleur_hex, ct.prix AS categorie_prix
+        e.titre AS evenement_titre, e.date_debut, e.lieu, ct.nom AS categorie_nom
       FROM billet b
       JOIN evenement e ON e.id = b.evenement_id
       JOIN categorie_ticket ct ON ct.id = b.categorie_ticket_id
-      WHERE b.transaction_id = (SELECT t.id FROM \`transaction\` t WHERE t.reference = ?)
-      ORDER BY ct.nom, b.numero`,
-      [reference]
+      WHERE b.transaction_id = ?`,
+      [tx.id]
     );
-
-    if (!rows.length) {
-      return res.status(404).json({ message: "Reçu introuvable" });
-    }
-
-    const groupes = {};
-    for (const r of rows) {
-      if (!groupes[r.categorie]) groupes[r.categorie] = { couleur: r.couleur_hex || '#10B981', prix: r.categorie_prix, tickets: [] };
-      groupes[r.categorie].tickets.push({
-        uuid: r.uuid,
-        numero: r.numero,
-        prixPaye: r.prix_paye,
-        statut: r.statut,
-        dateCreation: r.date_creation,
-        qrPayload: JSON.stringify({
-          uuid: r.uuid,
-          hmac: r.payload_signature,
-          event_id: r.evenement_id,
-          category: r.categorie,
-          timestamp: r.date_creation,
-          transaction_ref: r.numero,
-        }),
-      });
-    }
-
-    const tickets = rows.map(r => ({
-      uuid: r.uuid,
-      numero: r.numero,
-      prixPaye: r.prix_paye,
-      statut: r.statut,
-      dateCreation: r.date_creation,
-      categorie: r.categorie,
-      couleur: r.couleur_hex || '#10B981',
-      qrPayload: JSON.stringify({
-        uuid: r.uuid,
-        hmac: r.payload_signature,
-        event_id: r.evenement_id,
-        category: r.categorie,
-        timestamp: r.date_creation,
-        transaction_ref: r.numero,
-      }),
+    const payload = billets.map(b => ({
+      uuid: b.uuid, numero: b.numero, prix: b.prix_paye,
+      evenement: b.evenement_titre, categorie: b.categorie_nom,
+      date: b.date_creation,
     }));
-
-    res.json({
-      reference,
-      evenement: {
-        titre: rows[0].titre,
-        lieu: rows[0].lieu,
-        dateDebut: rows[0].date_debut,
-      },
-      groupes,
-      tickets,
-      nbTickets: rows.length,
-      montantTotal: rows.reduce((sum, r) => sum + Number(r.prix_paye), 0),
-    });
+    res.json({ transaction: tx, billets: payload });
   } catch (err) {
-    console.error("Reçu data error:", err);
-    res.status(500).json({ message: "Erreur serveur" });
+    console.error("Recu data error:", err);
+    res.status(500).json({ message: "Erreur" });
   }
 };
 
-module.exports = { acheter, mesBillets, afficherBillet, evenementBillets, afficherRecu, recuData };
+module.exports = { acheter, mesBillets, afficherBillet, recuData, afficherRecu, evenementBillets };

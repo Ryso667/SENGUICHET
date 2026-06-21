@@ -8,7 +8,7 @@ import { Alert } from 'react-native'
 // Charge le logo et le convertit en base64 pour injection dans le HTML du PDF
 async function chargerLogoBase64() {
   try {
-    const asset = Asset.fromModule(require('../../assets/logo_mobile.jpeg'))
+    const asset = Asset.fromModule(require('../../assets/logo.png'))
     await asset.downloadAsync()
     const b64 = await FileSystem.readAsStringAsync(asset.localUri, {
       encoding: FileSystem.EncodingType.Base64,

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2, CheckCircle, XCircle, ArrowRight, ArrowLeft, Smartphone, Ticket } from "lucide-react";
-import { acheterBillet } from "../services/billetService";
+import { acheterBillets } from "../services/billetService";
 import { statutPaiement } from "../services/paiementService";
 import { useAuth } from "../context/AuthContext";
 
@@ -24,7 +24,7 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [totalAchetes, setTotalAchetes] = useState(0);
-  const [liensRecu, setLiensRecu] = useState([]);
+  const [lienRecu, setLienRecu] = useState(null);
   const pollingRef = useRef(null);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
       setEmail(localStorage.getItem("@senguichet_acheteur_email") || "");
       setProgress({ current: 0, total: 0 });
       setTotalAchetes(0);
-      setLiensRecu([]);
+      setLienRecu(null);
       if (pollingRef.current) clearInterval(pollingRef.current);
     }
   }, [open]);
@@ -45,53 +45,49 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
     const tel = telephone.replace(/\s/g, "");
     if (tel.length < 9) { setError("Numéro invalide"); return; }
     setEtape("pending"); setError(null);
-    setProgress({ current: 0, total: categories.length });
-    let achetes = 0;
+    setProgress({ current: 1, total: 1 });
 
-    for (let i = 0; i < categories.length; i++) {
-      const cat = categories[i];
-      setProgress({ current: i + 1, total: categories.length });
-      try {
-        const result = await acheterBillet({
-          evenementId,
-          categorieTicketId: cat.id,
-          telephone: tel,
-          quantite: cat.quantite,
-          provider,
-          email: email || undefined,
+    try {
+      const result = await acheterBillets({
+        evenementId,
+        telephone: tel,
+        categories: categories.map(c => ({ categorieTicketId: c.id, quantite: c.quantite })),
+        provider,
+        email: email || undefined,
+      });
+
+      if (result.paiement?.redirectUrl) {
+        window.open(result.paiement.redirectUrl, "_blank");
+        let attempts = 0;
+        const paid = await new Promise((resolve) => {
+          pollingRef.current = setInterval(async () => {
+            attempts++;
+            try {
+              const s = await statutPaiement(result.paiement.reference);
+              if (s.statut === "SUCCESS") {
+                clearInterval(pollingRef.current);
+                resolve(true);
+              } else if (s.statut === "FAILED" || attempts > 60) {
+                clearInterval(pollingRef.current);
+                resolve(false);
+              }
+            } catch { if (attempts > 60) { clearInterval(pollingRef.current); resolve(false); } }
+          }, 3000);
         });
-        if (result.paiement?.redirectUrl) {
-          if (i === 0) window.open(result.paiement.redirectUrl, "_blank");
-          let attempts = 0;
-          const paid = await new Promise((resolve) => {
-            pollingRef.current = setInterval(async () => {
-              attempts++;
-              try {
-                const s = await statutPaiement(result.paiement.reference);
-                if (s.statut === "SUCCESS") {
-                  clearInterval(pollingRef.current);
-                  resolve(true);
-                } else if (s.statut === "FAILED" || attempts > 60) {
-                  clearInterval(pollingRef.current);
-                  resolve(false);
-                }
-              } catch { if (attempts > 60) { clearInterval(pollingRef.current); resolve(false); } }
-            }, 3000);
-          });
-          if (!paid) { setEtape("failed"); setError(`Paiement échoué pour ${cat.nom}`); return; }
-        }
-        achetes += cat.quantite;
-        if (result.lien) setLiensRecu(prev => [...prev, result.lien]);
-      } catch (err) {
-        setEtape("failed");
-        setError(`${err.message} — ${cat.nom}`);
-        return;
+        if (!paid) { setEtape("failed"); setError("Paiement échoué"); return; }
       }
-    }
-    setTotalAchetes(achetes);
-    setEtape("success");
-    if (!isAuthenticated || !localStorage.getItem("@senguichet_acheteur_email") || localStorage.getItem("@senguichet_acheteur_email") !== email) {
-      setBuyerSession(email);
+
+      const quantiteTotal = categories.reduce((s, c) => s + c.quantite, 0);
+      setTotalAchetes(quantiteTotal);
+      if (result.lien) setLienRecu(result.lien);
+      setEtape("success");
+
+      if (!isAuthenticated || !localStorage.getItem("@senguichet_acheteur_email") || localStorage.getItem("@senguichet_acheteur_email") !== email) {
+        setBuyerSession(email);
+      }
+    } catch (err) {
+      setEtape("failed");
+      setError(err.message);
     }
   };
 
@@ -207,10 +203,10 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
               <div className="text-center py-8">
                 <Loader2 size={40} className="animate-spin mx-auto mb-4" style={{ color: "#15803D" }} />
                 <p className="font-medium" style={{ color: "#1a1a1a" }}>
-                  Achat {progress.current}/{progress.total}
+                  Traitement de votre achat...
                 </p>
                 <p className="text-sm mt-2" style={{ color: "#64748B" }}>
-                  {categories[progress.current - 1]?.nom} — {categories[progress.current - 1]?.quantite} billet(s)
+                  {categories.length > 1 ? `${categories.length} catégories` : `${categories[0]?.nom}`} · {categories.reduce((s, c) => s + c.quantite, 0)} billet(s)
                 </p>
               </div>
             )}
@@ -224,15 +220,13 @@ export default function PaiementModal({ open, onClose, evenementId, categories, 
                 <p className="text-sm mt-2 mb-4" style={{ color: "#64748B" }}>
                   {totalAchetes} billet{totalAchetes > 1 ? "s" : ""} acheté{totalAchetes > 1 ? "s" : ""} avec succès.
                 </p>
-                {liensRecu.length > 0 && (
-                  <div className="mb-4 space-y-2">
-                    {liensRecu.map((lien, i) => (
-                      <a key={i} href={lien} target="_blank" rel="noopener noreferrer"
-                        className="block px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:opacity-85"
-                        style={{ background: "rgba(21,128,61,0.08)", color: "#15803D", textDecoration: "none" }}>
-                        Voir le reçu{liensRecu.length > 1 ? ` (${i + 1})` : ""} →
-                      </a>
-                    ))}
+                {lienRecu && (
+                  <div className="mb-4">
+                    <a href={lienRecu} target="_blank" rel="noopener noreferrer"
+                      className="block px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:opacity-85"
+                      style={{ background: "rgba(21,128,61,0.08)", color: "#15803D", textDecoration: "none" }}>
+                      Voir le reçu →
+                    </a>
                   </div>
                 )}
                 <button onClick={() => { onClose(); navigate("/acheteur/mes-billets"); }}

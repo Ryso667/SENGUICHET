@@ -58,3 +58,4 @@ frontend-web/build/
 backend/data/
 node_modules_old/
 .vercel
+.env*
