@@ -8,7 +8,6 @@
  */
 
 const pool = require("../config/db");
-const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const PaymentService = require("../services/PaymentService");
@@ -141,7 +140,7 @@ const acheter = async (req, res) => {
       for (const achat of catsData) {
         const groupe = [];
         for (let i = 0; i < achat.quantiteDemandee; i++) {
-          const uuid = uuidv4();
+          const uuid = crypto.randomUUID();
           const numero = `TKT-${Date.now().toString(36).toUpperCase()}-${ticketIdx}`;
           const timestamp = new Date().toISOString();
 
@@ -191,7 +190,7 @@ const acheter = async (req, res) => {
       }
 
       // Créer une transaction unique pour le montant total
-      const reference = 'PAI-' + uuidv4().slice(0, 12).toUpperCase();
+      const reference = 'PAI-' + crypto.randomUUID().slice(0, 12).toUpperCase();
       const premierBilletId = billetsCrees[0].id;
       await conn.query(
         `INSERT INTO transaction (reference, billet_id, montant, frais, devise, statut, moyen_paiement, telephone_payeur)
