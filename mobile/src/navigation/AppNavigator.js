@@ -31,7 +31,7 @@ import NotificationsScreen from '../screens/NotificationsScreen'
 import MesFavorisScreen from '../screens/MesFavorisScreen'
 import CalendarScreen from '../screens/CalendarScreen'
 
-import OrganizerDrawer from './OrganizerDrawer'
+import OrganizerTabs from './OrganizerTabs'
 import ControllerDrawer from './ControllerDrawer'
 
 const Stack = createNativeStackNavigator()
@@ -165,7 +165,7 @@ export default function AppNavigator() {
   return (
     <NavigationContainer ref={navigationRef}>
       {(!role || role === 'acheteur') && <GuestNavigator />}
-      {role === 'organisateur' && <OrganizerDrawer />}
+      {role === 'organisateur' && <OrganizerTabs />}
       {role === 'controleur' && <ControllerDrawer />}
     </NavigationContainer>
   )
