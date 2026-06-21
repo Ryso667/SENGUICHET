@@ -16,6 +16,7 @@ import { mesBillets } from '../services/billetService'
 import { GET } from '../utils/secureStorage'
 import { formaterDateLisible, estDatePassee } from '../utils/dateUtils'
 import { hapticLight } from '../utils/haptics'
+import EmptyState from '../components/EmptyState'
 
 // Mapping des statuts tickets vers le composant StatusBadge réutilisable
 const STATUS_MAP = {
@@ -196,29 +197,18 @@ export default function MesTicketsScreen() {
             scrollEventThrottle={16}
               ListEmptyComponent={
                 !syncing ? (
-                  <View style={styles.emptyContainer}>
-                    <Ionicons name="ticket-outline" size={80} color={colors.textTertiary} />
-                    <Text style={styles.emptyTitle}>
-                      {ongletActif === 'actifs' ? 'Aucun billet actif' : 'Aucun billet passé'}
-                    </Text>
-                    <Text style={styles.emptySubtitle}>
-                      {ongletActif === 'actifs'
-                        ? 'Explore les événements et achète ton premier billet'
-                        : 'Tes billets utilisés ou expirés apparaîtront ici'}
-                    </Text>
-                    {ongletActif === 'actifs' && (
-                      <TouchableOpacity
-                        style={styles.emptyCta}
-                        onPress={() => {
-                          hapticLight()
-                          navigation.navigate('Home')
-                        }}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={styles.emptyCtaText}>Explorer</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
+                  <EmptyState
+                    icon={ongletActif === 'actifs' ? '🎫' : '🎟️'}
+                    title={ongletActif === 'actifs' ? 'Aucun billet actif' : 'Aucun billet passé'}
+                    subtitle={ongletActif === 'actifs'
+                      ? 'Explore les événements et achète ton premier billet'
+                      : 'Tes billets utilisés ou expirés apparaîtront ici'}
+                    actionLabel={ongletActif === 'actifs' ? 'Explorer' : undefined}
+                    onAction={ongletActif === 'actifs' ? () => {
+                      hapticLight()
+                      navigation.navigate('Home')
+                    } : undefined}
+                  />
                 ) : null
               }
           />
@@ -391,39 +381,5 @@ const makeStyles = (colors) => StyleSheet.create({
     marginTop: 2,
   },
 
-  // ÉTAT VIDE — centré avec grande icône ticket
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 80,
-    paddingHorizontal: spacing.lg,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontFamily: fonts.outfit.semiBold,
-    color: colors.text,
-    marginTop: 20,
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    fontFamily: fonts.jakarta.regular,
-    color: colors.textSecondary,
-    marginTop: 8,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  emptyCta: {
-    marginTop: 32,
-    backgroundColor: colors.accent,
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 12,
-  },
-  emptyCtaText: {
-    fontSize: 15,
-    fontFamily: fonts.outfit.semiBold,
-    color: colors.white,
-  },
+
 })
