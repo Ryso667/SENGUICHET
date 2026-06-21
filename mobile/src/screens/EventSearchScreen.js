@@ -15,6 +15,7 @@ import AnimatedEventCard from '../components/AnimatedEventCard'
 import { fetchEvenementsPublics } from '../services/eventService'
 import { formaterPourEventCard } from '../utils/eventUtils'
 import { optimiserUrlCloudinary } from '../components/BlurBackground'
+import { hapticLight } from '../utils/haptics'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import RecentSearchChips from '../components/RecentSearchChips'
 
@@ -217,7 +218,10 @@ export default function EventSearchScreen({ navigation }) {
               event={item}
               index={index}
               cardStyle={{ width: '100%', marginRight: 0 }}
-              onPress={() => navigation.navigate('EventDetail', { eventId: item.id, event: item })}
+              onPress={() => {
+                hapticLight()
+                navigation.navigate('EventDetail', { eventId: item.id, event: item })
+              }}
             />
           </View>
         )}
