@@ -183,15 +183,51 @@ async function migrate() {
     await connection.query(`
       CREATE TABLE IF NOT EXISTS push_tokens (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        organisateur_id INT NOT NULL,
+        organisateur_id INT NULL,
         token VARCHAR(255) NOT NULL,
+        appareil VARCHAR(50) DEFAULT NULL,
+        acheteur_id INT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (organisateur_id) REFERENCES organisateur(id) ON DELETE CASCADE
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (organisateur_id) REFERENCES organisateur(id) ON DELETE CASCADE,
+        FOREIGN KEY (acheteur_id) REFERENCES acheteur(id) ON DELETE CASCADE,
+        UNIQUE KEY uk_token (token)
       )
     `)
     console.log("✅ Table push_tokens créée")
   } catch (e) {
     console.log("ℹ️  push_tokens peut-être déjà créée:", e.message)
+  }
+
+  // Migration : ajouter colonnes acheteur_id et appareil si la table existait déjà
+  try {
+    const [cols] = await connection.query("SHOW COLUMNS FROM push_tokens LIKE 'acheteur_id'");
+    if (cols.length === 0) {
+      await connection.query("ALTER TABLE push_tokens ADD COLUMN acheteur_id INT NULL AFTER token");
+      console.log("✅ Colonne acheteur_id ajoutée à push_tokens");
+    }
+  } catch (e) {
+    console.log("ℹ️  Vérification acheteur_id:", e.message);
+  }
+
+  try {
+    const [cols] = await connection.query("SHOW COLUMNS FROM push_tokens LIKE 'appareil'");
+    if (cols.length === 0) {
+      await connection.query("ALTER TABLE push_tokens ADD COLUMN appareil VARCHAR(50) DEFAULT NULL AFTER token");
+      console.log("✅ Colonne appareil ajoutée à push_tokens");
+    }
+  } catch (e) {
+    console.log("ℹ️  Vérification appareil:", e.message);
+  }
+
+  try {
+    const [cols] = await connection.query("SHOW COLUMNS FROM push_tokens LIKE 'updated_at'");
+    if (cols.length === 0) {
+      await connection.query("ALTER TABLE push_tokens ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at");
+      console.log("✅ Colonne updated_at ajoutée à push_tokens");
+    }
+  } catch (e) {
+    console.log("ℹ️  Vérification updated_at:", e.message);
   }
 
   // Table des notifications persistées
@@ -236,6 +272,31 @@ async function migrate() {
     console.log("✅ Table sms_log créée");
   } catch (e) {
     console.log("ℹ️ sms_log peut-être déjà créée:", e.message);
+  }
+
+  // Table des codes promo
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS code_promo (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        organisateur_id INT NOT NULL,
+        evenement_id INT NULL,
+        code VARCHAR(50) NOT NULL,
+        type ENUM('pourcentage','fixe') NOT NULL DEFAULT 'pourcentage',
+        valeur DECIMAL(10,2) NOT NULL,
+        utilisations_max INT NOT NULL DEFAULT 0,
+        utilisations_actuelles INT NOT NULL DEFAULT 0,
+        date_expiration DATETIME NOT NULL,
+        actif TINYINT(1) NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_code (code),
+        FOREIGN KEY (organisateur_id) REFERENCES organisateur(id) ON DELETE CASCADE,
+        FOREIGN KEY (evenement_id) REFERENCES evenement(id) ON DELETE SET NULL
+      )
+    `);
+    console.log("✅ Table code_promo créée");
+  } catch (e) {
+    console.log("ℹ️  code_promo peut-être déjà créée:", e.message);
   }
 
   console.log("✅ Migration terminée");

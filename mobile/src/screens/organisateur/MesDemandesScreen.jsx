@@ -14,6 +14,7 @@ import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { hexToRgba } from '../../utils/colors'
+import { getBlurType } from '../../utils/themeUtils'
 
 const getStatutConfig = (colors) => ({
   soumis: { label: 'Soumis', color: colors.orange, bg: hexToRgba(colors.orange, 0.15) },
@@ -45,8 +46,12 @@ const VILLES = [
   'Dakar', 'Thiès', 'Saint-Louis', 'Ziguinchor', 'Touba', 'Kaolack', 'Autre',
 ]
 
+const ICONES_CATEGORIES = { Concert: '🎵', Festival: '🎪', Sport: '⚽', Théâtre: '🎭', Conférence: '📚', Atelier: '🛠️', Exposition: '🖼️', 'Club / Soirée': '🎉', Gala: '🏆', 'Autres / Divers': '📌' }
+const ICONES_VILLES = VILLES.reduce((acc, v) => { acc[v] = '📍'; return acc }, {})
+const ICONES_BILLETS = { Standard: '🎟️', VIP: '🎟️', Premium: '🎟️', 'Carré Or': '💎', Fosse: '🎤', 'Autres / Divers': '🎫' }
+
 export default function MesDemandesScreen({ navigation }) {
-  const { colors } = useTheme()
+  const { colors, mode, isDark } = useTheme()
   const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
   const s = useMemo(() => makeStyles(colors), [colors])
   const f = useMemo(() => makeFormStyles(colors), [colors])
@@ -265,7 +270,7 @@ export default function MesDemandesScreen({ navigation }) {
   const renderEventPicker = () => (
     <Modal visible={eventsVisible} transparent animationType="fade">
       <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setEventsVisible(false)}>
-        <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+        <GlassContainer blurType={getBlurType(isDark)} style={s.picker} intensity={50}>
           <Text style={s.pickerTitle}>Sélectionner un événement</Text>
           {eventsLoading ? (
             <ActivityIndicator color="#fff" style={{ marginVertical: 20 }} />
@@ -277,6 +282,7 @@ export default function MesDemandesScreen({ navigation }) {
             <FlatList
               data={organisateurEvents}
               keyExtractor={(item) => String(item.id)}
+              showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, evenementId === item.id && s.pickerItemActive]}
@@ -287,7 +293,7 @@ export default function MesDemandesScreen({ navigation }) {
                   }}
                 >
                   <Text style={[s.pickerItemText, evenementId === item.id && s.pickerItemTextActive]}>
-                    {item.nom || item.titre}
+                    {ICONES_CATEGORIES[item.categorie] || '📅'}  {item.nom || item.titre}
                   </Text>
                   <Text style={{ fontSize: 10, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>
                     {item.categorie || ''}{item.date_debut ? ` · ${new Date(item.date_debut).toLocaleDateString('fr-FR')}` : ''}
@@ -431,7 +437,7 @@ export default function MesDemandesScreen({ navigation }) {
       <View style={{ paddingTop: insets.top, flex: 1 }}>
         <ScrollView
           contentContainerStyle={s.content}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
           keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" colors={["#10B981"]} />}
           onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
@@ -507,7 +513,7 @@ export default function MesDemandesScreen({ navigation }) {
         <Animated.View style={[s.modalOverlay, { opacity: fadeAnim }]}>
           <TouchableOpacity style={s.modalBackdrop} activeOpacity={1} onPress={closeModal} />
           <Animated.View style={[s.modalContent, { transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [300, 0] }) }] }]}>
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <ScrollView showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'} keyboardShouldPersistTaps="handled">
               {modalMode === 'detail' && viewingDemande ? (
                 /* === MODE DÉTAIL === */
                 <>
@@ -743,17 +749,18 @@ export default function MesDemandesScreen({ navigation }) {
       {/* Modale catégorie */}
       <Modal visible={catVisible} transparent animationType="fade">
         <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setCatVisible(false)}>
-          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+          <GlassContainer blurType={getBlurType(isDark)} style={s.picker} intensity={50}>
             <Text style={s.pickerTitle}>Catégorie d'événement</Text>
             <FlatList
               data={CATEGORIES}
               keyExtractor={i => i}
+              showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, categorie === item && s.pickerItemActive]}
                   onPress={() => { setCategorie(item); setCatVisible(false) }}
                 >
-                  <Text style={[s.pickerItemText, categorie === item && s.pickerItemTextActive]}>{item}</Text>
+                  <Text style={[s.pickerItemText, categorie === item && s.pickerItemTextActive]}>{ICONES_CATEGORIES[item] || '📌'}  {item}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -764,11 +771,12 @@ export default function MesDemandesScreen({ navigation }) {
       {/* Modale catégorie billet */}
       <Modal visible={billetCatIndex !== null} transparent animationType="fade">
         <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setBilletCatIndex(null)}>
-          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+          <GlassContainer blurType={getBlurType(isDark)} style={s.picker} intensity={50}>
             <Text style={s.pickerTitle}>Type de billet</Text>
             <FlatList
               data={BILLET_CATEGORIES}
               keyExtractor={i => i}
+              showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, billetCatIndex !== null && categories[billetCatIndex]?.nom === item && s.pickerItemActive]}
@@ -777,7 +785,7 @@ export default function MesDemandesScreen({ navigation }) {
                     setBilletCatIndex(null)
                   }}
                 >
-                  <Text style={[s.pickerItemText, billetCatIndex !== null && categories[billetCatIndex]?.nom === item && s.pickerItemTextActive]}>{item}</Text>
+                  <Text style={[s.pickerItemText, billetCatIndex !== null && categories[billetCatIndex]?.nom === item && s.pickerItemTextActive]}>{ICONES_BILLETS[item] || '🎫'}  {item}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -788,17 +796,18 @@ export default function MesDemandesScreen({ navigation }) {
       {/* Modale ville */}
       <Modal visible={villeVisible} transparent animationType="fade">
         <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setVilleVisible(false)}>
-          <GlassContainer blurType="dark" style={s.picker} intensity={50}>
+          <GlassContainer blurType={getBlurType(isDark)} style={s.picker} intensity={50}>
             <Text style={s.pickerTitle}>Ville</Text>
             <FlatList
               data={VILLES}
               keyExtractor={i => i}
+              showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, ville === item && s.pickerItemActive]}
                   onPress={() => { setVille(item); setVilleVisible(false) }}
                 >
-                  <Text style={[s.pickerItemText, ville === item && s.pickerItemTextActive]}>{item}</Text>
+                  <Text style={[s.pickerItemText, ville === item && s.pickerItemTextActive]}>{ICONES_VILLES[item] || '📍'}  {item}</Text>
                 </TouchableOpacity>
               )}
             />

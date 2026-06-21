@@ -2,16 +2,17 @@
 // Affiche la liste des notifications (nouvelles ventes, etc.)
 // Pull-to-refresh, marquer comme lue, compteur de non-lues
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native'
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
+import EmptyState from '../components/EmptyState'
 import { spacing, borderRadius, fonts } from '../constants/theme'
 import { useTheme } from '../context/ThemeContext'
 import { fetchNotifications, marquerLue, marquerToutLu } from '../services/notificationService'
 import { useFocusEffect } from '@react-navigation/native'
 
 export default function NotificationsScreen({ navigation }) {
-  const { colors } = useTheme()
+  const { colors, isDark } = useTheme()
   const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const [notifications, setNotifications] = useState([])
@@ -87,14 +88,14 @@ export default function NotificationsScreen({ navigation }) {
 
       {chargement ? (
         <View style={styles.center}>
-          <Feather name="bell" size={40} color={colors.textTertiary} />
-          <Text style={styles.emptyText}>Chargement...</Text>
+          <ActivityIndicator size="large" color={colors.accent} />
         </View>
       ) : notifications.length === 0 ? (
-        <View style={styles.center}>
-          <Feather name="bell-off" size={40} color={colors.textTertiary} />
-          <Text style={styles.emptyText}>Aucune notification</Text>
-        </View>
+        <EmptyState
+          icon="🔔"
+          title="Aucune notification"
+          subtitle="Tu seras notifié des événements et mises à jour ici"
+        />
       ) : (
         <FlatList
           data={notifications}
@@ -104,6 +105,7 @@ export default function NotificationsScreen({ navigation }) {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
+          showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
         />
       )}
     </View>
@@ -138,5 +140,4 @@ const makeStyles = (colors) => StyleSheet.create({
     width: 8, height: 8, borderRadius: 4, backgroundColor: colors.accent,
   },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
-  emptyText: { fontFamily: fonts.jakarta.regular, fontSize: 15, color: colors.textTertiary },
 })

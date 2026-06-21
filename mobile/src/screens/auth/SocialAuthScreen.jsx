@@ -13,7 +13,7 @@ import { envoyerCodeOTP } from '../../services/authService'
 import GlassContainer from '../../components/GlassContainer'
 
 export default function SocialAuthScreen({ navigation }) {
-  const { colors } = useTheme()
+  const { colors, mode, isDark } = useTheme()
   const s = useMemo(() => makeStyles(colors), [colors])
   // État du formulaire : email → OTP
   const { connecterAcheteurOTP, acheteurEmailSuggestion } = useAuth()
@@ -118,7 +118,7 @@ export default function SocialAuthScreen({ navigation }) {
           <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
             keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
           >
         <View style={s.container}>
 

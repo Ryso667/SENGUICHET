@@ -15,11 +15,14 @@ import AnimatedEventCard from '../components/AnimatedEventCard'
 import { fetchEvenementsPublics } from '../services/eventService'
 import { formaterPourEventCard } from '../utils/eventUtils'
 import { optimiserUrlCloudinary } from '../components/BlurBackground'
+import { hapticLight } from '../utils/haptics'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import RecentSearchChips from '../components/RecentSearchChips'
 
 const CATEGORIES = ['Tout', 'Concert', 'Festival', 'Sport', 'Theatre', 'Conference']
 
 // Composant stable pour le header de la FlatList — évite les remounts sur chaque render
-function SearchHeader({ search, setSearch, activeCat, setActiveCat, filtresActifs, onOpenFilters, colors, styles }) {
+function SearchHeader({ search, setSearch, activeCat, setActiveCat, filtresActifs, onOpenFilters, colors, styles, recentSearches, ajouterRecherche, supprimerRecherche }) {
   return (
     <>
       <GlassContainer style={styles.searchBar} blurType="light" intensity={60}>
@@ -30,6 +33,7 @@ function SearchHeader({ search, setSearch, activeCat, setActiveCat, filtresActif
           placeholderTextColor={colors.textTertiary}
           value={search}
           onChangeText={setSearch}
+          onSubmitEditing={() => ajouterRecherche(search)}
         />
         {search.length > 0 && (
           <Feather name="x" size={16} color={colors.textSecondary} onPress={() => setSearch('')} />
@@ -43,6 +47,13 @@ function SearchHeader({ search, setSearch, activeCat, setActiveCat, filtresActif
           )}
         </TouchableOpacity>
       </GlassContainer>
+      {!search && (
+        <RecentSearchChips
+          recherches={recentSearches}
+          onSelect={(q) => { setSearch(q); ajouterRecherche(q) }}
+          onDelete={supprimerRecherche}
+        />
+      )}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow} contentContainerStyle={styles.chipsContent}>
         {CATEGORIES.map((cat) => (
           <GlassChip
@@ -58,7 +69,7 @@ function SearchHeader({ search, setSearch, activeCat, setActiveCat, filtresActif
 }
 
 export default function EventSearchScreen({ navigation }) {
-  const { colors } = useTheme()
+  const { colors, mode, isDark } = useTheme()
   const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const [search, setSearch] = useState('')
@@ -68,6 +79,21 @@ export default function EventSearchScreen({ navigation }) {
   const [filtres, setFiltres] = useState({ dateDebut: '', dateFin: '', prixMin: '', prixMax: '', lieu: '' })
   const [selectedDatePreset, setSelectedDatePreset] = useState(null)
   const [selectedBudgetPreset, setSelectedBudgetPreset] = useState(null)
+  const RECHERCHES_KEY = '@senguichet_recent_searches'
+  const [recentSearches, setRecentSearches] = useState([])
+
+  // Charger les recherches récentes au focus
+  useFocusEffect(useCallback(() => {
+    (async () => {
+      try {
+        const val = await AsyncStorage.getItem(RECHERCHES_KEY)
+        if (val) setRecentSearches(JSON.parse(val))
+      } catch (e) {
+        console.warn('Erreur chargement recherches récentes', e)
+      }
+    })()
+  }, []))
+
   const { width } = useWindowDimensions()
 
   const nbFiltresActifs = [filtres.dateDebut, filtres.dateFin, filtres.prixMin, filtres.prixMax, filtres.lieu].filter(Boolean).length
@@ -168,6 +194,20 @@ export default function EventSearchScreen({ navigation }) {
     }
   }, [filtered])
 
+  const ajouterRecherche = useCallback(async (query) => {
+    const trimmed = query.trim()
+    if (!trimmed) return
+    const updated = [trimmed, ...recentSearches.filter(r => r !== trimmed)].slice(0, 5)
+    setRecentSearches(updated)
+    await AsyncStorage.setItem(RECHERCHES_KEY, JSON.stringify(updated))
+  }, [recentSearches])
+
+  const supprimerRecherche = useCallback(async (index) => {
+    const updated = recentSearches.filter((_, i) => i !== index)
+    setRecentSearches(updated)
+    await AsyncStorage.setItem(RECHERCHES_KEY, JSON.stringify(updated))
+  }, [recentSearches])
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -178,7 +218,10 @@ export default function EventSearchScreen({ navigation }) {
               event={item}
               index={index}
               cardStyle={{ width: '100%', marginRight: 0 }}
-              onPress={() => navigation.navigate('EventDetail', { eventId: item.id, event: item })}
+              onPress={() => {
+                hapticLight()
+                navigation.navigate('EventDetail', { eventId: item.id, event: item })
+              }}
             />
           </View>
         )}
@@ -186,16 +229,18 @@ export default function EventSearchScreen({ navigation }) {
         keyExtractor={(item) => item.id?.toString()}
         columnWrapperStyle={styles.columnWrapper}
         contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingTop: insets.top + spacing.sm, paddingBottom: spacing.lg }}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
-        ListHeaderComponent={<SearchHeader search={search} setSearch={setSearch} activeCat={activeCat} setActiveCat={setActiveCat} filtresActifs={nbFiltresActifs} onOpenFilters={() => setShowFilters(true)} colors={colors} styles={styles} />}
+        ListHeaderComponent={<SearchHeader search={search} setSearch={setSearch} activeCat={activeCat} setActiveCat={setActiveCat} filtresActifs={nbFiltresActifs} onOpenFilters={() => setShowFilters(true)} colors={colors} styles={styles} recentSearches={recentSearches} ajouterRecherche={ajouterRecherche} supprimerRecherche={supprimerRecherche} />}
         ListEmptyComponent={
-          <EmptyState
-            icon="search"
-            title="Aucun résultat"
-            subtitle="Essaie un autre mot-clé ou catégorie"
-          />
+          search.length > 0 ? (
+            <EmptyState
+              icon="🔍"
+              title="Aucun résultat"
+              subtitle="Essaie un autre mot-clé ou catégorie"
+            />
+          ) : null
         }
       />
 
@@ -212,7 +257,7 @@ export default function EventSearchScreen({ navigation }) {
                   </TouchableOpacity>
                 </View>
 
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 8 }}>
+                <ScrollView showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'} contentContainerStyle={{ paddingBottom: 8 }}>
                   <Text style={styles.filterLabel}>Période</Text>
                   <View style={styles.chipsWrap}>
                     {PRESETS_DATE.map(p => (

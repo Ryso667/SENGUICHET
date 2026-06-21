@@ -27,7 +27,7 @@ const getChartConfig = (colors) => ({
 })
 
 export default function StatistiquesScreen() {
-  const { colors } = useTheme()
+  const { colors, mode, isDark } = useTheme()
   const chartConfig = useMemo(() => getChartConfig(colors), [colors])
   const s = useMemo(() => makeStyles(colors), [colors])
 
@@ -137,7 +137,7 @@ export default function StatistiquesScreen() {
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <ScrollView
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
         onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
         scrollEventThrottle={16}
       >

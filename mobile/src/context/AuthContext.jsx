@@ -215,6 +215,14 @@ export function AuthProvider({ children }) {
     setProfil(profilData)
     setRole('acheteur')
     setAcheteurEmailSuggestion(email)
+    // Enregistrer le token push pour les notifications
+    try {
+      configurerNotifications()
+      const pushToken = await obtenirTokenPush()
+      if (pushToken) await enregistrerToken(pushToken)
+    } catch (err) {
+      console.error('Erreur push token acheteur:', err.message)
+    }
   }
 
   const tenterBiometrie = async () => {

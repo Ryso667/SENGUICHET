@@ -411,6 +411,28 @@ CREATE TABLE IF NOT EXISTS partenaire (
 ) ENGINE=InnoDB;
 
 -- ============================================================
+-- 9. TABLE CODES PROMO
+-- ============================================================
+
+-- 9.1 CodePromo
+CREATE TABLE IF NOT EXISTS code_promo (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  organisateur_id INT NOT NULL,
+  evenement_id INT NULL,
+  code VARCHAR(50) NOT NULL,
+  type ENUM('pourcentage','fixe') NOT NULL DEFAULT 'pourcentage',
+  valeur DECIMAL(10,2) NOT NULL,
+  utilisations_max INT NOT NULL DEFAULT 0,
+  utilisations_actuelles INT NOT NULL DEFAULT 0,
+  date_expiration DATETIME NOT NULL,
+  actif TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_code (code),
+  FOREIGN KEY (organisateur_id) REFERENCES organisateur(id) ON DELETE CASCADE,
+  FOREIGN KEY (evenement_id) REFERENCES evenement(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- ============================================================
 -- CONTRAINTES SUPPLÉMENTAIRES
 -- ============================================================
 

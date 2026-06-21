@@ -1,7 +1,7 @@
 // Gestion des événements : liste complète calquée sur l'app web
 // Design glass (Apple Invites) — cartes avec hero image, overlay, stats
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput } from 'react-native'
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput, Alert, ActivityIndicator } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, categoryGradients, gradients, spacing } from '../../constants/theme'
@@ -12,9 +12,15 @@ import { useAuth } from '../../context/AuthContext'
 import { getCategoryImageUrl } from '../../config/images'
 import { formaterDateLisible } from '../../utils/dateUtils'
 import GlassContainer from '../../components/GlassContainer'
+import EmptyState from '../../components/EmptyState'
 import Skeleton from '../../components/Skeleton'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { hexToRgba } from '../../utils/colors'
+import * as FileSystem from 'expo-file-system'
+import * as Sharing from 'expo-sharing'
+import { ActivityIndicator } from 'react-native'
+import { Feather } from '@expo/vector-icons'
+import { fetchBilletsEvenementAPI } from '../../services/billetService'
 
 const getStatutConfig = (colors) => ({
   actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
@@ -27,7 +33,7 @@ const getStatutConfig = (colors) => ({
 const TABS = ['Tous', 'Actifs', 'En attente', 'Terminés', 'Annulés']
 
 export default function GestionEvenementsScreen({ navigation }) {
-  const { colors } = useTheme()
+  const { colors, mode, isDark } = useTheme()
   const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
   const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
@@ -37,6 +43,7 @@ export default function GestionEvenementsScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState('Tous')
   const [search, setSearch] = useState('')
   const [refreshing, setRefreshing] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   const charger = useCallback(async () => {
     try {
@@ -58,6 +65,41 @@ export default function GestionEvenementsScreen({ navigation }) {
     setRefreshing(false)
   }, [charger])
 
+  const exporterFiltreCSV = async () => {
+    setExporting(true)
+    try {
+      const evtsFiltres = filtered
+      const allLines = [['Nom', 'Email', 'Téléphone', 'Catégorie', 'Prix (FCFA)', "Date d'achat", 'Statut', 'Événement'].join(',')]
+      for (const evt of evtsFiltres) {
+        const billets = await fetchBilletsEvenementAPI(evt.id)
+        for (const b of billets) {
+          allLines.push([
+            `"${(b.nom || '').replace(/"/g, '""')}"`,
+            `"${(b.email || '').replace(/"/g, '""')}"`,
+            `"${(b.telephone || '').replace(/"/g, '""')}"`,
+            `"${(b.categorie || '').replace(/"/g, '""')}"`,
+            b.prix,
+            `"${(b.dateAchat || '').replace(/"/g, '""')}"`,
+            `"${b.statut === 'actif' ? 'Payé' : b.statut === 'utilise' ? 'Utilisé' : (b.statut || '')}"`,
+            `"${(evt.titre || '').replace(/"/g, '""')}"`,
+          ].join(','))
+        }
+      }
+      if (allLines.length === 1) {
+        Alert.alert('Aucun billet', 'Aucun billet à exporter pour ces événements')
+        return
+      }
+      const csv = allLines.join('\n')
+      const uri = FileSystem.cacheDirectory + 'billets-filtres.csv'
+      await FileSystem.writeAsStringAsync(uri, csv, { encoding: FileSystem.EncodingType.UTF8 })
+      await Sharing.shareAsync(uri, { mimeType: 'text/csv', dialogTitle: 'Exporter les billets filtrés' })
+    } catch (e) {
+      Alert.alert('Erreur', "Impossible d'exporter les billets")
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const filtered = events.filter(evt => {
     if (activeTab === 'Actifs') return evt.statut === 'actif'
     if (activeTab === 'En attente') return evt.statut === 'en_attente'
@@ -73,21 +115,41 @@ export default function GestionEvenementsScreen({ navigation }) {
       <View style={{ paddingTop: insets.top, flex: 1 }}>
           <ScrollView
           contentContainerStyle={s.content}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
           keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
           onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
           scrollEventThrottle={16}
         >
-          {/* Header : titre + bouton demander — calqué sur le web */}
+          {/* Header : titre + boutons actions */}
           <View style={s.header}>
             <Text style={s.headerTitle}>Mes événements</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Demandes')} activeOpacity={0.8}>
-              <LinearGradient colors={gradients.primary} style={s.demanderBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                <MaterialCommunityIcons name="clipboard-text-outline" size={16} color="#fff" />
-                <Text style={s.demanderBtnText}>Demander</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+            <View style={s.headerActions}>
+              <TouchableOpacity onPress={() => navigation.navigate('Statistiques')} activeOpacity={0.8} style={s.statBtn}>
+                <MaterialCommunityIcons name="chart-bar" size={16} color={colors.accent} />
+                <Text style={s.statBtnText}>Statistiques</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.exportBtn}
+                onPress={exporterFiltreCSV}
+                disabled={exporting || events.length === 0}
+              >
+                {exporting ? (
+                  <ActivityIndicator size="small" color={colors.accent} />
+                ) : (
+                  <Feather name="download" size={16} color={colors.accent} />
+                )}
+                <Text style={s.exportText}>
+                  {exporting ? '...' : 'CSV'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Demandes')} activeOpacity={0.8}>
+                <LinearGradient colors={gradients.primary} style={s.demanderBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                  <MaterialCommunityIcons name="clipboard-text-outline" size={16} color="#fff" />
+                  <Text style={s.demanderBtnText}>Demander</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {!loading && filtered.length > 0 && (
@@ -130,17 +192,13 @@ export default function GestionEvenementsScreen({ navigation }) {
               <Skeleton type="card" count={3} />
             </View>
           ) : filtered.length === 0 ? (
-            /* État vide — calqué sur le web */
-            <GlassContainer blurType="light" style={s.emptyState}>
-              <MaterialCommunityIcons name="ticket-outline" size={56} color="rgba(0,0,0,0.12)" />
-              <Text style={s.emptyTitle}>Aucun événement trouvé</Text>
-              <Text style={s.emptySub}>Vous n'avez pas encore d'événement. Faites une demande à l'équipe SENGUICHET.</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Demandes')} activeOpacity={0.8}>
-                <LinearGradient colors={gradients.primary} style={s.emptyBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                  <Text style={s.emptyBtnText}>Demander un événement</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </GlassContainer>
+            <EmptyState
+              icon="🎫"
+              title="Aucun événement trouvé"
+              subtitle="Vous n'avez pas encore d'événement. Faites une demande à l'équipe SENGUICHET."
+              actionLabel="Demander un événement"
+              onAction={() => navigation.navigate('Demandes')}
+            />
           ) : (
             /* Liste d'événements — cartes calquées sur le web (version mobile) */
             <View style={s.eventsList}>
@@ -212,15 +270,31 @@ const makeStyles = (colors) => StyleSheet.create({
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 100 },
 
   /* Header */
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text },
+  header: { marginBottom: spacing.md },
+  headerTitle: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text, marginBottom: spacing.sm },
   refreshHint: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginBottom: spacing.sm },
+  headerActions: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
+  statBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: 8,
+    borderWidth: 1, borderColor: colors.border,
+  },
+  statBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.accent },
   demanderBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 8,
   },
   demanderBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.white },
+  exportBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 10, paddingVertical: 6,
+    borderRadius: 8, backgroundColor: 'rgba(16,185,129,0.1)',
+  },
+  exportText: {
+    fontSize: 12, fontFamily: fonts.jakarta.semiBold, color: colors.accent,
+  },
 
   /* Tabs */
   tabsBar: {
@@ -242,17 +316,6 @@ const makeStyles = (colors) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.border,
   },
   searchInput: { flex: 1, fontFamily: fonts.outfit.regular, fontSize: 14, color: colors.text },
-
-  /* État vide */
-  emptyState: { padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
-  emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text },
-  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
-  emptyBtn: {
-    marginTop: spacing.sm,
-    borderRadius: 12,
-    paddingHorizontal: 20, paddingVertical: 10,
-  },
-  emptyBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.white },
 
   /* Liste */
   eventsList: { gap: spacing.md },

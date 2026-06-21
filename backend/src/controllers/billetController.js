@@ -24,7 +24,9 @@ if (!HMAC_SECRET) console.warn('⚠️  HMAC_SECRET non défini — les signatur
  */
 const acheter = async (req, res) => {
   try {
-    const { evenementId, categorieTicketId, telephone, quantite = 1, provider = 'WAVE', email } = req.body;
+    const { evenementId, categorieTicketId, telephone, quantite = 1, provider = 'WAVE', email, pushToken } = req.body;
+    const promoId = req.body.promoId || null
+    let reduction = 0
 
     if (!evenementId || !categorieTicketId || !telephone) {
       return res.status(400).json({ message: "Champs obligatoires manquants" });
@@ -53,7 +55,25 @@ const acheter = async (req, res) => {
       return res.status(400).json({ message: "Places insuffisantes" });
     }
 
-    const montantTotal = cat.prix * quantite;
+    let montantTotal = cat.prix * quantite;
+
+    // Appliquer réduction code promo si fourni
+    if (promoId) {
+      const [promos] = await pool.query(
+        `SELECT * FROM code_promo WHERE id = ? AND actif = 1
+         AND date_expiration > NOW()
+         AND (utilisations_max = 0 OR utilisations_actuelles < utilisations_max)`,
+        [promoId]
+      )
+      if (promos.length > 0) {
+        const promo = promos[0]
+        reduction = promo.type === 'pourcentage'
+          ? Math.round(cat.prix * quantite * promo.valeur / 100)
+          : Math.min(Number(promo.valeur), cat.prix * quantite)
+        montantTotal -= reduction
+        await pool.query('UPDATE code_promo SET utilisations_actuelles = utilisations_actuelles + 1 WHERE id = ?', [promoId])
+      }
+    }
 
     // Si l'email n'est pas fourni, essayer de le trouver via le téléphone
     let ticketEmail = email;
@@ -218,8 +238,24 @@ const acheter = async (req, res) => {
           categorie: cat.nom,
           prix: montantTotal,
           quantite,
+          reference: quantite > 1 ? reference : undefined,
           tickets: billetsCrees,
         }).catch(e => console.error("Email error:", e.message));
+      }
+
+      // Envoyer une notification push de confirmation à l'acheteur si token enregistré
+      if (pushToken) {
+        try {
+          const { envoyerPushAcheteur } = require("../services/NotificationService");
+          await envoyerPushAcheteur(
+            pushToken,
+            "🎫 Billet confirmé",
+            `Votre billet pour ${event.titre} est confirmé !`,
+            { screen: "RecuAchat", billetId: premierBillet.id }
+          );
+        } catch (pushErr) {
+          console.warn("Push acheteur non envoyé:", pushErr.message);
+        }
       }
 
       // Envoyer une notification push à l'organisateur

@@ -124,11 +124,15 @@ const boutonCTA = (url, texte) => `
   <!--<![endif]-->`;
 
 // Envoie un email de confirmation de billet à l'acheteur
-// ticket: { uuid, numero, evenement, categorie, prix, dateAchat, qrPayload }
+// ticket: { uuid, numero, evenement, categorie, prix, dateAchat, qrPayload, quantite, tickets }
 // destinataire: email de l'acheteur
 const envoyerEmailBillet = async (destinataire, ticket) => {
   const baseUrl = process.env.TICKET_URL || "https://backend-beta-six-39.vercel.app/api/billets";
-  const lienBillet = `${baseUrl}/${ticket.uuid}`;
+  const quantite = ticket.quantite || 1;
+  const estMultiple = quantite > 1;
+  const lien = estMultiple
+    ? `${baseUrl}/recu/${ticket.reference || ticket.uuid}`
+    : `${baseUrl}/${ticket.uuid}`;
   const dateDebut = ticket.dateDebut ? new Date(ticket.dateDebut).toLocaleDateString("fr-FR", {
     day: "numeric", month: "long", year: "numeric"
   }) : "";
@@ -154,7 +158,7 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
             </tr>
           </table>
 
-          <h2 style="color:#FFFFFF;font-size:20px;margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;text-align:center;">Achat confirmé ! 🎉</h2>
+          <h2 style="color:#FFFFFF;font-size:20px;margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;text-align:center;">Achat confirm\u00e9${estMultiple ? ' pour ' + quantite + ' billets' : ''} ! \uD83C\uDF89</h2>
           <p style="color:#6B7280;font-size:14px;margin:0 0 24px 0;font-family:Arial,Helvetica,sans-serif;text-align:center;">${ticket.evenement || 'Événement'}</p>
 
           <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1E2A3A" style="background-color:#1E2A3A;border-radius:12px;mso-border-radius:12px;">
@@ -181,10 +185,15 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
                     <td style="padding:4px 0;border-top:1px solid #374151;padding-top:8px;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Catégorie</span></td>
                     <td style="padding:4px 0;border-top:1px solid #374151;padding-top:8px;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,Helvetica,sans-serif;">${(ticket.categorie || 'STANDARD').toUpperCase()}</span></td>
                   </tr>
+                  ${estMultiple ? `
+                  <tr>
+                    <td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Quantité</span></td>
+                    <td style="padding:4px 0;text-align:right;"><span style="color:#FFFFFF;font-size:13px;font-weight:600;font-family:Arial,Helvetica,sans-serif;">${quantite} billets</span></td>
+                  </tr>` : `
                   <tr>
                     <td style="padding:4px 0;"><span style="color:#9CA3AF;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Référence</span></td>
                     <td style="padding:4px 0;text-align:right;"><span style="color:#F59E0B;font-size:12px;font-family:monospace;font-weight:600;">${ticket.numero}</span></td>
-                  </tr>
+                  </tr>`}
                 </table>
               </td>
             </tr>
@@ -193,7 +202,7 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
           <table cellpadding="0" cellspacing="0" border="0" width="100%">
             <tr>
               <td align="center" style="padding:24px 0 0;">
-                <a href="${lienBillet}" style="background:linear-gradient(135deg,#10B981,#059669);border-radius:8px;color:#ffffff;font-family:Arial;font-size:14px;font-weight:700;line-height:44px;text-align:center;text-decoration:none;display:inline-block;padding:0 28px;">Voir mon billet →</a>
+                <a href="${lien}" style="background:linear-gradient(135deg,#10B981,#059669);border-radius:8px;color:#ffffff;font-family:Arial;font-size:14px;font-weight:700;line-height:44px;text-align:center;text-decoration:none;display:inline-block;padding:0 28px;">${estMultiple ? 'Voir mon reçu →' : 'Voir mon billet →'}</a>
               </td>
             </tr>
           </table>
@@ -201,7 +210,7 @@ const envoyerEmailBillet = async (destinataire, ticket) => {
       </tr>
     </table>`;
 
-  return envoyerEmail(destinataire, `Votre billet · ${ticket.evenement || 'SENGUICHET'}`, emailLayout(content));
+  return envoyerEmail(destinataire, `Votre${estMultiple ? 's ' + quantite + ' billets' : ' billet'} · ${ticket.evenement || 'SENGUICHET'}`, emailLayout(content));
 };
 
 // Envoie un code OTP à l'acheteur pour confirmer son email

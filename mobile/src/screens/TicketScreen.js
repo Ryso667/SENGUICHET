@@ -1,7 +1,7 @@
 // Écran ticket — style billet physique vert émeraude allongé
 // Fond sombre #0F1A0F, ticket structuré : header vert → perforation → corps crème → perforation → souche beige
 import { useRef, useEffect, useState } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform, Image, Dimensions, Modal } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform, Image, Dimensions, Modal, Animated } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import QRCode from 'react-native-qrcode-svg'
 import * as Crypto from 'expo-crypto'
@@ -71,6 +71,8 @@ export default function TicketScreen({ route, navigation }) {
   const [exporting, setExporting] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
   const qrRef = useRef(null)
+  const entryAnim = useRef(new Animated.Value(0)).current
+  const exportAnim = useRef(new Animated.Value(0)).current
 
   // Génération initiale + rafraîchissement toutes les 30s
   useEffect(() => {
@@ -81,6 +83,22 @@ export default function TicketScreen({ route, navigation }) {
     }, QR_REFRESH_INTERVAL * 1000)
     return () => clearInterval(interval)
   }, [ticket])
+
+  // Animation d'entrée du ticket et du bouton d'export
+  useEffect(() => {
+    Animated.spring(entryAnim, {
+      toValue: 1,
+      friction: 6,
+      tension: 80,
+      useNativeDriver: true,
+    }).start()
+    Animated.timing(exportAnim, {
+      toValue: 1,
+      duration: 400,
+      delay: 200,
+      useNativeDriver: true,
+    }).start()
+  }, [])
 
   async function getQRDataURL() {
     return new Promise((resolve) => {
@@ -148,9 +166,15 @@ export default function TicketScreen({ route, navigation }) {
 
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 40 }]}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
       >
-        <View style={styles.ticketWrapper}>
+        <Animated.View style={[styles.ticketWrapper, {
+          opacity: entryAnim,
+          transform: [
+            { scale: entryAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) },
+            { translateY: entryAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) },
+          ],
+        }]}>
           <View style={styles.ticketCard}>
 
             {/* ===== 1. HEADER — vert forêt #5C6BC0 ===== */}
@@ -261,20 +285,22 @@ export default function TicketScreen({ route, navigation }) {
               </View>
             )}
           </View>
-        </View>
+        </Animated.View>
 
         {/* Bouton export PDF */}
-        <TouchableOpacity
-          style={styles.exportBtn}
-          onPress={handleExport}
-          activeOpacity={0.8}
-          disabled={exporting}
-        >
-          <Feather name="file-text" size={16} color={C.accent} style={{ marginRight: 8 }} />
-          <Text style={styles.exportText}>
-            {exporting ? 'GÉNÉRATION...' : 'EXPORTER EN PDF'}
-          </Text>
-        </TouchableOpacity>
+        <Animated.View style={{ opacity: exportAnim }}>
+          <TouchableOpacity
+            style={styles.exportBtn}
+            onPress={handleExport}
+            activeOpacity={0.8}
+            disabled={exporting}
+          >
+            <Feather name="file-text" size={16} color={C.accent} style={{ marginRight: 8 }} />
+            <Text style={styles.exportText}>
+              {exporting ? 'GÉNÉRATION...' : 'EXPORTER EN PDF'}
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
       </ScrollView>
 
       {/* Modal QR plein écran */}

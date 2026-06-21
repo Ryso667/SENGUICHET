@@ -1,12 +1,16 @@
 // Tableau de bord organisateur (calqué sur l'app web)
 // Design glass (Apple Invites) — fond dégradé, conteneurs verre dépoli
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native'
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated, Alert, ActivityIndicator } from 'react-native'
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, categoryGradients, spacing } from '../../constants/theme'
 import { useTheme } from '../../context/ThemeContext'
+import { hapticLight } from '../../utils/haptics'
 import { fetchEvenementsAPI } from '../../services/eventService'
+import * as FileSystem from 'expo-file-system'
+import * as Sharing from 'expo-sharing'
+import { fetchBilletsEvenementAPI } from '../../services/billetService'
 import { useAuth } from '../../context/AuthContext'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { formaterDateLisible } from '../../utils/dateUtils'
@@ -25,7 +29,7 @@ const getStatutConfig = (colors) => ({
 })
 
 export default function OrganisateurDashboardScreen({ navigation }) {
-  const { colors } = useTheme()
+  const { colors, mode, isDark } = useTheme()
   const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
   const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
@@ -34,6 +38,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   const fadeAnims = useRef([...Array(8)].map(() => new Animated.Value(0))).current
   const slideAnims = useRef([...Array(8)].map(() => new Animated.Value(40))).current
@@ -67,6 +72,40 @@ export default function OrganisateurDashboardScreen({ navigation }) {
     setRefreshing(false)
   }, [loadData])
 
+  const exporterToutCSV = async () => {
+    setExporting(true)
+    try {
+      const allLines = [['Nom', 'Email', 'Téléphone', 'Catégorie', 'Prix (FCFA)', "Date d'achat", 'Statut', 'Événement'].join(',')]
+      for (const evt of events) {
+        const billets = await fetchBilletsEvenementAPI(evt.id)
+        for (const b of billets) {
+          allLines.push([
+            `"${(b.nom || '').replace(/"/g, '""')}"`,
+            `"${(b.email || '').replace(/"/g, '""')}"`,
+            `"${(b.telephone || '').replace(/"/g, '""')}"`,
+            `"${(b.categorie || '').replace(/"/g, '""')}"`,
+            b.prix,
+            `"${(b.dateAchat || '').replace(/"/g, '""')}"`,
+            `"${b.statut === 'actif' ? 'Payé' : b.statut === 'utilise' ? 'Utilisé' : (b.statut || '')}"`,
+            `"${(evt.titre || '').replace(/"/g, '""')}"`,
+          ].join(','))
+        }
+      }
+      if (allLines.length === 1) {
+        Alert.alert('Aucun billet', 'Aucun billet à exporter')
+        return
+      }
+      const csv = allLines.join('\n')
+      const uri = FileSystem.cacheDirectory + 'tous-les-billets.csv'
+      await FileSystem.writeAsStringAsync(uri, csv, { encoding: FileSystem.EncodingType.UTF8 })
+      await Sharing.shareAsync(uri, { mimeType: 'text/csv', dialogTitle: 'Exporter tous les billets' })
+    } catch (e) {
+      Alert.alert('Erreur', "Impossible d'exporter les billets")
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const activeCount = events.filter(e => e.statut === 'actif').length
   const totalVendus = events.reduce((s, e) => s + (e.remplis || 0), 0)
   const totalCapacite = events.reduce((s, e) => s + (e.capacite || 0), 0)
@@ -99,7 +138,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <ScrollView
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
         onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
         scrollEventThrottle={16}
@@ -138,32 +177,23 @@ export default function OrganisateurDashboardScreen({ navigation }) {
               ))}
             </View>
 
-            {/* Navigation rapide — remplace l'ancien drawer */}
-            <GlassContainer style={s.navSection}>
-              <Text style={s.navTitle}>Navigation rapide</Text>
-              <View style={s.navGrid}>
-                {[
-                  { icon: 'calendar-month', label: 'Événements', route: 'Evenements', color: colors.primary },
-                  { icon: 'chart-bar', label: 'Statistiques', route: 'Statistiques', color: colors.cyan },
-                  { icon: 'file-document-outline', label: 'Demandes', route: 'Demandes', color: colors.orange },
-                  { icon: 'bell-outline', label: 'Notifications', route: 'Notifications', color: colors.red },
-                  { icon: 'headphones', label: 'Support', route: 'Support', color: colors.green },
-                  { icon: 'cog-outline', label: 'Paramètres', route: 'Parametres', color: colors.violet },
-                ].map((item) => (
-                  <TouchableOpacity
-                    key={item.route}
-                    style={s.navItem}
-                    onPress={() => navigation.navigate(item.route)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={[s.navIcon, { backgroundColor: hexToRgba(item.color, 0.15) }]}>
-                      <MaterialCommunityIcons name={item.icon} size={22} color={item.color} />
-                    </View>
-                    <Text style={s.navLabel}>{item.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </GlassContainer>
+            {/* Bouton exporter tout */}
+            <View style={s.exportSection}>
+              <TouchableOpacity
+                style={s.exportBtn}
+                onPress={exporterToutCSV}
+                disabled={exporting || events.length === 0}
+              >
+                {exporting ? (
+                  <ActivityIndicator size="small" color={colors.accent} />
+                ) : (
+                  <Feather name="download" size={16} color={colors.accent} />
+                )}
+                <Text style={s.exportText}>
+                  {exporting ? 'Export...' : 'Exporter tout (CSV)'}
+                </Text>
+              </TouchableOpacity>
+            </View>
 
             {/* Section événements récents — calquée sur le web */}
             <Animated.View style={{ opacity: fadeAnims[4], transform: [{ translateY: slideAnims[4] }] }}>
@@ -171,7 +201,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
               <View style={s.recentHeader}>
                 <Text style={s.recentTitle}>Mes événements récents</Text>
                 {events.length > 3 && (
-                  <TouchableOpacity onPress={() => navigation.navigate('Evenements')}>
+                  <TouchableOpacity onPress={() => { hapticLight(); navigation.navigate('Evenements') }}>
                     <Text style={s.voirTout}>Voir tout</Text>
                   </TouchableOpacity>
                 )}
@@ -220,7 +250,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
                             <Text style={s.revenu}>{ev.revenus || '0 FCFA'}</Text>
                             <TouchableOpacity
                               style={s.detailsBtn}
-                              onPress={() => navigation.navigate('DetailEvenement', { eventId: ev.id })}
+                              onPress={() => { hapticLight(); navigation.navigate('DetailEvenement', { eventId: ev.id }) }}
                               activeOpacity={0.8}
                             >
                               <Text style={s.detailsBtnText}>Détails</Text>
@@ -263,7 +293,7 @@ const makeStyles = (colors) => StyleSheet.create({
   statCard: { padding: spacing.md, minHeight: 80, justifyContent: 'space-between', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6 },
   statTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   statValue: { fontSize: 20, fontFamily: fonts.outfit.bold, color: colors.text, maxWidth: '70%', textAlign: 'right' },
-  statLabel: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
+  statLabel: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
   // Section événements récents
   recentSection: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
   recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
@@ -304,12 +334,14 @@ const makeStyles = (colors) => StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 6,
   },
   detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.green },
-  // Navigation rapide
-  navSection: { marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: spacing.md },
-  navTitle: { fontSize: 18, fontFamily: fonts.outfit.semiBold, color: colors.text, marginBottom: spacing.md },
-  navGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  navItem: { width: '30%', alignItems: 'center', gap: 6, paddingVertical: spacing.sm },
-  navIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  navLabel: { fontSize: 11, fontFamily: fonts.jakarta.semiBold, color: colors.text, textAlign: 'center' },
-
+  // Export
+  exportSection: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: spacing.sm, paddingHorizontal: spacing.lg },
+  exportBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 8, backgroundColor: 'rgba(16,185,129,0.1)',
+  },
+  exportText: {
+    fontSize: 12, fontFamily: fonts.jakarta.semiBold, color: colors.accent,
+  },
 })

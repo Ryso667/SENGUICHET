@@ -3,6 +3,7 @@
 // Organisateur   : Drawer hamburger (Dashboard, Événements, ...)
 // Contrôleur     : Drawer hamburger (Scanner, Historique, ...)
 import { View, ActivityIndicator, StyleSheet } from 'react-native'
+import { hapticLight } from '../utils/haptics'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
@@ -31,7 +32,7 @@ import NotificationsScreen from '../screens/NotificationsScreen'
 import MesFavorisScreen from '../screens/MesFavorisScreen'
 import CalendarScreen from '../screens/CalendarScreen'
 
-import OrganizerDrawer from './OrganizerDrawer'
+import OrganizerTabs from './OrganizerTabs'
 import ControllerDrawer from './ControllerDrawer'
 
 const Stack = createNativeStackNavigator()
@@ -69,6 +70,7 @@ function MainTabs() {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
+        listeners={({ navigation }) => ({ tabPress: () => hapticLight() })}
         options={{
           tabBarLabel: 'Accueil',
           tabBarIcon: ({ color }) => <Feather name="home" size={20} color={color} />,
@@ -77,6 +79,7 @@ function MainTabs() {
       <Tab.Screen
         name="EventSearch"
         component={EventSearchScreen}
+        listeners={({ navigation }) => ({ tabPress: () => hapticLight() })}
         options={{
           tabBarLabel: 'Explorer',
           tabBarIcon: ({ color }) => <Feather name="search" size={20} color={color} />,
@@ -85,6 +88,7 @@ function MainTabs() {
       <Tab.Screen
         name="MesTickets"
         component={MesTicketsScreen}
+        listeners={({ navigation }) => ({ tabPress: () => hapticLight() })}
         options={{
           tabBarLabel: 'Mes billets',
           tabBarIcon: ({ color }) => <MaterialCommunityIcons name="ticket-outline" size={21} color={color} />,
@@ -93,6 +97,7 @@ function MainTabs() {
       <Tab.Screen
         name="Profil"
         component={ProfilScreen}
+        listeners={({ navigation }) => ({ tabPress: () => hapticLight() })}
         options={{
           tabBarLabel: 'Compte',
           tabBarIcon: ({ color }) => <Feather name="user" size={20} color={color} />,
@@ -165,7 +170,7 @@ export default function AppNavigator() {
   return (
     <NavigationContainer ref={navigationRef}>
       {(!role || role === 'acheteur') && <GuestNavigator />}
-      {role === 'organisateur' && <OrganizerDrawer />}
+      {role === 'organisateur' && <OrganizerTabs />}
       {role === 'controleur' && <ControllerDrawer />}
     </NavigationContainer>
   )

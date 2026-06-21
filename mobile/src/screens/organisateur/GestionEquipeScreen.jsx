@@ -11,7 +11,7 @@ import GlassContainer from '../../components/GlassContainer'
 import Skeleton from '../../components/Skeleton'
 
 export default function GestionEquipeScreen({ route, navigation }) {
-  const { colors } = useTheme()
+  const { colors, mode, isDark } = useTheme()
   const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { eventId } = route.params || {}
@@ -56,7 +56,7 @@ export default function GestionEquipeScreen({ route, navigation }) {
           <Feather name="refresh-cw" size={20} color={colors.text} />
         </TouchableOpacity>
       </View>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}>
         <GlassContainer style={s.codeSection} intensity={35}>
           <Text style={s.codeLabel}>Code d'accès</Text>
           <Text style={s.codeValue}>{equipe?.code_controleur || '—'}</Text>

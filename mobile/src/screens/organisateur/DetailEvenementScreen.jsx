@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert, ActivityIndicator } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
+import { useNavigation } from '@react-navigation/native'
 import * as FileSystem from 'expo-file-system'
 import * as Sharing from 'expo-sharing'
 import { spacing, fonts, borderRadius } from '../../constants/theme'
@@ -25,10 +26,11 @@ const getStatutConfig = (colors) => ({
 })
 
 export default function DetailEvenementScreen({ route }) {
-  const { colors } = useTheme()
+  const { colors, mode, isDark } = useTheme()
   const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
   const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
+  const navigation = useNavigation()
   const { eventId } = route.params || {}
   const [evenement, setEvenement] = useState(null)
   const [tickets, setTickets] = useState([])
@@ -111,7 +113,7 @@ export default function DetailEvenementScreen({ route }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <ScrollView showsVerticalScrollIndicator={false}
+      <ScrollView showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         <GlassContainer blurType="light" style={s.header} intensity={35}>
           <Text style={s.title}>{evenement.nom}</Text>
@@ -150,13 +152,23 @@ export default function DetailEvenementScreen({ route }) {
           <Text style={s.fillPct}>{pct}%</Text>
         </GlassContainer>
 
+        <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('Statistiques', { eventId })}>
+          <GlassContainer blurType="light" style={s.statsCard} intensity={30}>
+            <Feather name="bar-chart-2" size={22} color={colors.accent} />
+            <View style={s.statsCardContent}>
+              <Text style={s.statsCardTitle}>Statistiques</Text>
+              <Text style={s.statsCardSub}>Voir les ventes, remplissage et revenus</Text>
+            </View>
+            <Feather name="chevron-right" size={18} color={colors.textSecondary} />
+          </GlassContainer>
+        </TouchableOpacity>
+
         {evenement.description ? (
           <GlassContainer blurType="light" style={s.section} intensity={30}>
             <Text style={s.sectionTitle}>Description</Text>
             <Text style={s.description}>{evenement.description}</Text>
           </GlassContainer>
         ) : null}
-
 
         <GlassContainer blurType="light" style={s.section} intensity={30}>
           <View style={s.sectionHeader}>
@@ -205,6 +217,13 @@ const makeStyles = (colors) => StyleSheet.create({
   title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text, flex: 1, marginRight: spacing.sm },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 },
   statusText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.3 },
+  statsCard: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.md,
+    marginHorizontal: spacing.lg, marginBottom: spacing.lg, padding: spacing.md,
+  },
+  statsCardContent: { flex: 1 },
+  statsCardTitle: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.text },
+  statsCardSub: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 2 },
   infoGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.lg, gap: spacing.sm },
   infoCard: {
     width: '47%', padding: spacing.md,
