@@ -36,9 +36,10 @@ export async function fetchBilletsEvenementAPI(eventId) {
 // email : optionnel, permet au backend d'envoyer la confirmation
 // quantite : nombre de billets à créer (default 1)
 // Retourne { billet, billets[], quantite, lien, paiement }
-export async function acheterBillet(evenementId, categorieTicketId, telephone, email, provider = 'WAVE', quantite = 1) {
+export async function acheterBillet(evenementId, categorieTicketId, telephone, email, provider = 'WAVE', quantite = 1, promoId = null) {
   const body = { evenementId, categorieTicketId, telephone, quantite, provider }
   if (email) body.email = email
+  if (promoId) body.promoId = promoId
   return await appelAPI('/billets/acheter', {
     method: 'POST',
     body,

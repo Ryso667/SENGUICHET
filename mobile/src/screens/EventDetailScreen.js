@@ -22,6 +22,7 @@ import GlassButton from '../components/GlassButton'
 import { getDefaultImage } from '../config/images'
 import { fetchEvenementDetailPublic } from '../services/eventService'
 import { acheterBillet } from '../services/billetService'
+import { appelAPI } from '../services/apiService'
 import { sauvegarderTicketAcheteur } from '../database/database'
 import { formaterDateLisible } from '../utils/dateUtils'
 import { useAuth } from '../context/AuthContext'
@@ -29,7 +30,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { hexToRgba } from '../utils/colors'
 import FavoriButton from '../components/FavoriButton'
 import CelebrationOverlay from '../components/CelebrationOverlay'
-import { hapticMedium, hapticSelection } from '../utils/haptics'
+import { hapticMedium, hapticSelection, hapticSuccess } from '../utils/haptics'
 
 export default function EventDetailScreen({ route, navigation }) {
   const { colors, mode, isDark } = useTheme()
@@ -57,6 +58,11 @@ export default function EventDetailScreen({ route, navigation }) {
   const [retryCount, setRetryCount] = useState(0)
   const [telephone, setTelephone] = useState(numeroTel || '')
   const [quantite, setQuantite] = useState(1)
+  const [codePromo, setCodePromo] = useState('')
+  const [codePromoValide, setCodePromoValide] = useState(null)
+  const [codePromoValidating, setCodePromoValidating] = useState(false)
+  const [promotion, setPromotion] = useState(0)
+  const [promoId, setPromoId] = useState(null)
 
   // Partage de l'événement via l'API Share native avec lien web
   const partagerEvenement = () => {
@@ -170,6 +176,31 @@ export default function EventDetailScreen({ route, navigation }) {
   }
 
   // Déclenche l'appel API d'achat et gère les étapes de paiement
+  // Valide un code promo auprès du backend et applique la réduction
+  const validerCodePromo = async () => {
+    if (!codePromo.trim() || !selectedTicket) return
+    setCodePromoValidating(true)
+    try {
+      const res = await appelAPI('/codes/valider', {
+        method: 'POST',
+        body: { code: codePromo.trim(), evenementId: event.id, montant: selectedTicket.price * quantite }
+      })
+      if (res.valide) {
+        setCodePromoValide(true)
+        setPromotion(res.reduction)
+        setPromoId(res.promoId)
+        hapticSuccess()
+      } else {
+        setCodePromoValide(false)
+        setPromotion(0)
+      }
+    } catch {
+      setCodePromoValide(false)
+      setPromotion(0)
+    }
+    setCodePromoValidating(false)
+  }
+
   const confirmerPaiement = async () => {
     const telPropre = telephone.replace(/[^\d]/g, '')
     if (!telPropre || telPropre.length < 9) {
@@ -201,7 +232,7 @@ export default function EventDetailScreen({ route, navigation }) {
       const telComplet = telPropre.startsWith('221') ? `+${telPropre}` : `+221${telPropre}`
       const resultat = await acheterBillet(
         event.id, selectedTicket.id,
-        telPropre ? telComplet : null, email, selectedProvider, quantite
+        telPropre ? telComplet : null, email, selectedProvider, quantite, promoId
       )
 
       if (!resultat || !resultat.billet) {
@@ -473,7 +504,7 @@ export default function EventDetailScreen({ route, navigation }) {
             <>
               <View style={styles.bottomBarTotal}>
                 <Text style={styles.bottomBarTotalLabel}>Total</Text>
-                <Text style={styles.bottomBarTotalPrice}>{((selectedTicket?.price || 0) * quantite).toLocaleString()} FCFA</Text>
+                <Text style={styles.bottomBarTotalPrice}>{((selectedTicket?.price || 0) * quantite - promotion).toLocaleString()} FCFA</Text>
               </View>
               <TouchableOpacity
                 onPress={handleBuy}
@@ -587,12 +618,38 @@ export default function EventDetailScreen({ route, navigation }) {
                 <Text style={styles.payAmountLabel}>{selectedTicket.name}{quantite > 1 ? ` × ${quantite}` : ''}</Text>
                 <GlassContainer intensity={30} style={[styles.payAmountCard, { borderColor: hexToRgba(colors.accent, 0.27) }]}>
                   <Text style={styles.payAmountValue}>
-                    {(selectedTicket.price * quantite).toLocaleString()} FCFA
+                    {(selectedTicket.price * quantite - promotion).toLocaleString()} FCFA
                   </Text>
                   {quantite > 1 && (
                     <Text style={styles.payAmountDetail}>{selectedTicket.price.toLocaleString()} FCFA × {quantite}</Text>
                   )}
+                  {promotion > 0 && (
+                    <Text style={styles.promoDiscount}>-{promotion.toLocaleString()} FCFA</Text>
+                  )}
                 </GlassContainer>
+
+                <View style={styles.promoRow}>
+                  <TextInput
+                    style={[styles.promoInput, codePromoValide && { borderWidth: 1, borderColor: colors.accent }]}
+                    placeholder="Code promo"
+                    placeholderTextColor={colors.textTertiary}
+                    value={codePromo}
+                    onChangeText={(t) => { setCodePromo(t); setCodePromoValide(null); setPromotion(0) }}
+                    autoCapitalize="characters"
+                  />
+                  <TouchableOpacity
+                    style={[styles.promoBtn, (codePromoValidating || codePromoValide) && { opacity: 0.5 }]}
+                    onPress={validerCodePromo}
+                    disabled={codePromoValidating || codePromoValide || !codePromo.trim()}
+                  >
+                    <Text style={styles.promoBtnText}>
+                      {codePromoValidating ? '...' : codePromoValide ? '✓' : 'Appliquer'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                {codePromoValide === false && (
+                  <Text style={styles.promoError}>Code invalide</Text>
+                )}
 
                 {/* Champ téléphone dans le modal */}
                 <Text style={styles.modalPhoneLabel}>Ton téléphone</Text>
@@ -625,7 +682,7 @@ export default function EventDetailScreen({ route, navigation }) {
                     style={styles.confirmPayGradient}
                   >
                     <Image source={require('../../assets/wave_logo.png')} style={styles.confirmBtnLogo} resizeMode="contain" />
-                    <Text style={styles.confirmPayText}>Payer {(selectedTicket.price * quantite).toLocaleString()} FCFA</Text>
+                    <Text style={styles.confirmPayText}>Payer {(selectedTicket.price * quantite - promotion).toLocaleString()} FCFA</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </>
@@ -1063,6 +1120,30 @@ const makeStyles = (colors) => StyleSheet.create({
     fontFamily: fonts.jakarta.semiBold,
     color: colors.text,
     paddingVertical: scale(10),
+  },
+  promoRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  promoInput: {
+    flex: 1, height: 44,
+    backgroundColor: colors.card, borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md, fontFamily: fonts.jakarta.medium, fontSize: 14, color: colors.text,
+  },
+  promoBtn: {
+    height: 44, paddingHorizontal: spacing.md,
+    backgroundColor: colors.accent, borderRadius: borderRadius.md,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  promoBtnText: { fontFamily: fonts.outfit.semiBold, fontSize: 13, color: colors.white },
+  promoError: {
+    fontFamily: fonts.jakarta.regular, fontSize: 12, color: colors.danger || '#EF4444',
+    marginBottom: spacing.md, marginTop: -spacing.sm,
+  },
+  promoDiscount: {
+    fontFamily: fonts.outfit.semiBold, fontSize: 14,
+    color: colors.accent, textAlign: 'right',
+    marginBottom: spacing.xs,
   },
   // Montant dans le modal de paiement
   payAmountLabel: {
