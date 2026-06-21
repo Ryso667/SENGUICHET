@@ -1130,6 +1130,7 @@ const makeStyles = (colors) => StyleSheet.create({
     flex: 1, height: 44,
     backgroundColor: colors.card, borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md, fontFamily: fonts.jakarta.medium, fontSize: 14, color: colors.text,
+    borderWidth: 1, borderColor: colors.border || 'rgba(0,0,0,0.1)',
   },
   promoBtn: {
     height: 44, paddingHorizontal: spacing.md,

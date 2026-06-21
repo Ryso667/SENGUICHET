@@ -10,6 +10,7 @@
 const pool = require("../config/db");
 const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 const PaymentService = require("../services/PaymentService");
 const { envoyerNotification } = require("../services/NotificationService");
 
@@ -270,10 +271,11 @@ const acheter = async (req, res) => {
       }
 
       // Lier l'acheteur au téléphone pour que la recherche par email fonctionne
+      // Met à jour aussi les téléphones synthétiques (créés par OTP) avec le vrai numéro
       if (ticketEmail && telephone) {
         try {
           await pool.query(
-            "UPDATE acheteur SET telephone = ? WHERE email = ? AND telephone IS NULL",
+            "UPDATE acheteur SET telephone = ? WHERE email = ? AND (telephone IS NULL OR telephone REGEXP '[^0-9]')",
             [telephone, ticketEmail]
           );
         } catch {}
@@ -311,12 +313,29 @@ const acheter = async (req, res) => {
 const mesBillets = async (req, res) => {
   try {
     const { telephone, email } = req.query;
-    if (!telephone && !email) return res.status(400).json({ message: "Téléphone ou email requis" });
+
+    // Auth optionnelle : si un token JWT est présent, on récupère l'acheteur_id
+    let acheteurId = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded.role === 'ACHETEUR') acheteurId = decoded.id;
+      } catch {}
+    }
+
+    if (!telephone && !email && !acheteurId) {
+      return res.status(400).json({ message: "Authentification ou téléphone/email requis" });
+    }
 
     // Construit dynamiquement les conditions selon les paramètres fournis
-    // Permet d'unionner les résultats par téléphone ET email simultanément
     const conditions = [];
     const params = [];
+    if (acheteurId) {
+      conditions.push('b.acheteur_id = ?');
+      params.push(acheteurId);
+    }
     if (telephone) {
       conditions.push('b.telephone_acheteur = ?');
       params.push(telephone);
@@ -386,9 +405,9 @@ const afficherBillet = async (req, res) => {
       timestamp: b.date_creation,
       transaction_ref: b.numero,
     });
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrPayload)}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrPayload)}`;
 
-    const qrHtml = `<img src="${qrUrl}" alt="QR" style="width:180px;height:180px;display:block" />`;
+    const qrHtml = `<img src="${qrUrl}" alt="QR" style="width:200px;height:200px;display:block" />`;
     const statut = (b.statut || '').toLowerCase()
     const isUsed = statut === 'utilise'
     const isExpired = statut === 'expire'
@@ -410,46 +429,43 @@ const afficherBillet = async (req, res) => {
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;gap:20px}
-.t{width:340px;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(16,185,129,.2);position:relative}
+.t{width:min(420px,92vw);border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(16,185,129,.2);position:relative}
 @media print{body{background:#fff;padding:0;justify-content:center}.t{box-shadow:none;page-break-after:avoid;margin:auto}.dl{display:none!important}}
-.dl{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;padding:12px 28px;border-radius:14px;border:none;font-size:14px;font-weight:600;color:#fff;background:#10B981;cursor:pointer;transition:opacity .2s;letter-spacing:.5px}
+.dl{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;padding:14px 32px;border-radius:14px;border:none;font-size:15px;font-weight:600;color:#fff;background:#10B981;cursor:pointer;transition:opacity .2s;letter-spacing:.5px}
 .dl:hover{opacity:.85}
-.dl svg{width:18px;height:18px}
+.dl svg{width:20px;height:20px}
 /* HEADER vert */
-.hd{background:#10B981;padding:24px;position:relative;overflow:hidden}
+.hd{background:#10B981;padding:32px;position:relative;overflow:hidden}
 .o1{position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:60px;background:rgba(110,231,183,.25)}
 .o2{position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:40px;background:rgba(245,158,11,.12)}
 .hr{display:flex;align-items:center;gap:10px}
-.lb{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center}
-.lb img{width:28px;height:28px;border-radius:6px}
-.ht{font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.7)}
+.lb{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center}
+.lb img{width:30px;height:30px;border-radius:6px}
+.ht{font-size:11px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.7)}
 .gl{height:1px;background:#F59E0B;opacity:.6;margin:16px 0}
-.en{font-size:22px;font-weight:700;color:#fff;text-align:center;letter-spacing:.5px;line-height:28px}
-.ec{font-size:10px;color:rgba(255,255,255,.6);text-align:center;letter-spacing:2px;margin-top:6px}
+.en{font-size:26px;font-weight:700;color:#fff;text-align:center;letter-spacing:.5px;line-height:32px}
+.ec{font-size:11px;color:rgba(255,255,255,.6);text-align:center;letter-spacing:2px;margin-top:6px}
 /* PERFORATION */
-.pf{height:22px;position:relative;background:linear-gradient(to bottom,#10B981,#F9F6EE);display:flex;align-items:center;justify-content:center}
+.pf{height:24px;position:relative;background:linear-gradient(to bottom,#10B981,#F9F6EE);display:flex;align-items:center;justify-content:center}
 .pl{position:absolute;left:22px;right:22px;border-top:2px dashed rgba(16,185,129,.2)}
 .pc{position:absolute;width:22px;height:22px;border-radius:11px;background:#0F1A0F;z-index:2}
-.pc.l{left:-11px}.pc.r{right:-11px}
-.bd{background:#F9F6EE;padding:20px 24px 8px}
+.pc.l{left:0}.pc.r{right:0}
+.bd{background:#F9F6EE;padding:24px 28px 10px}
 .br{display:flex;justify-content:space-between}
-.bl{font-size:8px;font-weight:700;letter-spacing:2px;color:#6EE7B7;margin-bottom:2px}
-.bv{font-size:12px;font-weight:600;color:#111827}
-.ll{font-size:12px;font-weight:600;color:#10B981;letter-spacing:.5px;margin-top:2px}
-.bs{height:1px;background:rgba(16,185,129,.12);margin:14px 0}
-.rf{font-size:9px;color:#6EE7B7;letter-spacing:2px;text-align:center;margin-bottom:4px}
-.qz{background:#fff;border-radius:12px;padding:12px;margin:14px 0;border:1px solid rgba(16,185,129,.08);display:flex;justify-content:center;position:relative}
+.bl{font-size:10px;font-weight:700;letter-spacing:2px;color:#6EE7B7;margin-bottom:4px}
+.bv{font-size:15px;font-weight:600;color:#111827}
+.ll{font-size:14px;font-weight:600;color:#10B981;letter-spacing:.5px;margin-top:4px}
+.bs{height:1px;background:rgba(16,185,129,.12);margin:16px 0}
+.rf{font-size:11px;color:#6EE7B7;letter-spacing:2px;text-align:center;margin-bottom:4px}
+.qz{background:#fff;border-radius:12px;padding:16px;margin:16px 0;border:1px solid rgba(16,185,129,.08);display:flex;justify-content:center;position:relative}
 /* PERFO BASSE */
-.pb{height:22px;position:relative;background:linear-gradient(to bottom,#F9F6EE,#F0EAD6);display:flex;align-items:center;justify-content:center}
-.ft{background:#F0EAD6;border-radius:0 0 20px 20px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
-.cp{background:#10B981;border-radius:999px;padding:5px 20px}
-.ct{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#F59E0B}
-.pr{font-size:28px;font-weight:700;color:#111827;letter-spacing:-.5px;text-align:center}
-.ll2{font-size:9px;color:#6EE7B7;font-style:italic;text-align:center}
-.wm{font-size:8px;color:rgba(16,185,129,.3);letter-spacing:2px;align-self:flex-end;margin-right:4px}
-.dl{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;padding:12px 28px;border-radius:14px;border:none;font-size:14px;font-weight:600;color:#fff;background:#10B981;cursor:pointer;transition:opacity .2s;letter-spacing:.5px}
-.dl:hover{opacity:.85}
-.dl svg{width:18px;height:18px}
+.pb{height:24px;position:relative;background:linear-gradient(to bottom,#F9F6EE,#F0EAD6);display:flex;align-items:center;justify-content:center}
+.ft{background:#F0EAD6;border-radius:0 0 20px 20px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
+.cp{background:#10B981;border-radius:999px;padding:6px 24px}
+.ct{font-size:11px;font-weight:700;letter-spacing:2.5px;color:#F59E0B}
+.pr{font-size:32px;font-weight:700;color:#111827;letter-spacing:-.5px;text-align:center}
+.ll2{font-size:10px;color:#6EE7B7;font-style:italic;text-align:center}
+.wm{font-size:9px;color:rgba(16,185,129,.3);letter-spacing:2px;align-self:flex-end;margin-right:4px}
 @media print{body{background:#fff;padding:0;gap:0;min-height:auto;justify-content:flex-start}.t{box-shadow:none;page-break-inside:avoid}.dl{display:none!important}}
 </style>
 </head>
