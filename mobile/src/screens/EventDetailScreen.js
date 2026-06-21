@@ -28,6 +28,8 @@ import { useAuth } from '../context/AuthContext'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { hexToRgba } from '../utils/colors'
 import FavoriButton from '../components/FavoriButton'
+import CelebrationOverlay from '../components/CelebrationOverlay'
+import { hapticMedium, hapticSelection } from '../utils/haptics'
 
 export default function EventDetailScreen({ route, navigation }) {
   const { colors, mode, isDark } = useTheme()
@@ -124,6 +126,9 @@ export default function EventDetailScreen({ route, navigation }) {
   const spinAnim = useRef(new Animated.Value(0)).current
   const scaleAnim = useRef(new Animated.Value(0)).current
   const heroFade = useRef(new Animated.Value(0)).current
+  const ticketsDataRef = useRef(null)
+  const paiementRef = useRef(null)
+  const [showCelebration, setShowCelebration] = useState(false)
   const dateParts = event?.date ? formaterDateLisible(event.date).split(' ') : null
   const dayNumber = dateParts?.[0]
   const monthYear = dateParts?.slice(1).join(' ')
@@ -153,6 +158,7 @@ export default function EventDetailScreen({ route, navigation }) {
 
   // Ouvre le modal de paiement à l'étape de confirmation
   const handleBuy = () => {
+    hapticMedium()
     if (!selectedTicket) return
     if (event?.date_fin && new Date(event.date_fin) < new Date()) {
       Alert.alert('Événement terminé', 'La date de cet événement est passée. La vente de billets n\'est plus disponible.')
@@ -251,17 +257,9 @@ export default function EventDetailScreen({ route, navigation }) {
       } else {
         setPaymentResult(ticketsData[0])
         setPaymentEtape('success')
-        setTimeout(() => {
-          setShowPaymentSheet(false)
-          if (ticketsData.length > 1) {
-            navigation.replace('RecuAchat', {
-              reference: resultat.paiement.reference,
-              billetsAchetes: ticketsData,
-            })
-          } else {
-            navigation.replace('Ticket', { ticket: ticketsData[0] })
-          }
-        }, 2000)
+        ticketsDataRef.current = ticketsData
+        paiementRef.current = resultat.paiement.reference
+        setShowCelebration(true)
       }
     } catch (err) {
       setPaymentEtape('failed')
@@ -517,6 +515,7 @@ export default function EventDetailScreen({ route, navigation }) {
                 <TouchableOpacity
                   key={t.name}
                   onPress={() => {
+                    hapticSelection()
                     setSelectedTicket(t)
                     setShowCategorySheet(false)
                   }}
@@ -681,6 +680,22 @@ export default function EventDetailScreen({ route, navigation }) {
         </TouchableOpacity>
         </View>
       </Modal>
+      <CelebrationOverlay
+        visible={showCelebration}
+        onFinish={() => {
+          setShowCelebration(false)
+          setShowPaymentSheet(false)
+          const data = ticketsDataRef.current || []
+          if (data.length > 1) {
+            navigation.replace('RecuAchat', {
+              reference: paiementRef.current,
+              billetsAchetes: data,
+            })
+          } else if (data.length === 1) {
+            navigation.replace('Ticket', { ticket: data[0] })
+          }
+        }}
+      />
     </KeyboardAvoidingView>
   )
 }
