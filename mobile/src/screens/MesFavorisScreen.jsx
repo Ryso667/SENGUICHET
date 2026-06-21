@@ -11,6 +11,7 @@ import { spacing, borderRadius, fonts } from '../constants/theme'
 import { useTheme } from '../context/ThemeContext'
 import { getAllFavoris, basculerFavori } from '../utils/favorisStorage'
 import { formaterDateLisible } from '../utils/dateUtils'
+import EmptyState from '../components/EmptyState'
 
 export default function MesFavorisScreen({ navigation }) {
   const { colors, mode, isDark } = useTheme()
@@ -81,11 +82,11 @@ export default function MesFavorisScreen({ navigation }) {
         <View style={{ width: 36 }} />
       </View>
       {favoris.length === 0 ? (
-        <View style={styles.emptyState}>
-          <MaterialCommunityIcons name="heart-outline" size={56} color={colors.textTertiary} />
-          <Text style={styles.emptyTitle}>Aucun favori</Text>
-          <Text style={styles.emptySub}>Ajoute des événements en cœur pour les retrouver ici</Text>
-        </View>
+        <EmptyState
+          icon="🤍"
+          title="Aucun favori"
+          subtitle="Ajoute des événements en cœur pour les retrouver ici"
+        />
       ) : (
         <FlatList
           data={favoris}
@@ -127,7 +128,4 @@ const makeStyles = (colors) => StyleSheet.create({
   cardLocation: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   cardLocationText: { fontSize: 11, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, flex: 1 },
   heartBtn: { padding: 4, marginLeft: spacing.sm },
-  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 80 },
-  emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text, marginTop: spacing.md },
-  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: spacing.xs, textAlign: 'center', paddingHorizontal: spacing.xl },
 })
