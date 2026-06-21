@@ -29,7 +29,7 @@ export default function ProfilScreen({ navigation }) {
     // Guest : boutons connexion/inscription (inchangé)
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={true}>
           <View style={styles.headerSection}>
             <View style={styles.avatar}>
               <Feather name="user" size={32} color={colors.primary} />
@@ -78,7 +78,7 @@ export default function ProfilScreen({ navigation }) {
   if (estAcheteur) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={true}>
           <View style={styles.headerSection}>
             <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
               <Feather name="user" size={28} color={colors.primary} />

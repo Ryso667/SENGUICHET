@@ -541,6 +541,7 @@ export default function CreerEvenementScreen({ navigation }) {
             <FlatList
               data={CATEGORIES}
               keyExtractor={i => i}
+              showsVerticalScrollIndicator={true}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, categorie === item && s.pickerItemActive]}
@@ -561,6 +562,7 @@ export default function CreerEvenementScreen({ navigation }) {
             <FlatList
               data={BILLET_CATEGORIES}
               keyExtractor={i => i}
+              showsVerticalScrollIndicator={true}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, categories[billetCatIndex]?.nom === item && s.pickerItemActive]}
@@ -584,6 +586,7 @@ export default function CreerEvenementScreen({ navigation }) {
             <FlatList
               data={VILLES}
               keyExtractor={i => i}
+              showsVerticalScrollIndicator={true}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, ville === item && s.pickerItemActive]}

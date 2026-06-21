@@ -277,6 +277,7 @@ export default function MesDemandesScreen({ navigation }) {
             <FlatList
               data={organisateurEvents}
               keyExtractor={(item) => String(item.id)}
+              showsVerticalScrollIndicator={true}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, evenementId === item.id && s.pickerItemActive]}
@@ -748,6 +749,7 @@ export default function MesDemandesScreen({ navigation }) {
             <FlatList
               data={CATEGORIES}
               keyExtractor={i => i}
+              showsVerticalScrollIndicator={true}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, categorie === item && s.pickerItemActive]}
@@ -769,6 +771,7 @@ export default function MesDemandesScreen({ navigation }) {
             <FlatList
               data={BILLET_CATEGORIES}
               keyExtractor={i => i}
+              showsVerticalScrollIndicator={true}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, billetCatIndex !== null && categories[billetCatIndex]?.nom === item && s.pickerItemActive]}
@@ -793,6 +796,7 @@ export default function MesDemandesScreen({ navigation }) {
             <FlatList
               data={VILLES}
               keyExtractor={i => i}
+              showsVerticalScrollIndicator={true}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, ville === item && s.pickerItemActive]}

@@ -86,9 +86,6 @@ export default function OrganizerTabs() {
           headerShown: false,
           tabBarActiveTintColor: colors.navActive,
           tabBarInactiveTintColor: colors.navInactive,
-          listeners: ({ navigation, route }) => ({
-            tabPress: () => hapticLight(),
-          }),
           tabBarStyle: {
             backgroundColor: colors.surface,
             borderTopWidth: 1,
@@ -112,6 +109,7 @@ export default function OrganizerTabs() {
         <Tab.Screen
           name="Accueil"
           component={AccueilNavigator}
+          listeners={({ navigation }) => ({ tabPress: () => hapticLight() })}
           options={{
             tabBarLabel: 'Accueil',
             tabBarIcon: ({ color }) => <Feather name="home" size={20} color={color} />,
@@ -120,6 +118,7 @@ export default function OrganizerTabs() {
         <Tab.Screen
           name="Evenements"
           component={EvenementsNavigator}
+          listeners={({ navigation }) => ({ tabPress: () => hapticLight() })}
           options={{
             tabBarLabel: 'Événements',
             tabBarIcon: ({ color }) => <MaterialCommunityIcons name="calendar-month" size={21} color={color} />,
@@ -128,6 +127,7 @@ export default function OrganizerTabs() {
         <Tab.Screen
           name="Demandes"
           component={DemandesNavigator}
+          listeners={({ navigation }) => ({ tabPress: () => hapticLight() })}
           options={{
             tabBarLabel: 'Demandes',
             tabBarIcon: ({ color }) => <MaterialCommunityIcons name="file-document-outline" size={21} color={color} />,
@@ -136,6 +136,7 @@ export default function OrganizerTabs() {
         <Tab.Screen
           name="Profil"
           component={ProfilNavigator}
+          listeners={({ navigation }) => ({ tabPress: () => hapticLight() })}
           options={{
             tabBarLabel: 'Profil',
             tabBarIcon: ({ color }) => <Feather name="user" size={20} color={color} />,

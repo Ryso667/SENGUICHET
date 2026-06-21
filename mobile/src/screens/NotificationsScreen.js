@@ -104,6 +104,7 @@ export default function NotificationsScreen({ navigation }) {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
+          showsVerticalScrollIndicator={true}
         />
       )}
     </View>

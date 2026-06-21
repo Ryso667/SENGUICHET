@@ -182,6 +182,7 @@ export default function MesTicketsScreen() {
             ItemSeparatorComponent={() => <View style={styles.separator} />}
             removeClippedSubviews
             windowSize={5}
+            showsVerticalScrollIndicator={true}
             refreshControl={
               <RefreshControl
                 refreshing={syncing}

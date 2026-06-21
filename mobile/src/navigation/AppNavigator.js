@@ -47,9 +47,6 @@ function MainTabs() {
         headerShown: false,
         tabBarActiveTintColor: colors.navActive,
         tabBarInactiveTintColor: colors.navInactive,
-        listeners: ({ navigation, route }) => ({
-          tabPress: () => hapticLight(),
-        }),
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopWidth: 1,
@@ -73,6 +70,7 @@ function MainTabs() {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
+        listeners={({ navigation }) => ({ tabPress: () => hapticLight() })}
         options={{
           tabBarLabel: 'Accueil',
           tabBarIcon: ({ color }) => <Feather name="home" size={20} color={color} />,
@@ -81,6 +79,7 @@ function MainTabs() {
       <Tab.Screen
         name="EventSearch"
         component={EventSearchScreen}
+        listeners={({ navigation }) => ({ tabPress: () => hapticLight() })}
         options={{
           tabBarLabel: 'Explorer',
           tabBarIcon: ({ color }) => <Feather name="search" size={20} color={color} />,
@@ -89,6 +88,7 @@ function MainTabs() {
       <Tab.Screen
         name="MesTickets"
         component={MesTicketsScreen}
+        listeners={({ navigation }) => ({ tabPress: () => hapticLight() })}
         options={{
           tabBarLabel: 'Mes billets',
           tabBarIcon: ({ color }) => <MaterialCommunityIcons name="ticket-outline" size={21} color={color} />,
@@ -97,6 +97,7 @@ function MainTabs() {
       <Tab.Screen
         name="Profil"
         component={ProfilScreen}
+        listeners={({ navigation }) => ({ tabPress: () => hapticLight() })}
         options={{
           tabBarLabel: 'Compte',
           tabBarIcon: ({ color }) => <Feather name="user" size={20} color={color} />,
