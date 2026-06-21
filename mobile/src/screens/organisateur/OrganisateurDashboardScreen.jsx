@@ -100,7 +100,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <ScrollView
-        showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
+        showsVerticalScrollIndicator={true}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
         onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
         scrollEventThrottle={16}

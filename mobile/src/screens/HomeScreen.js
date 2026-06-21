@@ -206,7 +206,7 @@ export default function HomeScreen({ navigation }) {
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={{ paddingBottom: 100 }}
-        showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
+        showsVerticalScrollIndicator={true}
       >
         {/* Search bar */}
         <View style={styles.searchBar}>

@@ -92,7 +92,7 @@ export default function MesFavorisScreen({ navigation }) {
           renderItem={renderItem}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
+          showsVerticalScrollIndicator={true}
         />
       )}
     </View>

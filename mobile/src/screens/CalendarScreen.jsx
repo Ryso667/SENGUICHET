@@ -170,7 +170,7 @@ export default function CalendarScreen({ navigation }) {
               </TouchableOpacity>
             )}
             contentContainerStyle={{ paddingBottom: 40 }}
-            showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
+            showsVerticalScrollIndicator={true}
           />
         ) : (
           <View style={styles.emptyState}>

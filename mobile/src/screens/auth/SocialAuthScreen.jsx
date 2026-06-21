@@ -118,7 +118,7 @@ export default function SocialAuthScreen({ navigation }) {
           <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
             keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
+            showsVerticalScrollIndicator={true}
           >
         <View style={s.container}>
 

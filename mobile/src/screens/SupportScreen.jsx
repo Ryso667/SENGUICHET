@@ -22,7 +22,7 @@ export default function SupportScreen() {
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
+        showsVerticalScrollIndicator={true}
       >
         {/* Header */}
         <GlassContainer style={styles.headerCard} intensity={50}>

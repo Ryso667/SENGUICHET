@@ -104,7 +104,7 @@ export default function RecuAchatScreen({ route, navigation }) {
 
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 40 }]}
-        showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
+        showsVerticalScrollIndicator={true}
       >
         {/* Carte du reçu */}
         <View style={styles.recuCard}>

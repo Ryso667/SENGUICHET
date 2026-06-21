@@ -137,7 +137,7 @@ export default function StatistiquesScreen() {
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <ScrollView
-        showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
+        showsVerticalScrollIndicator={true}
         onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
         scrollEventThrottle={16}
       >

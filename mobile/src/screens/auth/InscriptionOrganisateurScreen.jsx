@@ -129,7 +129,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
         <ScrollView
           contentContainerStyle={[s.conteneur, { paddingTop: insets.top + spacing.lg, paddingBottom: 120 }]}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
+          showsVerticalScrollIndicator={true}
         >
           <Text style={s.titre}>Créer un compte organisateur</Text>
           <Text style={s.sousTitre}>

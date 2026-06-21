@@ -56,7 +56,7 @@ export default function VoirTicketsScreen({ route }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <ScrollView showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}>
+      <ScrollView showsVerticalScrollIndicator={true}>
         <View style={s.content}>
           {evenement && (
             <GlassContainer blurType="light" style={s.eventInfo} intensity={35}>

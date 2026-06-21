@@ -29,7 +29,7 @@ export default function ParametresScreen({ navigation }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <ScrollView showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}>
+      <ScrollView showsVerticalScrollIndicator={true}>
         <GlassContainer blurType="light" style={s.section} intensity={35}>
           <Text style={s.sectionTitle}>Mon profil</Text>
           <View style={s.row}>

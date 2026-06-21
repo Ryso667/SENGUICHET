@@ -361,7 +361,7 @@ export default function EventDetailScreen({ route, navigation }) {
         style={styles.flex}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}
+        showsVerticalScrollIndicator={true}
       >
 
         {/* Cartes info — fond blanc avec ombre portée */}

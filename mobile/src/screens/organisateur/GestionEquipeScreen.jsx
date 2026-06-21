@@ -56,7 +56,7 @@ export default function GestionEquipeScreen({ route, navigation }) {
           <Feather name="refresh-cw" size={20} color={colors.text} />
         </TouchableOpacity>
       </View>
-      <ScrollView showsVerticalScrollIndicator={true} indicatorStyle={mode === "dark" ? "white" : "default"}>
+      <ScrollView showsVerticalScrollIndicator={true}>
         <GlassContainer style={s.codeSection} intensity={35}>
           <Text style={s.codeLabel}>Code d'accès</Text>
           <Text style={s.codeValue}>{equipe?.code_controleur || '—'}</Text>
