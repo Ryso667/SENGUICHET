@@ -45,6 +45,10 @@ const VILLES = [
   'Dakar', 'Thiès', 'Saint-Louis', 'Ziguinchor', 'Touba', 'Kaolack', 'Autre',
 ]
 
+const ICONES_CATEGORIES = { Concert: '🎵', Festival: '🎪', Sport: '⚽', Théâtre: '🎭', Conférence: '📚', Atelier: '🛠️', Exposition: '🖼️', 'Club / Soirée': '🎉', Gala: '🏆', 'Autres / Divers': '📌' }
+const ICONES_VILLES = VILLES.reduce((acc, v) => { acc[v] = '📍'; return acc }, {})
+const ICONES_BILLETS = { Standard: '🎟️', VIP: '🎟️', Premium: '🎟️', 'Carré Or': '💎', Fosse: '🎤', 'Autres / Divers': '🎫' }
+
 export default function MesDemandesScreen({ navigation }) {
   const { colors, mode, isDark } = useTheme()
   const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
@@ -288,7 +292,7 @@ export default function MesDemandesScreen({ navigation }) {
                   }}
                 >
                   <Text style={[s.pickerItemText, evenementId === item.id && s.pickerItemTextActive]}>
-                    {item.nom || item.titre}
+                    {ICONES_CATEGORIES[item.categorie] || '📅'}  {item.nom || item.titre}
                   </Text>
                   <Text style={{ fontSize: 10, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>
                     {item.categorie || ''}{item.date_debut ? ` · ${new Date(item.date_debut).toLocaleDateString('fr-FR')}` : ''}
@@ -755,7 +759,7 @@ export default function MesDemandesScreen({ navigation }) {
                   style={[s.pickerItem, categorie === item && s.pickerItemActive]}
                   onPress={() => { setCategorie(item); setCatVisible(false) }}
                 >
-                  <Text style={[s.pickerItemText, categorie === item && s.pickerItemTextActive]}>{item}</Text>
+                  <Text style={[s.pickerItemText, categorie === item && s.pickerItemTextActive]}>{ICONES_CATEGORIES[item] || '📌'}  {item}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -780,7 +784,7 @@ export default function MesDemandesScreen({ navigation }) {
                     setBilletCatIndex(null)
                   }}
                 >
-                  <Text style={[s.pickerItemText, billetCatIndex !== null && categories[billetCatIndex]?.nom === item && s.pickerItemTextActive]}>{item}</Text>
+                  <Text style={[s.pickerItemText, billetCatIndex !== null && categories[billetCatIndex]?.nom === item && s.pickerItemTextActive]}>{ICONES_BILLETS[item] || '🎫'}  {item}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -802,7 +806,7 @@ export default function MesDemandesScreen({ navigation }) {
                   style={[s.pickerItem, ville === item && s.pickerItemActive]}
                   onPress={() => { setVille(item); setVilleVisible(false) }}
                 >
-                  <Text style={[s.pickerItemText, ville === item && s.pickerItemTextActive]}>{item}</Text>
+                  <Text style={[s.pickerItemText, ville === item && s.pickerItemTextActive]}>{ICONES_VILLES[item] || '📍'}  {item}</Text>
                 </TouchableOpacity>
               )}
             />
