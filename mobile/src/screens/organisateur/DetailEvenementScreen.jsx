@@ -117,14 +117,8 @@ export default function DetailEvenementScreen({ route }) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         <GlassContainer blurType="light" style={s.header} intensity={35}>
           <Text style={s.title}>{evenement.nom}</Text>
-          <View style={s.headerActions}>
-            <TouchableOpacity style={s.statsBtn} onPress={() => navigation.navigate('Statistiques', { eventId })} activeOpacity={0.7}>
-              <Feather name="bar-chart-2" size={16} color={colors.accent} />
-              <Text style={s.statsBtnText}>Statistiques</Text>
-            </TouchableOpacity>
-            <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
-              <Text style={[s.statusText, { color: cfg.color }]}>{cfg.label}</Text>
-            </View>
+          <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
+            <Text style={[s.statusText, { color: cfg.color }]}>{cfg.label}</Text>
           </View>
         </GlassContainer>
 
@@ -158,13 +152,23 @@ export default function DetailEvenementScreen({ route }) {
           <Text style={s.fillPct}>{pct}%</Text>
         </GlassContainer>
 
+        <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('Statistiques', { eventId })}>
+          <GlassContainer blurType="light" style={s.statsCard} intensity={30}>
+            <Feather name="bar-chart-2" size={22} color={colors.accent} />
+            <View style={s.statsCardContent}>
+              <Text style={s.statsCardTitle}>Statistiques</Text>
+              <Text style={s.statsCardSub}>Voir les ventes, remplissage et revenus</Text>
+            </View>
+            <Feather name="chevron-right" size={18} color={colors.textSecondary} />
+          </GlassContainer>
+        </TouchableOpacity>
+
         {evenement.description ? (
           <GlassContainer blurType="light" style={s.section} intensity={30}>
             <Text style={s.sectionTitle}>Description</Text>
             <Text style={s.description}>{evenement.description}</Text>
           </GlassContainer>
         ) : null}
-
 
         <GlassContainer blurType="light" style={s.section} intensity={30}>
           <View style={s.sectionHeader}>
@@ -211,15 +215,15 @@ const makeStyles = (colors) => StyleSheet.create({
     margin: spacing.lg, padding: spacing.md,
   },
   title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text, flex: 1, marginRight: spacing.sm },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 },
   statusText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.3 },
-  statsBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 12, paddingVertical: 6,
-    borderRadius: 8, backgroundColor: 'rgba(16,185,129,0.1)',
+  statsCard: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.md,
+    marginHorizontal: spacing.lg, marginBottom: spacing.lg, padding: spacing.md,
   },
-  statsBtnText: { fontSize: 12, fontFamily: fonts.jakarta.semiBold, color: colors.accent },
+  statsCardContent: { flex: 1 },
+  statsCardTitle: { fontSize: 15, fontFamily: fonts.outfit.semiBold, color: colors.text },
+  statsCardSub: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 2 },
   infoGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.lg, gap: spacing.sm },
   infoCard: {
     width: '47%', padding: spacing.md,
