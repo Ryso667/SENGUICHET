@@ -3,6 +3,7 @@
 // Organisateur   : Drawer hamburger (Dashboard, Événements, ...)
 // Contrôleur     : Drawer hamburger (Scanner, Historique, ...)
 import { View, ActivityIndicator, StyleSheet } from 'react-native'
+import { BlurView } from 'expo-blur'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
@@ -46,10 +47,13 @@ function MainTabs() {
         headerShown: false,
         tabBarActiveTintColor: colors.navActive,
         tabBarInactiveTintColor: colors.navInactive,
+        tabBarBackground: () => (
+          <BlurView intensity={80} tint="systemChromeMaterial" style={StyleSheet.absoluteFill} />
+        ),
         tabBarStyle: {
-          backgroundColor: colors.surface,
+          backgroundColor: 'transparent',
           borderTopWidth: 1,
-          borderTopColor: colors.border,
+          borderTopColor: colors.border + '40',
           paddingBottom: 4,
           paddingTop: 4,
           height: 56,
