@@ -507,6 +507,11 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
 .pr{font-size:32px;font-weight:700;color:#111827;letter-spacing:-.5px;text-align:center}
 .ll2{font-size:10px;color:#6EE7B7;font-style:italic;text-align:center}
 .wm{font-size:9px;color:rgba(16,185,129,.3);letter-spacing:2px;align-self:flex-end;margin-right:4px}
+.loading{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,26,15,0.85);z-index:999;justify-content:center;align-items:center;flex-direction:column;gap:16px}
+.loading.show{display:flex}
+.loading .spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,0.1);border-top-color:#D4AF37;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{color:#D4AF37;font-size:14px;font-weight:600;letter-spacing:1px}
 @media print{body{background:#fff;padding:0;gap:0;min-height:auto;justify-content:flex-start}.t{box-shadow:none;page-break-inside:avoid}.dl{display:none!important}}
 </style>
 </head>
@@ -563,9 +568,50 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
     ${watermarkHtml}
   </div>
 </div>
+<div id="loading" class="loading"><div class="spinner"></div><p>Génération du PDF...</p></div>
 <button class="dl" onclick="telechargerPDF()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Télécharger le billet (PDF)</button>
 <script>
-function telechargerPDF(){var el=document.querySelector('.t');document.getElementById('loading').classList.add('show');var opt={margin:0,filename:'Billet-${b.numero}.pdf',image:{type:'jpeg',quality:1},html2canvas:{scale:2,useCORS:true,backgroundColor:'#0F1A0F'},jsPDF:{unit:'mm',format:[210,130],orientation:'landscape'}};html2pdf().set(opt).from(el).save().then(function(){document.getElementById('loading').classList.remove('show')}).catch(function(){document.getElementById('loading').classList.remove('show');alert('Erreur lors de la génération du PDF. R\u00e9essayez.')})}
+function telechargerPDF() {
+  var el = document.querySelector('.t');
+  var loading = document.getElementById('loading');
+  loading.classList.add('show');
+  var opt = {
+    margin: 0,
+    filename: 'Billet-${b.numero}.pdf',
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0F1A0F' },
+    jsPDF: { unit: 'mm', format: [210, 130], orientation: 'landscape' }
+  };
+  html2pdf().set(opt).from(el).toPdf().get('pdf').then(function(pdf) {
+    var blob = pdf.output('blob');
+    var file = new File([blob], 'Billet-${b.numero}.pdf', { type: 'application/pdf' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: 'Mon billet SENGUICHET' }).then(function() {
+        loading.classList.remove('show');
+      }).catch(function(err) {
+        if (err.name !== 'AbortError') fallbackDownload(pdf);
+        loading.classList.remove('show');
+      });
+    } else {
+      fallbackDownload(pdf);
+      loading.classList.remove('show');
+    }
+  }).catch(function() {
+    loading.classList.remove('show');
+    alert('Erreur lors de la génération du PDF. R\u00e9essayez.');
+  });
+}
+function fallbackDownload(pdf) {
+  var blob = pdf.output('blob');
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'Billet-${b.numero}.pdf';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
+}
 </script>
 </body>
 </html>`);
