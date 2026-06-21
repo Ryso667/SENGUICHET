@@ -14,15 +14,13 @@ import { ThemeProvider, useTheme } from './src/context/ThemeContext'
 import AppNavigator from './src/navigation/AppNavigator'
 import * as Notifications from 'expo-notifications'
 import * as Device from 'expo-device'
-import { configurerNotifications, obtenirTokenPush, enregistrerToken, fetchCompteurNonLues, ajouterListenerNotification } from './src/services/notificationService'
-import { useAuth } from './src/context/AuthContext'
+import { configurerNotifications, obtenirTokenPush, ajouterListenerNotification } from './src/services/notificationService'
 
 SplashScreen.preventAutoHideAsync()
 
 // Composant racine : charge les polices Google Fonts puis rend l'arbre ThemeProvider → ToastProvider → AuthProvider → AppNavigator
 function AppContent() {
   const { colors, isDark } = useTheme()
-  const { role } = useAuth()
   const [fontsLoaded, fontError] = useFonts({
     Outfit_400Regular,
     Outfit_600SemiBold,
@@ -43,14 +41,8 @@ function AppContent() {
         // Les push Expo ne fonctionnent pas sur émulateur
         if (!Device.isDevice) return
 
-        const token = await obtenirTokenPush()
-        if (token) {
-          await enregistrerToken(token, role || 'organisateur')
-        }
-
-        // Récupère le compteur de notifications non lues au lancement
-        const count = await fetchCompteurNonLues()
-        await Notifications.setBadgeCountAsync(count)
+        // Demande la permission push (le token est enregistré au login dans AuthContext)
+        await obtenirTokenPush()
       } catch {
         // Silencieux — les notifications ne sont pas bloquantes
       }
@@ -58,14 +50,9 @@ function AppContent() {
 
     setupNotifications()
 
-    // Met à jour le badge à chaque notification reçue
-    const subscription = ajouterListenerNotification(async () => {
-      try {
-        const count = await fetchCompteurNonLues()
-        await Notifications.setBadgeCountAsync(count)
-      } catch {
-        // Silencieux
-      }
+    // Met à jour le badge à chaque notification reçue (organisateur uniquement)
+    const subscription = ajouterListenerNotification(() => {
+      try { Notifications.setBadgeCountAsync(1) } catch { /* silencieux */ }
     })
 
     return () => subscription.remove()
