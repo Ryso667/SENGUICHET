@@ -26,7 +26,7 @@ const getStatutConfig = (colors) => ({
 })
 
 export default function DetailEvenementScreen({ route }) {
-  const { colors, mode } = useTheme()
+  const { colors, mode, isDark } = useTheme()
   const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
   const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
@@ -113,7 +113,7 @@ export default function DetailEvenementScreen({ route }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <ScrollView showsVerticalScrollIndicator={true}
+      <ScrollView showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         <GlassContainer blurType="light" style={s.header} intensity={35}>
           <Text style={s.title}>{evenement.nom}</Text>

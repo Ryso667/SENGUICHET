@@ -26,7 +26,7 @@ const getStatutConfig = (colors) => ({
 })
 
 export default function OrganisateurDashboardScreen({ navigation }) {
-  const { colors, mode } = useTheme()
+  const { colors, mode, isDark } = useTheme()
   const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
   const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
@@ -100,7 +100,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <ScrollView
-        showsVerticalScrollIndicator={true}
+        showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
         onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
         scrollEventThrottle={16}

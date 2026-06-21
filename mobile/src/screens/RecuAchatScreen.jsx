@@ -24,7 +24,7 @@ const C = {
 
 export default function RecuAchatScreen({ route, navigation }) {
   const { reference, billetsAchetes } = route.params || {}
-  const { colors, mode } = useTheme()
+  const { colors, mode, isDark } = useTheme()
   const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
 
@@ -104,7 +104,7 @@ export default function RecuAchatScreen({ route, navigation }) {
 
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 40 }]}
-        showsVerticalScrollIndicator={true}
+        showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
       >
         {/* Carte du reçu */}
         <View style={styles.recuCard}>

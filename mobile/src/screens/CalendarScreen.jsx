@@ -36,7 +36,7 @@ function genererJoursMois(annee, mois) {
 }
 
 export default function CalendarScreen({ navigation }) {
-  const { colors, mode } = useTheme()
+  const { colors, mode, isDark } = useTheme()
   const insets = useSafeAreaInsets()
   const maintenant = new Date()
   const [annee, setAnnee] = useState(maintenant.getFullYear())
@@ -170,7 +170,7 @@ export default function CalendarScreen({ navigation }) {
               </TouchableOpacity>
             )}
             contentContainerStyle={{ paddingBottom: 40 }}
-            showsVerticalScrollIndicator={true}
+            showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
           />
         ) : (
           <View style={styles.emptyState}>

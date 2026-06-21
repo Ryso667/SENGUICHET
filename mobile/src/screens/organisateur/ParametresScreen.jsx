@@ -14,7 +14,7 @@ import GlassContainer from '../../components/GlassContainer'
 const NOTIF_KEY_SMS = '@senguichet_notif_sms_vente'
 
 export default function ParametresScreen({ navigation }) {
-  const { colors, mode, setTheme } = useTheme()
+  const { colors, mode, setTheme, isDark } = useTheme()
   const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { user, deconnecter } = useAuth()
@@ -29,7 +29,7 @@ export default function ParametresScreen({ navigation }) {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <ScrollView showsVerticalScrollIndicator={true}>
+      <ScrollView showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}>
         <GlassContainer blurType="light" style={s.section} intensity={35}>
           <Text style={s.sectionTitle}>Mon profil</Text>
           <View style={s.row}>

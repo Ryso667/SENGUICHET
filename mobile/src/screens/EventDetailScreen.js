@@ -30,7 +30,7 @@ import { hexToRgba } from '../utils/colors'
 import FavoriButton from '../components/FavoriButton'
 
 export default function EventDetailScreen({ route, navigation }) {
-  const { colors, mode } = useTheme()
+  const { colors, mode, isDark } = useTheme()
   const { eventId } = route.params
   const { definirTelephone, numeroTel, email } = useAuth()
   const insets = useSafeAreaInsets()
@@ -361,7 +361,7 @@ export default function EventDetailScreen({ route, navigation }) {
         style={styles.flex}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={true}
+        showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
       >
 
         {/* Cartes info — fond blanc avec ombre portée */}

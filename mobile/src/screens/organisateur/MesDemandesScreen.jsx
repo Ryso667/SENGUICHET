@@ -46,7 +46,7 @@ const VILLES = [
 ]
 
 export default function MesDemandesScreen({ navigation }) {
-  const { colors, mode } = useTheme()
+  const { colors, mode, isDark } = useTheme()
   const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
   const s = useMemo(() => makeStyles(colors), [colors])
   const f = useMemo(() => makeFormStyles(colors), [colors])
@@ -277,7 +277,7 @@ export default function MesDemandesScreen({ navigation }) {
             <FlatList
               data={organisateurEvents}
               keyExtractor={(item) => String(item.id)}
-              showsVerticalScrollIndicator={true}
+              showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, evenementId === item.id && s.pickerItemActive]}
@@ -432,7 +432,7 @@ export default function MesDemandesScreen({ navigation }) {
       <View style={{ paddingTop: insets.top, flex: 1 }}>
         <ScrollView
           contentContainerStyle={s.content}
-          showsVerticalScrollIndicator={true}
+          showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
           keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10B981" colors={["#10B981"]} />}
           onScroll={(e) => { tabScrollY.setValue(e.nativeEvent.contentOffset.y) }}
@@ -508,7 +508,7 @@ export default function MesDemandesScreen({ navigation }) {
         <Animated.View style={[s.modalOverlay, { opacity: fadeAnim }]}>
           <TouchableOpacity style={s.modalBackdrop} activeOpacity={1} onPress={closeModal} />
           <Animated.View style={[s.modalContent, { transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [300, 0] }) }] }]}>
-            <ScrollView showsVerticalScrollIndicator={true} keyboardShouldPersistTaps="handled">
+            <ScrollView showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'} keyboardShouldPersistTaps="handled">
               {modalMode === 'detail' && viewingDemande ? (
                 /* === MODE DÉTAIL === */
                 <>
@@ -749,7 +749,7 @@ export default function MesDemandesScreen({ navigation }) {
             <FlatList
               data={CATEGORIES}
               keyExtractor={i => i}
-              showsVerticalScrollIndicator={true}
+              showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, categorie === item && s.pickerItemActive]}
@@ -771,7 +771,7 @@ export default function MesDemandesScreen({ navigation }) {
             <FlatList
               data={BILLET_CATEGORIES}
               keyExtractor={i => i}
-              showsVerticalScrollIndicator={true}
+              showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, billetCatIndex !== null && categories[billetCatIndex]?.nom === item && s.pickerItemActive]}
@@ -796,7 +796,7 @@ export default function MesDemandesScreen({ navigation }) {
             <FlatList
               data={VILLES}
               keyExtractor={i => i}
-              showsVerticalScrollIndicator={true}
+              showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, ville === item && s.pickerItemActive]}

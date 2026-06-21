@@ -17,7 +17,7 @@ const THEME_ICONS = {
 const LABELS = { system: 'Système', dark: 'Sombre', light: 'Clair' }
 
 export default function ProfilScreen({ navigation }) {
-  const { colors, mode, setTheme } = useTheme()
+  const { colors, mode, setTheme, isDark } = useTheme()
   const styles = useMemo(() => makeStyles(colors), [colors])
   const [showThemeModal, setShowThemeModal] = useState(false)
   const insets = useSafeAreaInsets()
@@ -29,7 +29,7 @@ export default function ProfilScreen({ navigation }) {
     // Guest : boutons connexion/inscription (inchangé)
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={true}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}>
           <View style={styles.headerSection}>
             <View style={styles.avatar}>
               <Feather name="user" size={32} color={colors.primary} />
@@ -78,7 +78,7 @@ export default function ProfilScreen({ navigation }) {
   if (estAcheteur) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={true}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}>
           <View style={styles.headerSection}>
             <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
               <Feather name="user" size={28} color={colors.primary} />

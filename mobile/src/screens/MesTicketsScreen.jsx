@@ -26,7 +26,7 @@ const STATUS_MAP = {
 }
 
 export default function MesTicketsScreen() {
-  const { colors } = useTheme()
+  const { colors, isDark } = useTheme()
   const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { scrollY: tabScrollY } = useTabBarScroll()
@@ -182,7 +182,7 @@ export default function MesTicketsScreen() {
             ItemSeparatorComponent={() => <View style={styles.separator} />}
             removeClippedSubviews
             windowSize={5}
-            showsVerticalScrollIndicator={true}
+            showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
             refreshControl={
               <RefreshControl
                 refreshing={syncing}

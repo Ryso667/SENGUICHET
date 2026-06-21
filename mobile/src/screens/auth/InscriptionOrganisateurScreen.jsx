@@ -53,7 +53,7 @@ const formatterTelephone = (texte) => {
 }
 
 export default function InscriptionOrganisateurScreen({ navigation }) {
-  const { colors, mode } = useTheme()
+  const { colors, mode, isDark } = useTheme()
   const s = useMemo(() => makeStyles(colors), [colors])
   const [telephone, setTelephone] = useState('+221 ')
   const [email, setEmail] = useState('')
@@ -129,7 +129,7 @@ export default function InscriptionOrganisateurScreen({ navigation }) {
         <ScrollView
           contentContainerStyle={[s.conteneur, { paddingTop: insets.top + spacing.lg, paddingBottom: 120 }]}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={true}
+          showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
         >
           <Text style={s.titre}>Créer un compte organisateur</Text>
           <Text style={s.sousTitre}>

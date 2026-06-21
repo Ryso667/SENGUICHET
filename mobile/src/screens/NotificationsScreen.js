@@ -11,7 +11,7 @@ import { fetchNotifications, marquerLue, marquerToutLu } from '../services/notif
 import { useFocusEffect } from '@react-navigation/native'
 
 export default function NotificationsScreen({ navigation }) {
-  const { colors } = useTheme()
+  const { colors, isDark } = useTheme()
   const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const [notifications, setNotifications] = useState([])
@@ -104,7 +104,7 @@ export default function NotificationsScreen({ navigation }) {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
-          showsVerticalScrollIndicator={true}
+          showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
         />
       )}
     </View>

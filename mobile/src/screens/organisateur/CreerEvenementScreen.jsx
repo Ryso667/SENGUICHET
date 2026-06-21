@@ -36,7 +36,7 @@ const STEPS = [
 ]
 
 export default function CreerEvenementScreen({ navigation }) {
-  const { colors } = useTheme()
+  const { colors, isDark } = useTheme()
   const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
   const { user } = useAuth()
@@ -541,7 +541,7 @@ export default function CreerEvenementScreen({ navigation }) {
             <FlatList
               data={CATEGORIES}
               keyExtractor={i => i}
-              showsVerticalScrollIndicator={true}
+              showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, categorie === item && s.pickerItemActive]}
@@ -562,7 +562,7 @@ export default function CreerEvenementScreen({ navigation }) {
             <FlatList
               data={BILLET_CATEGORIES}
               keyExtractor={i => i}
-              showsVerticalScrollIndicator={true}
+              showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, categories[billetCatIndex]?.nom === item && s.pickerItemActive]}
@@ -586,7 +586,7 @@ export default function CreerEvenementScreen({ navigation }) {
             <FlatList
               data={VILLES}
               keyExtractor={i => i}
-              showsVerticalScrollIndicator={true}
+              showsVerticalScrollIndicator={true} indicatorStyle={isDark ? 'white' : 'black'}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[s.pickerItem, ville === item && s.pickerItemActive]}
