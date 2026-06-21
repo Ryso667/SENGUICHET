@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert, ActivityIndicator } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons'
+import { useNavigation } from '@react-navigation/native'
 import * as FileSystem from 'expo-file-system'
 import * as Sharing from 'expo-sharing'
 import { spacing, fonts, borderRadius } from '../../constants/theme'
@@ -29,6 +30,7 @@ export default function DetailEvenementScreen({ route }) {
   const STATUT_CONFIG = useMemo(() => getStatutConfig(colors), [colors])
   const s = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
+  const navigation = useNavigation()
   const { eventId } = route.params || {}
   const [evenement, setEvenement] = useState(null)
   const [tickets, setTickets] = useState([])
@@ -115,8 +117,14 @@ export default function DetailEvenementScreen({ route }) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         <GlassContainer blurType="light" style={s.header} intensity={35}>
           <Text style={s.title}>{evenement.nom}</Text>
-          <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
-            <Text style={[s.statusText, { color: cfg.color }]}>{cfg.label}</Text>
+          <View style={s.headerActions}>
+            <TouchableOpacity style={s.statsBtn} onPress={() => navigation.navigate('Statistiques', { eventId })} activeOpacity={0.7}>
+              <Feather name="bar-chart-2" size={16} color={colors.accent} />
+              <Text style={s.statsBtnText}>Statistiques</Text>
+            </TouchableOpacity>
+            <View style={[s.statusBadge, { backgroundColor: cfg.bg }]}>
+              <Text style={[s.statusText, { color: cfg.color }]}>{cfg.label}</Text>
+            </View>
           </View>
         </GlassContainer>
 
@@ -203,8 +211,15 @@ const makeStyles = (colors) => StyleSheet.create({
     margin: spacing.lg, padding: spacing.md,
   },
   title: { fontSize: 24, fontFamily: fonts.outfit.bold, color: colors.text, flex: 1, marginRight: spacing.sm },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 },
   statusText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, textTransform: 'uppercase', letterSpacing: 0.3 },
+  statsBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 8, backgroundColor: 'rgba(16,185,129,0.1)',
+  },
+  statsBtnText: { fontSize: 12, fontFamily: fonts.jakarta.semiBold, color: colors.accent },
   infoGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.lg, gap: spacing.sm },
   infoCard: {
     width: '47%', padding: spacing.md,
