@@ -1264,6 +1264,8 @@ const makeStyles = (colors) => StyleSheet.create({
   quantiteBtn: {
     width: scale(44),
     height: scale(44),
+    minWidth: 44,
+    minHeight: 44,
     borderRadius: scale(22),
     backgroundColor: hexToRgba(colors.accent, 0.1),
     alignItems: 'center',
