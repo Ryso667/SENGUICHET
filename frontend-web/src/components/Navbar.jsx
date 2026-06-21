@@ -23,7 +23,7 @@ const Navbar = () => {
   return (
     <nav className="h-20 md:h-24 bg-[#FAFAFA] border-b border-black/5 sticky top-0 z-50">
       <div className="h-full flex items-center justify-between">
-        <div className="flex items-center gap-1 md:gap-3">
+        <div className="flex items-center gap-1 md:gap-3 flex-shrink min-w-0 overflow-hidden">
           <button
             onClick={() => navigate("/")}
             className="flex-shrink-0"
@@ -32,20 +32,20 @@ const Navbar = () => {
             <img
               src="/images/logo.png"
               alt="SENGUICHET"
-              className="h-14 md:h-[170px] w-auto animate-logo drop-shadow-xl transition-all duration-300"
+              className="h-7 md:h-[170px] w-auto animate-logo drop-shadow-xl transition-all duration-300"
             />
           </button>
-          <Link to="/" className="flex items-baseline gap-0 ml-8 md:ml-36">
-            <span className="text-3xl md:text-5xl font-extrabold tracking-tight" style={{ color: "#15803D" }}>
+          <Link to="/" className="flex items-baseline gap-0 ml-1.5 md:ml-36 whitespace-nowrap overflow-hidden min-w-0">
+            <span className="text-[clamp(0.875rem,3.5vw,1.875rem)] font-extrabold tracking-tight whitespace-nowrap" style={{ color: "#15803D" }}>
               SEN
             </span>
-            <span className="text-3xl md:text-5xl font-extrabold tracking-tight" style={{ color: "#111827" }}>
+            <span className="text-[clamp(0.875rem,3.5vw,1.875rem)] font-extrabold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis" style={{ color: "#111827" }}>
               GUICHET
             </span>
           </Link>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-shrink-0">
           <div className="hidden md:flex items-center gap-6 mr-4">
             {navLinks.map((link) => (
               <Link

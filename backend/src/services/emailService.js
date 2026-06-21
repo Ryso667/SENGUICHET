@@ -589,4 +589,104 @@ const envoyerNotificationDemandeEvenement = async (demande) => {
   return envoyerEmail(adminEmail, `Demande ${action.toLowerCase()} \u00e9v\u00e9nement \u2014 SENGUICHET`, emailLayout(content));
 };
 
-module.exports = { envoyerEmailBillet, envoyerCodeOTP, envoyerConfirmationDemandeur, envoyerNotificationAdmin, envoyerStatutDemande, envoyerIdentifiantsPartenaire, envoyerNotificationDemandeEvenement };
+// Envoie un email unique avec plusieurs catégories de tickets groupées
+// data: { evenement, dateDebut, lieu, categories: [ { nom, quantite, prixUnitaire, tickets } ], prixTotal, quantiteTotal }
+const envoyerEmailMultiCat = async (destinataire, data) => {
+  const baseUrl = process.env.TICKET_URL || "https://backend-beta-six-39.vercel.app/api/billets";
+  const dateDebut = data.dateDebut ? new Date(data.dateDebut).toLocaleDateString("fr-FR", {
+    day: "numeric", month: "long", year: "numeric"
+  }) : "";
+  const heureDebut = data.dateDebut ? new Date(data.dateDebut).toLocaleTimeString("fr-FR", {
+    hour: "2-digit", minute: "2-digit"
+  }) : "";
+
+  const categoriesHtml = data.categories.map(cat => {
+    const ticketsHtml = (cat.tickets || []).map((t, i) => {
+      const lienBillet = `${baseUrl}/${t.uuid}`;
+      return `
+        <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F0FDF4" style="background-color:#f0fdf4;border-radius:10px;margin-bottom:8px;">
+          <tr>
+            <td bgcolor="#F0FDF4" style="padding:12px 16px;background-color:#f0fdf4;">
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td>
+                    <span style="color:#6B7280;font-size:11px;font-family:Arial,Helvetica,sans-serif;">Billet ${i + 1}</span>
+                    <p style="color:#111827;font-size:13px;font-weight:700;margin:2px 0 0 0;font-family:Arial,Helvetica,sans-serif;">${t.numero}</p>
+                  </td>
+                  <td align="right" valign="middle">
+                    <a href="${lienBillet}" style="background:#15803D;border-radius:6px;color:#ffffff;font-family:Arial;font-size:12px;font-weight:700;line-height:34px;text-align:center;text-decoration:none;display:inline-block;padding:0 18px;">Voir →</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>`;
+    }).join('');
+
+    return `
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:16px;">
+        <tr>
+          <td style="padding:0;">
+            <p style="color:#15803D;font-size:14px;font-weight:700;margin:0 0 8px 0;font-family:Arial,Helvetica,sans-serif;text-transform:uppercase;">${cat.nom}</p>
+            <p style="color:#6B7280;font-size:12px;margin:0 0 8px 0;font-family:Arial,Helvetica,sans-serif;">${cat.quantite} billet${cat.quantite > 1 ? 's' : ''} · ${(cat.prixUnitaire * cat.quantite).toLocaleString('fr-FR')} FCFA</p>
+            ${ticketsHtml}
+          </td>
+        </tr>
+      </table>`;
+  }).join('');
+
+  const content = `
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-radius:16px;mso-border-radius:16px;">
+      <tr>
+        <td style="padding:32px 28px;">
+          <table cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr>
+              <td align="center" style="padding-bottom:12px;">
+                <table cellpadding="0" cellspacing="0" border="0" style="width:56px;height:56px;border-radius:14px;background:#BBF7D0;">
+                  <tr>
+                    <td align="center" valign="middle" style="font-size:28px;font-weight:700;color:#15803D;font-family:Arial,sans-serif;">🎉</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <h2 style="color:#111827;font-size:20px;margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;text-align:center;">Achat confirmé !</h2>
+          <p style="color:#6B7280;font-size:14px;margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;text-align:center;">${data.evenement || 'Événement'}</p>
+          <p style="color:#15803D;font-size:13px;margin:0 0 24px 0;font-family:Arial,Helvetica,sans-serif;text-align:center;font-weight:600;">${data.quantiteTotal} billets · ${(data.prixTotal || 0).toLocaleString('fr-FR')} FCFA</p>
+
+          <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F9FAFB" style="background-color:#F9FAFB;border-radius:12px;mso-border-radius:12px;margin-bottom:20px;">
+            <tr>
+              <td bgcolor="#F9FAFB" style="padding:20px;background-color:#F9FAFB;">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td style="padding:4px 0;"><span style="color:#6B7280;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Événement</span></td>
+                    <td style="padding:4px 0;text-align:right;"><span style="color:#111827;font-size:13px;font-weight:600;font-family:Arial,Helvetica,sans-serif;">${data.evenement || '—'}</span></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;"><span style="color:#6B7280;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Date</span></td>
+                    <td style="padding:4px 0;text-align:right;"><span style="color:#111827;font-size:13px;font-weight:600;font-family:Arial,Helvetica,sans-serif;">${dateDebut || '—'}</span></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;"><span style="color:#6B7280;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Heure</span></td>
+                    <td style="padding:4px 0;text-align:right;"><span style="color:#111827;font-size:13px;font-weight:600;font-family:Arial,Helvetica,sans-serif;">${heureDebut || '—'}</span></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;"><span style="color:#6B7280;font-size:12px;font-family:Arial,Helvetica,sans-serif;">Lieu</span></td>
+                    <td style="padding:4px 0;text-align:right;"><span style="color:#111827;font-size:13px;font-weight:600;font-family:Arial,Helvetica,sans-serif;">${data.lieu || '—'}</span></td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <p style="color:#111827;font-size:14px;font-weight:700;margin:0 0 12px 0;font-family:Arial,Helvetica,sans-serif;">Vos billets</p>
+          ${categoriesHtml}
+        </td>
+      </tr>
+    </table>`;
+
+  return envoyerEmail(destinataire, `${data.quantiteTotal} billets · ${data.evenement || 'SENGUICHET'}`, emailLayout(content));
+};
+
+module.exports = { envoyerEmailBillet, envoyerEmailMultiCat, envoyerCodeOTP, envoyerConfirmationDemandeur, envoyerNotificationAdmin, envoyerStatutDemande, envoyerIdentifiantsPartenaire, envoyerNotificationDemandeEvenement };

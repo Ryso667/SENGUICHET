@@ -186,7 +186,7 @@ export default function TicketScreen({ route, navigation }) {
               {/* Logo + marque */}
               <View style={styles.logoRow}>
                 <View style={styles.logoBox}>
-                  <Image source={require('../../assets/logo_mobile.jpeg')} style={styles.logoImg} />
+                  <Image source={require('../../assets/logo.png')} style={styles.logoImg} />
                 </View>
                 <Text style={styles.brandLabel}>SENGUICHET</Text>
               </View>
