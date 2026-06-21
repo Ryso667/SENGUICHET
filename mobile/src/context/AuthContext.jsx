@@ -244,7 +244,7 @@ export function AuthProvider({ children }) {
   }
 
   const nettoyerSession = async () => {
-    await supprimerToken()
+    await supprimerToken(role || 'organisateur')
     await AsyncStorage.multiRemove([
       STORAGE_KEY_ROLE,
       STORAGE_KEY_ACHETEUR_PIN,

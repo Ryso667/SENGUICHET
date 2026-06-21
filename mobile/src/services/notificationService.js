@@ -62,13 +62,14 @@ export async function enregistrerToken(token, role = 'organisateur') {
 }
 
 // Supprime le token push sur le backend (déconnexion)
-export async function supprimerToken() {
+export async function supprimerToken(role = 'organisateur') {
   try {
     const token = await Securite.GET('push_token')
     if (token) {
-      await appelAPI('/notifications/unregister-token', {
+      const endpoint = role === 'acheteur' ? '/acheteur/push/unregister' : '/notifications/unregister-token'
+      await appelAPI(endpoint, {
         method: 'POST',
-        body: { token },
+        body: role === 'acheteur' ? { pushToken: token } : { token },
       })
       await Securite.SUPPRIMER('push_token')
     }

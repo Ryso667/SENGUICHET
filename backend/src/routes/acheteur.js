@@ -32,4 +32,26 @@ router.post("/push/register", authAcheteur, async (req, res) => {
   }
 });
 
+// Supprimer un push token pour l'acheteur connecté
+// POST /api/acheteur/push/unregister
+// Body : { pushToken: "ExponentPushToken-xxx" }
+// Requiert un JWT valide avec le rôle ACHETEUR
+router.post("/push/unregister", authAcheteur, async (req, res) => {
+  try {
+    const { pushToken } = req.body;
+    if (!pushToken || !pushToken.startsWith("ExponentPushToken")) {
+      return res.status(400).json({ message: "Token invalide" });
+    }
+
+    await db.query(
+      "DELETE FROM push_tokens WHERE token = ? AND acheteur_id = ?",
+      [pushToken, req.user.id]
+    );
+
+    res.json({ message: "Token supprimé" });
+  } catch (err) {
+    res.status(500).json({ message: "Erreur suppression token", error: err.message });
+  }
+});
+
 module.exports = router;
