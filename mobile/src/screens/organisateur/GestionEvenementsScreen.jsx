@@ -1,7 +1,7 @@
 // Gestion des événements : liste complète calquée sur l'app web
 // Design glass (Apple Invites) — cartes avec hero image, overlay, stats
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput } from 'react-native'
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput, Alert, ActivityIndicator } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, categoryGradients, gradients, spacing } from '../../constants/theme'
@@ -16,6 +16,11 @@ import EmptyState from '../../components/EmptyState'
 import Skeleton from '../../components/Skeleton'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { hexToRgba } from '../../utils/colors'
+import * as FileSystem from 'expo-file-system'
+import * as Sharing from 'expo-sharing'
+import { ActivityIndicator } from 'react-native'
+import { Feather } from '@expo/vector-icons'
+import { fetchBilletsEvenementAPI } from '../../services/billetService'
 
 const getStatutConfig = (colors) => ({
   actif: { label: 'Actif', color: colors.green, bg: hexToRgba(colors.green, 0.15) },
@@ -38,6 +43,7 @@ export default function GestionEvenementsScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState('Tous')
   const [search, setSearch] = useState('')
   const [refreshing, setRefreshing] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   const charger = useCallback(async () => {
     try {
@@ -58,6 +64,41 @@ export default function GestionEvenementsScreen({ navigation }) {
     await charger()
     setRefreshing(false)
   }, [charger])
+
+  const exporterFiltreCSV = async () => {
+    setExporting(true)
+    try {
+      const evtsFiltres = filtered
+      const allLines = [['Nom', 'Email', 'Téléphone', 'Catégorie', 'Prix (FCFA)', "Date d'achat", 'Statut', 'Événement'].join(',')]
+      for (const evt of evtsFiltres) {
+        const billets = await fetchBilletsEvenementAPI(evt.id)
+        for (const b of billets) {
+          allLines.push([
+            `"${(b.nom || '').replace(/"/g, '""')}"`,
+            `"${(b.email || '').replace(/"/g, '""')}"`,
+            `"${(b.telephone || '').replace(/"/g, '""')}"`,
+            `"${(b.categorie || '').replace(/"/g, '""')}"`,
+            b.prix,
+            `"${(b.dateAchat || '').replace(/"/g, '""')}"`,
+            `"${b.statut === 'actif' ? 'Payé' : b.statut === 'utilise' ? 'Utilisé' : (b.statut || '')}"`,
+            `"${(evt.titre || '').replace(/"/g, '""')}"`,
+          ].join(','))
+        }
+      }
+      if (allLines.length === 1) {
+        Alert.alert('Aucun billet', 'Aucun billet à exporter pour ces événements')
+        return
+      }
+      const csv = allLines.join('\n')
+      const uri = FileSystem.cacheDirectory + 'billets-filtres.csv'
+      await FileSystem.writeAsStringAsync(uri, csv, { encoding: FileSystem.EncodingType.UTF8 })
+      await Sharing.shareAsync(uri, { mimeType: 'text/csv', dialogTitle: 'Exporter les billets filtrés' })
+    } catch (e) {
+      Alert.alert('Erreur', "Impossible d'exporter les billets")
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const filtered = events.filter(evt => {
     if (activeTab === 'Actifs') return evt.statut === 'actif'
@@ -87,6 +128,20 @@ export default function GestionEvenementsScreen({ navigation }) {
               <TouchableOpacity onPress={() => navigation.navigate('Statistiques')} activeOpacity={0.8} style={s.statBtn}>
                 <MaterialCommunityIcons name="chart-bar" size={16} color={colors.accent} />
                 <Text style={s.statBtnText}>Statistiques</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.exportBtn}
+                onPress={exporterFiltreCSV}
+                disabled={exporting || events.length === 0}
+              >
+                {exporting ? (
+                  <ActivityIndicator size="small" color={colors.accent} />
+                ) : (
+                  <Feather name="download" size={16} color={colors.accent} />
+                )}
+                <Text style={s.exportText}>
+                  {exporting ? '...' : 'CSV'}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => navigation.navigate('Demandes')} activeOpacity={0.8}>
                 <LinearGradient colors={gradients.primary} style={s.demanderBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
@@ -232,6 +287,14 @@ const makeStyles = (colors) => StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 8,
   },
   demanderBtnText: { fontSize: 13, fontFamily: fonts.outfit.semiBold, color: colors.white },
+  exportBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 10, paddingVertical: 6,
+    borderRadius: 8, backgroundColor: 'rgba(16,185,129,0.1)',
+  },
+  exportText: {
+    fontSize: 12, fontFamily: fonts.jakarta.semiBold, color: colors.accent,
+  },
 
   /* Tabs */
   tabsBar: {

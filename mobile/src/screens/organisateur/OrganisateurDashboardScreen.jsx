@@ -1,13 +1,16 @@
 // Tableau de bord organisateur (calqué sur l'app web)
 // Design glass (Apple Invites) — fond dégradé, conteneurs verre dépoli
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native'
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated, Alert, ActivityIndicator } from 'react-native'
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts, categoryGradients, spacing } from '../../constants/theme'
 import { useTheme } from '../../context/ThemeContext'
 import { hapticLight } from '../../utils/haptics'
 import { fetchEvenementsAPI } from '../../services/eventService'
+import * as FileSystem from 'expo-file-system'
+import * as Sharing from 'expo-sharing'
+import { fetchBilletsEvenementAPI } from '../../services/billetService'
 import { useAuth } from '../../context/AuthContext'
 import { useTabBarScroll } from '../../context/TabBarScrollContext'
 import { formaterDateLisible } from '../../utils/dateUtils'
@@ -35,6 +38,7 @@ export default function OrganisateurDashboardScreen({ navigation }) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   const fadeAnims = useRef([...Array(8)].map(() => new Animated.Value(0))).current
   const slideAnims = useRef([...Array(8)].map(() => new Animated.Value(40))).current
@@ -67,6 +71,40 @@ export default function OrganisateurDashboardScreen({ navigation }) {
     await loadData()
     setRefreshing(false)
   }, [loadData])
+
+  const exporterToutCSV = async () => {
+    setExporting(true)
+    try {
+      const allLines = [['Nom', 'Email', 'Téléphone', 'Catégorie', 'Prix (FCFA)', "Date d'achat", 'Statut', 'Événement'].join(',')]
+      for (const evt of events) {
+        const billets = await fetchBilletsEvenementAPI(evt.id)
+        for (const b of billets) {
+          allLines.push([
+            `"${(b.nom || '').replace(/"/g, '""')}"`,
+            `"${(b.email || '').replace(/"/g, '""')}"`,
+            `"${(b.telephone || '').replace(/"/g, '""')}"`,
+            `"${(b.categorie || '').replace(/"/g, '""')}"`,
+            b.prix,
+            `"${(b.dateAchat || '').replace(/"/g, '""')}"`,
+            `"${b.statut === 'actif' ? 'Payé' : b.statut === 'utilise' ? 'Utilisé' : (b.statut || '')}"`,
+            `"${(evt.titre || '').replace(/"/g, '""')}"`,
+          ].join(','))
+        }
+      }
+      if (allLines.length === 1) {
+        Alert.alert('Aucun billet', 'Aucun billet à exporter')
+        return
+      }
+      const csv = allLines.join('\n')
+      const uri = FileSystem.cacheDirectory + 'tous-les-billets.csv'
+      await FileSystem.writeAsStringAsync(uri, csv, { encoding: FileSystem.EncodingType.UTF8 })
+      await Sharing.shareAsync(uri, { mimeType: 'text/csv', dialogTitle: 'Exporter tous les billets' })
+    } catch (e) {
+      Alert.alert('Erreur', "Impossible d'exporter les billets")
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const activeCount = events.filter(e => e.statut === 'actif').length
   const totalVendus = events.reduce((s, e) => s + (e.remplis || 0), 0)
@@ -139,7 +177,23 @@ export default function OrganisateurDashboardScreen({ navigation }) {
               ))}
             </View>
 
-
+            {/* Bouton exporter tout */}
+            <View style={s.exportSection}>
+              <TouchableOpacity
+                style={s.exportBtn}
+                onPress={exporterToutCSV}
+                disabled={exporting || events.length === 0}
+              >
+                {exporting ? (
+                  <ActivityIndicator size="small" color={colors.accent} />
+                ) : (
+                  <Feather name="download" size={16} color={colors.accent} />
+                )}
+                <Text style={s.exportText}>
+                  {exporting ? 'Export...' : 'Exporter tout (CSV)'}
+                </Text>
+              </TouchableOpacity>
+            </View>
 
             {/* Section événements récents — calquée sur le web */}
             <Animated.View style={{ opacity: fadeAnims[4], transform: [{ translateY: slideAnims[4] }] }}>
@@ -280,4 +334,14 @@ const makeStyles = (colors) => StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 6,
   },
   detailsBtnText: { fontSize: 11, fontFamily: fonts.outfit.semiBold, color: colors.green },
+  // Export
+  exportSection: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: spacing.sm, paddingHorizontal: spacing.lg },
+  exportBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 8, backgroundColor: 'rgba(16,185,129,0.1)',
+  },
+  exportText: {
+    fontSize: 12, fontFamily: fonts.jakarta.semiBold, color: colors.accent,
+  },
 })
