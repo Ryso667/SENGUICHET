@@ -144,14 +144,14 @@ export default function OrganisateurDashboardScreen({ navigation }) {
               <View style={s.navGrid}>
                 {[
                   { icon: 'calendar-month', label: 'Événements', route: 'Evenements', params: undefined, color: colors.primary },
-                  { icon: 'chart-bar', label: 'Statistiques', route: 'Evenements', params: { screen: 'Statistiques' }, color: colors.cyan },
+                  { icon: 'chart-bar', label: 'Statistiques', route: 'Statistiques', params: undefined, color: colors.cyan },
                   { icon: 'file-document-outline', label: 'Demandes', route: 'Demandes', params: undefined, color: colors.orange },
-                  { icon: 'bell-outline', label: 'Notifications', route: 'Profil', params: { screen: 'Notifications' }, color: colors.red },
-                  { icon: 'headphones', label: 'Support', route: 'Profil', params: { screen: 'Support' }, color: colors.green },
-                  { icon: 'cog-outline', label: 'Paramètres', route: 'Profil', params: { screen: 'ProfilSettings' }, color: colors.violet },
+                  { icon: 'bell-outline', label: 'Notifications', route: 'Notifications', params: undefined, color: colors.red },
+                  { icon: 'headphones', label: 'Support', route: 'Support', params: undefined, color: colors.green },
+                  { icon: 'cog-outline', label: 'Paramètres', route: 'Parametres', params: undefined, color: colors.violet },
                 ].map((item) => (
                   <TouchableOpacity
-                    key={item.route + (item.params?.screen || '')}
+                    key={item.route}
                     style={s.navItem}
                     onPress={() => navigation.navigate(item.route, item.params)}
                     activeOpacity={0.7}
