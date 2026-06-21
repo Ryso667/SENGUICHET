@@ -1,8 +1,8 @@
 // Overlay de célébration après un achat réussi
 // Affiche "Paiement réussi !" avec animation spring + émojis qui tombent
-import { useEffect, useRef, useMemo } from 'react'
-import { View, Text, Animated, StyleSheet, Dimensions } from 'react-native'
-import { fonts, spacing } from '../constants/theme'
+import { useEffect, useRef, useMemo, useCallback } from 'react'
+import { Text, Animated, StyleSheet, Dimensions } from 'react-native'
+import { fonts } from '../constants/theme'
 import { useTheme } from '../context/ThemeContext'
 import { hapticSuccess } from '../utils/haptics'
 
@@ -30,30 +30,62 @@ export default function CelebrationOverlay({ visible, onFinish }) {
   const particules = useRef(Array.from({ length: NUM_PARTICLES }, creerParticule)).current
   const fallAnims = useRef(particules.map(() => new Animated.Value(-50))).current
   const fadeAnims = useRef(particules.map(() => new Animated.Value(0))).current
+  const mountedRef = useRef(true)
+  // Stocke les animations pour pouvoir les arrêter au cleanup
+  const animsRef = useRef([])
+
+  const stopperTout = useCallback(() => {
+    clearTimeout(timerRef.current)
+    animsRef.current.forEach(a => a.stop())
+    animsRef.current = []
+  }, [])
+
+  const timerRef = useRef(null)
+  // Évite la fuite mémoire si onFinish change entre render
+  const onFinishRef = useRef(onFinish)
+  onFinishRef.current = onFinish
 
   useEffect(() => {
-    if (!visible) return
+    if (!visible) {
+      stopperTout()
+      return
+    }
+
+    mountedRef.current = true
+    animsRef.current = []
+
+    // Reset des valeurs d'animation
+    scaleAnim.setValue(0)
+    opacityAnim.setValue(0)
+    particules.forEach((_, i) => {
+      fallAnims[i].setValue(-50)
+      fadeAnims[i].setValue(0)
+    })
 
     hapticSuccess()
 
     // Animation du texte: scale bounce
-    Animated.spring(scaleAnim, {
+    const springAnim = Animated.spring(scaleAnim, {
       toValue: 1,
       friction: 4,
       tension: 100,
       useNativeDriver: true,
-    }).start()
+    })
+    springAnim.start()
+    animsRef.current.push(springAnim)
 
     // Opacité de fond
-    Animated.timing(opacityAnim, {
+    const fadeInAnim = Animated.timing(opacityAnim, {
       toValue: 1,
       duration: 200,
       useNativeDriver: true,
-    }).start()
+    })
+    fadeInAnim.start()
+    animsRef.current.push(fadeInAnim)
 
     // Lancer les particules avec délai
     particules.forEach((_, i) => {
-      Animated.sequence([
+      const anim = Animated.sequence([
         Animated.delay(particules[i].delay),
         Animated.parallel([
           Animated.timing(fallAnims[i], {
@@ -67,19 +99,29 @@ export default function CelebrationOverlay({ visible, onFinish }) {
             Animated.timing(fadeAnims[i], { toValue: 0, duration: 200, useNativeDriver: true }),
           ]),
         ]),
-      ]).start()
+      ])
+      anim.start()
+      animsRef.current.push(anim)
     })
 
     // Disparaître après 2s
-    const timer = setTimeout(() => {
-      Animated.timing(opacityAnim, {
+    timerRef.current = setTimeout(() => {
+      if (!mountedRef.current) return
+      const fadeOutAnim = Animated.timing(opacityAnim, {
         toValue: 0,
         duration: 300,
         useNativeDriver: true,
-      }).start(() => onFinish?.())
+      })
+      fadeOutAnim.start(() => {
+        if (mountedRef.current) onFinishRef.current?.()
+      })
+      animsRef.current.push(fadeOutAnim)
     }, 2000)
 
-    return () => clearTimeout(timer)
+    return () => {
+      mountedRef.current = false
+      stopperTout()
+    }
   }, [visible])
 
   if (!visible) return null
