@@ -31,9 +31,12 @@ const DemandesStack = createNativeStackNavigator()
 const ProfilStack = createNativeStackNavigator()
 
 function AccueilNavigator() {
+  const { colors } = useTheme()
+  const h = headerStyle(colors)
   return (
     <AccueilStack.Navigator screenOptions={{ headerShown: false }}>
       <AccueilStack.Screen name="Dashboard" component={OrganisateurDashboardScreen} />
+      <AccueilStack.Screen name="DetailEvenement" component={DetailEvenementScreen} options={{ ...h, headerShown: true, title: 'Détails' }} />
     </AccueilStack.Navigator>
   )
 }
@@ -43,7 +46,7 @@ function EvenementsNavigator() {
   const h = headerStyle(colors)
   return (
     <EvenementsStack.Navigator screenOptions={{ headerShown: false }}>
-      <EvenementsStack.Screen name="Evenements" component={GestionEvenementsScreen} />
+      <EvenementsStack.Screen name="EvenementsList" component={GestionEvenementsScreen} />
       <EvenementsStack.Screen name="DetailEvenement" component={DetailEvenementScreen} options={{ ...h, headerShown: true, title: 'Détails' }} />
       <EvenementsStack.Screen name="VoirTickets" component={VoirTicketsScreen} options={{ ...h, headerShown: true, title: 'Billets' }} />
       <EvenementsStack.Screen name="Statistiques" component={StatistiquesScreen} options={{ ...h, headerShown: true, title: 'Statistiques' }} />
@@ -54,7 +57,7 @@ function EvenementsNavigator() {
 function DemandesNavigator() {
   return (
     <DemandesStack.Navigator screenOptions={{ headerShown: false }}>
-      <DemandesStack.Screen name="Demandes" component={MesDemandesScreen} />
+      <DemandesStack.Screen name="DemandesList" component={MesDemandesScreen} />
     </DemandesStack.Navigator>
   )
 }
@@ -64,7 +67,8 @@ function ProfilNavigator() {
   const h = headerStyle(colors)
   return (
     <ProfilStack.Navigator screenOptions={{ headerShown: false }}>
-      <ProfilStack.Screen name="Profil" component={ParametresScreen} />
+      <ProfilStack.Screen name="ProfilSettings" component={ParametresScreen} />
+      <ProfilStack.Screen name="DetailEvenement" component={DetailEvenementScreen} options={{ ...h, headerShown: true, title: 'Détails' }} />
       <ProfilStack.Screen name="Notifications" component={NotificationsScreen} options={{ ...h, headerShown: true, title: 'Notifications' }} />
       <ProfilStack.Screen name="Support" component={SupportScreen} options={{ ...h, headerShown: true, title: 'Support' }} />
       <ProfilStack.Screen name="ChangerMotDePasse" component={ChangerMotDePasseScreen} options={{ headerShown: false }} />
