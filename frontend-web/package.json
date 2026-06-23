@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@tabler/icons-react": "^3.44.0",
-    "axios": "^1.16.1",
+    "axios": "^1.18.1",
     "framer-motion": "^12.40.0",
     "lucide-react": "^1.20.0",
     "react-hook-form": "^7.76.1",
@@ -23,7 +23,7 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
-    "vercel": "^54.9.1",
+    "vercel": "^54.15.1",
     "vite": "^6.0.0"
   },
   "browserslist": {

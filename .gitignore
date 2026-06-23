@@ -34,6 +34,10 @@ yarn-error.*
 .env
 .env*.local
 
+# Rapports de stage (confidentiel)
+docs/*stage*.pdf
+docs/*rapport*.pdf
+
 # Env générés par Vercel CLI (contiennent OIDC tokens sensibles)
 backend/.env.prod
 backend/.env.tidb
