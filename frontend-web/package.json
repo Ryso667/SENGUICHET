@@ -27,7 +27,8 @@
     "vite": "^6.0.0"
   },
   "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "4.61.1"
+    "@rollup/rollup-linux-x64-gnu": "4.61.1",
+    "@esbuild/linux-x64": "0.25.12"
   },
   "browserslist": {
     "production": [
