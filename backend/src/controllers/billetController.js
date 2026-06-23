@@ -457,12 +457,6 @@ const afficherBillet = async (req, res) => {
     const showWatermark = isUsed || isExpired
     const watermarkLabel = isExpired ? 'EXPIRÉ' : 'UTILISÉ'
     const watermarkColor = isExpired ? '#FF4D6D' : '#66BB6A'
-    const usedOverlay = showWatermark
-      ? '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,77,109,0.9);border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;font-weight:700;z-index:3">✕</div>'
-      : ''
-    const watermarkHtml = showWatermark
-      ? `<div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2"><span style="font-size:60px;font-weight:800;letter-spacing:8px;opacity:0.12;transform:rotate(-30deg);color:${watermarkColor}">${watermarkLabel}</span></div>`
-      : ''
     res.send(`<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -473,44 +467,54 @@ const afficherBillet = async (req, res) => {
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;gap:20px}
+body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;font-family:'Outfit','Segoe UI',system-ui,sans-serif;gap:20px}
 .t{width:min(420px,92vw);border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(16,185,129,.2);position:relative}
-@media print{body{background:#fff;padding:0;justify-content:center}.t{box-shadow:none;page-break-after:avoid;margin:auto}.dl{display:none!important}}
 .dl{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;padding:14px 32px;border-radius:14px;border:none;font-size:15px;font-weight:600;color:#fff;background:#10B981;cursor:pointer;transition:opacity .2s;letter-spacing:.5px}
 .dl:hover{opacity:.85}
 .dl svg{width:20px;height:20px}
-/* HEADER vert */
-.hd{background:#10B981;padding:32px;position:relative;overflow:hidden}
-.o1{position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:60px;background:rgba(110,231,183,.25)}
-.o2{position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:40px;background:rgba(245,158,11,.12)}
+/* HEADER */
+.hd{background:#10B981;padding:32px 28px;position:relative;overflow:hidden}
+.o1{position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:70px;background:rgba(16,185,129,.3)}
+.o2{position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;border-radius:50px;background:rgba(245,158,11,.12)}
+.o3{position:absolute;top:60px;left:-20px;width:60px;height:60px;border-radius:30px;background:rgba(255,255,255,.03)}
 .hr{display:flex;align-items:center;gap:10px}
-.lb{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center}
-.lb img{width:30px;height:30px;border-radius:6px}
-.ht{font-size:11px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.7)}
-.gl{height:1px;background:#F59E0B;opacity:.6;margin:16px 0}
-.en{font-size:26px;font-weight:700;color:#fff;text-align:center;letter-spacing:.5px;line-height:32px}
-.ec{font-size:11px;color:rgba(255,255,255,.6);text-align:center;letter-spacing:2px;margin-top:6px}
+.lb{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.lb img{width:28px;height:28px;border-radius:6px}
+.ht{font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.7)}
+.gl{height:1px;background:#F59E0B;opacity:.5;margin:20px 0 18px}
+.en{font-size:22px;font-weight:700;color:#fff;text-align:center;letter-spacing:.5px;line-height:28px}
+.ec{align-self:center;background:rgba(245,158,11,.15);border-radius:999px;padding:4px 14px;margin-top:10px;font-size:9px;font-weight:700;letter-spacing:2px;color:#F59E0B;display:inline-block}
 /* PERFORATION */
 .pf{height:24px;position:relative;background:linear-gradient(to bottom,#10B981,#F9F6EE);display:flex;align-items:center;justify-content:center}
 .pl{position:absolute;left:22px;right:22px;border-top:2px dashed rgba(16,185,129,.2)}
-.pc{position:absolute;width:22px;height:22px;border-radius:11px;background:#0F1A0F;z-index:2}
-.pc.l{left:0}.pc.r{right:0}
-.bd{background:#F9F6EE;padding:24px 28px 10px}
-.br{display:flex;justify-content:space-between}
-.bl{font-size:10px;font-weight:700;letter-spacing:2px;color:#6EE7B7;margin-bottom:4px}
-.bv{font-size:15px;font-weight:600;color:#111827}
-.ll{font-size:14px;font-weight:600;color:#10B981;letter-spacing:.5px;margin-top:4px}
-.bs{height:1px;background:rgba(16,185,129,.12);margin:16px 0}
-.rf{font-size:11px;color:#6EE7B7;letter-spacing:2px;text-align:center;margin-bottom:4px}
-.qz{background:#fff;border-radius:12px;padding:16px;margin:16px 0;border:1px solid rgba(16,185,129,.08);display:flex;justify-content:center;position:relative}
+.pc{position:absolute;width:24px;height:24px;border-radius:12px;background:#0F1A0F;z-index:2;top:50%;margin-top:-12px}
+.pc.l{left:-12px}.pc.r{right:-12px}
+/* CORPS */
+.bd{background:#F9F6EE;padding:28px 28px 16px}
+.ir{display:flex;justify-content:space-between;margin-bottom:4px}
+.ir-r{text-align:right}
+.il{font-size:10px;font-weight:700;letter-spacing:2px;color:#6EE7B7;margin-bottom:4px}
+.iv{font-size:15px;font-weight:600;color:#111827}
+.lb2{margin-top:14px}
+.ll{font-size:13px;font-weight:600;color:#6EE7B7;letter-spacing:.5px}
+.bs{height:1px;background:rgba(17,24,39,.08);margin:18px 0}
+.rf{font-size:9px;color:#6EE7B7;letter-spacing:2px;text-align:center;margin-bottom:6px}
+.qz{background:#fff;border-radius:12px;padding:16px;margin:10px 0 6px;border:1px solid rgba(16,185,129,.08);display:flex;justify-content:center;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.qz img{width:180px;height:180px;display:block}
+.qo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,77,109,.9);border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;font-weight:700;z-index:3}
 /* PERFO BASSE */
 .pb{height:24px;position:relative;background:linear-gradient(to bottom,#F9F6EE,#F0EAD6);display:flex;align-items:center;justify-content:center}
-.ft{background:#F0EAD6;border-radius:0 0 20px 20px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
+/* FOOTER */
+.ft{background:#F0EAD6;border-radius:0 0 20px 20px;padding:24px 28px;display:flex;flex-direction:column;align-items:center;gap:10px;position:relative}
 .cp{background:#10B981;border-radius:999px;padding:6px 24px}
-.ct{font-size:11px;font-weight:700;letter-spacing:2.5px;color:#F59E0B}
-.pr{font-size:32px;font-weight:700;color:#111827;letter-spacing:-.5px;text-align:center}
-.ll2{font-size:10px;color:#6EE7B7;font-style:italic;text-align:center}
-.wm{font-size:9px;color:rgba(16,185,129,.3);letter-spacing:2px;align-self:flex-end;margin-right:4px}
+.ct{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#F59E0B}
+.pr{font-size:28px;font-weight:700;color:#111827;letter-spacing:-.5px;text-align:center}
+.ll2{font-size:9px;color:#6EE7B7;font-style:italic;text-align:center}
+.wm{font-size:8px;color:rgba(17,24,39,.25);letter-spacing:3px;align-self:flex-end;margin-top:4px}
+/* WATERMARK DIAGONAL (EXPIRÉ / UTILISÉ) */
+.wt{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2}
+.wt span{font-size:60px;font-weight:800;letter-spacing:8px;opacity:.12;transform:rotate(-30deg)}
+/* LOADING */
 .loading{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,26,15,0.85);z-index:999;justify-content:center;align-items:center;flex-direction:column;gap:16px}
 .loading.show{display:flex}
 .loading .spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,0.1);border-top-color:#D4AF37;border-radius:50%;animation:spin .8s linear infinite}
@@ -521,8 +525,9 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
 </head>
 <body>
 <div class="t" style="${showWatermark ? 'overflow:hidden' : ''}">
+  <!-- HEADER -->
   <div class="hd">
-    <div class="o1"></div><div class="o2"></div>
+    <div class="o1"></div><div class="o2"></div><div class="o3"></div>
     <div class="hr">
       <div class="lb"><img src="/public/logo_mobile.jpeg" alt="S" /></div>
       <div class="ht">SENGUICHET</div>
@@ -531,45 +536,41 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
     <div class="en">${(b.titre || '').toUpperCase()}</div>
     <div class="ec">${(b.categorie || 'STANDARD').toUpperCase()}</div>
   </div>
-  <div class="sep dark-cream"><div class="dash"></div><div class="sc top"></div><div class="sc bot"></div></div>
-  <div class="col-center">
-    <div class="row2">
-      <div><div class="lbl">DATE</div><div class="val">${dateFormatted}</div></div>
-      <div style="text-align:right"><div class="lbl">HEURE</div><div class="val">${heureFormatted}</div></div>
-    </div>
-    <div style="margin-top:10px"><div class="bl">LIEU</div><div class="ll">${(b.lieu || '').toUpperCase()}</div></div>
-    <div class="bs"></div>
-    <div class="rf">REF · ${b.numero}</div>
-    <div class="qz">${qrHtml}${usedOverlay}</div>
-  </div>
+
+  <!-- PERFORATION HAUTE -->
   <div class="pf">
     <div class="pl"></div>
-    <div class="pc l"></div>
-    <div class="pc r"></div>
+    <div class="pc l"></div><div class="pc r"></div>
   </div>
+
+  <!-- CORPS -->
   <div class="bd">
-    <div class="br">
-      <div><div class="bl">DATE</div><div class="bv">${dateFormatted}</div></div>
-      <div style="text-align:right"><div class="bl">HEURE</div><div class="bv">${heureFormatted}</div></div>
+    <div class="ir">
+      <div><div class="il">DATE</div><div class="iv">${dateFormatted}</div></div>
+      <div class="ir-r"><div class="il">HEURE</div><div class="iv">${heureFormatted}</div></div>
     </div>
-    <div class="bs"></div>
-    <div><div class="bl">LIEU</div><div class="ll">${(b.lieu || '').toUpperCase()}</div></div>
-    <div class="bs"></div>
-    <div><div class="bl">CATÉGORIE</div><div class="bv">${(b.categorie || 'STANDARD').toUpperCase()}</div></div>
+    <div class="lb2"><div class="il">LIEU</div><div class="ll">${(b.lieu || '').toUpperCase()}</div></div>
     <div class="bs"></div>
     <div class="rf">REF · ${b.numero}</div>
+    <div class="qz">
+      ${qrHtml}
+      ${showWatermark ? '<div class="qo">✕</div>' : ''}
+    </div>
   </div>
+
+  <!-- PERFORATION BASSE -->
   <div class="pb">
     <div class="pl"></div>
-    <div class="pc l"></div>
-    <div class="pc r"></div>
+    <div class="pc l"></div><div class="pc r"></div>
   </div>
+
+  <!-- FOOTER -->
   <div class="ft">
     <div class="cp"><div class="ct">${(b.categorie || 'STANDARD').toUpperCase()}</div></div>
     <div class="pr">${Number(b.prix_paye).toLocaleString()} FCFA</div>
     <div class="ll2">Entrée unique · Non transférable</div>
     <div class="wm">SENGUICHET</div>
-    ${watermarkHtml}
+    ${showWatermark ? `<div class="wt"><span style="color:${watermarkColor}">${watermarkLabel}</span></div>` : ''}
   </div>
 </div>
 <div id="loading" class="loading"><div class="spinner"></div><p>Génération du PDF...</p></div>
