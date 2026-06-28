@@ -64,14 +64,10 @@ function construireHtmlTicket(ticket, qrDataUrl, logoBase64) {
 <style>
   @page { margin: 0; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { height: 100%; }
+  html, body { width: 100%; height: 100%; }
   body {
     background: #0F1A0F;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 24px;
+    padding: 20px;
     font-family: 'Outfit', 'Helvetica Neue', Arial, sans-serif;
   }
   .ticket {
@@ -474,8 +470,8 @@ export async function genererTicketPDF(ticket, qrDataUrl) {
 
   const { uri } = await Print.printToFileAsync({
     html,
-    width: 841,
-    height: 595,
+    width: 400,
+    height: 800,
     margins: { top: 0, bottom: 0, left: 0, right: 0 },
   })
 
