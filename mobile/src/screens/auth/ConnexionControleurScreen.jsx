@@ -32,6 +32,7 @@ export default function ConnexionControleurScreen({ navigation }) {
     setChargement(true)
     try {
       const result = await apiConnecterControleur(codeAcces)
+      if (!result?.token) throw new Error("Réponse API invalide")
       await connecterControleur(result.token, result.user)
       toast.success('Accès contrôleur activé')
     } catch (e) {

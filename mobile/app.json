@@ -2,7 +2,6 @@
   "expo": {
     "name": "SenguichetApp",
     "slug": "senguichet",
-    "projectId": "39861a89-78c6-49ed-97cf-aefb808e3c86",
     "version": "1.0.0",
     "scheme": "senguichet",
     "orientation": "default",

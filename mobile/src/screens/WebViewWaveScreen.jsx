@@ -18,7 +18,7 @@ const MAX_POLLS = 60 // 3 minutes maximum
 export default function WebViewWaveScreen({ route, navigation }) {
   const { colors } = useTheme()
   const s = useMemo(() => makeStyles(colors), [colors])
-  const { redirectUrl, transactionReference, eventId, ticket, billets } = route.params
+  const { redirectUrl, transactionReference, eventId, ticket, billets } = route.params || {}
   const [statut, setStatut] = useState('PENDING') // PENDING | SUCCESS | FAILED
   const [erreur, setErreur] = useState('')
   const pollCountRef = useRef(0)
@@ -59,7 +59,7 @@ export default function WebViewWaveScreen({ route, navigation }) {
   // Sauvegarde locale + redirection vers le ticket/reçu quand le paiement est confirmé
   useEffect(() => {
     if (statut === 'SUCCESS') {
-      const ticketsData = billets || [ticket]
+      const ticketsData = billets || (ticket ? [ticket] : [])
       for (const t of ticketsData) {
         sauvegarderTicketAcheteur(t)
       }
