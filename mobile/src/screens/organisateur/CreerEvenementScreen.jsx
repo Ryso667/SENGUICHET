@@ -32,13 +32,13 @@ const VILLES = [
   'Dakar', 'Thiès', 'Saint-Louis', 'Ziguinchor', 'Touba', 'Kaolack', 'Autre',
 ]
 
-const ICONES_VILLES = VILLES.reduce((acc, v) => ({ ...acc, [v]: '📍' }), {})
+const ICONES_VILLES = { Dakar: '🏙️', Thiès: '🏭', 'Saint-Louis': '⛵', Ziguinchor: '🌴', Touba: '🕌', Kaolack: '🌾', Autre: '📍' }
 
 const BILLET_CATEGORIES = [
   'Standard', 'VIP', 'Premium', 'Carré Or', 'Fosse', 'Autre',
 ]
 
-const ICONES_BILLETS = { Standard: '🎟️', VIP: '🎟️', Premium: '🎟️', 'Carré Or': '💎', Fosse: '🕺', Autre: '🎫' }
+const ICONES_BILLETS = { Standard: '🎟️', VIP: '⭐', Premium: '💫', 'Carré Or': '💎', Fosse: '🕺', Autre: '🎫' }
 
 const STEPS = [
   { num: 1, label: 'Informations générales' },
@@ -558,7 +558,7 @@ export default function CreerEvenementScreen({ navigation }) {
                   style={[s.pickerItem, categorie === item && s.pickerItemActive]}
                   onPress={() => { setCategorie(item); setCatVisible(false) }}
                 >
-                  <Text style={[s.pickerItemText, categorie === item && s.pickerItemTextActive]}>{ICONES_CATEGORIES[item] || '📌'}  {item}</Text>
+                  <Text style={[s.pickerItemText, categorie === item && s.pickerItemTextActive]}>{ICONES_CATEGORIES[item] || '📌'} {item}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -582,7 +582,7 @@ export default function CreerEvenementScreen({ navigation }) {
                     setBilletCatIndex(null)
                   }}
                 >
-                  <Text style={[s.pickerItemText, categories[billetCatIndex]?.nom === item && s.pickerItemTextActive]}>{ICONES_BILLETS[item] || '🎟️'}  {item}</Text>
+                  <Text style={[s.pickerItemText, categories[billetCatIndex]?.nom === item && s.pickerItemTextActive]}>{ICONES_BILLETS[item] || '🎟️'} {item}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -603,7 +603,7 @@ export default function CreerEvenementScreen({ navigation }) {
                   style={[s.pickerItem, ville === item && s.pickerItemActive]}
                   onPress={() => { setVille(item); setVilleVisible(false) }}
                 >
-                  <Text style={[s.pickerItemText, ville === item && s.pickerItemTextActive]}>{ICONES_VILLES[item]}  {item}</Text>
+                  <Text style={[s.pickerItemText, ville === item && s.pickerItemTextActive]}>{ICONES_VILLES[item]} {item}</Text>
                 </TouchableOpacity>
               )}
             />
