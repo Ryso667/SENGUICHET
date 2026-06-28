@@ -1,14 +1,14 @@
 // Thème clair SENGUICHET
 export const lightColors = {
   bg: '#FFFFFF',
-  bgSecondary: '#F9FAFB',
+  bgSecondary: '#F5F6F8',
   surface: '#FFFFFF',
-  card: '#F4F6F9',
+  card: '#F5F6F8',
   border: '#E5E7EB',
   primary: '#10B981',
   primaryLight: '#D1FAE5',
   white: '#FFFFFF',
-  text: '#111827',
+  text: '#0A1026',
   textSecondary: '#6B7280',
   textTertiary: '#6B7280',
   accent: '#10B981',
@@ -39,11 +39,11 @@ export const lightColors = {
 
 // Palette sombre SENGUICHET
 export const darkColors = {
-  bg: '#0F172A',
-  bgSecondary: '#1E293B',
-  surface: '#1E293B',
-  card: '#273548',
-  border: '#334155',
+  bg: '#0A1026',
+  bgSecondary: '#151C36',
+  surface: '#1A213B',
+  card: '#1F2641',
+  border: '#2A3150',
   primary: '#34D399',
   primaryLight: '#064E3B',
   white: '#FFFFFF',

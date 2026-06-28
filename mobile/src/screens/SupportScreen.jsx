@@ -14,7 +14,7 @@ export default function SupportScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors])
   const insets = useSafeAreaInsets()
 
-  const handleWhatsApp = () => { Linking.openURL('https://wa.me/xxx') }
+  const handleWhatsApp = () => { Linking.openURL('https://wa.me/221781414131') }
   const handleEmail = () => { Linking.openURL('mailto:support@senguichet.com') }
 
   return (
@@ -40,7 +40,7 @@ export default function SupportScreen() {
           <View style={styles.divider} />
           <TouchableOpacity style={styles.contactRow} onPress={handleWhatsApp}>
             <Feather name="message-circle" size={16} color="#25D366" />
-            <Text style={styles.contactText}>WhatsApp — xxx</Text>
+            <Text style={styles.contactText}>WhatsApp — +221 78 141 41 31</Text>
             <GlassChip label="Écrire" onPress={handleWhatsApp} />
           </TouchableOpacity>
         </GlassContainer>

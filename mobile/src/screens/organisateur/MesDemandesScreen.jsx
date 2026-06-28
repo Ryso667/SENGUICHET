@@ -46,9 +46,9 @@ const VILLES = [
   'Dakar', 'Thiès', 'Saint-Louis', 'Ziguinchor', 'Touba', 'Kaolack', 'Autre',
 ]
 
-const ICONES_CATEGORIES = { Concert: '🎵', Festival: '🎪', Sport: '⚽', Théâtre: '🎭', Conférence: '📚', Atelier: '🛠️', Exposition: '🖼️', 'Club / Soirée': '🎉', Gala: '🏆', 'Autres / Divers': '📌' }
-const ICONES_VILLES = VILLES.reduce((acc, v) => { acc[v] = '📍'; return acc }, {})
-const ICONES_BILLETS = { Standard: '🎟️', VIP: '🎟️', Premium: '🎟️', 'Carré Or': '💎', Fosse: '🎤', 'Autres / Divers': '🎫' }
+const ICONES_CATEGORIES = { Concert: '🎵', Festival: '🎪', Sport: '⚽', Théâtre: '🎭', Conférence: '📚', Atelier: '🔧', Exposition: '🖼️', 'Club / Soirée': '🌙', Gala: '✨', 'Autres / Divers': '📌' }
+const ICONES_VILLES = { Dakar: '🏙️', Thiès: '🏭', 'Saint-Louis': '⛵', Ziguinchor: '🌴', Touba: '🕌', Kaolack: '🌾', Autre: '📍' }
+const ICONES_BILLETS = { Standard: '🎟️', VIP: '⭐', Premium: '💫', 'Carré Or': '💎', Fosse: '🕺', 'Autres / Divers': '🎫' }
 
 export default function MesDemandesScreen({ navigation }) {
   const { colors, mode, isDark } = useTheme()
@@ -275,7 +275,7 @@ export default function MesDemandesScreen({ navigation }) {
           {eventsLoading ? (
             <ActivityIndicator color="#fff" style={{ marginVertical: 20 }} />
           ) : organisateurEvents.length === 0 ? (
-            <Text style={{ fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginVertical: 20 }}>
+            <Text style={{ fontFamily: fonts.jakarta.regular, color: colors.textTertiary, textAlign: 'center', marginVertical: 20 }}>
               Aucun événement trouvé
             </Text>
           ) : (
@@ -293,9 +293,9 @@ export default function MesDemandesScreen({ navigation }) {
                   }}
                 >
                   <Text style={[s.pickerItemText, evenementId === item.id && s.pickerItemTextActive]}>
-                    {ICONES_CATEGORIES[item.categorie] || '📅'}  {item.nom || item.titre}
+                    {ICONES_CATEGORIES[item.categorie] || '📅'} {item.nom || item.titre}
                   </Text>
-                  <Text style={{ fontSize: 10, fontFamily: fonts.jakarta.regular, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>
+                  <Text style={{ fontSize: 10, fontFamily: fonts.jakarta.regular, color: colors.textTertiary, marginTop: 2 }}>
                     {item.categorie || ''}{item.date_debut ? ` · ${new Date(item.date_debut).toLocaleDateString('fr-FR')}` : ''}
                   </Text>
                 </TouchableOpacity>
@@ -760,7 +760,7 @@ export default function MesDemandesScreen({ navigation }) {
                   style={[s.pickerItem, categorie === item && s.pickerItemActive]}
                   onPress={() => { setCategorie(item); setCatVisible(false) }}
                 >
-                  <Text style={[s.pickerItemText, categorie === item && s.pickerItemTextActive]}>{ICONES_CATEGORIES[item] || '📌'}  {item}</Text>
+                  <Text style={[s.pickerItemText, categorie === item && s.pickerItemTextActive]}>{ICONES_CATEGORIES[item] || '📌'} {item}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -785,7 +785,7 @@ export default function MesDemandesScreen({ navigation }) {
                     setBilletCatIndex(null)
                   }}
                 >
-                  <Text style={[s.pickerItemText, billetCatIndex !== null && categories[billetCatIndex]?.nom === item && s.pickerItemTextActive]}>{ICONES_BILLETS[item] || '🎫'}  {item}</Text>
+                  <Text style={[s.pickerItemText, billetCatIndex !== null && categories[billetCatIndex]?.nom === item && s.pickerItemTextActive]}>{ICONES_BILLETS[item] || '🎫'} {item}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -807,7 +807,7 @@ export default function MesDemandesScreen({ navigation }) {
                   style={[s.pickerItem, ville === item && s.pickerItemActive]}
                   onPress={() => { setVille(item); setVilleVisible(false) }}
                 >
-                  <Text style={[s.pickerItemText, ville === item && s.pickerItemTextActive]}>{ICONES_VILLES[item] || '📍'}  {item}</Text>
+                  <Text style={[s.pickerItemText, ville === item && s.pickerItemTextActive]}>{ICONES_VILLES[item] || '📍'} {item}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -892,11 +892,11 @@ const makeStyles = (colors) => StyleSheet.create({
   /* Picker modals */
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 },
   picker: { padding: 20, maxHeight: 400 },
-  pickerTitle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: '#fff', marginBottom: 16, textAlign: 'center' },
+  pickerTitle: { fontFamily: fonts.outfit.bold, fontSize: 18, color: colors.text, marginBottom: 16, textAlign: 'center' },
   pickerItem: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 12, marginBottom: 4 },
   pickerItemActive: { backgroundColor: 'rgba(0,0,0,0.06)' },
-  pickerItemText: { fontFamily: fonts.outfit.regular, fontSize: 16, color: '#fff' },
-  pickerItemTextActive: { fontFamily: fonts.outfit.semiBold, color: '#fff' },
+  pickerItemText: { fontFamily: fonts.outfit.regular, fontSize: 16, color: colors.text },
+  pickerItemTextActive: { fontFamily: fonts.outfit.semiBold, color: colors.text },
 })
 
 const makeFormStyles = (colors) => StyleSheet.create({
@@ -913,7 +913,7 @@ const makeFormStyles = (colors) => StyleSheet.create({
   },
   selectOptActive: { backgroundColor: colors.accent, borderColor: colors.accent },
   selectOptText: { fontSize: 12, fontFamily: fonts.outfit.regular, color: colors.text },
-  selectOptTextActive: { color: '#fff' },
+  selectOptTextActive: { color: colors.text },
   twoCol: { flexDirection: 'row', gap: spacing.sm },
   uploadZone: {
     borderWidth: 2, borderStyle: 'dashed', borderColor: colors.border,
@@ -922,7 +922,7 @@ const makeFormStyles = (colors) => StyleSheet.create({
   },
   catHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
   addCatBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: colors.accent },
-  addCatText: { fontSize: 13, fontWeight: '600', color: '#fff' },
+  addCatText: { fontSize: 13, fontWeight: '600', color: colors.text },
   catRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   submitBtn: { borderRadius: 12, overflow: 'hidden', marginTop: spacing.md },
   submitGrad: { paddingVertical: 14, alignItems: 'center' },
@@ -963,7 +963,7 @@ const makeFormStyles = (colors) => StyleSheet.create({
   calDay: { width: '14.28%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center' },
   calDaySelected: { backgroundColor: colors.accent, borderRadius: 20 },
   calDayText: { fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.textSecondary },
-  calDayTextSelected: { color: '#fff', fontFamily: fonts.outfit.semiBold },
+  calDayTextSelected: { color: colors.text, fontFamily: fonts.outfit.semiBold },
 
   /* Time picker */
   timePicker: { padding: 12, marginBottom: spacing.sm },

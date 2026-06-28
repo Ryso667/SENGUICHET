@@ -55,6 +55,7 @@ const formatterTelephone = (texte) => {
 export default function InscriptionOrganisateurScreen({ navigation }) {
   const { colors, mode, isDark } = useTheme()
   const s = useMemo(() => makeStyles(colors), [colors])
+  const [nom, setNom] = useState('')
   const [telephone, setTelephone] = useState('+221 ')
   const [email, setEmail] = useState('')
   const [mdp, setMdp] = useState('')
