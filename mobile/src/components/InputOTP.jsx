@@ -78,6 +78,6 @@ const makeStyles = (colors) => StyleSheet.create({
   caseRemplie: {
     borderColor: colors.accent,
     backgroundColor: colors.accent,
-    color: '#fff',
+    color: colors.text,
   },
 })

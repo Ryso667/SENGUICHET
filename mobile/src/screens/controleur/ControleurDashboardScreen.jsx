@@ -96,7 +96,7 @@ const makeStyles = (colors) => StyleSheet.create({
     flexDirection: 'row', gap: 10,
   },
   scanBtnTexte: {
-    fontFamily: 'Outfit_700Bold', fontSize: 17, color: '#fff',
+    fontFamily: 'Outfit_700Bold', fontSize: 17, color: colors.text,
   },
   histLien: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
