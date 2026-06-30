@@ -2,7 +2,7 @@
 // Guest/Acheteur : 4 tabs (Accueil, Explorer, Mes billets, Compte)
 // Organisateur   : Drawer hamburger (Dashboard, Événements, ...)
 // Contrôleur     : Drawer hamburger (Scanner, Historique, ...)
-import { View, ActivityIndicator, StyleSheet } from 'react-native'
+import { View, ActivityIndicator } from 'react-native'
 import { hapticLight } from '../utils/haptics'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native'
@@ -25,6 +25,7 @@ import InscriptionOrganisateurScreen from '../screens/auth/InscriptionOrganisate
 import EnAttenteValidationScreen from '../screens/auth/EnAttenteValidationScreen'
 import EventDetailScreen from '../screens/EventDetailScreen'
 import TicketScreen from '../screens/TicketScreen'
+import NotificationsScreen from '../screens/NotificationsScreen'
 import SupportScreen from '../screens/SupportScreen'
 import WebViewWaveScreen from '../screens/WebViewWaveScreen'
 import RecuAchatScreen from '../screens/RecuAchatScreen'
@@ -139,6 +140,7 @@ function GuestNavigator() {
       <Stack.Screen name="Support" component={SupportScreen} options={header('Support')} />
       <Stack.Screen name="MesFavoris" component={MesFavorisScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Calendar" component={CalendarScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} options={header('Notifications')} />
     </Stack.Navigator>
   )
 }

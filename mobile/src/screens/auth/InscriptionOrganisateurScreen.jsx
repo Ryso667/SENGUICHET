@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { inscrireOrganisateur } from '../../services/authService'
 import { hapticMedium } from '../../utils/haptics'
 import GlassButton from '../../components/GlassButton'
-import { spacing } from '../../constants/theme'
+import { spacing, fonts } from '../../constants/theme'
 import { useTheme } from '../../context/ThemeContext'
 import GlassContainer from '../../components/GlassContainer'
 
@@ -274,26 +274,26 @@ const makeStyles = (colors) => StyleSheet.create({
     alignSelf: 'flex-start',
   },
   titre: {
-    fontFamily: 'Outfit_700Bold',
+    fontFamily: fonts.outfit.bold,
     fontSize: 22,
     color: colors.text,
     marginBottom: 8,
   },
   sousTitre: {
-    fontFamily: 'Outfit_400Regular',
+    fontFamily: fonts.outfit.regular,
     fontSize: 15,
     color: colors.textSecondary,
     marginBottom: 32,
   },
   label: {
-    fontFamily: 'Outfit_500Medium',
+    fontFamily: fonts.outfit.medium,
     fontSize: 14,
     color: colors.text,
     marginBottom: 6,
   },
   inputWrap: { marginBottom: 16, borderRadius: 14, height: 56, justifyContent: 'center', paddingHorizontal: 16 },
   input: {
-    fontFamily: 'Outfit_400Regular',
+    fontFamily: fonts.outfit.regular,
     fontSize: 16,
     color: colors.text,
   },
@@ -314,14 +314,14 @@ const makeStyles = (colors) => StyleSheet.create({
     borderRadius: 2,
   },
   forceLabel: {
-    fontFamily: 'Outfit_500Medium',
+    fontFamily: fonts.outfit.medium,
     fontSize: 12,
     marginLeft: 8,
     minWidth: 60,
     textAlign: 'right',
   },
   erreurText: {
-    fontFamily: 'Outfit_400Regular',
+    fontFamily: fonts.outfit.regular,
     fontSize: 13,
     color: colors.red,
     marginTop: -12,
@@ -334,7 +334,7 @@ const makeStyles = (colors) => StyleSheet.create({
     marginTop: 24,
   },
   lienConnexionText: {
-    fontFamily: 'Outfit_400Regular',
+    fontFamily: fonts.outfit.regular,
     fontSize: 14,
     color: colors.textSecondary,
   },
@@ -349,7 +349,7 @@ const makeStyles = (colors) => StyleSheet.create({
     borderColor: colors.border,
   },
   glassLoadingText: {
-    fontFamily: 'Outfit_400Regular',
+    fontFamily: fonts.outfit.regular,
     fontSize: 13,
     color: colors.textSecondary,
   },

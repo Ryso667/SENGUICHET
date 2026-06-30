@@ -2,6 +2,7 @@
 // Props : status (ACTIF/EN_ATTENTE/VALIDE/TERMINE/ANNULE/EN_COURS/ACCEPTEE/REJETEE)
 import { View, Text, StyleSheet } from 'react-native'
 import { hexToRgba } from '../utils/colors'
+import { fonts } from '../constants/theme'
 import { useTheme } from '../context/ThemeContext'
 
 export default function StatusBadge({ status }) {
@@ -34,7 +35,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 10,
-    fontFamily: 'Outfit_600SemiBold',
+    fontFamily: fonts.outfit.semiBold,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },

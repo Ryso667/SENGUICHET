@@ -46,7 +46,7 @@ export default function RecuAchatScreen({ route, navigation }) {
         setRecu({
           reference: reference || 'PENDING',
           evenement: {
-            titre: billetsAchetes[0].evenement || '',
+            titre: billetsAchetes[0].evenement || billetsAchetes[0].eventNom || '',
           },
           tickets: billetsAchetes,
           nbTickets: billetsAchetes.length,

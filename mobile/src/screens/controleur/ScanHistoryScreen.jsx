@@ -1,7 +1,8 @@
 // Historique des scans effectués par le contrôleur
 // Statistiques par statut, liste chronologique, synchro offline
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { formaterDateHeure } from '../../utils/dateUtils'
@@ -32,19 +33,21 @@ export default function ScanHistoryScreen() {
   const [refreshing, setRefreshing] = useState(false)
   const insets = useSafeAreaInsets()
 
-  useEffect(() => { charger() }, [])
+  const charger = useCallback(async () => {
+    const [data, statuts] = await Promise.all([getHistorique(evenementId), getStats()])
+    setScans(data)
+    setStats(statuts)
+  }, [evenementId])
+
+  useFocusEffect(
+    useCallback(() => { charger() }, [charger])
+  )
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)
     await charger()
     setRefreshing(false)
-  }, [])
-
-  const charger = async () => {
-    const [data, statuts] = await Promise.all([getHistorique(evenementId), getStats()])
-    setScans(data)
-    setStats(statuts)
-  }
+  }, [charger])
 
   const { scrollY: tabScrollY } = useTabBarScroll()
 

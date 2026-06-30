@@ -440,12 +440,15 @@ const afficherBillet = async (req, res) => {
     const dateAchat = new Date(b.date_creation).toLocaleDateString("fr-FR", {
       day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
     });
+    const maintenant = new Date().toISOString();
+    const donneesSig = `${b.uuid}|${b.numero}|${maintenant}|${b.evenement_id}|${b.categorie}`;
+    const hmac = crypto.createHash('sha256').update(donneesSig + HMAC_SECRET).digest('hex');
     const qrPayload = JSON.stringify({
       uuid: b.uuid,
-      hmac: b.payload_signature,
+      hmac,
       event_id: b.evenement_id,
       category: b.categorie,
-      timestamp: b.date_creation,
+      timestamp: maintenant,
       transaction_ref: b.numero,
     });
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrPayload)}`;
@@ -677,10 +680,13 @@ const afficherRecu = async (req, res) => {
     });
 
     const billetsHtml = billets.map((b, i) => {
+      const maintenant = new Date().toISOString();
+      const sigDonnees = `${b.uuid}|${b.numero}|${maintenant}||${b.categorie}`;
+      const hmac = crypto.createHash('sha256').update(sigDonnees + HMAC_SECRET).digest('hex');
       const qrPayload = JSON.stringify({
-        uuid: b.uuid, hmac: b.payload_signature,
+        uuid: b.uuid, hmac,
         event_id: null, category: b.categorie,
-        timestamp: b.date_creation, transaction_ref: b.numero,
+        timestamp: maintenant, transaction_ref: b.numero,
       });
       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrPayload)}`;
       return `

@@ -11,7 +11,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { hapticMedium, hapticError } from '../../utils/haptics'
 import GlassButton from '../../components/GlassButton'
-import { spacing } from '../../constants/theme'
+import { spacing, fonts } from '../../constants/theme'
 import { useTheme } from '../../context/ThemeContext'
 import GlassContainer from '../../components/GlassContainer'
 
@@ -152,25 +152,25 @@ const makeStyles = (colors) => StyleSheet.create({
     paddingBottom: 40,
   },
   titre: {
-    fontFamily: 'Outfit_700Bold',
+    fontFamily: fonts.outfit.bold,
     fontSize: 22,
     color: colors.text,
     marginBottom: 8,
   },
   sousTitre: {
-    fontFamily: 'Outfit_400Regular',
+    fontFamily: fonts.outfit.regular,
     fontSize: 15,
     color: colors.textSecondary,
     marginBottom: 32,
   },
   label: {
-    fontFamily: 'Outfit_500Medium',
+    fontFamily: fonts.outfit.medium,
     fontSize: 14,
     color: colors.text,
     marginBottom: 6,
   },
   erreurText: {
-    fontFamily: 'Outfit_400Regular',
+    fontFamily: fonts.outfit.regular,
     fontSize: 13,
     color: colors.red,
     marginBottom: 8,
@@ -183,14 +183,14 @@ const makeStyles = (colors) => StyleSheet.create({
     marginTop: 24,
   },
   inscriptionText: {
-    fontFamily: 'Outfit_400Regular',
+    fontFamily: fonts.outfit.regular,
     fontSize: 13,
     color: colors.textSecondary,
   },
 
   inputWrap: { marginBottom: 16, borderRadius: 14, height: 56, justifyContent: 'center', paddingHorizontal: 16 },
   input: {
-    fontFamily: 'Outfit_400Regular',
+    fontFamily: fonts.outfit.regular,
     fontSize: 16,
     color: colors.text,
   },
