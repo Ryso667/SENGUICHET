@@ -3,6 +3,7 @@
 // Props : longueur (number, défaut 6), onComplet (callback appelé quand tous les chiffres sont saisis)
 import { useRef, useState, useMemo } from 'react'
 import { View, TextInput, StyleSheet } from 'react-native'
+import { fonts } from '../constants/theme'
 import { useTheme } from '../context/ThemeContext'
 
 export default function InputOTP({ longueur = 6, onComplet }) {
@@ -71,7 +72,7 @@ const makeStyles = (colors) => StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.inputBg,
     textAlign: 'center',
-    fontFamily: 'Outfit_700Bold',
+    fontFamily: fonts.outfit.bold,
     fontSize: 24,
     color: colors.text,
   },

@@ -6,7 +6,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Image, TextInput, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { spacing } from '../constants/theme'
+import { spacing, fonts } from '../constants/theme'
 import { useTheme } from '../context/ThemeContext'
 import EventCarousel from '../components/EventCarousel'
 import AnimatedEventCard from '../components/AnimatedEventCard'
@@ -337,13 +337,13 @@ const makeStyles = (colors) => StyleSheet.create({
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerLogo: { width: 32, height: 32, borderRadius: 8 },
-  headerTitle: { fontSize: 18, fontFamily: 'Outfit_800ExtraBold' },
+  headerTitle: { fontSize: 18, fontFamily: fonts.outfit.extraBold },
   headerSen: { color: colors.text },
   headerGuichet: { color: colors.accent },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   headerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.inputBg, alignItems: 'center', justifyContent: 'center' },
   headerContact: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: colors.primaryLight },
-  headerContactText: { fontSize: 12, fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.accent },
+  headerContactText: { fontSize: 12, fontFamily: fonts.jakarta.semiBold, color: colors.accent },
   scroll: { flex: 1 },
   searchBar: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
@@ -351,20 +351,20 @@ const makeStyles = (colors) => StyleSheet.create({
     marginHorizontal: 16, marginTop: 12, marginBottom: 8,
     paddingHorizontal: 16, paddingVertical: 10,
   },
-  searchInput: { flex: 1, fontSize: 14, fontFamily: 'PlusJakartaSans_400Regular', color: colors.text, padding: 0 },
+  searchInput: { flex: 1, fontSize: 14, fontFamily: fonts.jakarta.regular, color: colors.text, padding: 0 },
   catRow: { paddingHorizontal: 16, marginBottom: 12 },
   catChip: {
     paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
     backgroundColor: colors.inputBg, marginRight: 8,
   },
   catChipActive: { backgroundColor: colors.accent },
-  catChipText: { fontSize: 13, fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.textSecondary },
+  catChipText: { fontSize: 13, fontFamily: fonts.jakarta.semiBold, color: colors.textSecondary },
   catChipTextActive: { color: colors.white },
   sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: spacing.lg, marginTop: 20, marginBottom: 12,
   },
-  sectionTitle: { fontSize: 18, fontFamily: 'Outfit_700Bold', color: colors.text },
+  sectionTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text },
   eventsList: { paddingHorizontal: 16, gap: 12 },
   eventCard: {
     backgroundColor: colors.surface, borderRadius: 14,
@@ -379,13 +379,13 @@ const makeStyles = (colors) => StyleSheet.create({
     position: 'absolute', top: 10, right: 10,
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8,
   },
-  eventCardBadgeText: { fontSize: 11, fontFamily: 'Outfit_700Bold' },
+  eventCardBadgeText: { fontSize: 11, fontFamily: fonts.outfit.bold },
   favorisLink: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 20, paddingVertical: 12, marginTop: 4,
   },
   favorisLinkText: {
-    fontFamily: 'Outfit_600SemiBold', fontSize: 14, color: colors.text, flex: 1,
+    fontFamily: fonts.outfit.semiBold, fontSize: 14, color: colors.text, flex: 1,
   },
   favoriBtn: {
     position: 'absolute',
@@ -408,7 +408,7 @@ const makeStyles = (colors) => StyleSheet.create({
   },
   eventCardCountdownText: {
     fontSize: 10,
-    fontFamily: 'PlusJakartaSans_700Bold',
+    fontFamily: fonts.jakarta.bold,
     color: colors.orange,
   },
   eventCardDistance: {
@@ -426,13 +426,13 @@ const makeStyles = (colors) => StyleSheet.create({
   },
   eventCardDistanceText: {
     fontSize: 10,
-    fontFamily: 'PlusJakartaSans_700Bold',
+    fontFamily: fonts.jakarta.bold,
     color: colors.green,
   },
   eventCardBody: { padding: 14 },
-  eventCardTitle: { fontSize: 16, fontFamily: 'Outfit_700Bold', color: colors.text, marginBottom: 4 },
-  eventCardMeta: { fontSize: 12, fontFamily: 'PlusJakartaSans_400Regular', color: colors.textSecondary },
+  eventCardTitle: { fontSize: 16, fontFamily: fonts.outfit.bold, color: colors.text, marginBottom: 4 },
+  eventCardMeta: { fontSize: 12, fontFamily: fonts.jakarta.regular, color: colors.textSecondary },
   emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
-  emptyTitle: { fontSize: 18, fontFamily: 'Outfit_700Bold', color: colors.text, marginTop: 12 },
-  emptySub: { fontSize: 13, fontFamily: 'PlusJakartaSans_400Regular', color: colors.textSecondary, marginTop: 4, textAlign: 'center' },
+  emptyTitle: { fontSize: 18, fontFamily: fonts.outfit.bold, color: colors.text, marginTop: 12 },
+  emptySub: { fontSize: 13, fontFamily: fonts.jakarta.regular, color: colors.textSecondary, marginTop: 4, textAlign: 'center' },
 })

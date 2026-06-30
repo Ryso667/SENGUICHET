@@ -1,6 +1,7 @@
 // Écran de confirmation après inscription organisateur
 // Informe l'utilisateur que son compte est en cours de validation
-import { View, Text, ScrollView, StyleSheet, useMemo } from 'react-native'
+import { View, Text, ScrollView, StyleSheet } from 'react-native'
+import { useMemo } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import GlassButton from '../../components/GlassButton'

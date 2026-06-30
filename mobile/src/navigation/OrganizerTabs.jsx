@@ -38,6 +38,7 @@ function AccueilNavigator() {
     <AccueilStack.Navigator screenOptions={{ headerShown: false }}>
       <AccueilStack.Screen name="Dashboard" component={OrganisateurDashboardScreen} />
       <AccueilStack.Screen name="DetailEvenement" component={DetailEvenementScreen} options={{ ...h, headerShown: true, title: 'Détails', headerBackTitle: 'Retour' }} />
+      <AccueilStack.Screen name="Statistiques" component={StatistiquesScreen} options={{ ...h, headerShown: true, title: 'Statistiques', headerBackTitle: 'Retour' }} />
     </AccueilStack.Navigator>
   )
 }
@@ -70,6 +71,7 @@ function ProfilNavigator() {
     <ProfilStack.Navigator screenOptions={{ headerShown: false }}>
       <ProfilStack.Screen name="ProfilSettings" component={ParametresScreen} />
       <ProfilStack.Screen name="DetailEvenement" component={DetailEvenementScreen} options={{ ...h, headerShown: true, title: 'Détails', headerBackTitle: 'Retour' }} />
+      <ProfilStack.Screen name="Statistiques" component={StatistiquesScreen} options={{ ...h, headerShown: true, title: 'Statistiques', headerBackTitle: 'Retour' }} />
       <ProfilStack.Screen name="Notifications" component={NotificationsScreen} options={{ ...h, headerShown: true, title: 'Notifications', headerBackTitle: 'Retour' }} />
       <ProfilStack.Screen name="Support" component={SupportScreen} options={{ ...h, headerShown: true, title: 'Support', headerBackTitle: 'Retour' }} />
       <ProfilStack.Screen name="ChangerMotDePasse" component={ChangerMotDePasseScreen} options={{ headerShown: false }} />

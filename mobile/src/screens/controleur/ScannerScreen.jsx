@@ -1,7 +1,7 @@
 // Écran de scan : caméra + vérification offline du QR code
 // Télécharge les tickets automatiquement au focus et périodiquement (30s)
 // Utilise le barcode natif avec fallback silencieux
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { View, Text, StyleSheet, Animated, ActivityIndicator } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { hapticSuccess, hapticError } from '../../utils/haptics'
@@ -28,6 +28,7 @@ const COULEURS = {
 
 export default function ScannerScreen({ navigation, route }) {
   const { colors } = useTheme()
+  const styles = useMemo(() => makeStyles(colors), [colors])
   const [permission, requestPermission] = useCameraPermissions()
   const [scanne, setScanne] = useState(null)
   const [pret, setPret] = useState(false)

@@ -39,7 +39,9 @@ function parserQR(donnees) {
 
 // Vérifie la signature HMAC-SHA256 (anti-contrefaçon)
 // Concatène les champs dans l'ordre défini puis compare avec le HMAC du QR
+// Retourne false immédiatement si HMAC_SECRET est vide (ne peut pas matcher)
 async function verifierHMAC(qr) {
+  if (!HMAC_SECRET) return false
   const donnees = `${qr.uuid}|${qr.transaction_ref || ''}|${qr.timestamp || ''}|${qr.event_id || ''}|${qr.category || ''}`
   const calcule = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, donnees + HMAC_SECRET)
   return comparerTempsConstant(calcule, qr.hmac)
@@ -54,8 +56,8 @@ export async function telechargerTickets(eventId, zone) {
   return tickets.length
 }
 
-// Vérification complète offline d'un billet (5 étapes, conforme Document Technique v1.0)
-// Étape 1 : parsing QR → 2 : HMAC → 3 : expiration → 4 : recherche locale → 5 : anti re-scan
+// Vérification complète offline d'un billet
+// Étape 1 : parsing QR → 2 : HMAC → 3 : expiration 24h → 4 : recherche locale → 5 : anti re-scan
 export async function verifierBillet(donneesQR) {
   const qr = parserQR(donneesQR)
   if (!qr) return { resultat: RESULTATS.INCONNU, message: 'QR code invalide' }
@@ -71,16 +73,7 @@ export async function verifierBillet(donneesQR) {
     return { resultat: RESULTATS.FRAUDE, message: 'QR code falsifié 🚫' }
   }
 
-  // Étape 3 : vérification expiration (anti-replay, tolérance 60s comme le serveur)
-  if (qr.timestamp) {
-    const age = Date.now() - new Date(qr.timestamp).getTime()
-    if (age > 60000) {
-      await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.EXPIRE, num, eventId)
-      return { resultat: RESULTATS.EXPIRE, message: 'QR code expiré ⏳' }
-    }
-  }
-
-  // Étape 4 : recherche du billet dans la base SQLite locale
+  // Étape 3 : recherche du billet dans la base SQLite locale
   let ticket = await chercherTicket(qr.uuid)
   if (!ticket) {
     await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.INCONNU, num, eventId)

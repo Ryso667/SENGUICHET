@@ -57,13 +57,10 @@ const validerBillet = async (req, res) => {
       return res.json({ valide: false, statut: 'FRAUDE', message: 'Signature invalide' });
     }
 
-    // Vérifier l'expiration (tolérance 60s pour le délai réseau)
-    if (timestamp) {
-      const age = Date.now() - new Date(timestamp).getTime();
-      if (age > 60000) {
-        return res.json({ valide: false, statut: 'EXPIRE', message: 'QR code expiré' });
-      }
-    }
+    // Pas de vérification d'expiration côté serveur :
+    //  - QR mobile se rafraîchit toutes les 30s (validité gérée côté offline)
+    //  - QR PDF/page publique est statique → doit rester valide
+    //  - Le HMAC garantit l'intégrité, le statut DB (ACTIF/UTILISE) empêche le rejeu
 
     // Chercher le billet en base
     const [rows] = await pool.query(

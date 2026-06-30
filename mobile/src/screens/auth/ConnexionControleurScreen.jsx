@@ -13,7 +13,7 @@ import { hapticLight } from '../../utils/haptics'
 import InputOTP from '../../components/InputOTP'
 import GlassButton from '../../components/GlassButton'
 import { useAuth } from '../../context/AuthContext'
-import { spacing } from '../../constants/theme'
+import { spacing, fonts } from '../../constants/theme'
 import { useTheme } from '../../context/ThemeContext'
 
 export default function ConnexionControleurScreen({ navigation }) {
@@ -37,7 +37,7 @@ export default function ConnexionControleurScreen({ navigation }) {
       toast.success('Accès contrôleur activé')
     } catch (e) {
       console.error('Erreur connexion controleur:', e.message)
-      alert(e.message || "Code d'accès invalide")
+      toast.error(e.message || "Code d'accès invalide")
     } finally {
       setChargement(false)
     }
@@ -95,13 +95,13 @@ const makeStyles = (colors) => StyleSheet.create({
     paddingHorizontal: 24,
   },
   titre: {
-    fontFamily: 'Outfit_700Bold',
+    fontFamily: fonts.outfit.bold,
     fontSize: 22,
     color: colors.text,
     marginBottom: 8,
   },
   sousTitre: {
-    fontFamily: 'Outfit_400Regular',
+    fontFamily: fonts.outfit.regular,
     fontSize: 15,
     color: colors.textSecondary,
     marginBottom: 32,

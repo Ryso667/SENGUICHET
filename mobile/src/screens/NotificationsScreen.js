@@ -43,8 +43,13 @@ export default function NotificationsScreen({ navigation }) {
       )
     }
     if (item.evenement_id) {
-      // Navigue vers le détail de l'événement dans la stack
-      navigation.navigate('DetailEvenement', { eventId: item.evenement_id })
+      const parent = navigation.getParent()
+      const routeNames = parent ? parent.getState().routeNames : []
+      if (routeNames.includes('DetailEvenement')) {
+        navigation.navigate('DetailEvenement', { eventId: item.evenement_id })
+      } else {
+        navigation.navigate('EventDetail', { eventId: item.evenement_id })
+      }
     }
   }
 

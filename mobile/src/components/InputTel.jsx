@@ -2,6 +2,7 @@
 // Format : +221 XX XXX XX XX (9 chiffres après l'indicatif)
 import { useState, useMemo } from 'react'
 import { View, TextInput, Text, StyleSheet } from 'react-native'
+import { fonts } from '../constants/theme'
 import { useTheme } from '../context/ThemeContext'
 
 // Indicateur du Sénégal
@@ -67,14 +68,14 @@ const makeStyles = (colors) => StyleSheet.create({
     height: 56,
   },
   indicatif: {
-    fontFamily: 'Outfit_600SemiBold',
+    fontFamily: fonts.outfit.semiBold,
     fontSize: 18,
     color: colors.text,
     marginRight: 8,
   },
   input: {
     flex: 1,
-    fontFamily: 'Outfit_400Regular',
+    fontFamily: fonts.outfit.regular,
     fontSize: 18,
     color: colors.text,
     height: '100%',

@@ -148,6 +148,7 @@ export const fonts = {
     regular: 'Outfit_400Regular',
   },
   jakarta: {
+    bold: 'PlusJakartaSans_700Bold',
     semiBold: 'PlusJakartaSans_600SemiBold',
     medium: 'PlusJakartaSans_500Medium',
     regular: 'PlusJakartaSans_400Regular',
