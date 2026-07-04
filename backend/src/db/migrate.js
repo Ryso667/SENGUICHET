@@ -299,6 +299,21 @@ async function migrate() {
     console.log("ℹ️  code_promo peut-être déjà créée:", e.message);
   }
 
+  // Migration : aligner l'ENUM de scan_billet avec les statuts mobiles (VALIDE, DEJA_UTILISE, EXPIRE, INCONNU, FRAUDE)
+  try {
+    const [ligne] = await connection.query("SHOW COLUMNS FROM scan_billet LIKE 'statut'");
+    if (ligne.length > 0 && ligne[0].Type.includes("CONFLIT")) {
+      await connection.query("UPDATE scan_billet SET statut = 'FRAUDE' WHERE statut IN ('CONFLIT', 'INVALIDE')");
+      await connection.query("UPDATE scan_billet SET statut = 'INCONNU' WHERE statut = 'EN_ATTENTE'");
+      await connection.query("ALTER TABLE scan_billet MODIFY COLUMN statut ENUM('VALIDE','DEJA_UTILISE','EXPIRE','INCONNU','FRAUDE') NOT NULL");
+      console.log("✅ ENUM scan_billet aligné sur les 5 statuts mobiles");
+    } else {
+      console.log("ℹ️  ENUM scan_billet déjà à jour ou table vide");
+    }
+  } catch (e) {
+    console.error("⚠️  Impossible de migrer l'ENUM scan_billet:", e.message);
+  }
+
   console.log("✅ Migration terminée");
   await connection.end();
 }

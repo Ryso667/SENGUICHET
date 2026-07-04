@@ -95,7 +95,7 @@ const synchroniserScans = async (req, res) => {
 
     const evenementId = req.user.evenementId;
     const controleurId = req.user.controleurId || null;
-    const statutMap = { VALIDE: "VALIDE", DEJA_UTILISE: "DEJA_UTILISE", FRAUDE: "INVALIDE", INCONNU: "INVALIDE", EXPIRE: "INVALIDE" };
+    const statutMap = { VALIDE: "VALIDE", DEJA_UTILISE: "DEJA_UTILISE", FRAUDE: "FRAUDE", INCONNU: "INCONNU", EXPIRE: "EXPIRE" };
 
     let compteur = 0;
     for (const s of scans) {
