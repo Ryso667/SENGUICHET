@@ -186,7 +186,7 @@ CREATE TABLE scan_billet (
   billet_id INT NOT NULL,
   controleur_id INT DEFAULT NULL,
   evenement_id INT NOT NULL,
-  statut ENUM('VALIDE', 'DEJA_UTILISE', 'CONFLIT', 'INVALIDE', 'EN_ATTENTE') NOT NULL,
+  statut ENUM('VALIDE', 'DEJA_UTILISE', 'EXPIRE', 'INCONNU', 'FRAUDE') NOT NULL,
   horodatage_scan DATETIME NOT NULL,
   horodatage_local DATETIME DEFAULT NULL,
   est_offline TINYINT(1) NOT NULL DEFAULT 0,

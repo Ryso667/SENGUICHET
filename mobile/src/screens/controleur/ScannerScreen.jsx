@@ -13,7 +13,6 @@ import { useAuth } from '../../context/AuthContext'
 import { fonts } from '../../constants/theme'
 import { useTheme } from '../../context/ThemeContext'
 import { scale, fontScale } from '../../utils/responsive'
-import ControleurLayout from '../../components/ControleurLayout'
 import GlassButton from '../../components/GlassButton'
 
 const INTERVAL_REFRESH = 30000
@@ -109,7 +108,6 @@ export default function ScannerScreen({ navigation, route }) {
   if (!permission || !permission.granted) {
     return (
       <View style={{flex: 1}}>
-        <ControleurLayout />
         <View style={styles.centre}>
           <Text style={styles.textePermission}>
             {!permission ? "Demande d'accès..." : 'Accès caméra refusé'}
@@ -125,7 +123,6 @@ export default function ScannerScreen({ navigation, route }) {
   if (camError) {
     return (
       <View style={{flex: 1}}>
-        <ControleurLayout />
         <View style={styles.centre}>
           <Text style={styles.textePermission}>Erreur caméra</Text>
           <GlassButton title="Réessayer" icon="refresh" onPress={() => setCamError(null)} />
