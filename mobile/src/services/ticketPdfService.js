@@ -54,7 +54,7 @@ function construireHtmlTicket(ticket, qrDataUrl, logoBase64) {
   const showWatermark = isUsed || isExpired
 
   // Design portrait — identique au TicketScreen.js
-  // Header vert #10B981 → perforation → corps crème #F9F6EE → perforation → souche beige #F0EAD6
+  // Header vert #065F46 → perforation → corps crème #F9F6EE → perforation → souche beige #F0EAD6
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -81,7 +81,7 @@ function construireHtmlTicket(ticket, qrDataUrl, logoBase64) {
 
   /* ===== HEADER ===== */
   .header {
-    background: #10B981;
+    background: #065F46;
     padding: 32px 28px;
     position: relative;
     overflow: hidden;
@@ -90,7 +90,7 @@ function construireHtmlTicket(ticket, qrDataUrl, logoBase64) {
   .header .orbe1 {
     position: absolute; top: -40px; right: -40px;
     width: 140px; height: 140px; border-radius: 50%;
-    background: rgba(16,185,129,0.3);
+    background: rgba(6,95,70,0.3);
   }
   .header .orbe2 {
     position: absolute; bottom: -30px; left: -30px;
@@ -137,7 +137,7 @@ function construireHtmlTicket(ticket, qrDataUrl, logoBase64) {
   }
   .cat-pill-text {
     font-size: 9px; font-weight: 700; letter-spacing: 2px;
-    color: #F59E0B;
+    color: #fff;
   }
 
   /* ===== PERFORATION ===== */
@@ -148,7 +148,7 @@ function construireHtmlTicket(ticket, qrDataUrl, logoBase64) {
     align-items: center;
     justify-content: center;
   }
-  .perf.green-cream { background: linear-gradient(to bottom, #10B981, #F9F6EE); }
+  .perf.green-cream { background: linear-gradient(to bottom, #065F46, #F9F6EE); }
   .perf.cream-beige { background: linear-gradient(to bottom, #F9F6EE, #F0EAD6); }
   .perf .dash-line {
     display: flex;
@@ -234,7 +234,7 @@ function construireHtmlTicket(ticket, qrDataUrl, logoBase64) {
     position: relative;
   }
   .footer .badge {
-    background: #10B981;
+    background: #065F46;
     border-radius: 999px;
     display: inline-block;
     padding: 6px 24px;
@@ -242,7 +242,7 @@ function construireHtmlTicket(ticket, qrDataUrl, logoBase64) {
   }
   .footer .badge-text {
     font-size: 9px; font-weight: 700; letter-spacing: 2.5px;
-    color: #F59E0B;
+    color: #fff;
   }
   .footer .price {
     font-size: 28px; font-weight: 800; color: #111827;
@@ -383,7 +383,7 @@ export function genererHtmlWebTicket(ticket, qrDataUrl) {
   html,body{height:100%}
   body{background:#0F1A0F;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:24px;font-family:'Outfit','Helvetica Neue',Arial,sans-serif}
   .t{width:100%;max-width:360px;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.35);position:relative}
-  .h{background:#10B981;padding:32px 28px;position:relative;overflow:hidden;text-align:center}
+  .h{background:#065F46;padding:32px 28px;position:relative;overflow:hidden;text-align:center}
   .h .o1{position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(16,185,129,0.3)}
   .h .o2{position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;border-radius:50%;background:rgba(245,158,11,0.12)}
   .lr{display:flex;align-items:center;justify-content:center;gap:10px}
@@ -391,9 +391,9 @@ export function genererHtmlWebTicket(ticket, qrDataUrl) {
   .gl{height:1px;background:#F59E0B;opacity:0.5;margin:20px auto 18px;width:80%}
   .en{font-size:22px;font-weight:800;color:#fff;text-align:center;letter-spacing:0.5px;line-height:1.25}
   .cp{display:inline-block;background:rgba(245,158,11,0.15);border-radius:999px;padding:4px 14px;margin-top:10px}
-  .ct{font-size:9px;font-weight:700;letter-spacing:2px;color:#F59E0B}
+  .ct{font-size:9px;font-weight:700;letter-spacing:2px;color:#fff}
   .pf{height:24px;position:relative;display:flex;align-items:center;justify-content:center}
-  .pf.gc{background:linear-gradient(to bottom,#10B981,#F9F6EE)}
+  .pf.gc{background:linear-gradient(to bottom,#065F46,#F9F6EE)}
   .pf.cb{background:linear-gradient(to bottom,#F9F6EE,#F0EAD6)}
   .pf .dl{display:flex;justify-content:space-evenly;align-items:center;width:calc(100% - 60px);position:absolute;left:30px;right:30px}
   .pf .d{width:5px;height:2px;background:#3D4356;border-radius:1px}
@@ -411,8 +411,8 @@ export function genererHtmlWebTicket(ticket, qrDataUrl) {
   .rt{font-size:9px;color:#6EE7B7;text-align:center;letter-spacing:2px;font-family:monospace;margin-bottom:6px}
   .qw{background:#fff;border-radius:14px;padding:16px;margin-top:10px;margin-bottom:6px;border:1px solid rgba(17,24,39,0.06);display:flex;justify-content:center;align-items:center;position:relative;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
   .f{background:#F0EAD6;padding:24px 28px;text-align:center;position:relative}
-  .f .bd{background:#10B981;border-radius:999px;display:inline-block;padding:6px 24px;margin-bottom:10px}
-  .f .bt{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#F59E0B}
+  .f .bd{background:#065F46;border-radius:999px;display:inline-block;padding:6px 24px;margin-bottom:10px}
+  .f .bt{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#fff}
   .f .pr{font-size:28px;font-weight:800;color:#111827;letter-spacing:-0.5px}
   .f .lg{font-size:9px;color:#6EE7B7;font-style:italic;margin-top:10px}
   .f .wm{font-size:8px;color:rgba(17,24,39,0.25);letter-spacing:3px;font-weight:700;text-align:right;margin-top:4px}
@@ -423,7 +423,7 @@ export function genererHtmlWebTicket(ticket, qrDataUrl) {
 <div class="t">
   <div class="h">
     <div class="o1"></div><div class="o2"></div>
-    <div class="lr"><svg width="38" height="38" viewBox="0 0 38 38"><rect width="38" height="38" rx="10" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/><text x="19" y="24" text-anchor="middle" font-size="18" font-weight="800" fill="#F59E0B" font-family="Arial">S</text></svg><div class="br">SENGUICHET</div></div>
+    <div class="lr"><svg width="38" height="38" viewBox="0 0 38 38"><rect width="38" height="38" rx="10" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/><text x="19" y="24" text-anchor="middle" font-size="18" font-weight="800" fill="#fff" font-family="Arial">S</text></svg><div class="br">SENGUICHET</div></div>
     <div class="gl"></div>
     <div class="en">${nomEvent}</div>
     <div class="cp"><div class="ct">${categorie}</div></div>
