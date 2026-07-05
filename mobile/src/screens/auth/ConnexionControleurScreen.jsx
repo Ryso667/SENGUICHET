@@ -1,7 +1,7 @@
 // Écran de connexion contrôleur
 // Saisie d'un code d'accès à 4 chiffres (généré par l'organisateur)
-// Déverrouille le mode scan une fois le code validé
-import { useState, useMemo } from 'react'
+// Validation automatique dès les 4 chiffres saisis
+import { useState, useRef, useMemo } from 'react'
 import {
   View, Text, ScrollView, ActivityIndicator,
   KeyboardAvoidingView, Platform, StyleSheet,
@@ -11,7 +11,6 @@ import { connecterControleur as apiConnecterControleur } from '../../services/au
 import { useToast } from '../../context/ToastContext'
 import { hapticLight } from '../../utils/haptics'
 import InputOTP from '../../components/InputOTP'
-import GlassButton from '../../components/GlassButton'
 import { useAuth } from '../../context/AuthContext'
 import { spacing, fonts } from '../../constants/theme'
 import { useTheme } from '../../context/ThemeContext'
@@ -21,32 +20,33 @@ export default function ConnexionControleurScreen({ navigation }) {
   const s = useMemo(() => makeStyles(colors), [colors])
   const { connecterControleur } = useAuth()
   const toast = useToast()
-  const [codeAcces, setCodeAcces] = useState('')
   const [chargement, setChargement] = useState(false)
   const insets = useSafeAreaInsets()
+  const otpRef = useRef(null)
 
   // Valide le code 4 chiffres et stocke la session contrôleur
-  // Le code est vérifié par le backend contre la table code_controleur
-  const handleConnecter = async () => {
-    if (codeAcces.length !== 4) return
+  // Appelée automatiquement par InputOTP quand les 4 cases sont remplies
+  const handleConnecter = async (code) => {
+    if (code.length !== 4) return
     setChargement(true)
     try {
-      const result = await apiConnecterControleur(codeAcces)
-      if (!result?.token) throw new Error("Réponse API invalide")
+      const result = await apiConnecterControleur(code)
+      if (!result?.token) throw new Error('Réponse API invalide')
       await connecterControleur(result.token, result.user)
       toast.success('Accès contrôleur activé')
     } catch (e) {
       console.error('Erreur connexion controleur:', e.message)
       toast.error(e.message || "Code d'accès invalide")
+      otpRef.current?.reinitialiser()
     } finally {
       setChargement(false)
     }
   }
 
-  // Déclenche un retour haptique léger quand les 4 chiffres sont saisis
+  // Déclenche la validation automatique dès que les 4 chiffres sont saisis
   const handleCodeComplet = (code) => {
     hapticLight()
-    setCodeAcces(code)
+    handleConnecter(code)
   }
 
   return (
@@ -64,21 +64,17 @@ export default function ConnexionControleurScreen({ navigation }) {
             Saisissez votre code d'accès à 4 chiffres
           </Text>
 
-          {/* Champ 4 chiffres (réutilise InputOTP avec longueur réduite) */}
-          <InputOTP longueur={4} onComplet={handleCodeComplet} />
+          <InputOTP
+            ref={otpRef}
+            longueur={4}
+            autoFocus
+            onComplet={handleCodeComplet}
+          />
 
-          <View style={s.espace} />
-
-          {chargement ? (
-            <View style={s.glassLoadingBtn}>
+          {chargement && (
+            <View style={[s.glassLoadingBtn, { marginTop: 24 }]}>
               <ActivityIndicator size="small" color="#fff" />
             </View>
-          ) : (
-            <GlassButton
-              title="Se connecter"
-              variant="primary"
-              onPress={handleConnecter}
-            />
           )}
         </ScrollView>
       </KeyboardAvoidingView>
@@ -105,9 +101,6 @@ const makeStyles = (colors) => StyleSheet.create({
     fontSize: 15,
     color: colors.textSecondary,
     marginBottom: 32,
-  },
-  espace: {
-    height: 24,
   },
   glassLoadingBtn: {
     borderRadius: 14,
