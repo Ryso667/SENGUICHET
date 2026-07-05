@@ -407,8 +407,15 @@ const changerMotDePasse = async (req, res) => {
   }
 };
 
+// Nombre maximum de tentatives avant verrouillage temporaire du code contrôleur
+const MAX_TENTATIVES_CONTROLEUR = 10;
+
+// Durée de verrouillage en minutes après échecs consécutifs
+const DUREE_VERROUILLAGE_MIN = 15;
+
 // Connecte un contrôleur via le code d'accès à 4 chiffres de son événement
 // Le code est généré par l'admin dans la table code_controleur (un par événement)
+// Inclut un verrouillage temporaire après MAX_TENTATIVES échecs consécutifs
 // Retourne un JWT contenant evenementId pour restreindre le scan à cet événement
 const connexionControleur = async (req, res) => {
   try {
@@ -417,20 +424,52 @@ const connexionControleur = async (req, res) => {
       return res.status(400).json({ message: "Code d'accès requis" });
     }
 
-    // Validation contre la table code_controleur (gérée par l'admin)
-    const [rows] = await pool.query(
-      `SELECT cc.id AS code_id, cc.evenement_id, e.titre AS evenement_titre
+    // Cherche le code par sa valeur (gère lockout même pour les codes existants)
+    const [codes] = await pool.query(
+      `SELECT cc.id AS code_id, cc.code, cc.evenement_id, cc.statut,
+              cc.tentatives_echouees, cc.date_verrouillage,
+              e.titre AS evenement_titre
        FROM code_controleur cc
        JOIN evenement e ON e.id = cc.evenement_id
-       WHERE cc.code = ? AND cc.statut = 'ACTIF'`,
+       WHERE cc.code = ?`,
       [codeAcces]
     );
 
-    if (!rows.length) {
+    if (!codes.length) {
       return res.status(401).json({ message: "Code d'accès invalide" });
     }
 
-    const c = rows[0];
+    const c = codes[0];
+
+    // Le code existe en base : on peut faire du lockout par code
+    // Vérifie si le code est verrouillé temporairement
+    if (c.statut === 'ACTIF' && c.date_verrouillage) {
+      const tempsEcoule = (Date.now() - new Date(c.date_verrouillage).getTime()) / 60000;
+      if (tempsEcoule < DUREE_VERROUILLAGE_MIN) {
+        const reste = Math.ceil(DUREE_VERROUILLAGE_MIN - tempsEcoule);
+        return res.status(429).json({
+          message: `Trop de tentatives. Réessaie dans ${reste} minute(s).`,
+        });
+      }
+      // Verrouillage expiré : réinitialiser le compteur
+      await pool.query(
+        "UPDATE code_controleur SET tentatives_echouees = 0, date_verrouillage = NULL WHERE id = ?",
+        [c.code_id]
+      );
+    }
+
+    // Code désactivé par l'admin (statut INACTIF sans verrouillage)
+    if (c.statut !== 'ACTIF') {
+      // Log la tentative sur un code inactif (alerte sécurité)
+      console.warn(`[SECURITE] Tentative de connexion sur code INACTIF (evenement_id: ${c.evenement_id})`);
+      return res.status(401).json({ message: "Code d'accès invalide" });
+    }
+
+    // Connexion réussie : réinitialiser le compteur de tentatives
+    await pool.query(
+      "UPDATE code_controleur SET tentatives_echouees = 0, date_verrouillage = NULL WHERE id = ?",
+      [c.code_id]
+    );
 
     // Récupère l'ID du premier contrôleur affecté à cet événement
     // (nécessaire pour tracer les scans dans scan_billet.controleur_id)

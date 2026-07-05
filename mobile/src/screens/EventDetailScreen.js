@@ -693,7 +693,7 @@ export default function EventDetailScreen({ route, navigation }) {
             {paymentEtape === 'pending' && (
               <View style={styles.payCenter}>
                 <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                  <Feather name="loader" size={44} color="#fff" />
+                  <Feather name="loader" size={44} color={colors.accent} />
                 </Animated.View>
                 <Text style={styles.payStatusTitle}>Paiement en cours</Text>
                 <Text style={styles.payStatusSub}>Confirmation Wave...</Text>
@@ -1280,13 +1280,13 @@ const makeStyles = (colors) => StyleSheet.create({
   payStatusTitle: {
     fontFamily: fonts.outfit.semiBold,
     fontSize: fontScale(16),
-    color: '#fff',
+    color: colors.text,
     marginTop: spacing.sm,
   },
   payStatusSub: {
     fontFamily: fonts.jakarta.regular,
     fontSize: fontScale(13),
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   payCheckCircle: {
@@ -1300,7 +1300,7 @@ const makeStyles = (colors) => StyleSheet.create({
   paySuccessTitle: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(20),
-    color: '#fff',
+    color: colors.text,
   },
   payErrorCircle: {
     width: scale(80),
@@ -1318,7 +1318,7 @@ const makeStyles = (colors) => StyleSheet.create({
   payErrorDetail: {
     fontFamily: fonts.jakarta.regular,
     fontSize: fontScale(12),
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: spacing.xl,
   },

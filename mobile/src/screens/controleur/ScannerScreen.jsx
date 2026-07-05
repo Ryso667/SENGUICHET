@@ -8,7 +8,7 @@ import { hapticSuccess, hapticError } from '../../utils/haptics'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect } from '@react-navigation/native'
-import { verifierBillet, telechargerTickets, synchroniser } from '../../services/scanService'
+import { verifierBillet, telechargerTickets, synchroniser, nettoyerTicketsHorsEvenement } from '../../services/scanService'
 import { useAuth } from '../../context/AuthContext'
 import { fonts } from '../../constants/theme'
 import { useTheme } from '../../context/ThemeContext'
@@ -49,6 +49,9 @@ export default function ScannerScreen({ navigation, route }) {
     setChargeTickets(true)
     setSynchro('chargement')
     try {
+      // Nettoie les tickets d'anciens événements AVANT le téléchargement
+      // Empêche la faille : résidu de session précédente dans la DB locale
+      await nettoyerTicketsHorsEvenement(eventId)
       const nb = await telechargerTickets(eventId, zone)
       setNbTickets(nb)
       setSynchro('ok')
@@ -84,7 +87,7 @@ export default function ScannerScreen({ navigation, route }) {
     if (dernierScanRef.current && dernierScanRef.current.uuid === uuid && (maintenant - dernierScanRef.current.temps) < DELAI_ANTI_DOUBLON) return
     dernierScanRef.current = { uuid, temps: maintenant }
     try {
-      const resultat = await verifierBillet(donnees)
+      const resultat = await verifierBillet(donnees, eventId)
       if (resultat.resultat === 'VALIDE') {
         hapticSuccess()
       } else if (['FRAUDE', 'EXPIRE', 'INCONNU'].includes(resultat.resultat)) {

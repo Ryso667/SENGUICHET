@@ -35,7 +35,7 @@ async function genererQRPayload(ticket) {
 
 // Palette vert émeraude (harmonisée avec le thème de l'app)
 const C = {
-  headerBg: '#10B981',
+  headerBg: '#065F46',
   surface: '#34D399',
   accent: '#F59E0B',
   label: '#6EE7B7',
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   orbe1: {
     position: 'absolute', top: scale(-40), right: scale(-40),
     width: scale(140), height: scale(140), borderRadius: scale(70),
-    backgroundColor: 'rgba(16,185,129,0.3)',
+    backgroundColor: 'rgba(6,95,70,0.3)',
   },
   orbe2: {
     position: 'absolute', bottom: scale(-30), left: scale(-30),
@@ -435,9 +435,8 @@ const styles = StyleSheet.create({
     fontSize: fontScale(9),
     fontFamily: fonts.outfit.bold,
     letterSpacing: scale(2),
-    color: C.accent,
+    color: C.white,
   },
-
   // ===== 2. PERFORATION =====
   perforation: {
     height: scale(24),
@@ -586,7 +585,7 @@ const styles = StyleSheet.create({
     fontSize: fontScale(9),
     fontFamily: fonts.outfit.bold,
     letterSpacing: scale(2.5),
-    color: C.accent,
+    color: C.white,
   },
   priceText: {
     fontSize: fontScale(28),
@@ -677,7 +676,7 @@ const styles = StyleSheet.create({
   exportText: {
     fontFamily: fonts.outfit.bold,
     fontSize: fontScale(14),
-    color: C.accent,
+    color: C.white,
     letterSpacing: scale(1),
   },
 })
