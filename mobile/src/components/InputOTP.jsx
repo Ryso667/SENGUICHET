@@ -1,18 +1,35 @@
-// Champ de saisie à chiffres individuels avec auto-focus
+// Champ de saisie à chiffres individuels avec auto-focus et gestion backspace
 // Utile pour les codes PIN (contrôleur) et OTP (acheteur)
-// Props : longueur (number, défaut 6), onComplet (callback appelé quand tous les chiffres sont saisis)
-import { useRef, useState, useMemo } from 'react'
+// Props : longueur (number, défaut 6), onComplet (callback appelé quand tous les chiffres sont saisis), autoFocus (bool)
+// Ref exposée : { reinitialiser() } pour vider et refocus la première case
+import { forwardRef, useRef, useState, useMemo, useEffect, useImperativeHandle } from 'react'
 import { View, TextInput, StyleSheet } from 'react-native'
 import { fonts } from '../constants/theme'
 import { useTheme } from '../context/ThemeContext'
 
-export default function InputOTP({ longueur = 6, onComplet }) {
+const InputOTP = forwardRef(({ longueur = 6, onComplet, autoFocus = false }, ref) => {
   const { colors } = useTheme()
   const [codes, setCodes] = useState(Array(longueur).fill(''))
   const refs = useRef([])
   const styles = useMemo(() => makeStyles(colors), [colors])
 
-  // Gère la saisie d'un chiffre et passe automatiquement au champ suivant
+  // Expose une méthode reinitialiser() pour vider le formulaire depuis le parent
+  useImperativeHandle(ref, () => ({
+    reinitialiser() {
+      setCodes(Array(longueur).fill(''))
+      setTimeout(() => refs.current[0]?.focus(), 100)
+    },
+  }))
+
+  // Auto-focus la première case au montage
+  useEffect(() => {
+    if (autoFocus && refs.current[0]) {
+      const delai = setTimeout(() => refs.current[0]?.focus(), 400)
+      return () => clearTimeout(delai)
+    }
+  }, [autoFocus])
+
+  // Gère la saisie : filtre les non-chiffres, avance automatiquement
   const handleChangement = (texte, index) => {
     const chiffre = texte.replace(/\D/g, '').slice(-1)
     const nouveau = [...codes]
@@ -23,19 +40,28 @@ export default function InputOTP({ longueur = 6, onComplet }) {
       refs.current[index + 1]?.focus()
     }
 
-    // Notifie le parent quand tous les chiffres sont saisis
     const saisi = nouveau.join('')
     if (saisi.length === longueur) {
       onComplet?.(saisi)
     }
   }
 
-  // Si on tape sur une case vide, redirige vers la première case vide
+  // Redirige le focus vers la première case vide si on tape sur une case arbitraire
   const handleTouche = (index) => {
     if (!codes[index] && index > 0) {
-      const dernierRempli = codes.reduce((last, v, i) => v ? i : last, -1)
+      const dernierRempli = codes.reduce((last, v, i) => (v ? i : last), -1)
       const cible = dernierRempli + 1
-      refs.current[cible]?.focus()
+      if (cible < longueur) refs.current[cible]?.focus()
+    }
+  }
+
+  // Backspace sur case vide → efface la case précédente et recule le curseur
+  const handleKeyPress = ({ nativeEvent }, index) => {
+    if (nativeEvent.key === 'Backspace' && !codes[index] && index > 0) {
+      const nouveau = [...codes]
+      nouveau[index - 1] = ''
+      setCodes(nouveau)
+      refs.current[index - 1]?.focus()
     }
   }
 
@@ -44,11 +70,12 @@ export default function InputOTP({ longueur = 6, onComplet }) {
       {codes.map((val, i) => (
         <TextInput
           key={i}
-          ref={(ref) => { refs.current[i] = ref }}
+          ref={(r) => { refs.current[i] = r }}
           style={[styles.case, val ? styles.caseRemplie : null]}
           value={val}
           onChangeText={(t) => handleChangement(t, i)}
           onFocus={() => handleTouche(i)}
+          onKeyPress={(e) => handleKeyPress(e, i)}
           keyboardType="number-pad"
           maxLength={1}
           selectTextOnFocus
@@ -56,7 +83,9 @@ export default function InputOTP({ longueur = 6, onComplet }) {
       ))}
     </View>
   )
-}
+})
+
+export default InputOTP
 
 const makeStyles = (colors) => StyleSheet.create({
   conteneur: {

@@ -2,7 +2,7 @@
 // Étape 1 : saisie de l'email → envoi du code OTP
 // Étape 2 : vérification par code OTP à 6 chiffres reçu par email
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, ScrollView, InputAccessoryView } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, ScrollView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -11,6 +11,7 @@ import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
 import { envoyerCodeOTP } from '../../services/authService'
 import GlassContainer from '../../components/GlassContainer'
+import InputOTP from '../../components/InputOTP'
 
 export default function SocialAuthScreen({ navigation }) {
   const { colors, mode, isDark } = useTheme()
@@ -18,7 +19,6 @@ export default function SocialAuthScreen({ navigation }) {
   // État du formulaire : email → OTP
   const { connecterAcheteurOTP, acheteurEmailSuggestion } = useAuth()
   const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
   const [etape, setEtape] = useState('email') // 'email' | 'otp'
   const [loading, setLoading] = useState(false)
   // Minuteur entre deux envois de code (anti-spam)
@@ -50,7 +50,6 @@ export default function SocialAuthScreen({ navigation }) {
       await envoyerCodeOTP(email)
       setEtape('otp')
       setResendCooldown(60)
-      setTimeout(() => otpRef.current?.focus(), 300)
     } catch (err) {
       Alert.alert('Erreur', err.message)
     } finally {
@@ -59,17 +58,16 @@ export default function SocialAuthScreen({ navigation }) {
   }
 
   // Étape 2 : vérifie le code OTP et connecte l'acheteur
-  const handleVerifierCode = async () => {
-    if (code.length !== 6) {
-      Alert.alert('Code incomplet', 'Le code fait 6 chiffres')
-      return
-    }
+  // Appelée automatiquement par InputOTP quand les 6 chiffres sont saisis
+  const handleVerifierCode = async (codeSaisi) => {
+    if (codeSaisi.length !== 6) return
     setLoading(true)
     try {
-      await connecterAcheteurOTP(email, code)
+      await connecterAcheteurOTP(email, codeSaisi)
       navigation.replace('MainTabs')
     } catch (err) {
       Alert.alert('Erreur', err.message)
+      otpRef.current?.reinitialiser()
     } finally {
       setLoading(false)
     }
@@ -78,7 +76,7 @@ export default function SocialAuthScreen({ navigation }) {
   // Retour à l'étape email depuis l'étape OTP
   const handleRetour = () => {
     setEtape('email')
-    setCode('')
+    otpRef.current?.reinitialiser()
   }
 
   const getTitre = () => {
@@ -173,35 +171,20 @@ export default function SocialAuthScreen({ navigation }) {
                 <>
                   <View style={s.inputGroup}>
                     <Text style={s.label}>Code de confirmation</Text>
-                    <TextInput
+                    <InputOTP
                       ref={otpRef}
-                      style={[s.input, s.otpInput]}
-                      value={code}
-                      onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="••••••"
-                      placeholderTextColor={colors.textTertiary}
-                      keyboardType="number-pad"
-                      maxLength={6}
-                      editable={!loading}
-                      inputAccessoryViewID="otpAccessory"
-                      returnKeyType="done"
-                      onSubmitEditing={handleVerifierCode}
+                      longueur={6}
+                      autoFocus
+                      onComplet={handleVerifierCode}
                     />
                   </View>
-                  <LinearGradient colors={gradients.primary} style={s.submitBtn}>
-                    <TouchableOpacity
-                      onPress={handleVerifierCode}
-                      disabled={loading}
-                      activeOpacity={0.8}
-                      style={s.submitBtnInner}
-                    >
-                      {loading ? (
+                  {loading && (
+                    <LinearGradient colors={gradients.primary} style={s.submitBtn}>
+                      <View style={s.submitBtnInner}>
                         <ActivityIndicator size="small" color="#fff" />
-                      ) : (
-                        <Text style={s.submitBtnText}>Confirmer</Text>
-                      )}
-                    </TouchableOpacity>
-                  </LinearGradient>
+                      </View>
+                    </LinearGradient>
+                  )}
                   <TouchableOpacity style={s.renvoyerBtn} onPress={handleEnvoyerCode} disabled={loading || resendCooldown > 0}>
                     <Text style={[s.renvoyerBtnText, resendCooldown > 0 && { color: colors.textTertiary, textDecorationLine: 'none' }]}>
                       {resendCooldown > 0 ? `Renvoyer (${resendCooldown}s)` : 'Renvoyer le code'}
@@ -214,13 +197,6 @@ export default function SocialAuthScreen({ navigation }) {
         </View>
           </ScrollView>
         </TouchableWithoutFeedback>
-        <InputAccessoryView nativeID="otpAccessory">
-          <View style={s.keyboardToolbar}>
-            <TouchableOpacity onPress={Keyboard.dismiss} style={s.keyboardToolbarBtn}>
-              <Text style={s.keyboardToolbarBtnText}>Terminé</Text>
-            </TouchableOpacity>
-          </View>
-        </InputAccessoryView>
       </KeyboardAvoidingView>
     </View>
   )
@@ -291,12 +267,6 @@ const makeStyles = (colors) => StyleSheet.create({
     fontSize: 16,
     color: colors.text,
   },
-  otpInput: {
-    fontSize: 28,
-    letterSpacing: 10,
-    textAlign: 'center',
-    fontFamily: fonts.outfit.bold,
-  },
   submitBtn: {
     height: 52,
     borderRadius: br.lg,
@@ -322,23 +292,5 @@ const makeStyles = (colors) => StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
     textDecorationLine: 'underline',
-  },
-  keyboardToolbar: {
-    flexDirection: 'row-reverse',
-    paddingHorizontal: 16,
-    height: 44,
-    alignItems: 'center',
-    backgroundColor: colors.bg,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: glass.border,
-  },
-  keyboardToolbarBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  keyboardToolbarBtnText: {
-    color: colors.green,
-    fontFamily: fonts.outfit.semiBold,
-    fontSize: 15,
   },
 })
