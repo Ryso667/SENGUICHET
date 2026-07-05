@@ -1,7 +1,7 @@
 // Contexte global d'authentification
 // Gère 3 rôles : acheteur (social Google/Apple), controleur (code 4 chiffres), organisateur (email+mdp)
-import { createContext, useContext, useState, useEffect, useMemo } from 'react'
-import { Alert } from 'react-native'
+import { createContext, useContext, useState, useEffect, useMemo, useRef } from 'react'
+import { Alert, AppState } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as LocalAuthentication from 'expo-local-authentication'
 import { nettoyerDonneesLegacy } from '../utils/cleanupLegacyData'
@@ -24,6 +24,17 @@ const STORAGE_KEY_ORGA_EMAIL_SUGGESTION = '@senguichet_orga_email_suggestion'
 const STORAGE_KEY_ACHETEUR_EMAIL_SUGGESTION = '@senguichet_acheteur_email_suggestion'
 const STORAGE_KEY_EVENEMENT_ID = '@senguichet_evenement_id'
 const STORAGE_KEY_EVENEMENT_TITRE = '@senguichet_evenement_titre'
+
+// Seuil d'inactivité avant déconnexion automatique (30 minutes)
+const DELAI_INACTIVITE_MS = 30 * 60 * 1000
+
+// Vérifie si un JWT est expiré en comparant le champ exp à l'heure actuelle
+// Retourne true si expiré ou si le token n'a pas de champ exp
+const jwtEstExpire = (token) => {
+  const payload = decoderJWT(token)
+  if (!payload.exp) return true
+  return Date.now() >= payload.exp * 1000
+}
 
 // Décode le payload d'un JWT sans vérifier la signature (lecture seule des claims)
 // Convertit base64url → base64 avec padding avant de décoder
@@ -55,21 +66,62 @@ export function AuthProvider({ children }) {
   const [acheteurEmailSuggestion, setAcheteurEmailSuggestion] = useState(null)
   const [evenementId, setEvenementId] = useState(null)
   const [evenementTitre, setEvenementTitre] = useState(null)
+  const arrierePlanRef = useRef(null)
 
   useEffect(() => {
     nettoyerDonneesLegacy()
     restaurerSession()
-  }, [])
+
+    // Surveille les changements d'état de l'application pour détecter l'inactivité
+    const subscription = AppState.addEventListener('change', (etat) => {
+      if (etat === 'background' || etat === 'inactive') {
+        arrierePlanRef.current = Date.now()
+      } else if (etat === 'active' && arrierePlanRef.current !== null) {
+        const duree = Date.now() - arrierePlanRef.current
+        if (duree >= DELAI_INACTIVITE_MS && role) {
+          console.log(`[Auth] Inactivité détectée (${Math.round(duree / 60000)} min) — déconnexion automatique`)
+          nettoyerSession()
+        }
+        arrierePlanRef.current = null
+      }
+    })
+
+    return () => subscription.remove()
+  }, [role])
+
+  // Lit le rôle depuis SecureStore puis AsyncStorage (compatibilité ascendante)
+  const lireRole = async () => {
+    try {
+      return await Securite.GET(STORAGE_KEY_ROLE)
+    } catch {
+      return await AsyncStorage.getItem(STORAGE_KEY_ROLE)
+    }
+  }
+
+  // Lit un email biométrique depuis SecureStore puis AsyncStorage
+  const lireBioEmail = async () => {
+    try {
+      return await Securite.GET(STORAGE_KEY_BIOMETRIC_EMAIL)
+    } catch {
+      return await AsyncStorage.getItem(STORAGE_KEY_BIOMETRIC_EMAIL)
+    }
+  }
 
   const restaurerSession = async () => {
     try {
-      const roleStocke = await AsyncStorage.getItem(STORAGE_KEY_ROLE)
+      const roleStocke = await lireRole()
 
       if (roleStocke === 'acheteur') {
         const tel = await Securite.GET(STORAGE_KEY_NUMERO)
         const token = await Securite.GET(STORAGE_KEY_JWT)
         const profilData = await Securite.GET(STORAGE_KEY_PROFIL)
         const acheteurEmail = await Securite.GET(STORAGE_KEY_ACHETEUR_EMAIL)
+        // Vérifie l'expiration du JWT avant de restaurer la session
+        if (token && jwtEstExpire(token)) {
+          console.log('[Auth] JWT acheteur expiré — nettoyage session')
+          await nettoyerSession()
+          return
+        }
         if (token) setJwt(token)
         if (tel) setNumeroTel(tel)
         if (acheteurEmail) setEmail(acheteurEmail)
@@ -78,7 +130,6 @@ export function AuthProvider({ children }) {
             setProfil(JSON.parse(profilData))
           } catch (e) {
             console.warn('[Auth] Erreur parsing profil acheteur — reconstruction depuis email:', e)
-            // Reconstruit le profil depuis l'email si le JSON est corrompu
             if (acheteurEmail) {
               const nom = acheteurEmail.split('@')[0].replace(/\d+$/, '')
               setProfil({ nom, email: acheteurEmail })
@@ -90,6 +141,12 @@ export function AuthProvider({ children }) {
         const token = await Securite.GET(STORAGE_KEY_JWT)
         const eventId = await Securite.GET(STORAGE_KEY_EVENEMENT_ID)
         const eventTitre = await Securite.GET(STORAGE_KEY_EVENEMENT_TITRE)
+        // Vérifie l'expiration du JWT avant de restaurer la session
+        if (token && jwtEstExpire(token)) {
+          console.log('[Auth] JWT controleur expiré — nettoyage session')
+          await nettoyerSession()
+          return
+        }
         if (token) {
           setJwt(token)
           if (eventId) setEvenementId(Number(eventId))
@@ -100,6 +157,12 @@ export function AuthProvider({ children }) {
         console.log('[Auth] restauration organisateur...')
         const token = await Securite.GET(STORAGE_KEY_JWT)
         const userData = await Securite.GET(STORAGE_KEY_USER)
+        // Vérifie l'expiration du JWT avant de restaurer la session
+        if (token && jwtEstExpire(token)) {
+          console.log('[Auth] JWT organisateur expiré — nettoyage session')
+          await nettoyerSession()
+          return
+        }
         console.log('[Auth] token:', !!token, 'userData:', !!userData)
         if (token && userData) {
           try {
@@ -117,7 +180,7 @@ export function AuthProvider({ children }) {
         }
       }
 
-      const bioEmail = await AsyncStorage.getItem(STORAGE_KEY_BIOMETRIC_EMAIL)
+      const bioEmail = await lireBioEmail()
       if (bioEmail) {
         setHasSavedSession(true)
         setSessionEmail(bioEmail)
@@ -136,7 +199,8 @@ export function AuthProvider({ children }) {
 
   // Connexion acheteur (ancien flow OTP, conservé pour compatibilité)
   const connecterAcheteur = async (tel) => {
-    await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'acheteur')
+    await Securite.SET(STORAGE_KEY_ROLE, 'acheteur')
+    await AsyncStorage.removeItem(STORAGE_KEY_ROLE)
     await Securite.SET(STORAGE_KEY_NUMERO, tel)
     setNumeroTel(tel)
     setRole('acheteur')
@@ -156,7 +220,8 @@ export function AuthProvider({ children }) {
     const eventId = user?.evenementId || payload.evenementId
     const eventTitre = user?.evenementTitre || payload.evenementTitre
     console.log('[Auth] eventId=', eventId, 'eventTitre=', eventTitre)
-    await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'controleur')
+    await Securite.SET(STORAGE_KEY_ROLE, 'controleur')
+    await AsyncStorage.removeItem(STORAGE_KEY_ROLE)
     await Securite.SET(STORAGE_KEY_JWT, token)
     if (eventId) await Securite.SET(STORAGE_KEY_EVENEMENT_ID, String(eventId))
     if (eventTitre) await Securite.SET(STORAGE_KEY_EVENEMENT_TITRE, String(eventTitre))
@@ -168,11 +233,13 @@ export function AuthProvider({ children }) {
   }
 
   const connecterOrganisateur = async (token, userData) => {
-    await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'organisateur')
+    await Securite.SET(STORAGE_KEY_ROLE, 'organisateur')
+    await AsyncStorage.removeItem(STORAGE_KEY_ROLE)
     await Securite.SET(STORAGE_KEY_JWT, token)
     await Securite.SET(STORAGE_KEY_EMAIL, userData.email)
     await Securite.SET(STORAGE_KEY_USER, JSON.stringify(userData))
-    await AsyncStorage.setItem(STORAGE_KEY_BIOMETRIC_EMAIL, userData.email)
+    await Securite.SET(STORAGE_KEY_BIOMETRIC_EMAIL, userData.email)
+    await AsyncStorage.removeItem(STORAGE_KEY_BIOMETRIC_EMAIL)
     await AsyncStorage.setItem(STORAGE_KEY_ORGA_EMAIL_SUGGESTION, userData.email)
     setJwt(token)
     setEmail(userData.email)
@@ -199,7 +266,8 @@ export function AuthProvider({ children }) {
       throw new Error('Réponse API invalide : token manquant')
     }
     const { token, user } = data
-    await AsyncStorage.setItem(STORAGE_KEY_ROLE, 'acheteur')
+    await Securite.SET(STORAGE_KEY_ROLE, 'acheteur')
+    await AsyncStorage.removeItem(STORAGE_KEY_ROLE)
     await Securite.SET(STORAGE_KEY_ACHETEUR_EMAIL, email)
     await Securite.SET(STORAGE_KEY_JWT, token)
     await AsyncStorage.setItem(STORAGE_KEY_ACHETEUR_EMAIL_SUGGESTION, email)
@@ -233,7 +301,8 @@ export function AuthProvider({ children }) {
         promptMessage: 'Connecte-toi avec ton empreinte',
       })
       if (result.success) {
-        const userData = await AsyncStorage.getItem(STORAGE_KEY_USER)
+        let userData = await Securite.GET(STORAGE_KEY_USER)
+        if (!userData) userData = await AsyncStorage.getItem(STORAGE_KEY_USER)
         const token = await Securite.GET(STORAGE_KEY_JWT)
         if (token && userData) {
           await connecterOrganisateur(token, JSON.parse(userData))
@@ -252,6 +321,8 @@ export function AuthProvider({ children }) {
       STORAGE_KEY_ORGA_EMAIL_SUGGESTION,
       STORAGE_KEY_ACHETEUR_EMAIL_SUGGESTION,
     ])
+    await Securite.SUPPRIMER(STORAGE_KEY_ROLE)
+    await Securite.SUPPRIMER(STORAGE_KEY_BIOMETRIC_EMAIL)
     await Securite.SUPPRIMER(STORAGE_KEY_NUMERO)
     await Securite.SUPPRIMER(STORAGE_KEY_JWT)
     await Securite.SUPPRIMER(STORAGE_KEY_EMAIL)

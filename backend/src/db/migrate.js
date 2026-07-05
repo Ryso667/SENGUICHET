@@ -299,6 +299,20 @@ async function migrate() {
     console.log("ℹ️  code_promo peut-être déjà créée:", e.message);
   }
 
+  // Migration : ajouter colonnes de lockout à code_controleur
+  try {
+    const [ligne] = await connection.query("SHOW COLUMNS FROM code_controleur LIKE 'tentatives_echouees'");
+    if (ligne.length === 0) {
+      await connection.query("ALTER TABLE code_controleur ADD COLUMN tentatives_echouees INT NOT NULL DEFAULT 0 AFTER statut");
+      await connection.query("ALTER TABLE code_controleur ADD COLUMN date_verrouillage DATETIME DEFAULT NULL AFTER tentatives_echouees");
+      console.log("✅ Colonnes tentatives_echouees/date_verrouillage ajoutées à code_controleur");
+    } else {
+      console.log("ℹ️  Colonnes lockout existent déjà sur code_controleur");
+    }
+  } catch (e) {
+    console.error("⚠️  Impossible d'ajouter les colonnes lockout:", e.message);
+  }
+
   // Migration : aligner l'ENUM de scan_billet avec les statuts mobiles (VALIDE, DEJA_UTILISE, EXPIRE, INCONNU, FRAUDE)
   try {
     const [ligne] = await connection.query("SHOW COLUMNS FROM scan_billet LIKE 'statut'");

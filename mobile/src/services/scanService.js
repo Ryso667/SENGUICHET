@@ -47,18 +47,32 @@ async function verifierHMAC(qr) {
   return comparerTempsConstant(calcule, qr.hmac)
 }
 
+// Nettoie tous les tickets qui n'appartiennent pas à l'événement du contrôleur
+// Garantit qu'aucun résidu d'ancienne session ne peut être scanné
+export async function nettoyerTicketsHorsEvenement(eventId) {
+  const { getDb } = await import('../database/database')
+  const bd = await getDb()
+  await bd.runAsync('DELETE FROM tickets WHERE event_id != $event_id', { $event_id: eventId })
+}
+
 // Télécharge les tickets depuis le serveur vers SQLite locale
 // Lance une erreur si le réseau ou l'API échoue (le caller gère le feedback)
 export async function telechargerTickets(eventId, zone) {
   const { appelAPI } = await import('./apiService')
   const tickets = await appelAPI(`/scans/tickets/${eventId}`)
+  // Nettoie les tickets d'anciens événements avant d'insérer les nouveaux
+  // Empêche la faille : résidu de session précédente donnant accès à un autre événement
+  const { getDb } = await import('../database/database')
+  const bd = await getDb()
+  await bd.runAsync('DELETE FROM tickets WHERE event_id != $event_id', { $event_id: eventId })
   await insererTickets(tickets)
   return tickets.length
 }
 
 // Vérification complète offline d'un billet
-// Étape 1 : parsing QR → 2 : HMAC → 3 : expiration 24h → 4 : recherche locale → 5 : anti re-scan
-export async function verifierBillet(donneesQR) {
+// Étape 1 : parsing QR → 2 : HMAC → 3 : recherche locale → 4 : événement → 5 : anti re-scan
+// eventId : l'ID de l'événement auquel le contrôleur est connecté (depuis AuthContext)
+export async function verifierBillet(donneesQR, eventIdControleur) {
   const qr = parserQR(donneesQR)
   if (!qr) return { resultat: RESULTATS.INCONNU, message: 'QR code invalide' }
 
@@ -66,7 +80,7 @@ export async function verifierBillet(donneesQR) {
   // Étape 2 : vérification HMAC (signature cryptographique)
   const hmacOk = await verifierHMAC(qr)
   const num = qr.transaction_ref || null
-  const eventId = qr.event_id || null
+  const eventId = eventIdControleur || qr.event_id || null
 
   if (!hmacOk) {
     await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.FRAUDE, num, eventId)
@@ -76,6 +90,17 @@ export async function verifierBillet(donneesQR) {
   // Étape 3 : recherche du billet dans la base SQLite locale
   let ticket = await chercherTicket(qr.uuid)
   if (!ticket) {
+    await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.INCONNU, num, eventId)
+    return { resultat: RESULTATS.INCONNU, message: 'Billet non trouvé ❓' }
+  }
+
+  // Étape 4 : vérification que le billet appartient à l'événement du contrôleur
+  // Empêche la faille : billet d'un autre événement trouvé dans la DB locale (résidu de session précédente)
+  // Supprime immédiatement le billet de la DB pour éviter toute confusion future
+  if (eventIdControleur && Number(ticket.event_id) !== Number(eventIdControleur)) {
+    const { getDb } = await import('../database/database')
+    const bd = await getDb()
+    await bd.runAsync('DELETE FROM tickets WHERE uuid = $uuid', { $uuid: qr.uuid })
     await enregistrerScan(qr.uuid, qr.hmac, RESULTATS.INCONNU, num, eventId)
     return { resultat: RESULTATS.INCONNU, message: 'Billet non trouvé ❓' }
   }

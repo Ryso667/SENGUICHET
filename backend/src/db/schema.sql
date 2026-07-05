@@ -298,11 +298,15 @@ CREATE TABLE synchronisation_offline (
 ) ENGINE=InnoDB;
 
 -- 5.2 CodeControleur (codes d'accès à 4 chiffres pour contrôleurs)
+-- tentatives_echouees : compteur d'échecs consécutifs (lockout à 10)
+-- date_verrouillage : verrouillage temporaire de 15 min après 10 échecs
 CREATE TABLE IF NOT EXISTS code_controleur (
   id INT AUTO_INCREMENT PRIMARY KEY,
   code VARCHAR(4) NOT NULL,
   evenement_id INT NOT NULL,
   statut ENUM('ACTIF','INACTIF') NOT NULL DEFAULT 'ACTIF',
+  tentatives_echouees INT NOT NULL DEFAULT 0,
+  date_verrouillage DATETIME DEFAULT NULL,
   date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (evenement_id) REFERENCES evenement(id) ON DELETE CASCADE,
   UNIQUE KEY uk_evenement (evenement_id),
