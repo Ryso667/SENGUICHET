@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Ticket, MapPin, Calendar, Download } from "lucide-react";
 import TicketQR from "../../components/TicketQR";
+import API_URL from "../../config/api";
 
 const formatDateLong = (isoString) => {
   if (!isoString) return "";
@@ -19,8 +20,6 @@ export default function BilletDetail() {
   const [billet, setBillet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
   useEffect(() => {
     (async () => {

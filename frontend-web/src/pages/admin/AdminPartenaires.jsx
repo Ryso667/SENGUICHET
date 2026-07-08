@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminSidebar from "../../components/AdminSidebar";
 import { listerDemandes, traiterDemande, statsDemandes } from "../../services/partnerService";
+import { useToast } from "../../context/ToastContext";
 import { X, Check, Loader2, ChevronDown, ExternalLink, MessageSquare } from "lucide-react";
 
 const STATUT_COLORS = {
@@ -28,13 +29,14 @@ const AdminPartenaires = () => {
   const [modalAction, setModalAction] = useState(null);
   const [noteAdmin, setNoteAdmin] = useState("");
   const [updating, setUpdating] = useState(false);
+  const addToast = useToast();
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const [d, s] = await Promise.all([listerDemandes(filter || undefined), statsDemandes()]);
       setDemandes(d); setStats(s);
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); addToast("Impossible de charger les demandes.", "error"); }
     finally { setLoading(false); }
   };
 
@@ -49,7 +51,7 @@ const AdminPartenaires = () => {
       await traiterDemande(selected.id, { statut, note_admin: noteAdmin || undefined });
       setModalAction(null); setSelected(null); setNoteAdmin("");
       fetchData();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); addToast("Erreur lors du traitement de la demande.", "error"); }
     finally { setUpdating(false); }
   };
 

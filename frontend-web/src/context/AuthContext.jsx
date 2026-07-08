@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from "react";
 import { getToken, getUser, saveToken, saveUser, clearAll } from "../utils/storage";
+import API_URL from "../config/api";
 
 const AuthContext = createContext(null);
 
@@ -47,8 +48,7 @@ export const AuthProvider = ({ children }) => {
   const connecterAcheteurOTP = useCallback((email, code) => {
     return new Promise(async (resolve, reject) => {
       try {
-        const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
-        const res = await fetch(`${BASE_URL}/api/auth/acheteur/verifier-code`, {
+        const res = await fetch(`${API_URL}/api/auth/acheteur/verifier-code`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, code }),

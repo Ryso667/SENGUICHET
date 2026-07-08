@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
 import { adminListerEvenementsControleurs } from "../../services/controleurService";
+import { useToast } from "../../context/ToastContext";
 import { Shield, Loader2, ChevronRight } from "lucide-react";
 
 const statutConfig = {
@@ -22,6 +23,7 @@ const AdminControleurs = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const addToast = useToast();
 
   useEffect(() => {
     const fetch = async () => {
@@ -30,6 +32,7 @@ const AdminControleurs = () => {
         setEvents(data);
       } catch (err) {
         console.error("Erreur chargement events controleurs:", err);
+        addToast("Impossible de charger les événements contrôleurs.", "error");
       } finally {
         setLoading(false);
       }

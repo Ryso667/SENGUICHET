@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+import API_URL from "../config/api";
 
 export const statutPaiement = async (reference) => {
   const res = await fetch(`${API_URL}/api/paiements/${reference}/statut`);

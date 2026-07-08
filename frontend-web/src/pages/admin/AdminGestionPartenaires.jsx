@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
 import { listerDemandes, creerIdentifiantsPartenaire, listerIdentifiants, reinitialiserMotDePasse } from "../../services/partnerService";
+import { useToast } from "../../context/ToastContext";
 import { X, Check, Loader2, LogOut } from "lucide-react";
 
 const fadeUp = {
@@ -26,13 +27,14 @@ const AdminGestionPartenaires = () => {
   const [resetModal, setResetModal] = useState(null);
   const [newPassword, setNewPassword] = useState("");
   const [resetting, setResetting] = useState(false);
+  const addToast = useToast();
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const [acc, comptesData] = await Promise.all([listerDemandes("ACCEPTEE"), listerIdentifiants()]);
       setAcceptees(acc); setComptes(comptesData);
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); addToast("Impossible de charger les données.", "error"); }
     finally { setLoading(false); }
   };
 

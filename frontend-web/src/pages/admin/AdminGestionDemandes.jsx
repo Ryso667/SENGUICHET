@@ -42,7 +42,7 @@ const AdminGestionDemandes = () => {
       if (filterType) params.type = filterType;
       const data = await adminListerDemandes(params);
       setDemandes(data);
-    } catch (err) { console.error("Erreur chargement demandes:", err); }
+    } catch (err) { console.error("Erreur chargement demandes:", err); addToast("Impossible de charger les demandes.", "error"); }
     finally { setLoading(false); }
   };
 
@@ -59,7 +59,7 @@ const AdminGestionDemandes = () => {
       await adminTraiterDemande(modal.id, action, commentaire);
       setModal((prev) => ({ ...prev, statut: action, commentaire_admin: commentaire }));
       fetchDemandes();
-    } catch (err) { console.error("Erreur traitement:", err); }
+    } catch (err) { console.error("Erreur traitement:", err); addToast("Erreur lors du traitement de la demande.", "error"); }
     finally { setActionLoading(false); }
   };
 

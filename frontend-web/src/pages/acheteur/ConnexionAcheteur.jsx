@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, ArrowRight, ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import API_URL from "../../config/api";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -36,8 +37,7 @@ export default function ConnexionAcheteur() {
     if (!EMAIL_REGEX.test(email)) { setError("Email invalide"); return; }
     setLoading(true); setError(null);
     try {
-      const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const res = await fetch(`${BASE_URL}/api/auth/acheteur/envoyer-code`, {
+      const res = await fetch(`${API_URL}/api/auth/acheteur/envoyer-code`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

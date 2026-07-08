@@ -4,8 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Ticket, Calendar, MapPin, Download } from "lucide-react";
 import { mesBillets } from "../../services/billetService";
 import { useAuth } from "../../context/AuthContext";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+import API_URL from "../../config/api";
 
 export default function MesBillets() {
   const navigate = useNavigate();

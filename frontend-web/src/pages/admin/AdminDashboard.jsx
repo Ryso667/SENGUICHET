@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import AdminSidebar from "../../components/AdminSidebar";
 import { adminListerEvenements } from "../../services/eventService";
 import { adminListerOrganisateurs } from "../../services/authService";
+import { useToast } from "../../context/ToastContext";
 import { Calendar, Users, FileText, ShieldCheck, Plus, Eye, UserPlus, Printer } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
@@ -88,6 +89,7 @@ const AdminDashboard = () => {
   const [organisateurs, setOrganisateurs] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [periode, setPeriode] = useState(7);
+  const addToast = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -100,6 +102,7 @@ const AdminDashboard = () => {
         setOrganisateurs(orgs || []);
       } catch (err) {
         console.error("Erreur chargement dashboard:", err);
+        addToast("Impossible de charger les données. Vérifiez votre connexion au serveur.", "error");
       } finally {
         setChargement(false);
       }

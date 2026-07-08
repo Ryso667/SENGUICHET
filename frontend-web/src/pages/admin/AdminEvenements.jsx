@@ -73,6 +73,7 @@ const AdminEvenements = () => {
         setEvents(data);
       } catch (err) {
         console.error("Erreur chargement events admin:", err);
+        addToast("Impossible de charger les événements.", "error");
       } finally {
         setLoading(false);
       }
@@ -104,6 +105,7 @@ const AdminEvenements = () => {
       setModalTickets(res.tickets);
     } catch (err) {
       console.error("Erreur chargement détail:", err);
+      addToast("Impossible de charger le détail de l'événement.", "error");
       setModal(ev);
     }
   };
@@ -119,7 +121,7 @@ const AdminEvenements = () => {
       else if (action === "suspendre") { await adminSuspendreEvenement(id); updateStatut(id, "suspendu"); addToast(`${ev?.nom || "Événement"} suspendu`, "warning", 6000, { label: "Annuler", onClick: () => handleAction(id, "reactiver") }); }
       else if (action === "reactiver") { await adminSuspendreEvenement(id); updateStatut(id, "actif"); addToast(`${ev?.nom || "Événement"} réactivé ✅`, "success", 6000, { label: "Annuler", onClick: () => handleAction(id, "suspendre") }); }
       setConfirmId(null); setConfirmAction(null);
-    } catch (err) { console.error("Erreur action:", err); }
+    } catch (err) { console.error("Erreur action:", err); addToast("Erreur lors de l'action sur l'événement.", "error"); }
     finally { setActionLoading(false); }
   };
 

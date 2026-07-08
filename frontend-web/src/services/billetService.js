@@ -1,6 +1,5 @@
 import { getToken } from "../utils/storage";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+import API_URL from "../config/api";
 
 export const acheterBillet = async ({ evenementId, categorieTicketId, telephone, quantite = 1, provider = "WAVE", email }) => {
   const token = getToken();

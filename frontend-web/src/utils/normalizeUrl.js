@@ -3,7 +3,8 @@
  * Résout les URLs relatives (ex: /uploads/...) en URLs absolues
  * en utilisant l'URL de base du backend (VITE_API_URL)
  */
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
+import API_URL from "../config/api";
+const API_BASE = API_URL;
 
 export const normalizeImageUrl = (url) => {
   if (!url) return null;

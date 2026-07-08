@@ -65,6 +65,7 @@ const AdminOrganisateurs = () => {
         setOrgas(data);
       } catch (err) {
         console.error("Erreur chargement organisateurs:", err);
+        addToast("Impossible de charger les organisateurs.", "error");
       } finally {
         setLoading(false);
       }
