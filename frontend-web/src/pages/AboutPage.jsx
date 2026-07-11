@@ -107,10 +107,10 @@ const StatCard = ({ num, suffix = "", label }) => {
         transition={{ type: "spring", stiffness: 300, damping: 15 }}
         className="text-center"
       >
-        <div className="text-4xl md:text-5xl font-extrabold text-white leading-none mb-1">
+        <div className="text-4xl md:text-5xl font-extrabold leading-none mb-1" style={{ color: "#111827" }}>
           {count}{suffix}
         </div>
-        <div className="text-sm md:text-base text-white/70">{label}</div>
+        <div className="text-sm md:text-base" style={{ color: "#6B7280" }}>{label}</div>
       </motion.div>
     </div>
   );
@@ -145,11 +145,7 @@ const AboutPage = () => {
       {/* ═══════════════════════════════════════════════════════════
           SECTION 1 : HERO
           ═══════════════════════════════════════════════════════════ */}
-      <section className="hero-gradient relative overflow-hidden py-20 md:py-28 px-4 md:px-8 text-center">
-        {/* Cercles flottants décoratifs */}
-        <div className="absolute top-10 left-10 w-24 h-24 rounded-full bg-white/30 pointer-events-none animate-[floating_8s_ease-in-out_infinite]" aria-hidden="true" />
-        <div className="absolute bottom-16 right-16 w-32 h-32 rounded-full bg-white/20 pointer-events-none animate-[floating_10s_ease-in-out_infinite_1s]" aria-hidden="true" />
-        <div className="absolute top-1/2 right-1/4 w-16 h-16 rounded-full bg-[#15803D]/10 pointer-events-none animate-[floating_7s_ease-in-out_infinite_0.5s]" aria-hidden="true" />
+      <section className="relative overflow-hidden py-20 md:py-28 px-4 md:px-8 text-center">
 
         <div className="max-w-3xl mx-auto relative z-10">
           <motion.span
@@ -216,8 +212,7 @@ const AboutPage = () => {
       {/* ═══════════════════════════════════════════════════════════
           SECTION 2 : NOTRE MISSION
           ═══════════════════════════════════════════════════════════ */}
-      <section className="py-16 md:py-24 px-4 md:px-8 relative overflow-hidden" style={{ background: "#FAFAFA" }}>
-        <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full bg-[#15803D]/5 pointer-events-none" aria-hidden="true" />
+      <section className="py-16 md:py-24 px-4 md:px-8 relative overflow-hidden">
 
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start relative z-10">
           <div>
@@ -275,14 +270,11 @@ const AboutPage = () => {
       {/* ═══════════════════════════════════════════════════════════
           SECTION 3 : CHIFFRES CLÉS
           ═══════════════════════════════════════════════════════════ */}
-      <section className="py-16 md:py-20 px-4 md:px-8 text-center relative overflow-hidden" style={{ background: "#15803D" }}>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-white/[0.03] pointer-events-none" aria-hidden="true" />
-        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/[0.02] pointer-events-none" aria-hidden="true" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full bg-white/[0.02] pointer-events-none" aria-hidden="true" />
+      <section className="py-16 md:py-20 px-4 md:px-8 text-center relative overflow-hidden">
 
         <div className="max-w-5xl mx-auto relative z-10">
           <FadeInView>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-12">
+            <h2 className="text-3xl md:text-4xl font-extrabold mb-12" style={{ color: "#111827" }}>
               SENGUICHET en chiffres
             </h2>
           </FadeInView>
@@ -300,8 +292,7 @@ const AboutPage = () => {
       {/* ═══════════════════════════════════════════════════════════
           SECTION 4 : L'ÉQUIPE
           ═══════════════════════════════════════════════════════════ */}
-      <section className="py-16 md:py-24 px-4 md:px-8 text-center relative overflow-hidden" style={{ background: "#FAFAFA" }}>
-        <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-[#15803D]/5 pointer-events-none" aria-hidden="true" />
+      <section className="py-16 md:py-24 px-4 md:px-8 text-center relative overflow-hidden">
 
         <div className="max-w-6xl mx-auto relative z-10">
           <FadeInView>
@@ -358,7 +349,7 @@ const AboutPage = () => {
       {/* ═══════════════════════════════════════════════════════════
           SECTION 5 : DÉVELOPPÉ PAR SDP
           ═══════════════════════════════════════════════════════════ */}
-      <section className="py-16 md:py-20 px-4 md:px-8 text-center" style={{ background: "#F8FAFC" }}>
+      <section className="py-16 md:py-20 px-4 md:px-8 text-center">
         <FadeInView>
           <div className="max-w-2xl mx-auto">
             <img
@@ -394,8 +385,7 @@ const AboutPage = () => {
       {/* ═══════════════════════════════════════════════════════════
           SECTION 6 : CTA FINAL
           ═══════════════════════════════════════════════════════════ */}
-      <section className="py-16 md:py-24 px-4 md:px-8 text-center relative overflow-hidden" style={{ background: "#F0FDF4" }}>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-[#15803D]/5 pointer-events-none" aria-hidden="true" />
+      <section className="py-16 md:py-24 px-4 md:px-8 text-center relative overflow-hidden">
 
         <motion.div
           ref={tiltRef}

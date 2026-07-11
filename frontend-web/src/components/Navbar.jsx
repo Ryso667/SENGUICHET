@@ -32,7 +32,7 @@ const Navbar = () => {
             <img
               src="/images/logo.png"
               alt="SENGUICHET"
-              className="h-7 md:h-[170px] w-auto animate-logo drop-shadow-xl transition-all duration-300"
+              className="h-7 md:h-[170px] w-auto drop-shadow-xl transition-all duration-300"
             />
           </button>
           <Link to="/" className="flex items-baseline gap-0 ml-1.5 md:ml-36 whitespace-nowrap overflow-hidden min-w-0">

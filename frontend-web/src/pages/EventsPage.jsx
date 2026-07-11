@@ -119,7 +119,7 @@ export default function EventsPage() {
       {/* ═══════════════════════════════════════════════════════════
           HERO BANNIÈRE
           ═══════════════════════════════════════════════════════════ */}
-      <section className="hero-gradient relative overflow-hidden py-16 md:py-20 px-4 md:px-8 text-center">
+      <section className="relative overflow-hidden py-16 md:py-20 px-4 md:px-8 text-center">
         <div className="absolute top-8 right-12 w-20 h-20 rounded-full bg-white/20 pointer-events-none animate-[floating_8s_ease-in-out_infinite]" aria-hidden="true" />
         <div className="absolute bottom-8 left-12 w-16 h-16 rounded-full bg-white/15 pointer-events-none animate-[floating_10s_ease-in-out_infinite_1s]" aria-hidden="true" />
         <div className="absolute top-1/2 left-1/3 w-12 h-12 rounded-full bg-[#15803D]/10 pointer-events-none animate-[floating_7s_ease-in-out_infinite_0.5s]" aria-hidden="true" />

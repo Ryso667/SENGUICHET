@@ -1013,10 +1013,7 @@ const HomePage = () => {
       {/* ═══════════════════════════════════════════════════════════
           SECTION 7 — POUR LES ORGANISATEURS
           ═══════════════════════════════════════════════════════════ */}
-      <AnimatedSection className="py-16 md:py-24 px-4 md:px-8 relative overflow-hidden" style={{ background: "#FAFAFA", borderTop: "1px solid #E5E7EB", borderBottom: "1px solid #E5E7EB" }}>
-        {/* Décoratif */}
-        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full opacity-10 pointer-events-none" style={{ background: "#15803D", filter: "blur(60px)" }} aria-hidden="true" />
-        <div className="absolute -bottom-32 -left-16 w-96 h-96 rounded-full opacity-10 pointer-events-none" style={{ background: "#22C55E", filter: "blur(80px)" }} aria-hidden="true" />
+      <AnimatedSection className="py-16 md:py-24 px-4 md:px-8 relative overflow-hidden" style={{ borderTop: "1px solid #E5E7EB", borderBottom: "1px solid #E5E7EB" }}>
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex flex-col md:flex-row gap-12 md:gap-16">
@@ -1152,9 +1149,7 @@ const HomePage = () => {
 
 
 
-      <AnimatedSection className="py-16 md:py-20 px-4 md:px-8 text-center relative overflow-hidden" style={{ background: "#FAFAFA" }}>
-        {/* Décoratif */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full opacity-[0.06] pointer-events-none" style={{ background: "#15803D", filter: "blur(50px)" }} aria-hidden="true" />
+      <AnimatedSection className="py-16 md:py-20 px-4 md:px-8 text-center relative overflow-hidden">
 
         <div className="max-w-3xl mx-auto relative z-10">
           <p className="text-sm font-semibold uppercase tracking-widest mb-3" style={{ color: "#15803D" }}>Témoignages</p>
