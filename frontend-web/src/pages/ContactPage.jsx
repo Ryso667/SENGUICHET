@@ -165,15 +165,7 @@ export default function ContactPage() {
   return (
     <main>
       {/* HERO */}
-      <section className="hero-gradient relative overflow-hidden pt-20 pb-16 md:pt-28 md:pb-20 px-4">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute w-72 h-72 rounded-full bg-white/30 -top-20 -left-20" />
-          <div className="absolute w-48 h-48 rounded-full bg-white/20 top-1/3 -right-10" />
-          <div className="absolute w-36 h-36 rounded-full bg-white/25 bottom-10 left-1/4" />
-          <svg className="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 60" preserveAspectRatio="none">
-            <path d="M0,32 C360,0 1080,60 1440,32 L1440,60 L0,60 Z" fill="#FAFAFA" />
-          </svg>
-        </div>
+      <section className="relative overflow-hidden pt-20 pb-16 md:pt-28 md:pb-20 px-4">
         <div className="relative max-w-7xl mx-auto text-center">
           <motion.p
             {...fadeInUp}

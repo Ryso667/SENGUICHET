@@ -180,7 +180,7 @@ export default function EventsPage() {
       {/* ═══════════════════════════════════════════════════════════
           FILTRES STICKY AVEC PILLULE GLISSANTE
           ═══════════════════════════════════════════════════════════ */}
-      <div className="sticky z-40" style={{ top: "56px", background: "#FAFAFA", borderBottom: "1px solid #E5E7EB" }}>
+      <div className="sticky z-40" style={{ top: "56px", background: "rgba(255,255,255,0.7)", backdropFilter: "blur(8px)", borderBottom: "1px solid #E5E7EB" }}>
         <div className="max-w-6xl mx-auto flex items-center gap-4 px-4 md:px-8 py-3">
           <div className="flex items-center gap-1.5 overflow-x-auto flex-1 no-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
             {TABS.map((tab) => (

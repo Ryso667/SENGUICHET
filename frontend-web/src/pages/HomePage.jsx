@@ -259,30 +259,11 @@ const HomePage = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % TESTIMONIALS.length);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
+
 
   const featured = events.slice(0, 8);
 
-  // Auto-scroll carousel
-  useEffect(() => {
-    if (isCarouselHovered || !carouselRef.current || featured.length === 0) return;
-    const interval = setInterval(() => {
-      const el = carouselRef.current;
-      if (!el) return;
-      const maxScroll = el.scrollWidth - el.clientWidth;
-      const next = el.scrollLeft + el.clientWidth * 0.8;
-      el.scrollTo({ left: Math.min(next, maxScroll), behavior: "smooth" });
-      if (next >= maxScroll) {
-        setTimeout(() => { el.scrollTo({ left: 0, behavior: "smooth" }); }, 600);
-      }
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [isCarouselHovered, featured.length]);
+
 
   // Track carousel scroll position for dots
   useEffect(() => {

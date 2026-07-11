@@ -32,7 +32,7 @@ const socials = [
 
 const Footer = () => {
   return (
-    <footer className="bg-[#FAFAFA]">
+    <footer className="bg-transparent">
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-12 md:pt-16 pb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-8">
           {/* Colonne 1 — Identité SENGUICHET */}
