@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react";
 import { listerEvenementsPublic } from "../services/eventService";
 import EventCard, { EventCardSkeleton } from "../components/EventCard";
+import BackgroundPattern from "../components/BackgroundPattern";
 
 /* ─── Helpers ─── */
 
@@ -360,6 +361,7 @@ const HomePage = () => {
   }, [events]);
 
   return (
+    <BackgroundPattern>
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -1220,6 +1222,7 @@ const HomePage = () => {
       </motion.button>
 
     </motion.div>
+    </BackgroundPattern>
   );
 };
 

@@ -14,6 +14,7 @@ import {
 import { detailEvenementPublic, listerEvenementsPublic } from "../services/eventService";
 import EventCard from "../components/EventCard";
 import PaiementModal from "../components/PaiementModal";
+import BackgroundPattern from "../components/BackgroundPattern";
 
 const formatDateLong = (isoString) => {
   if (!isoString) return "";
@@ -148,6 +149,7 @@ export default function EventDetailPage() {
   const autresEvenements = allEvents.filter((e) => e.id !== event.id).slice(0, 3);
 
   return (
+    <BackgroundPattern>
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
       <div className="min-h-screen" style={{ background: "var(--color-bg)" }}>
 
@@ -448,5 +450,6 @@ export default function EventDetailPage() {
         />
       )}
     </motion.div>
+    </BackgroundPattern>
   );
 }

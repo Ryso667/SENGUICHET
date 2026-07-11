@@ -12,6 +12,7 @@ import {
 } from "@tabler/icons-react";
 import { listerEvenementsPublic, listerCategories } from "../services/eventService";
 import EventCard, { EventCardSkeleton } from "../components/EventCard";
+import BackgroundPattern from "../components/BackgroundPattern";
 
 const TEMPORAL_TABS = ["Tous", "Ce week-end", "Cette semaine", "Gratuits"];
 
@@ -114,6 +115,7 @@ export default function EventsPage() {
   }, [navigate]);
 
   return (
+    <BackgroundPattern>
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
       {/* ═══════════════════════════════════════════════════════════
           HERO BANNIÈRE
@@ -527,5 +529,6 @@ export default function EventsPage() {
         )}
       </main>
     </motion.div>
+    </BackgroundPattern>
   );
 }
