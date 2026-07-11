@@ -12,11 +12,11 @@ export default function BackgroundPattern({ children, style }) {
   const svgPattern = encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">' +
     '<path d="M75 15 Q92 15 92 32 Q92 52 58 52 Q28 52 28 68 Q28 85 45 85" ' +
-    'stroke="#D8D8E0" stroke-width="13" fill="none" stroke-linecap="round"/>' +
-    '<line x1="70" y1="12" x2="70" y2="18" stroke="#D8D8E0" stroke-width="2" stroke-linecap="round"/>' +
-    '<line x1="80" y1="12" x2="80" y2="18" stroke="#D8D8E0" stroke-width="2" stroke-linecap="round"/>' +
-    '<line x1="40" y1="88" x2="40" y2="94" stroke="#D8D8E0" stroke-width="2" stroke-linecap="round"/>' +
-    '<line x1="50" y1="88" x2="50" y2="94" stroke="#D8D8E0" stroke-width="2" stroke-linecap="round"/>' +
+    'stroke="#DADAE8" stroke-width="13" fill="none" stroke-linecap="round"/>' +
+    '<line x1="68" y1="11" x2="78" y2="11" stroke="#DADAE8" stroke-width="3" stroke-linecap="round"/>' +
+    '<line x1="72" y1="7" x2="82" y2="7" stroke="#DADAE8" stroke-width="3" stroke-linecap="round"/>' +
+    '<line x1="38" y1="89" x2="48" y2="89" stroke="#DADAE8" stroke-width="3" stroke-linecap="round"/>' +
+    '<line x1="42" y1="93" x2="52" y2="93" stroke="#DADAE8" stroke-width="3" stroke-linecap="round"/>' +
     "</svg>"
   );
 
@@ -40,7 +40,7 @@ export default function BackgroundPattern({ children, style }) {
           height: "100%",
           pointerEvents: "none",
           zIndex: 0,
-          opacity: 0.25,
+          opacity: 0.15,
           backgroundImage: patternUrl,
           backgroundRepeat: "repeat",
           backgroundSize: "120px 120px",
