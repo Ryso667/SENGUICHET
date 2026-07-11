@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Sidebar from "./Sidebar";
 import { LayoutGrid, Calendar, BarChart, FileText, LogOut } from "../components/Icons";
+import BackgroundPattern from "./BackgroundPattern";
 
 const bottomNav = [
   { icon: <LayoutGrid size={18} />, path: "/dashboard" },
@@ -17,6 +18,7 @@ const DashboardLayout = ({ children, title = "Dashboard" }) => {
   const location = useLocation();
 
   return (
+    <BackgroundPattern>
     <div className="min-h-screen flex" style={{ background: "#F0F4F8" }}>
       <Sidebar />
 
@@ -76,6 +78,7 @@ const DashboardLayout = ({ children, title = "Dashboard" }) => {
         </nav>
       </div>
     </div>
+    </BackgroundPattern>
   );
 };
 

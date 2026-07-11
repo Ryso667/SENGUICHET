@@ -11,7 +11,6 @@ import {
 } from "@tabler/icons-react";
 import { listerEvenementsPublic } from "../services/eventService";
 import EventCard, { EventCardSkeleton } from "../components/EventCard";
-import BackgroundPattern from "../components/BackgroundPattern";
 
 /* ─── Helpers ─── */
 
@@ -342,26 +341,32 @@ const HomePage = () => {
     }
   };
 
-  /* ─── HERO RIGHT CARDS ─── */
-  const heroEvents = useMemo(() => {
-    const src = [...events].sort(
-      (a, b) => new Date(a.date_debut) - new Date(b.date_debut)
-    ).slice(0, 2);
-    if (src.length === 0) {
-      // Fallback si aucun événement
-      return [
-        { id: 1, titre: "Concert Live", date_debut: new Date().toISOString(), lieu: "Dakar", ville: "Sénégal", prix_min: 5000 },
-        { id: 2, titre: "Festival d'Été", date_debut: new Date(Date.now() + 86400000).toISOString(), lieu: "Saint-Louis", ville: "Sénégal", prix_min: 10000 },
-      ];
-    }
-    if (src.length === 1) {
-      return [...src, { id: 999, titre: "Plus d'événements bientôt", date_debut: null, lieu: "Sénégal" }];
-    }
-    return src;
+  /* ─── HERO RIGHT CARDS — rotation automatique toutes les 6s ─── */
+  const [heroEvents, setHeroEvents] = useState([]);
+
+  useEffect(() => {
+    if (events.length === 0) return;
+
+    const pick = () => {
+      const shuffled = [...events].sort(() => Math.random() - 0.5);
+      setHeroEvents(shuffled.slice(0, 2));
+    };
+
+    pick();
+    const timer = setInterval(pick, 6000);
+    return () => clearInterval(timer);
   }, [events]);
 
+  const heroFallback = heroEvents.length === 0
+    ? [
+        { id: 1, titre: "Concert Live", date_debut: new Date().toISOString(), lieu: "Dakar", ville: "Sénégal", prix_min: 5000 },
+        { id: 2, titre: "Festival d'Été", date_debut: new Date(Date.now() + 86400000).toISOString(), lieu: "Saint-Louis", ville: "Sénégal", prix_min: 10000 },
+      ]
+    : heroEvents.length === 1
+    ? [...heroEvents, { id: 999, titre: "Plus d'événements bientôt", date_debut: null, lieu: "Sénégal" }]
+    : heroEvents;
+
   return (
-    <BackgroundPattern>
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -398,13 +403,7 @@ const HomePage = () => {
       {/* ═══════════════════════════════════════════════════════════
           SECTION 1 — HERO VISUEL (clair, animé, pas de dark)
           ═══════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden min-h-[55vh] md:min-h-[70vh] flex items-center hero-gradient">
-        {/* Décorations flottantes */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-          <div className="absolute rounded-full" style={{ width: 400, height: 400, background: "#BBF7D0", opacity: 0.5, top: "-8%", right: "-5%", animation: "floating 8s ease-in-out infinite" }} />
-          <div className="absolute rounded-full" style={{ width: 250, height: 250, background: "#22C55E", opacity: 0.2, bottom: "5%", left: "-3%", animation: "floating 10s ease-in-out infinite reverse" }} />
-          <div className="hidden md:block absolute rounded-full" style={{ width: 180, height: 180, background: "#15803D", opacity: 0.1, top: "30%", left: "50%", animation: "floating 12s ease-in-out infinite 2s" }} />
-        </div>
+      <section className="relative overflow-hidden min-h-[55vh] md:min-h-[70vh] flex items-center">
         <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10 w-full">
           <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-16 py-8 md:py-20">
             {/* ── Colonne gauche ── */}
@@ -530,9 +529,9 @@ const HomePage = () => {
               className="grid md:w-[52%] grid-cols-1 sm:grid-cols-2 gap-5"
             >
               {/* Événement #1 — mise en avant */}
-              {heroEvents[0] && (
+              {heroFallback[0] && (
                 <motion.button
-                  onClick={() => navigate(`/evenements/${heroEvents[0].id}`)}
+                  onClick={() => navigate(`/evenements/${heroFallback[0].id}`)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
                   className="w-full rounded-2xl overflow-hidden text-left"
@@ -541,34 +540,34 @@ const HomePage = () => {
                 >
                   <div className="relative hero-card-pb">
                     <img
-                      src={heroEvents[0].affiche_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&h=800&fit=crop"}
-                      alt={heroEvents[0].titre}
+                      src={heroFallback[0].affiche_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&h=800&fit=crop"}
+                      alt={heroFallback[0].titre}
                       className="absolute inset-0 w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                    {heroEvents[0].date_fin && new Date(heroEvents[0].date_fin) < new Date() && (
+                    {heroFallback[0].date_fin && new Date(heroFallback[0].date_fin) < new Date() && (
                       <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
                         <span className="text-white font-extrabold text-xl uppercase tracking-wider">Terminé</span>
                       </div>
                     )}
                     <div className="absolute bottom-0 left-0 right-0 p-5">
-                      {heroEvents[0].date_debut && (
+                      {heroFallback[0].date_debut && (
                         <p className="text-[#4ADE80] text-sm font-bold uppercase tracking-wide mb-1">
-                          {formatDateFr(heroEvents[0].date_debut)}
+                          {formatDateFr(heroFallback[0].date_debut)}
                         </p>
                       )}
                       <p className="text-white text-xl font-extrabold leading-tight mb-1">
-                        {heroEvents[0].titre}
+                        {heroFallback[0].titre}
                       </p>
                       <p className="text-white/70 text-sm mb-3">
-                        {[heroEvents[0].lieu, heroEvents[0].ville].filter(Boolean).join(", ")}
+                        {[heroFallback[0].lieu, heroFallback[0].ville].filter(Boolean).join(", ")}
                       </p>
                       <div className="flex items-center justify-between">
-                        {(heroEvents[0].prix_min != null || heroEvents[0].prix != null) && (
+                        {(heroFallback[0].prix_min != null || heroFallback[0].prix != null) && (
                           <span className="inline-block bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full">
-                            {(heroEvents[0].prix_min ?? heroEvents[0].prix) === 0
+                            {(heroFallback[0].prix_min ?? heroFallback[0].prix) === 0
                               ? "Gratuit"
-                              : `À partir de ${((heroEvents[0].prix_min ?? heroEvents[0].prix) || 0).toLocaleString("fr-FR")} CFA`}
+                              : `À partir de ${((heroFallback[0].prix_min ?? heroFallback[0].prix) || 0).toLocaleString("fr-FR")} CFA`}
                           </span>
                         )}
                         <span className="bg-white/10 backdrop-blur-sm border border-white/30 text-white text-sm font-bold px-5 py-2 rounded-full transition-colors hover:bg-white/20">
@@ -581,9 +580,9 @@ const HomePage = () => {
               )}
 
               {/* Événement #2 */}
-              {heroEvents[1] && (
+              {heroFallback[1] && (
                 <motion.button
-                  onClick={() => navigate(`/evenements/${heroEvents[1].id}`)}
+                  onClick={() => navigate(`/evenements/${heroFallback[1].id}`)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
                   className="w-full relative rounded-2xl overflow-hidden text-left"
@@ -592,34 +591,34 @@ const HomePage = () => {
                 >
                   <div className="relative hero-card-pb">
                     <img
-                      src={heroEvents[1].affiche_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&h=800&fit=crop"}
-                      alt={heroEvents[1].titre}
+                      src={heroFallback[1].affiche_url || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&h=800&fit=crop"}
+                      alt={heroFallback[1].titre}
                       className="absolute inset-0 w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                    {heroEvents[1].date_fin && new Date(heroEvents[1].date_fin) < new Date() && (
+                    {heroFallback[1].date_fin && new Date(heroFallback[1].date_fin) < new Date() && (
                       <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
                         <span className="text-white font-extrabold text-lg uppercase tracking-wider">Terminé</span>
                       </div>
                     )}
                     <div className="absolute bottom-0 left-0 right-0 p-5">
-                      {heroEvents[1].date_debut && (
+                      {heroFallback[1].date_debut && (
                         <p className="text-[#4ADE80] text-sm font-bold uppercase tracking-wide mb-1">
-                          {formatDateFr(heroEvents[1].date_debut)}
+                          {formatDateFr(heroFallback[1].date_debut)}
                         </p>
                       )}
                       <p className="text-white text-lg font-bold leading-tight mb-1">
-                        {heroEvents[1].titre}
+                        {heroFallback[1].titre}
                       </p>
                       <p className="text-white/60 text-sm mb-2">
-                        {[heroEvents[1].lieu, heroEvents[1].ville].filter(Boolean).join(", ")}
+                        {[heroFallback[1].lieu, heroFallback[1].ville].filter(Boolean).join(", ")}
                       </p>
                       <div className="flex items-center justify-between">
-                        {(heroEvents[1].prix_min != null || heroEvents[1].prix != null) && (
+                        {(heroFallback[1].prix_min != null || heroFallback[1].prix != null) && (
                           <span className="inline-block bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full">
-                            {(heroEvents[1].prix_min ?? heroEvents[1].prix) === 0
+                            {(heroFallback[1].prix_min ?? heroFallback[1].prix) === 0
                               ? "Gratuit"
-                              : `${((heroEvents[1].prix_min ?? heroEvents[1].prix) || 0).toLocaleString("fr-FR")} CFA`}
+                              : `${((heroFallback[1].prix_min ?? heroFallback[1].prix) || 0).toLocaleString("fr-FR")} CFA`}
                           </span>
                         )}
                         <span className="bg-white/10 backdrop-blur-sm border border-white/30 text-white text-xs font-bold px-4 py-1.5 rounded-full transition-colors hover:bg-white/20">
@@ -1222,7 +1221,6 @@ const HomePage = () => {
       </motion.button>
 
     </motion.div>
-    </BackgroundPattern>
   );
 };
 

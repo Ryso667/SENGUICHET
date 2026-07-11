@@ -36,6 +36,7 @@ import Unauthorized from "./pages/Unauthorized";
 import { ToastProvider } from "./context/ToastContext";
 import CommandPalette from "./components/CommandPalette";
 import KeyboardShortcutsOverlay from "./components/KeyboardShortcutsOverlay";
+import BackgroundPattern from "./components/BackgroundPattern";
 
 import ConnexionAcheteur from "./pages/acheteur/ConnexionAcheteur";
 import MesBillets from "./pages/acheteur/MesBillets";
@@ -53,7 +54,7 @@ function App() {
         <KeyboardShortcutsOverlay />
         <div className="min-h-screen bg-bg">
           <Routes>
-            <Route element={<div className="pb-16 md:pb-0"><Navbar /><Outlet /><Footer /><BottomNav /></div>}>
+            <Route element={<BackgroundPattern><div className="pb-16 md:pb-0"><Navbar /><Outlet /><Footer /><BottomNav /></div></BackgroundPattern>}>
               <Route path="/" element={<HomePage />} />
               <Route path="/evenements" element={<EventsPage />} />
               <Route path="/evenements/:id" element={<EventDetailPage />} />

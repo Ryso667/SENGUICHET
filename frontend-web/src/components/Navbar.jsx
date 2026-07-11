@@ -21,7 +21,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="h-20 md:h-24 bg-[#FAFAFA] border-b border-black/5 sticky top-0 z-50">
+    <nav className="h-20 md:h-24 bg-white/70 backdrop-blur-md border-b border-black/5 sticky top-0 z-50">
       <div className="h-full flex items-center justify-between">
         <div className="flex items-center gap-1 md:gap-3 flex-shrink min-w-0 overflow-hidden">
           <button
