@@ -532,7 +532,7 @@ body{background:#0F1A0F;min-height:100vh;display:flex;flex-direction:column;alig
   <div class="hd">
     <div class="o1"></div><div class="o2"></div><div class="o3"></div>
     <div class="hr">
-      <div class="lb"><img src="/public/logo_mobile.jpeg" alt="S" /></div>
+      <div class="lb"><img src="/public/logo.png" alt="S" /></div>
       <div class="ht">SENGUICHET</div>
     </div>
     <div class="gl"></div>
